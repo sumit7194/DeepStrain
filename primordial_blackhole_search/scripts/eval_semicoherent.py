@@ -53,13 +53,17 @@ def score(model, device, windows: np.ndarray) -> np.ndarray:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--weights", default="semicoherent")
+    ap.add_argument("--arch", default="semicoherent",
+                    choices=["semicoherent", "semicoherent_v2"])
     ap.add_argument("--smoke", action="store_true")
     args = ap.parse_args()
     tag = "_smoke" if args.smoke else ""
+    if args.weights != "semicoherent":
+        tag += f"_{args.weights}"
     n_inj = 8 if args.smoke else N_INJ_PER_SEG
 
     device = "mps" if torch.backends.mps.is_available() else "cpu"
-    model = make_model("semicoherent")
+    model = make_model(args.arch)
     model.load_state_dict(torch.load(C.MODEL_DIR / f"{args.weights}.pt", map_location=device))
     model.to(device).eval()
     test_segs = json.loads((C.DATA_DIR / "manifest.json").read_text())["H1"]["test"]

@@ -418,7 +418,7 @@ SAME proper per-segment whitening as the oracle/cnn_w64 -> mf_distance_fraction 
 **Artifacts (planned):** `scripts/build_waveform_pool.py`, `data/waveform_pool/`,
 `pbh/models.py::SemiCoherentNet`, `models/semicoherent.pt`, `results/eval_semicoherent.json`.
 
-### Stage 1 RESULTS (2026-06-13): NEGATIVE — learned design caps ~0.69 AUC, doesn't realize the ceiling
+### Stage 1 RESULTS (2026-06-13→14): DEFINITIVE NEGATIVE — both learned designs cap ~0.69–0.71 AUC, zero sensitive distance
 
 First full run (sweep winner lr=1e-3, 16 epochs) was **unstable**: val AUC peaked 0.687 at
 epoch 0 then collapsed/thrashed to ~0.35 (below chance) while train loss kept dropping. Eval
@@ -441,7 +441,44 @@ an optimization one — and 0.69 < cnn_w64's 0.79, so this learned design lands 
 distance. **Stage 0 proved the phase information is recoverable (oracle 0.66–0.76); this learned
 semi-coherent architecture does not realize it.**
 
-**Not yet closed — exhausting the hurdles before concluding:** (B) architecture attempt — a
-learnable matched-filter front end (long quadrature kernels) to beat the 0.69 ceiling; (C) the
-full lr=3e-4 / 20k-sample run for the definitive number on the current architecture. Artifacts:
-`models/semicoherent*.pt`, `results/eval_semicoherent.json`, diagnostic probes `models/diag_*`.
+**Hurdles exhausted (2026-06-14) — B and C both run; the negative is now definitive.**
+Pre-registered both before running: B should beat 0.69 if the bottleneck is the front-end
+*representation*; C pins V1's plateau at the same budget V2 gets.
+
+**(B) `SemiCoherentNetV2` — learnable matched-filter front end.** A bank of 64 quadrature
+templates (`Conv1d(1,128,k=2048)`), squared+summed per pair into a phase-invariant
+`|⟨d, template⟩|²` SNR map — the oracle's statistic, made learnable — then the same per-chunk
+back end as V1. Capacity gate passed (memorizes a batch to 100%). Full run lr=3e-4 / 20k / 20
+epochs: **stable and monotonic, clean plateau at val AUC 0.691** (best ep16; last 3 epochs
+0.688/0.690/0.689 — saturated, no thrash). Eval: **0.000 / 0.000 / 0.000**.
+
+**(C) `SemiCoherentNet` definitive — full lr=3e-4 / 20k / 20 epochs.** The "flat 0.69 plateau"
+seen in the short probes was a **probe-length artifact**: at full budget V1 does not plateau —
+it **overfits and goes unstable** (train loss falls smoothly 0.50→0.46 while val AUC oscillates
+0.31↔0.62, sitting *below chance* on most late epochs). Best **0.706** (hit early @ ep3, never
+recovered). Eval: **0.000 / 0.000 / 0.000**. (Survived a mid-run power loss; resumed from the
+epoch-5 atomic checkpoint with zero work lost.)
+
+| design | front end | behavior at full budget | best val AUC | sensitive distance (zero-FA) |
+|---|---|---|---|---|
+| V1 `SemiCoherentNet` | conv on raw strain | overfits, val thrashes 0.31–0.62 | 0.706 (unstable) | **0.000 / 0.000 / 0.000** |
+| V2 `SemiCoherentNetV2` | learnable matched filter | monotonic, clean plateau | 0.691 (stable) | **0.000 / 0.000 / 0.000** |
+| cnn_w64 (ref) | spectrogram | — | 0.793 | 0.41 / 0.46 / 0.48 |
+| oracle ceiling | true templates | — | — | 0.66 / 0.76 / 0.75 |
+
+**Conclusion — stage 1 CLOSED, definitive negative.** The ~0.69–0.71 AUC wall is **robust
+across both natural learned realizations** of a semi-coherent detector — it is not an
+architecture quirk or an optimization failure (V2 converges cleanly and still hits it). Adding
+an explicit matched-filter front end did *not* help; it only made training better-behaved.
+Stage 0 proved the phase information is physically recoverable (oracle 0.66–0.76 ≫ cnn_w64),
+but **neither learned-from-strain design realizes it at this data/training scale**, both landing
+below cnn_w64's 0.79 → zero sensitive distance at the zero-FA threshold. The 45→70% gap needs a
+genuinely **coherent / fully-matched-filter** method (or far more data + true-waveform
+supervision), not a better classifier on whitened strain. Artifacts: `models/semicoherent_v1def.pt`
+(0.706), `models/semicoherent_v2.pt` (0.691), `results/eval_semicoherent_semicoherent_v1def.json`,
+`results/eval_semicoherent_semicoherent_v2.json`, histories `models/*_history.json`.
+
+**Open threads (for whenever this is revisited):** true-waveform-supervised front end (init the
+V2 templates from a real subsolar bank instead of random); time-domain ResNet on strain at much
+larger data scale; or accept stage-0's verdict that the gap is a *coherence* problem and port a
+classical chunked matched filter as the detector with a learned veto on top.

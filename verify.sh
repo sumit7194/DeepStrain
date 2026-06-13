@@ -83,6 +83,18 @@ assert d["ceilings"]["vetoed"]["n4"]["mf_distance_fraction"]["0.55-0.88"] < 0.1,
 print("PASS  pbh rung-3 oracle (n=8 vetoed 0.66/0.76/0.75 clears cnn_w64; ceiling, optimistic)")
 PYEOF7
 
+echo "--- pbh rung-3 stage-1 learned (definitive negative: both designs -> 0 sensitive distance)"
+./primordial_blackhole_search/.venv/bin/python - << 'PYEOF8' || FAIL=1
+import json
+RES = "primordial_blackhole_search/results"
+for tag, auc in (("semicoherent_v1def", 0.706), ("semicoherent_v2", 0.691)):
+    d = json.loads(open(f"{RES}/eval_semicoherent_{tag}.json").read())
+    fr = d["mf_distance_fraction"]
+    for m in ("0.17-0.35", "0.35-0.55", "0.55-0.88"):
+        assert fr[m] == 0.0, f"{tag} no longer 0 sensitive distance [{m}]: {fr[m]}"
+print("PASS  pbh rung-3 stage-1 (learned V1 0.706 / V2 0.691 AUC both -> 0.0 dist; gap needs coherent method)")
+PYEOF8
+
 echo "========================================"
 [ $FAIL -eq 0 ] && echo "BLACKHOLE GATE: ALL GREEN" || echo "BLACKHOLE GATE: FAILURES"
 exit $FAIL

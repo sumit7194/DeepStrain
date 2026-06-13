@@ -155,9 +155,63 @@ class SemiCoherentNet(nn.Module):
         return self.combiner(feats).squeeze(-1)
 
 
+class SemiCoherentNetV2(nn.Module):
+    """Stage-1 (B): learnable matched-filter FRONT END.
+
+    A bank of K learnable quadrature templates correlates with the strain; squaring
+    + summing each quadrature pair gives a phase-invariant per-template SNR^2 map
+    |<d, template>|^2 (the oracle's statistic, learned). That map is then encoded
+    per-chunk and combined — same back end as V1, different (matched-filter) front.
+    """
+
+    N_CHUNKS = 8
+
+    def __init__(self, n_templates: int = 64, kernel: int = 2048, stride: int = 512) -> None:
+        super().__init__()
+        self.k = n_templates
+        self.front = nn.Conv1d(1, 2 * n_templates, kernel, stride=stride,
+                               padding=kernel // 2, bias=False)  # K quadrature pairs
+        self.bn = nn.BatchNorm1d(n_templates)
+        chans = [n_templates, 128, 128, 128]
+        self.encoder = nn.Sequential(
+            *[_ResBlock1d(chans[i], chans[i + 1], k=5, stride=4) for i in range(len(chans) - 1)],
+            nn.AdaptiveAvgPool1d(1),
+            nn.Flatten(),
+        )
+        d = chans[-1]
+        self.chunk_score = nn.Linear(d, 1)
+        self.combiner = nn.Sequential(
+            nn.Linear(d + self.N_CHUNKS + 4, 128), nn.SiLU(),
+            nn.Dropout(0.2), nn.Linear(128, 1),
+        )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        c = self.front(x)                       # (B, 2K, T')
+        b, _, t = c.shape
+        c = c.reshape(b, self.k, 2, t)
+        snr = self.bn(torch.log1p(c[:, :, 0] ** 2 + c[:, :, 1] ** 2))  # (B,K,T') phase-invariant
+        tc = t // self.N_CHUNKS
+        chunks = (
+            snr[..., : tc * self.N_CHUNKS]
+            .reshape(b, self.k, self.N_CHUNKS, tc)
+            .permute(0, 2, 1, 3)
+            .reshape(b * self.N_CHUNKS, self.k, tc)
+        )
+        z = self.encoder(chunks).reshape(b, self.N_CHUNKS, -1)
+        rho = self.chunk_score(z).squeeze(-1)
+        r2 = rho**2
+        feats = torch.cat(
+            [rho, r2.sum(1, keepdim=True), r2.mean(1, keepdim=True),
+             r2.std(1, keepdim=True), r2.amax(1, keepdim=True), z.mean(1)],
+            dim=1,
+        )
+        return self.combiner(feats).squeeze(-1)
+
+
 def make_model(name: str) -> nn.Module:
     return {
         "cnn": SpectrogramCNN,
         "transformer": ChunkTransformer,
         "semicoherent": SemiCoherentNet,
+        "semicoherent_v2": SemiCoherentNetV2,
     }[name]()

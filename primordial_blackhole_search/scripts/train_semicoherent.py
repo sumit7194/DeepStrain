@@ -120,6 +120,8 @@ def main() -> None:
     ap.add_argument("--train-samples", type=int, default=20000)
     ap.add_argument("--val-samples", type=int, default=4000)
     ap.add_argument("--out", default="semicoherent")
+    ap.add_argument("--arch", default="semicoherent",
+                    choices=["semicoherent", "semicoherent_v2"])
     ap.add_argument("--overfit", action="store_true", help="capacity gate: memorize one batch")
     ap.add_argument("--sweep", action="store_true", help="3-point LR probe then train the winner")
     ap.add_argument("--sweep-epochs", type=int, default=3)
@@ -145,7 +147,7 @@ def main() -> None:
     loss_fn = nn.BCEWithLogitsLoss()
 
     if args.overfit:
-        model = make_model("semicoherent").to(device)
+        model = make_model(args.arch).to(device)
         print(f"semicoherent: {sum(p.numel() for p in model.parameters())/1e6:.2f}M params")
         ds = StrainInjectionDataset(train_noise, pool_x[:n_tr], pool_snr[:n_tr],
                                     n_samples=args.batch, deterministic=True)
@@ -187,7 +189,7 @@ def main() -> None:
             if key in done:
                 continue
             torch.manual_seed(C.SEED)
-            m = make_model("semicoherent").to(device)
+            m = make_model(args.arch).to(device)
             auc, _ = run_training(m, probe_dl, val_dl, device, lr, args.sweep_epochs,
                                   f"sweep_lr{key}", clip=args.clip)
             done[key] = auc
@@ -204,7 +206,7 @@ def main() -> None:
               flush=True)
 
     torch.manual_seed(C.SEED)
-    model = make_model("semicoherent").to(device)
+    model = make_model(args.arch).to(device)
     print(f"full training: lr={args.lr:.0e}, {args.epochs} epochs, "
           f"{sum(p.numel() for p in model.parameters())/1e6:.2f}M params", flush=True)
     best_auc, history = run_training(

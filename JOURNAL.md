@@ -11,6 +11,24 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-06-14 — pbh v2 rung 3 stage 1 CLOSED: definitive negative (A/B/C exhausted)
+- Finished the "be sure of the hurdles" pass before concluding. **(B) SemiCoherentNetV2** —
+  learnable matched-filter front end (64 quadrature templates → phase-invariant |⟨d,t⟩|² map,
+  the oracle's statistic, learned). Capacity gate passed; full run lr=3e-4/20k/20ep was **stable,
+  monotonic, clean plateau val AUC 0.691** (no thrash) — eval **0.000/0.000/0.000**. **(C)**
+  definitive original-arch run revealed the earlier "flat 0.69 plateau" was a **short-probe
+  artifact**: at full budget V1 **overfits/destabilizes** (train loss 0.50→0.46 smooth while val
+  AUC oscillates 0.31↔0.62, below chance on most late epochs), best 0.706, eval **0.000/0.000/0.000**.
+- **Verdict:** the ~0.69–0.71 AUC wall is robust across BOTH natural learned realizations — not an
+  architecture quirk, not optimization (V2 converges cleanly and still hits it). The explicit
+  matched-filter front end only made training better-behaved; it did not raise the ceiling. Stage 0
+  proved the phase info is recoverable (oracle 0.66–0.76 ≫ cnn_w64 0.41–0.48), but neither
+  learned-from-strain design realizes it (<cnn_w64's 0.79 → 0 sensitive distance at zero-FA).
+  **The 45→70% gap needs a coherent / fully-matched-filter method (or true-waveform supervision at
+  much larger scale), not a better classifier on whitened strain.** Open threads banked in RESULTS.md.
+- **Infra:** survived a THIRD power loss mid-C — resumed from the epoch-5 atomic checkpoint with zero
+  work lost (dashboard relaunch gotcha noted: root dashboard runs under system `python3`, not `.venv`).
+
 ## 2026-06-13 — pbh v2 rung 3 stage 1 (learned semi-coherent model): NEGATIVE so far
 - Built the learned realization: SemiCoherentNet (per-chunk 1-D ResNet on whitened strain +
   consistency combiner, 1.24M), on-the-fly strain-injection dataset from a 2500-waveform pool,

@@ -107,16 +107,22 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   noise sample; clean ceiling >1.0 proves the bar is soft) -> the number is optimistic; a
   learned model lands below.** Next = stage 1: build/train the n=8 learned model, measure
   the oracle->learned gap. Full table + caveats in RESULTS.md.
-- **v2 rung 3 stage 1 (2026-06-13): NEGATIVE so far — learned design caps ~0.69 AUC.** Built
-  SemiCoherentNet (per-chunk 1-D ResNet on whitened strain + consistency combiner, 1.24M),
-  on-the-fly strain-injection dataset from a waveform pool, train/eval (scripts/train_semicoherent
-  .py, eval_semicoherent.py). First full run unstable (peaked 0.687 ep0 -> collapsed ~0.35);
-  eval **0.000/0.000/0.000** vs cnn_w64 0.41/0.46/0.48. Probed LR+grad-clip exhaustively: only
-  lr=3e-4 stable (flat ~0.69 plateau), 5e-4/1e-3/3e-3 collapse, clipping doesn't fix -> ~0.69 is
-  an ARCHITECTURE ceiling (<cnn_w64 0.79 -> ~0 sensitive distance). Stage 0's phase info is real
-  but THIS learned design can't realize it. Robust infra (nohup-detached + per-epoch atomic ckpt
-  /--resume + babysitter) survived an overnight power loss. Next: (B) matched-filter front-end
-  architecture, (C) full lr=3e-4/20k run for the definitive number. Full table in RESULTS.md.
+- **v2 rung 3 stage 1 DONE (2026-06-14): DEFINITIVE NEGATIVE — both learned designs cap ~0.69–0.71
+  AUC, 0 sensitive distance.** Built SemiCoherentNet (per-chunk 1-D ResNet on whitened strain +
+  consistency combiner, 1.24M) + on-the-fly strain-injection dataset, train/eval. Exhausted A/B/C
+  before closing: **(A)** documented; **(B) SemiCoherentNetV2** = learnable matched-filter front end
+  (64 quadrature templates -> phase-invariant |<d,template>|^2 map, the oracle's statistic learned)
+  trained **stable + monotonic, clean plateau val AUC 0.691**, eval **0.000/0.000/0.000**; **(C)**
+  definitive V1 full lr=3e-4/20k/20ep showed the earlier "0.69 plateau" was a SHORT-PROBE ARTIFACT —
+  at full budget V1 **overfits/goes unstable** (train loss falls 0.50->0.46 while val AUC thrashes
+  0.31<->0.62, below chance late), best 0.706, eval **0.000/0.000/0.000**. ⇒ the ~0.69–0.71 wall is
+  robust across BOTH natural realizations (not arch quirk, not optimization — V2 converges cleanly
+  and still hits it); explicit matched-filter front end only stabilized training, didn't raise the
+  ceiling. Stage 0's phase info is real (oracle 0.66–0.76) but neither learned-from-strain design
+  realizes it < cnn_w64 0.79. **45→70% gap needs a genuinely coherent/fully-MF method (or true-
+  waveform supervision + far more data), not a better strain classifier.** Robust infra survived
+  THREE power losses (atomic ckpt/--resume, nohup-detached). Open threads + full A/B/C table in
+  RESULTS.md; artifacts semicoherent_v1def.pt/semicoherent_v2.pt + eval_semicoherent_*.json.
 - **Dashboard:** `python3 dashboard.py` (repo root, stdlib only) serves a live run monitor
   over `*/results/progress/*.json` for all three sub-projects; pbh gained `pbh/progress.py`
   (same heartbeat convention as echolib/rdlib). Writes `.dashboard.pid` on start; **stop it
