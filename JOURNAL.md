@@ -11,6 +11,22 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-06-13 — pbh v2 rung 3 stage 1 (learned semi-coherent model): NEGATIVE so far
+- Built the learned realization: SemiCoherentNet (per-chunk 1-D ResNet on whitened strain +
+  consistency combiner, 1.24M), on-the-fly strain-injection dataset from a 2500-waveform pool,
+  train/eval + self-healing overnight runner. Overfit gate passed (capacity OK).
+- First full run (sweep winner lr=1e-3, 16 epochs) UNSTABLE: val AUC peaked 0.687 @ep0 then
+  collapsed/thrashed to ~0.35; eval **0.000/0.000/0.000** vs cnn_w64 0.41/0.46/0.48, oracle
+  0.66/0.76/0.75. Exhaustive LR + grad-clip probing: only lr=3e-4 stable (flat ~0.69), all
+  higher LRs collapse (below-chance cliffs = exploding gradients), clipping doesn't fix.
+  ⇒ ~0.69 is an ARCHITECTURE ceiling < cnn_w64's 0.79 ⇒ ~0 sensitive distance. Stage-0 phase
+  info real but this learned design can't realize it.
+- **Infra win:** survived TWO power losses + repeated session-kill of background tasks. Lessons:
+  long runs must be nohup-detached (not harness background tasks) [[nohup-long-running]];
+  per-epoch atomic checkpoint + --resume; ps RSS undercounts MPS memory (use Activity Monitor).
+- Not closing yet (be sure of the hurdles): (B) matched-filter front-end architecture,
+  (C) full lr=3e-4/20k definitive run. Table in pbh RESULTS.md.
+
 ## 2026-06-13 — pbh v2 rung 3 stage 0 (semi-coherent oracle): GATE CLEARED (first non-negative)
 - After rungs 1&2 ruled out score aggregation, diagnosed the 45->70 gap as a *representation*
   problem (magnitude spectrograms discard phase; MLGWSC ~70% used time-domain). Chose option B

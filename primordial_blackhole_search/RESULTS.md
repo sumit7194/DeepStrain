@@ -417,3 +417,31 @@ SAME proper per-segment whitening as the oracle/cnn_w64 -> mf_distance_fraction 
 
 **Artifacts (planned):** `scripts/build_waveform_pool.py`, `data/waveform_pool/`,
 `pbh/models.py::SemiCoherentNet`, `models/semicoherent.pt`, `results/eval_semicoherent.json`.
+
+### Stage 1 RESULTS (2026-06-13): NEGATIVE — learned design caps ~0.69 AUC, doesn't realize the ceiling
+
+First full run (sweep winner lr=1e-3, 16 epochs) was **unstable**: val AUC peaked 0.687 at
+epoch 0 then collapsed/thrashed to ~0.35 (below chance) while train loss kept dropping. Eval
+of the best model: **mf_distance_fraction = 0.000 / 0.000 / 0.000** (vs cnn_w64 0.41/0.46/0.48,
+oracle 0.66/0.76/0.75). At a zero-FA threshold you need ~0.78+ AUC for any non-zero distance.
+
+**LR + clipping exhausted (8k/8–10-epoch probes), one stable config, hard ~0.69 ceiling:**
+
+| config | behavior | best val AUC |
+|---|---|---|
+| lr 3e-4 | stable, flat plateau | **0.69** |
+| lr 5e-4 | climbs then collapses (ep3) | 0.63 |
+| lr 1e-3 | collapses (ep1) | 0.69 (transient) |
+| lr 3e-4..3e-3 + grad-clip 1.0 | clipping does NOT stabilize | 0.55 / 0.69 (thrash) |
+
+Collapses are sudden val cliffs to **below chance** while train loss is smooth → exploding-
+gradient instability the high LRs can't escape and clipping doesn't fix; the only stable LR
+(3e-4) converges flat at ~0.69. So the ~0.69 is an **architecture/representation ceiling**, not
+an optimization one — and 0.69 < cnn_w64's 0.79, so this learned design lands at ~0 sensitive
+distance. **Stage 0 proved the phase information is recoverable (oracle 0.66–0.76); this learned
+semi-coherent architecture does not realize it.**
+
+**Not yet closed — exhausting the hurdles before concluding:** (B) architecture attempt — a
+learnable matched-filter front end (long quadrature kernels) to beat the 0.69 ceiling; (C) the
+full lr=3e-4 / 20k-sample run for the definitive number on the current architecture. Artifacts:
+`models/semicoherent*.pt`, `results/eval_semicoherent.json`, diagnostic probes `models/diag_*`.

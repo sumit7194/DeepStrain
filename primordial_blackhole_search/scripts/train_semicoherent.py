@@ -58,7 +58,7 @@ def atomic_torch_save(obj, path) -> None:
 
 
 def run_training(model, train_dl, val_dl, device, lr, epochs, run,
-                 save_path=None, ckpt_path=None, resume=False):
+                 save_path=None, ckpt_path=None, resume=False, clip=0.0):
     opt = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-3)
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=epochs)
     loss_fn = nn.BCEWithLogitsLoss()
@@ -79,6 +79,8 @@ def run_training(model, train_dl, val_dl, device, lr, epochs, run,
             opt.zero_grad()
             loss = loss_fn(model(x), y)
             loss.backward()
+            if clip > 0:
+                torch.nn.utils.clip_grad_norm_(model.parameters(), clip)
             opt.step()
             tot += float(loss) * len(y); n += len(y)
             if b % 20 == 0:
@@ -121,6 +123,8 @@ def main() -> None:
     ap.add_argument("--overfit", action="store_true", help="capacity gate: memorize one batch")
     ap.add_argument("--sweep", action="store_true", help="3-point LR probe then train the winner")
     ap.add_argument("--sweep-epochs", type=int, default=3)
+    ap.add_argument("--clip", type=float, default=0.0,
+                    help="gradient-norm clip (0=off); stabilizes higher LRs")
     ap.add_argument("--resume", action="store_true",
                     help="resume from the last epoch checkpoint (and skip a cached sweep)")
     args = ap.parse_args()
@@ -185,7 +189,7 @@ def main() -> None:
             torch.manual_seed(C.SEED)
             m = make_model("semicoherent").to(device)
             auc, _ = run_training(m, probe_dl, val_dl, device, lr, args.sweep_epochs,
-                                  f"sweep_lr{key}")
+                                  f"sweep_lr{key}", clip=args.clip)
             done[key] = auc
             tmp = sweep_path.with_suffix(".json.tmp")
             tmp.write_text(json.dumps({"aucs": done}))
@@ -206,7 +210,7 @@ def main() -> None:
     best_auc, history = run_training(
         model, train_dl, val_dl, device, args.lr, args.epochs, f"train_{args.out}",
         save_path=C.MODEL_DIR / f"{args.out}.pt",
-        ckpt_path=C.MODEL_DIR / f"{args.out}_ckpt.pt", resume=args.resume)
+        ckpt_path=C.MODEL_DIR / f"{args.out}_ckpt.pt", resume=args.resume, clip=args.clip)
     (C.MODEL_DIR / f"{args.out}_history.json").write_text(json.dumps(history))
     print(f"BEST VAL AUC {best_auc:.4f} -> models/{args.out}.pt  (cnn_w64 ref 0.793)", flush=True)
 

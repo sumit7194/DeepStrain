@@ -107,6 +107,16 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   noise sample; clean ceiling >1.0 proves the bar is soft) -> the number is optimistic; a
   learned model lands below.** Next = stage 1: build/train the n=8 learned model, measure
   the oracle->learned gap. Full table + caveats in RESULTS.md.
+- **v2 rung 3 stage 1 (2026-06-13): NEGATIVE so far — learned design caps ~0.69 AUC.** Built
+  SemiCoherentNet (per-chunk 1-D ResNet on whitened strain + consistency combiner, 1.24M),
+  on-the-fly strain-injection dataset from a waveform pool, train/eval (scripts/train_semicoherent
+  .py, eval_semicoherent.py). First full run unstable (peaked 0.687 ep0 -> collapsed ~0.35);
+  eval **0.000/0.000/0.000** vs cnn_w64 0.41/0.46/0.48. Probed LR+grad-clip exhaustively: only
+  lr=3e-4 stable (flat ~0.69 plateau), 5e-4/1e-3/3e-3 collapse, clipping doesn't fix -> ~0.69 is
+  an ARCHITECTURE ceiling (<cnn_w64 0.79 -> ~0 sensitive distance). Stage 0's phase info is real
+  but THIS learned design can't realize it. Robust infra (nohup-detached + per-epoch atomic ckpt
+  /--resume + babysitter) survived an overnight power loss. Next: (B) matched-filter front-end
+  architecture, (C) full lr=3e-4/20k run for the definitive number. Full table in RESULTS.md.
 - **Dashboard:** `python3 dashboard.py` (repo root, stdlib only) serves a live run monitor
   over `*/results/progress/*.json` for all three sub-projects; pbh gained `pbh/progress.py`
   (same heartbeat convention as echolib/rdlib). Writes `.dashboard.pid` on start; **stop it
