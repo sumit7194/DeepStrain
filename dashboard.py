@@ -1,4 +1,4 @@
-"""Live progress dashboard for all BlackHole sub-project runs.
+"""Live progress dashboard for all DeepStrain sub-project runs.
 
 Serves a self-refreshing page over the heartbeat files that echolib / rdlib /
 pbh.progress already write to <sub>/results/progress/*.json. Stdlib only.
@@ -39,7 +39,7 @@ def scan() -> list[dict]:
 
 
 PAGE = """<!doctype html>
-<html><head><meta charset="utf-8"><title>BlackHole — Run Active Dashboard</title>
+<html><head><meta charset="utf-8"><title>DeepStrain — Run Active Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -418,7 +418,7 @@ PAGE = """<!doctype html>
       <ellipse class="bh-ring-2" cx="50" cy="50" rx="38" ry="11" fill="none" stroke="#10b981" stroke-width="1" opacity="0.6" transform="rotate(-15 50 50)"/>
     </svg>
     <div>
-      <h1>BLACKHOLE</h1>
+      <h1>DEEPSTRAIN</h1>
       <div class="subtitle">Run & Progress Monitor</div>
     </div>
   </div>
