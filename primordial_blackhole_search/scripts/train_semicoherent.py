@@ -171,28 +171,33 @@ def main() -> None:
 
     sweep_path = C.MODEL_DIR / f"{args.out}_sweep.json"
     if args.sweep:
-        if args.resume and sweep_path.exists():
-            args.lr = float(json.loads(sweep_path.read_text())["best_lr"])
-            print(f"RESUMED: skipping sweep, cached best lr={args.lr:.0e}", flush=True)
-        else:
-            probe_ds = StrainInjectionDataset(train_noise, pool_x[:n_tr], pool_snr[:n_tr],
-                                              n_samples=8000)
-            probe_dl = DataLoader(probe_ds, batch_size=args.batch, num_workers=0)
-            sweep = {}
-            for lr in LRS:
-                torch.manual_seed(C.SEED)
-                m = make_model("semicoherent").to(device)
-                auc, _ = run_training(m, probe_dl, val_dl, device, lr, args.sweep_epochs,
-                                      f"sweep_lr{lr:.0e}")
-                sweep[lr] = auc
-                print(f"LR {lr:.0e}: probe val AUC {auc:.4f}", flush=True)
-            args.lr = max(sweep, key=sweep.get)
+        done = {}  # "{lr:.0e}" -> probe val AUC; cached incrementally so a kill
+        if args.resume and sweep_path.exists():  # mid-sweep only loses the in-flight probe
+            done = json.loads(sweep_path.read_text()).get("aucs", {})
+            print(f"resumed sweep: already probed {list(done)}", flush=True)
+        probe_ds = StrainInjectionDataset(train_noise, pool_x[:n_tr], pool_snr[:n_tr],
+                                          n_samples=8000)
+        probe_dl = DataLoader(probe_ds, batch_size=args.batch, num_workers=0)
+        for lr in LRS:
+            key = f"{lr:.0e}"
+            if key in done:
+                continue
+            torch.manual_seed(C.SEED)
+            m = make_model("semicoherent").to(device)
+            auc, _ = run_training(m, probe_dl, val_dl, device, lr, args.sweep_epochs,
+                                  f"sweep_lr{key}")
+            done[key] = auc
             tmp = sweep_path.with_suffix(".json.tmp")
-            tmp.write_text(json.dumps({"best_lr": args.lr,
-                                       "aucs": {f"{k:.0e}": v for k, v in sweep.items()}}))
+            tmp.write_text(json.dumps({"aucs": done}))
             os.replace(tmp, sweep_path)
-            print(f"SWEEP winner: lr={args.lr:.0e}  "
-                  f"({ {f'{k:.0e}': round(v,4) for k,v in sweep.items()} })", flush=True)
+            print(f"LR {key}: probe val AUC {auc:.4f}", flush=True)
+        best_key = max(done, key=done.get)
+        args.lr = float(best_key)
+        tmp = sweep_path.with_suffix(".json.tmp")
+        tmp.write_text(json.dumps({"best_lr": args.lr, "aucs": done}))
+        os.replace(tmp, sweep_path)
+        print(f"SWEEP winner: lr={best_key}  ({ {k: round(v,4) for k,v in done.items()} })",
+              flush=True)
 
     torch.manual_seed(C.SEED)
     model = make_model("semicoherent").to(device)
