@@ -57,7 +57,10 @@ def main() -> None:
     _, t0, psd = whiten_segment("H1", rep_gps)
     print(f"representative PSD from segment {rep_gps}; generating {args.n_pool} waveforms")
 
-    x = np.lib.format.open_memmap(xpath, mode="w+", dtype=np.float16,
+    # build into a .tmp memmap; rename only when fully written, so a power loss
+    # mid-generation never leaves a complete-looking-but-zero-filled pool
+    xtmp = xpath.with_suffix(".tmp.npy")
+    x = np.lib.format.open_memmap(xtmp, mode="w+", dtype=np.float16,
                                   shape=(args.n_pool, WIN))
     rng = np.random.default_rng(SEED)
     rows, t_start = [], time.time()
@@ -71,6 +74,8 @@ def main() -> None:
             progress("waveform_pool", i + 1, args.n_pool, elapsed_s=time.time() - t_start)
             print(f"  {i + 1}/{args.n_pool}", flush=True)
     x.flush()
+    del x
+    os.replace(xtmp, xpath)  # atomic: x_pool.npy exists only when complete
     tmp = mpath.with_suffix(".tmp.parquet")
     pd.DataFrame(rows).to_parquet(tmp)
     os.replace(tmp, mpath)
