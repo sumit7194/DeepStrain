@@ -95,6 +95,17 @@ for tag, auc in (("semicoherent_v1def", 0.706), ("semicoherent_v2", 0.691)):
 print("PASS  pbh rung-3 stage-1 (learned V1 0.706 / V2 0.691 AUC both -> 0.0 dist; gap needs coherent method)")
 PYEOF8
 
+echo "--- pbh path-G coincidence (coinc_eval: H1xL1 beats single-det at matched FAR)"
+./primordial_blackhole_search/.venv/bin/python - << 'PYEOF9' || FAIL=1
+import json
+d = json.loads(open("primordial_blackhole_search/results/coinc_eval.json").read())
+s, c = d["single_det_fraction"], d["coinc_fraction_matchedFAR"]
+for m in ("0.17-0.35", "0.35-0.55", "0.55-0.88"):
+    assert c[m] > s[m] + 0.03, f"coincidence no longer beats single-det [{m}]: {c[m]} vs {s[m]}"
+assert d["coinc_fraction_matchedFAR"]["0.55-0.88"] >= 0.40, "high-mass coinc distance regressed below 0.40"
+print("PASS  pbh path-G coincidence (H1xL1 +1.3-1.5x sensitive distance over single-det, matched FAR)")
+PYEOF9
+
 echo "========================================"
 [ $FAIL -eq 0 ] && echo "BLACKHOLE GATE: ALL GREEN" || echo "BLACKHOLE GATE: FAILURES"
 exit $FAIL

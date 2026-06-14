@@ -11,6 +11,24 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-06-14 — pbh v2 second pass: cross-field brainstorm → coincidence PIVOT → FIRST POSITIVE (+1.3–1.5×)
+- Took 3 external models' brainstorms, triaged them; convergent diagnosis (weak supervision / noise floor)
+  held. Ran the cheap diagnostics first: glitch-robust re-threshold (threshold_robust_eval.py) REFUTED the
+  single-glitch hypothesis but sharpened it (V2 weakly real, dies to a fat noise tail).
+- F0 bank-mismatch gate (bank_oracle.py + coinc_check.py): a coarse template bank gives 0.000, and the
+  clean true-vs-bank diagnostic QUANTIFIED why — subsolar needs ≤0.1% Mc template spacing (+1% Mc → SNR
+  dead), ~1,600+ templates → intractable locally; extrinsic params (sky/inclination) are irrelevant (the
+  quadrature MF is orientation-invariant). This is why F0 was flat-zero.
+- **The pivot (G0):** coincidence kills the NOISE floor, not the SIGNAL-recovery (bank-density) problem →
+  ride it on the LEARNED model (cnn_w64), not the broken bank. Fetched 8 more L1 coincident segments
+  (10 total; 5 overlap H1 test).
+- **G1 — FIRST POSITIVE (coinc_eval.py):** cnn_w64 per-detector + H1×L1 coincidence with a TIME-SLIDE
+  background (18,910 accidentals from 5 segments). At matched FAR, two-detector agreement gives
+  **+1.3–1.5× sensitive distance** over the single-detector ML search (1.48× high-mass → ~2.3–3.3× volume).
+  Pipeline cross-checks v1's per-detector SNR50 (~18.6). After a long run of honest negatives, the
+  coincidence lever finally moved the number. Caveats: coarse window-level coincidence, ~1/6h FAR, H1→L1
+  transfer. Next: G2 = finer coincidence (timing/phase). Full tables in RESULTS.md.
+
 ## 2026-06-14 — pbh v2 rung 3 stage 1 CLOSED: definitive negative (A/B/C exhausted)
 - Finished the "be sure of the hurdles" pass before concluding. **(B) SemiCoherentNetV2** —
   learnable matched-filter front end (64 quadrature templates → phase-invariant |⟨d,t⟩|² map,

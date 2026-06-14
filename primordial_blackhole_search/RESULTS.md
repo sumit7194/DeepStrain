@@ -482,3 +482,95 @@ supervision), not a better classifier on whitened strain. Artifacts: `models/sem
 V2 templates from a real subsolar bank instead of random); time-domain ResNet on strain at much
 larger data scale; or accept stage-0's verdict that the gap is a *coherence* problem and port a
 classical chunked matched filter as the detector with a learned veto on top.
+
+### Stage 1 second pass (2026-06-14): threshold-robustness check — glitch hypothesis REFUTED, diagnosis sharpened
+Prompted by an outside critique (the zero-FA threshold = single highest noise score = likely ONE
+glitch → maybe 0.000 is a measurement artifact). Confirmed the threshold IS a lone outlier (V2 max
+5.2σ above mean, V1 13.8σ). Re-thresholded the SAME injections/noise (scripts/threshold_robust_eval.py,
+identical seeds) under a strict→loose ladder:
+
+| policy (FAR over 6.7h) | V2 high-mass frac | V1 frac (all bins) |
+|---|---|---|
+| max (0 FA) / drop top-1 / drop top-2 | 0.000 | 0.000 |
+| p99 (1% FA) | 0.348 | 0.000 |
+| p95 (5% FA) | 0.348 (mid 0.361) | 0.000 |
+
+### Path G milestone G0 (2026-06-14): coincidence plumbing check — PLUMBING SOUND, but it pivots the plan
+Built scripts/coinc_check.py: inject one event into H1+L1 (v1 search.py geometry: per-detector antenna
++ light-travel delay), recover with the bank, check timing. Fetched 8 more L1 coincident segments
+(10 total: 5 overlap H1 test, 5 overlap H1 train; ~1.3 GB). Findings via a clean true-vs-bank diagnostic:
+- **Plumbing is correct:** the TRUE template recovers newSNR ~28–32 with **+0.2 ms** timing in both
+  detectors — geometry, L1 whitening, windowing, statistic all sound.
+- **Extrinsic params are irrelevant:** exact masses + WRONG (fiducial) sky/inclination still recovers
+  27.6 (== true). The quadrature MF is orientation-invariant → a bank needs to cover MASS only (and F0
+  was not confounded by sky/inclination).
+- **Mass spacing is the whole game (dephasing curve, injected SNR 40):** +0.01% Mc → 27.9; +0.1% →
+  18.9; **+1% → 6.2 (dead); +3% → 6.7 (dead).** A 32–64-template bank has ~3–6% Mc gaps → every
+  injection is dephased to the noise floor. Covering Mc∈[0.17,0.87] at 0.1% spacing needs **~1,600
+  templates** (Mc alone; ×more for q/spin) → intractable locally, and the trials would inflate the
+  noise floor further. This is *why* F0 was flat-zero, now quantified.
+- **Consequence — the pivot:** coincidence kills the NOISE floor, not the SIGNAL-recovery (bank-density)
+  problem. You cannot coincide signals you cannot recover per-detector. So **G1 must ride on the LEARNED
+  model (cnn_w64, 0.41–0.48 single-detector, AUC 0.79), not the bank** — the learned model is not
+  bank-density-limited (it generalizes across mass), and its single-detector limitation IS the noise
+  floor, which is exactly what H1×L1 coincidence + time-slides attack. Artifacts: scripts/coinc_check.py.
+
+### Path G milestone G1 (2026-06-14): H1×L1 COINCIDENCE WORKS — first positive result (+1.3–1.5× distance)
+After G0 forced the pivot (bank density-limited → ride coincidence on the LEARNED model), built
+scripts/coinc_eval.py: cnn_w64 per-detector on 64-s windows, H1×L1 coincidence with a **time-slide
+background** (pair H1 window i with L1 window i+lag, lag≠0 → 18,910 accidental coincidences over ~305
+livetimes from just 5 coincident test segments). Coincident statistic = sH1+sL1; injected 1,500
+coincident signals (proper antenna + light-travel delay) at network SNR 4–40. Compared single-H1 vs
+coincidence **at matched false-alarm rate** (the fair comparison), network-SNR axis:
+
+| mass bin | single-det SNR50 (frac) | coinc SNR50 (frac) | **distance gain** |
+|---|---|---|---|
+| 0.17–0.35 | 30.7 (0.261) | 23.2 (0.345) | **1.32×** |
+| 0.35–0.55 | 27.3 (0.293) | 20.9 (0.382) | **1.30×** |
+| 0.55–0.88 | 27.7 (0.289) | 18.7 (0.428) | **1.48×** |
+
+**Requiring two-detector agreement improves sensitive distance ~1.3–1.5× over the single-detector ML
+search (best 1.48× high-mass) → ~2.3–3.3× sensitive VOLUME.** First positive in the whole gap-closing
+arc. Cross-check that validates the pipeline: single-det SNR50 27–31 (network) ÷√2 ≈ 19–22 per-detector,
+matching v1's published per-detector SNR50 ~18.6. The lever (coincidence kills the noise floor) is real
+and works for the learned detector — exactly G0's prediction.
+**Honest caveats:** (1) coincidence is COARSE — window-level sum of logits, no matched-filter timing/phase
+consistency (a finer coincidence should gain more → G2); (2) matched-FAR threshold is at ~1 FA/livetime
+(~5.7 h), not a realistic 1/month — pushing lower needs more L1 data; (3) H1-trained model applied to L1
+(transfer, not L1-optimized → H1+L1 training is upside); (4) network-SNR axis, internal single-vs-coinc
+comparison (not directly the per-detector 0.41–0.48). Artifacts: scripts/coinc_eval.py,
+results/coinc_eval.{json,png}, results/coinc_inj.parquet (raw scores → free re-binning).
+
+### Path F milestone F0 (2026-06-14): bank-mismatch gate — NOT CLEARED, two-sided squeeze (clean negative)
+Replaced the oracle's true template with a coarse equal-mass bank (mass-only grid, B up to 64),
+same injections/seeds/n=8-vetoed statistic (scripts/bank_oracle.py). Result: **0.000 at every bank
+size 3→64**, dead flat. Diagnosed against the true-template oracle (same injections):
+- **Mismatch:** bank-max newSNR median **6.54** vs true-template **10.31** → the coarse bank recovers
+  only **~69%** of the SNR (subsolar dephasing, as predicted by v1's −28%/0.01%-Mc).
+- **Trials:** the bank's zero-FA noise floor is **~10.25 newSNR** — and it is NOT a lone glitch this
+  time (top noise maxima 10.25/10.11/10.0/9.97/9.89…, a smooth populated tail across all 6 segments;
+  median 7.62). 64 templates × a 4000-s scan give noise many chances to fake a chirp; the χ² veto
+  isn't strong enough to push it below ~10.
+- **The squeeze:** signal sits at ~6.5, noise floor at ~10 → no separating threshold exists, even at
+  the median-segment threshold. Densifying can't escape it: more templates slightly raise recovery
+  but raise the noise floor in lockstep (hence the flat-zero curve). A learned veto (F1) can only push
+  noise *down*, but signal (6.5) is already *below* noise (10) in this statistic → F1 can't rescue it.
+**Verdict:** the naive single-detector semi-coherent bank is mismatch+trials limited. The field reaches
+~70% with what we are NOT using: a dense *coherent* bank (recovery >0.97, but huge → enormous trials)
+AND **multi-detector coincidence** (kills the noise floor — random noise rarely coincides across H1×L1
+with consistent timing). **Root cause across ALL our negatives (learned classifier, learned semi-coherent,
+coarse bank) is the single-detector noise floor.** Artifacts: results/bank_oracle_B64.{json,png},
+results/bank/. We have only 2 L1-coincident segments (thin) — a real coincidence study needs more L1 data.
+
+---
+### Stage 1 second pass threshold-robustness detail
+**Dropping the top 1–2 outliers changes nothing** → the 0.000 is NOT a single-glitch artifact; the
+original negative stands and is now more robust. **But the check sharpened the picture:** (1) V2 is
+*not* null — at a loose 1–5% false-alarm rate it reaches ~0.35 sensitive distance in the mid/high
+mass bins, i.e. it carries real signal information that only collapses at the strict tail; (2) V1 is
+genuinely null at every operating point (consistent with its overfit/unstable training); (3) what
+kills V2 is not one glitch but a **fat non-Gaussian noise tail** (~1–5% of windows score as high as
+moderate signals) — exactly what a consistency veto (the oracle had one) or a sharper matched-filter
+statistic would suppress. ⇒ the fix must **sharpen the signal/noise statistic or veto the tail**, not
+tweak the threshold or the architecture. Points squarely at dense oracle supervision and/or a real-MF
+front end. Artifacts: results/threshold_robust_semicoherent_{v2,v1def}.json.

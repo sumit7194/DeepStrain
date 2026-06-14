@@ -123,6 +123,19 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   waveform supervision + far more data), not a better strain classifier.** Robust infra survived
   THREE power losses (atomic ckpt/--resume, nohup-detached). Open threads + full A/B/C table in
   RESULTS.md; artifacts semicoherent_v1def.pt/semicoherent_v2.pt + eval_semicoherent_*.json.
+- **v2 second pass (2026-06-14): cross-field brainstorm → diagnostics → PIVOT to coincidence →
+  FIRST POSITIVE.** Triaged 3 external models' ideas; the convergent diagnosis (weak supervision /
+  noise floor) held. (B-threshold) glitch-robust re-threshold REFUTED the single-glitch hypothesis but
+  sharpened it: V2 weakly real, dies to a fat noise tail (threshold_robust_eval.py). (F0) bank-mismatch
+  gate (bank_oracle.py): coarse bank = 0.000, two-sided squeeze — and coinc_check.py's true-vs-bank
+  diagnostic QUANTIFIED it: subsolar needs ≤0.1% Mc template spacing (+1% Mc → SNR dead), ~1,600+
+  templates → intractable; extrinsic params irrelevant (orientation-invariant MF). (G0) pivot: coincidence
+  kills the NOISE floor not SIGNAL recovery → ride it on the LEARNED model, not the bank. Fetched 8 more
+  L1 coincident segments (10 total, 5 overlap H1 test). **(G1) coinc_eval.py: cnn_w64 per-detector +
+  H1×L1 time-slide coincidence → +1.3–1.5× sensitive distance over single-det at matched FAR (1.48×
+  high-mass; ~2.3–3.3× volume), first positive of the arc.** Pipeline cross-checks v1's SNR50. Caveats:
+  coarse window-level coincidence, modest FAR (~1/6h), H1→L1 transfer. Next: **G2 = finer coincidence
+  (timing/phase consistency)**. Full tables + caveats in RESULTS.md.
 - **Dashboard:** `python3 dashboard.py` (repo root, stdlib only) serves a live run monitor
   over `*/results/progress/*.json` for all three sub-projects; pbh gained `pbh/progress.py`
   (same heartbeat convention as echolib/rdlib). Writes `.dashboard.pid` on start; **stop it
