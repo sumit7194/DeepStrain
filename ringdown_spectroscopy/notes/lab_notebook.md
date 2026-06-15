@@ -258,3 +258,47 @@ balanced sims, 30 epochs, MPS). Pipeline runs end-to-end + dashboard-connected. 
   *detectability threshold* (overtone-SNR sensitivity curve), which IS a clean result, rather than a
   per-event call; (D) restrict the amp_frac prior to detectable overtones. Gates NOT added to verify.sh
   (nothing green to lock). Artifacts: models/11_tonecount.pt, results/11_tonecount.json, plots/11_tonecount.png.
+
+### 2026-06-15 — v4 fix A (RMS-normalization): PARTIAL — fixes calibration, NOT the transfer
+Added per-detector unit-std normalization (norm_seg), applied consistently in training + both real-data
+paths (scale-invariance). Full run (`--tag _norm`): T1 AUC 0.716→**0.728**, specificity 0.721→**0.767**,
+**T3 ECE 0.120→0.057 (now PASSES the calibration gate)** — normalization genuinely helped the white-noise
+side. BUT real-data transfer STILL broken: T2b injections **0.99/1.00** (still saturated to 2-tone),
+T4 GW250114 **0.198** / GW150914 **0.341** (still 1-tone). ⇒ absolute scale was NOT the whole problem;
+the **noise COLORING** is — real whitened O4 noise isn't white, so the white-noise-trained net still sees
+real data as out-of-distribution. Indicated fix: **B = train on real O4 noise**. Artifact: results/11_tonecount_norm.json.
+
+### 2026-06-15 — v4 fix B (real-O4-noise training): NEGATIVE — transfer STILL broken
+Added sbilib.simulate_tonecount(noise=...) + disk-cached real-O4-noise pool (14 whitened chunks before
+GW250114, reboot-safe) + make_batch_real; `--real-noise` injects overtones into real-noise windows.
+Result (`_realnoise`): AUC 0.717, spec 0.761, ECE 0.073 — same as before; **real-data transfer STILL
+broken** (T2b 1.00/1.00, GW250114 0.112). ⇒ noise coloring was NOT the (only) problem either.
+
+### 2026-06-15 — v4 DIAGNOSTIC: the classifier learned a "loud ⇒ 2-tone" SNR shortcut
+Probed P(2-tone) vs injected 220 amplitude (fix-B model, cached noise): flat-ish ~0.3–0.5 within the
+training amp range (2–12), then **saturates to 1.0 for amp>16 regardless of tone count** (even pure
+1-tone). norm_seg removes scale but NOT signal-to-noise ratio, so the net keyed on SNR. ROOT CONFOUND:
+in training the 2-tone class adds the overtone energy on top of the same 220 ⇒ 2-tone has ~1.19×
+the energy of 1-tone ⇒ the net learned SNR, not tone count.
+
+### 2026-06-15 — v4 fix C' (SNR-matched classes): removes the shortcut, transfer STILL broken
+Added `snr_match`: rescale the 2-tone to the pure-220 total energy (class energy ratio 1.19→1.02,
+verified). Run (`_matched`, real-noise + SNR-match): AUC **0.72→0.63**, ECE 0.21 — the honest task
+(detect spectral splitting at FIXED energy) is genuinely harder — but **transfer STILL broken**
+(T2b 0.99/0.98, GW250114 0.20, GW150914 0.067).
+
+### 2026-06-15 — v4 CONCLUSION (first arc): black-box ML tone-count does NOT transfer to real data
+Four full attempts (first-cut / norm / real-noise / real-noise+SNR-match) + a diagnostic: the
+sim→real gap is **multi-faceted** — (1) absolute scale [fixed by norm], (2) noise coloring [addressed
+by real-noise training], (3) an SNR shortcut [removed by SNR-matching], and (4) **injection convention**
+(training injects in the whitened domain; both real-data paths inject/observe raw THEN whiten, which
+reshapes the ringdown — untested, needs per-example whitening = heavier redesign). Fixing 1–3
+individually each helped a symptom but none restored a trustworthy real-event verdict: **GW250114 reads
+1-tone (P≈0.1–0.2) in EVERY variant, contradicting the official 221 detection.** Why did v2/v3 NPE
+transfer but this doesn't? Parameter-estimating the dominant mode is robust to these gaps; presence-
+detecting a faint, fast-dying overtone is far more fragile.
+**Salvageable / honest deliverable (option C):** the WHITE-NOISE sensitivity curve — overtone SNR≈6–7
+for 50% detection — is a clean, simulation-only "detectability threshold" that does NOT depend on the
+broken transfer. **Come-back-later lever:** injection-convention-matched training (raw-domain inject +
+whiten per example), or abandon the black-box classifier for explicit Bayesian model selection with a
+real noise model (what the field actually does). Artifacts: results/11_tonecount_{,_norm,_realnoise,_matched}.json.

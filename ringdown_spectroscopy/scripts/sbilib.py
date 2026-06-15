@@ -40,7 +40,7 @@ def simulate(mass, chi, delta, rng, n_det=2):
     return x
 
 
-def simulate_tonecount(mass, chi, n_tones, amp_frac, rng, n_det=2):
+def simulate_tonecount(mass, chi, n_tones, amp_frac, rng, n_det=2, noise=None, snr_match=False):
     """v4 tone-count sim: 1-tone (220 only) or 2-tone (220 + Kerr-locked 221).
 
     delta=0 (tone-count tests PRESENCE of the overtone, not its frequency).
@@ -48,7 +48,18 @@ def simulate_tonecount(mass, chi, n_tones, amp_frac, rng, n_det=2):
     (whitened segment (n_det, N_SAMP), injected overtone matched-filter SNR over
     detectors -- 0 for 1-tone). Start time + per-detector amplitudes are drawn
     here, so both are marginalized by construction (the start-time dependence is
-    the crux of the overtone controversy)."""
+    the crux of the overtone controversy).
+
+    noise: optional (n_det, N_SAMP) real whitened-noise windows to inject into
+    (v4 fix B, domain-matched). If None, idealized unit white noise (the first
+    cut). Whitened-domain injection (add in the whitened frame) keeps it cheap;
+    the QNM band is in-band where whitening is ~flat.
+
+    snr_match (v4 fix C'): rescale the 2-tone so its TOTAL signal energy equals
+    a pure-220 of the same amp1 -> the two classes are SNR-matched, so the net
+    must detect the overtone's spectral SPLITTING, not total loudness. Without
+    this the net learns the shortcut 'high SNR => 2-tone' (diagnosed 2026-06-15)
+    which does not transfer to real data."""
     i = min(max(np.searchsorted(CHI_GRID, chi), 0), len(CHI_GRID) - 1)
     f1, tau1 = W220[i][0] / mass, W220[i][1] * mass
     f2, tau2 = W221[i][0] / mass, W221[i][1] * mass
@@ -59,13 +70,22 @@ def simulate_tonecount(mass, chi, n_tones, amp_frac, rng, n_det=2):
     overtone_snr2 = 0.0
     for d in range(n_det):
         amp1 = a220 * rng.uniform(0.7, 1.3)
-        params = [dict(f=f1, tau=tau1, amp=amp1, phi=rng.uniform(-np.pi, np.pi))]
+        s220 = rdlib.damped_sinusoids(t, t0, [dict(f=f1, tau=tau1, amp=amp1,
+                                                   phi=rng.uniform(-np.pi, np.pi))])
         if n_tones == 2:
-            amp2 = amp1 * amp_frac
-            params.append(dict(f=f2, tau=tau2, amp=amp2, phi=rng.uniform(-np.pi, np.pi)))
-            ot = rdlib.damped_sinusoids(t, t0, [params[1]])  # whitened => MF SNR^2 = sum(ot^2)
-            overtone_snr2 += float(np.sum(ot ** 2))
-        x[d] = rdlib.damped_sinusoids(t, t0, params) + rng.standard_normal(N_SAMP)
+            s221 = rdlib.damped_sinusoids(t, t0, [dict(f=f2, tau=tau2, amp=amp1 * amp_frac,
+                                                       phi=rng.uniform(-np.pi, np.pi))])
+            sig = s220 + s221
+            if snr_match:  # match total energy to the pure-220 -> remove the SNR cue
+                e1, e2 = float(np.sum(s220 ** 2)), float(np.sum(sig ** 2))
+                if e2 > 0:
+                    scale = np.sqrt(e1 / e2)
+                    sig, s221 = sig * scale, s221 * scale
+            overtone_snr2 += float(np.sum(s221 ** 2))
+        else:
+            sig = s220
+        nz = noise[d] if noise is not None else rng.standard_normal(N_SAMP)
+        x[d] = sig + nz
     return x, float(np.sqrt(overtone_snr2))
 
 

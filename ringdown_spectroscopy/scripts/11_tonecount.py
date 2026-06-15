@@ -31,11 +31,15 @@ rng = np.random.default_rng(0)
 PLOTS = Path(__file__).resolve().parent.parent / "plots"
 RESULTS = Path(__file__).resolve().parent.parent / "results"
 MODELS = Path(__file__).resolve().parent.parent / "models"
+DATA = Path(__file__).resolve().parent.parent / "data"
 MODELS.mkdir(exist_ok=True)
+DATA.mkdir(exist_ok=True)
+NOISE_CACHE = DATA / "o4_noise_pool.npz"  # fetched once; survives reboots
 EVENTS = {"GW250114_082203": "GW250114", "GW150914": "GW150914"}
 SEG = sbilib.SEG
 AMP_FRAC = (0.1, 1.5)          # 221/220 amplitude-ratio prior for 2-tone training
 DEVICE = "mps" if torch.backends.mps.is_available() else "cpu"
+SNR_MATCH = False              # set from --snr-match: SNR-match the two classes (fix C')
 
 
 class ToneCounter(torch.nn.Module):
@@ -50,6 +54,15 @@ class ToneCounter(torch.nn.Module):
         return self.head(self.embed(x)).squeeze(-1)
 
 
+def norm_seg(seg):
+    """Per-detector unit-std normalization (v4 fix A): makes the net SCALE-INVARIANT
+    so real whitened data lands on the training scale. The overtone-SNR label stays
+    physical (computed pre-norm in the unit-noise frame); only the net input is scaled.
+    seg: (n_det, N_SAMP)."""
+    s = seg.std(axis=-1, keepdims=True)
+    return (seg / np.where(s > 0, s, 1.0)).astype(np.float32)
+
+
 def make_batch(n, rng):
     """Balanced 1-tone/2-tone. Returns (x (n, 2*N_SAMP), label, overtone_snr)."""
     x = np.empty((n, 2 * N_SAMP), dtype=np.float32)
@@ -60,8 +73,62 @@ def make_batch(n, rng):
         c = rng.uniform(0.05, 0.95)
         two = k % 2 == 1
         frac = rng.uniform(*AMP_FRAC) if two else 0.0
-        seg, s = sbilib.simulate_tonecount(m, c, 2 if two else 1, frac, rng)
-        x[k] = seg.reshape(-1)
+        seg, s = sbilib.simulate_tonecount(m, c, 2 if two else 1, frac, rng, snr_match=SNR_MATCH)
+        x[k] = norm_seg(seg).reshape(-1)
+        y[k] = 1.0 if two else 0.0
+        osnr[k] = s
+    return x, y, osnr
+
+
+def get_noise_pool(n_chunks=14):
+    """v4 fix B: pooled REAL whitened O4 noise (signal-free, well before GW250114),
+    cached to disk so it's fetched once (reboot-safe). Returns {det: 1-D array}."""
+    if NOISE_CACHE.exists():
+        d = np.load(NOISE_CACHE)
+        print(f"loaded noise pool {NOISE_CACHE.name} (H1 {len(d['H1'])}, L1 {len(d['L1'])} samp)")
+        return {"H1": d["H1"], "L1": d["L1"]}
+    base = rdlib.event_gps("GW250114_082203")
+    edge = 4 * int(sbilib.FS)
+    pools = {"H1": [], "L1": []}
+    k, got = 0, 0
+    while got < n_chunks and k < n_chunks * 4:
+        center = base - 500 - 300 * k
+        k += 1
+        try:
+            chunk = {}
+            for det in ("H1", "L1"):
+                w = rdlib.fetch_whitened(det, center, half=16, bandpass=False)
+                v = w.value.astype(np.float32)[edge:-edge]  # drop whiten edge transient
+                if not np.isfinite(v).all() or len(v) < 4 * N_SAMP:
+                    raise ValueError("NaN/short")
+                chunk[det] = v
+            for det in ("H1", "L1"):
+                pools[det].append(chunk[det])
+            got += 1
+            rdlib.progress("11_noise_pool", got, n_chunks)
+            print(f"  noise chunk {got}/{n_chunks} @ {center:.0f}", flush=True)
+        except Exception as e:
+            print(f"  noise chunk {k} skip: {e}", flush=True)
+    pool = {d: np.concatenate(pools[d]) for d in pools}
+    np.savez(NOISE_CACHE, **pool)
+    print(f"cached noise pool -> {NOISE_CACHE.name}")
+    return pool
+
+
+def make_batch_real(n, pool, rng):
+    """Like make_batch but injects into REAL whitened O4-noise windows (fix B)."""
+    x = np.empty((n, 2 * N_SAMP), dtype=np.float32)
+    y = np.empty(n, dtype=np.float32)
+    osnr = np.empty(n, dtype=np.float32)
+    Lh, Ll = len(pool["H1"]), len(pool["L1"])
+    for k in range(n):
+        m, c = rng.uniform(40, 120), rng.uniform(0.05, 0.95)
+        two = k % 2 == 1
+        frac = rng.uniform(*AMP_FRAC) if two else 0.0
+        oh, ol = int(rng.integers(0, Lh - N_SAMP)), int(rng.integers(0, Ll - N_SAMP))
+        nz = np.stack([pool["H1"][oh:oh + N_SAMP], pool["L1"][ol:ol + N_SAMP]])
+        seg, s = sbilib.simulate_tonecount(m, c, 2 if two else 1, frac, rng, noise=nz, snr_match=SNR_MATCH)
+        x[k] = norm_seg(seg).reshape(-1)
         y[k] = 1.0 if two else 0.0
         osnr[k] = s
     return x, y, osnr
@@ -87,14 +154,29 @@ def predict(model, x):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--smoke", action="store_true")
+    ap.add_argument("--tag", default="", help="output suffix (e.g. _norm) to keep variants side by side")
+    ap.add_argument("--real-noise", action="store_true",
+                    help="fix B: train on REAL O4 whitened noise windows (domain-matched)")
+    ap.add_argument("--snr-match", action="store_true",
+                    help="fix C': SNR-match the 1-tone/2-tone classes (removes the 'loud=>2-tone' shortcut)")
     args = ap.parse_args()
+    global SNR_MATCH
+    SNR_MATCH = args.snr_match
+    TAG = args.tag
     n_train = 4000 if args.smoke else 80_000
     epochs = 4 if args.smoke else 30
-    print(f"device {DEVICE} | n_train {n_train} | epochs {epochs}")
+    print(f"device {DEVICE} | n_train {n_train} | epochs {epochs} | "
+          f"real_noise {args.real_noise} | snr_match {SNR_MATCH}")
+
+    if args.real_noise:
+        pool = get_noise_pool()
+        batch = lambda n, r: make_batch_real(n, pool, r)
+    else:
+        batch = make_batch
 
     # -------------------------------------------------------------- train
     print("simulating training set ...")
-    xtr, ytr, _ = make_batch(n_train, rng)
+    xtr, ytr, _ = batch(n_train, rng)
     rdlib.progress("11_tonecount_sims", n_train, n_train)
     model = ToneCounter().to(DEVICE)
     model(torch.tensor(xtr[:8]).to(DEVICE))  # init LazyLinear
@@ -122,17 +204,17 @@ def main():
         sched.step()
         print(f"  epoch {ep:2d}  loss {tot/n_train:.4f}", flush=True)
     model.eval()
-    torch.save(model.state_dict(), MODELS / "11_tonecount.pt")
+    torch.save(model.state_dict(), MODELS / f"11_tonecount{TAG}.pt")
 
     # ---------------------------------------------------- T1 capacity (AUC)
-    xte, yte, ote = make_batch(4000, rng)
+    xte, yte, ote = batch(4000, rng)
     p_te = predict(model, xte)
     A = auc(p_te, yte)
     print(f"\nT1 held-out AUC = {A:.4f}  (gate > 0.90)")
 
     # ------------------------------- T2 sensitivity vs overtone SNR + specificity
     # dedicated 2-tone test spanning overtone SNR; 1-tone test for specificity
-    x2, y2, o2 = make_batch(8000, rng)              # balanced -> use the 2-tone half
+    x2, y2, o2 = batch(8000, rng)              # balanced -> use the 2-tone half
     p2 = predict(model, x2)
     is2 = y2 == 1
     snr2, pred2 = o2[is2], p2[is2]
@@ -184,7 +266,7 @@ def main():
                     seg = inj.crop(center - 0.002, center - 0.002 + SEG + 0.01).value[:N_SAMP]
                     assert len(seg) == N_SAMP
                     segs.append(seg)
-                xo = np.stack(segs).reshape(1, -1).astype(np.float32)
+                xo = norm_seg(np.stack(segs)).reshape(1, -1)
                 real[kind].append(float(predict(model, xo)[0]))
                 got += 1
             except Exception as e:
@@ -206,7 +288,7 @@ def main():
                 seg = white.crop(pk, pk + SEG + 0.01).value[:N_SAMP]
                 assert len(seg) == N_SAMP
                 segs.append(seg)
-            xo = np.stack(segs).reshape(1, -1).astype(np.float32)
+            xo = norm_seg(np.stack(segs)).reshape(1, -1)
             p = float(predict(model, xo)[0])
             app[label] = p
             print(f"T4 {label}: P(2-tone) = {p:.3f}")
@@ -218,7 +300,7 @@ def main():
     out = dict(auc=A, specificity=specificity, overtone_snr50=snr50, ece=ece,
                reliability=rel, real_noise={k: real[k] for k in real},
                application=app, n_train=n_train, amp_frac_prior=AMP_FRAC)
-    (RESULTS / "11_tonecount.json").write_text(json.dumps(out, indent=2))
+    (RESULTS / f"11_tonecount{TAG}.json").write_text(json.dumps(out, indent=2))
 
     fig, ax = plt.subplots(1, 3, figsize=(16, 4.8))
     ax[0].plot(cen, eff, "o-"); ax[0].axhline(0.5, color="gray", ls=":")
@@ -235,8 +317,8 @@ def main():
     ax[2].bar(labs, vals, color=["tab:green", "tab:orange"][:len(labs)])
     ax[2].axhline(0.5, color="gray", ls=":"); ax[2].set_ylim(0, 1)
     ax[2].set_ylabel("P(2-tone)"); ax[2].set_title("T4 real events")
-    fig.tight_layout(); fig.savefig(PLOTS / "11_tonecount.png", dpi=140)
-    print(f"\nwrote {RESULTS/'11_tonecount.json'} + {PLOTS/'11_tonecount.png'}")
+    fig.tight_layout(); fig.savefig(PLOTS / f"11_tonecount{TAG}.png", dpi=140)
+    print(f"\nwrote {RESULTS/f'11_tonecount{TAG}.json'} + {PLOTS/f'11_tonecount{TAG}.png'}")
     rdlib.progress("11_tonecount_done", 1, 1, auc=A, specificity=specificity, ece=ece)
 
 
