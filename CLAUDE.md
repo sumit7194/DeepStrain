@@ -69,6 +69,14 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
 - Phase 0 ✅ spike (fetch+inject+recover, SNR 81.8). Phase 1 ✅ golden test (SNR match
   0.0% vs pycbc sigma; 0.0 ms timing). Models: SpectrogramCNN 1.17M / ChunkTransformer
   0.82M params. Data: 24×4096 s H1 (16 train / 2 val / 6 test) + 2 L1 coincident.
+- **🅿️ v2 ARC PARKED COMPLETE (2026-06-15).** Closing the 45→70% gap: rungs 1–2 (score
+  aggregation) negative; rung 3 (learned semi-coherent, V1+V2) negative — both cap ~0.69–0.71 AUC;
+  pivoted to **Path G coincidence = the win: H1×L1 gives +1.3–1.5× sensitive distance (~2.3–3.3×
+  volume) over single-detector ML at matched FAR.** All refinement levers then squeezed (statistic,
+  H1+L1 training — no further gain). **Final blocking point:** subsolar matched filtering needs ≤0.1%
+  Mc template spacing (~1,600+ templates) → intractable locally; that wall blocks both a real-MF
+  detector and fine 10-ms timing coincidence. Come-back-later = GPU/GCP dense bank + lower FAR, or
+  true-waveform supervision. One-screen summary at top of RESULTS.md ("v2 ARC — PARKED COMPLETE").
 - **v1 COMPLETE (2026-06-10), all numbers in RESULTS.md.** Headline: CNN reaches
   **41–45% of ideal-MF sensitive distance at zero-FA threshold** (6.8 h real test
   noise), SNR_50≈18.6, flat across subsolar masses. Transformer = honest negative

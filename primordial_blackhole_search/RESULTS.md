@@ -25,6 +25,46 @@ target for v2.
 
 ---
 
+## v2 ARC — PARKED COMPLETE (2026-06-15)
+
+> One-screen summary of the whole v2 effort to close the 45→70% gap. Full per-rung detail,
+> tables, and caveats are in the dated sections further down.
+
+**The arc.** We attacked the 45→70% single-detector gap from every tractable angle and learned
+exactly where the wall is:
+- **Rungs 1–2 (score aggregation):** NEGATIVE. Combining scores across overlapping/long windows
+  (boxcar, count-above, √k-summed accumulation) never beats the single-window `max`, and neither
+  does the duration `oracle` ⇒ the gap lives *inside* the window; independent per-window evidence
+  doesn't accumulate.
+- **Rung 3 (phase/representation):** stage 0 oracle proved the phase information is physically
+  recoverable (true-template chunked MF, 0.66–0.76 ≫ cnn_w64). But stage 1 — two learned-from-strain
+  semi-coherent designs (V1 ResNet on strain, V2 learnable matched-filter front end) — both cap at
+  ~0.69–0.71 AUC → **0 sensitive distance** at zero-FA. Robust across both architectures.
+- **Second pass (diagnostics → pivot):** the glitch hypothesis was refuted but sharpened (fat noise
+  tail, not one glitch). A coarse template bank scores 0.000, and the clean true-vs-bank diagnostic
+  **quantified the blocking point** (below). Pivoted to multi-detector coincidence.
+- **Path G (coincidence):** **POSITIVE — the win.** H1×L1 coincidence with a time-slide background,
+  riding the learned model, gives **+1.3–1.5× sensitive distance (~2.3–3.3× volume)** over the
+  single-detector ML search at matched FAR (1.48× high-mass). Every refinement lever then squeezed:
+  better statistic (no gain, `sum` optimal), H1+L1 training (no gain, AUC↑ but coincidence flat).
+
+**THE FINAL BLOCKING POINT (where we'd resume).** Subsolar matched filtering is *brutally* template-
+density-limited: measured dephasing is +0.01% Mc → ~perfect, +0.1% → −30%, **+1% → dead**. Covering
+the subsolar mass range at the required ≤0.1% spacing needs **~1,600+ templates** (mass alone; ×more
+for spin), whose trials also inflate the noise floor. That density is intractable on a Mac Mini, and
+it blocks BOTH (a) a real matched-filter-grade detector and (b) the fine (10 ms) timing coincidence
+that would extend Path G. A *learned* detector sidesteps the density problem (it generalizes across
+mass) but is then noise-floor-limited single-detector — which is exactly why coincidence is the only
+lever that worked. **To go past +1.4× we'd need real compute (GPU/GCP): a dense coherent bank + lower
+FAR, or true-waveform-supervised learning. That's the come-back-later thread.**
+
+**Honest headline.** A single-detector *learned* subsolar search is noise-floor-limited at ~41–48% of
+ideal-MF distance; requiring two-detector (H1×L1) coincidence recovers **~1.4× sensitive distance**,
+and that is the ceiling for the learned approach at this data/compute scale. Null and positive results
+both real, both measured on real O3a noise with injection-based sensitivity and time-slide backgrounds.
+
+---
+
 ## What was built
 
 ```
