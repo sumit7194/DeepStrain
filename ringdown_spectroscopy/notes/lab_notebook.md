@@ -207,3 +207,54 @@ simulator realism for the +10% mass pull, tone-count selection, stacking.
 keep a module-level `Embed` alias (load-bearing — saved posteriors resolve
 __main__.Embed). Verified: compile-check, posterior load + sample, repo gate
 ALL GREEN.
+
+## 2026-06-15 — v4 PRE-REGISTRATION: amortized start-time-marginalized TONE-COUNT selection
+(Pivot from pbh, which is PARKED COMPLETE.) New question, orthogonal to the v2/v3 no-hair test:
+**how many QNM tones are in the data — 220 alone (1-tone) or 220+221 (2-tone)?** This is the live
+Isi/Farr-vs-Cotesta GW150914 overtone fight, whose crux is START-TIME dependence — exactly what
+this infra marginalizes by construction (our sharper angle, flagged in the v3 field-status note).
+
+Design (neural ratio estimation as a binary classifier):
+- Simulator: extend sbilib with `simulate_tonecount(mass, chi, n_tones, amp_frac, rng)` — 1-tone =
+  220 only; 2-tone = 220 + Kerr-locked 221 (delta=0; tone-count tests PRESENCE, not deviation) with
+  221/220 amplitude ratio `amp_frac`. Start time t0 ~ U(0,6ms) and amplitudes drawn per-sim →
+  marginalized. Record the injected OVERTONE matched-filter SNR per sim (physical x-axis).
+- Train a classifier (reuse `Embed` CNN + sigmoid head, BCE) on BALANCED 1-tone/2-tone sims, amp_frac
+  ~ U(0.1,1.5). Output = amortized P(2-tone | data) = the tone-count Bayes-factor estimate.
+- Script `11_tonecount.py`, mirroring 09 (train→referee→apply), heartbeating via rdlib.progress.
+
+Pre-registered gates:
+- **T1 (capacity):** held-out balanced AUC > 0.90 (the distinction is learnable).
+- **T2 (sensitivity + specificity):** efficiency P(2t)>0.5 rises monotonically with overtone SNR;
+  report the 50%-detection overtone SNR; specificity (1 − false-2-tone on real 1-tone) ≥ 0.90 at
+  threshold 0.5. Measured in WHITE noise AND real O4-noise injections (the honest version).
+- **T3 (calibration):** reliability diagram — binned P(2-tone) vs empirical fraction within tolerance
+  (same honesty bar as v2/v3 coverage).
+- **T4 (application):** GW250114 → expect 2-tone HIGH confidence (official ≥2 QNM incl. 221 →
+  VALIDATES the method); GW150914 → report the honest start-time-marginalized verdict (novel).
+Artifacts to produce: models/11_tonecount.pt, results/11_tonecount.json, plots/11_*.png.
+
+## 2026-06-15 — v4 RESULTS (first cut): NEGATIVE — domain gap dominates; gates failed
+Built sbilib.simulate_tonecount + 11_tonecount.py (ToneCounter = Embed + sigmoid head, BCE on 80k
+balanced sims, 30 epochs, MPS). Pipeline runs end-to-end + dashboard-connected. Gates (all FAILED):
+- **T1 AUC 0.716** (gate >0.90). Trains fine (loss 0.69→0.58) but caps ~0.72 — because the amp_frac
+  prior includes faint overtones that are genuinely ~indistinguishable from 1-tone (physically real,
+  not a bug). T2 sensitivity curve is sane: 50%-detection at **overtone SNR ≈ 6.2**.
+- **T2 specificity 0.721** (gate ≥0.90) — over-calls 2-tone on clean 1-tone (the faint-overtone
+  ambiguity again).
+- **T3 ECE 0.120** (gate <0.10) — mildly miscalibrated.
+- **T4 (the killer): GW250114 → P(2-tone) = 0.15** — WRONG (official result detected the 221), and
+  **GW150914 → 0.28**. Validation FAILED.
+- **The diagnostic contradiction:** real-O4-noise INJECTIONS (T2b) read P(2-tone) ≈ 0.96–1.00 for
+  BOTH 1-tone and 2-tone, while the real EVENTS (T4) read 0.15–0.28. Same classifier, same "real
+  whitened O4 data", opposite verdicts ⇒ the output is driven by **absolute amplitude scale + noise
+  coloring**, not tone count. **The white-noise→real-data domain gap swamps the signal.** (Why did
+  v2/v3 NPE transfer but this doesn't? Estimating the dominant mode's M/χ/δ is far more robust to
+  noise statistics than presence-detecting a faint, fast-dying overtone — the harder, more fragile task.)
+- **Verdict:** the idealized-white-noise classifier is untrustworthy on real data. Honest first-cut
+  negative. **Path-forward options (for discussion):** (A) make it scale-invariant — RMS-normalize each
+  segment (cheap, addresses absolute-scale sensitivity); (B) domain-matched training — train on REAL O4
+  whitened noise + injected overtones, à la pbh (the proper fix); (C) reframe the deliverable as the
+  *detectability threshold* (overtone-SNR sensitivity curve), which IS a clean result, rather than a
+  per-event call; (D) restrict the amp_frac prior to detectable overtones. Gates NOT added to verify.sh
+  (nothing green to lock). Artifacts: models/11_tonecount.pt, results/11_tonecount.json, plots/11_tonecount.png.

@@ -40,6 +40,35 @@ def simulate(mass, chi, delta, rng, n_det=2):
     return x
 
 
+def simulate_tonecount(mass, chi, n_tones, amp_frac, rng, n_det=2):
+    """v4 tone-count sim: 1-tone (220 only) or 2-tone (220 + Kerr-locked 221).
+
+    delta=0 (tone-count tests PRESENCE of the overtone, not its frequency).
+    amp_frac = 221/220 peak-amplitude ratio (ignored for 1-tone). Returns
+    (whitened segment (n_det, N_SAMP), injected overtone matched-filter SNR over
+    detectors -- 0 for 1-tone). Start time + per-detector amplitudes are drawn
+    here, so both are marginalized by construction (the start-time dependence is
+    the crux of the overtone controversy)."""
+    i = min(max(np.searchsorted(CHI_GRID, chi), 0), len(CHI_GRID) - 1)
+    f1, tau1 = W220[i][0] / mass, W220[i][1] * mass
+    f2, tau2 = W221[i][0] / mass, W221[i][1] * mass
+    t = np.arange(N_SAMP) / FS
+    t0 = rng.uniform(0, T0_MAX_MS / 1000.0)
+    a220 = rng.uniform(*PEAK_AMP_RANGE)
+    x = np.empty((n_det, N_SAMP), dtype=np.float32)
+    overtone_snr2 = 0.0
+    for d in range(n_det):
+        amp1 = a220 * rng.uniform(0.7, 1.3)
+        params = [dict(f=f1, tau=tau1, amp=amp1, phi=rng.uniform(-np.pi, np.pi))]
+        if n_tones == 2:
+            amp2 = amp1 * amp_frac
+            params.append(dict(f=f2, tau=tau2, amp=amp2, phi=rng.uniform(-np.pi, np.pi)))
+            ot = rdlib.damped_sinusoids(t, t0, [params[1]])  # whitened => MF SNR^2 = sum(ot^2)
+            overtone_snr2 += float(np.sum(ot ** 2))
+        x[d] = rdlib.damped_sinusoids(t, t0, params) + rng.standard_normal(N_SAMP)
+    return x, float(np.sqrt(overtone_snr2))
+
+
 class Embed(torch.nn.Module):
     def __init__(self, n_out=56):
         super().__init__()
