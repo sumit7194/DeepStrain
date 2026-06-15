@@ -77,13 +77,14 @@ def score_wins(model, device, wins):
 
 def main() -> None:
     ap = argparse.ArgumentParser()
+    ap.add_argument("--weights", default="cnn_w64", help="per-detector model (cnn_w64 or cnn_hl)")
     ap.add_argument("--smoke", action="store_true")
     args = ap.parse_args()
     n_inj_per_seg = 30 if args.smoke else 300
 
     device = "mps" if torch.backends.mps.is_available() else "cpu"
     model = make_model("cnn")
-    model.load_state_dict(torch.load(C.MODEL_DIR / "cnn_w64.pt", map_location=device))
+    model.load_state_dict(torch.load(C.MODEL_DIR / f"{args.weights}.pt", map_location=device))
     model.to(device).eval()
 
     manifest = json.loads((C.DATA_DIR / "manifest.json").read_text())
@@ -167,6 +168,8 @@ def main() -> None:
     df["det_coinc"] = (df.sH1 + df.sL1) > thr_coinc
     df["det_coinc_matched"] = (df.sH1 + df.sL1) > thr_coinc_matched
     tag = "_smoke" if args.smoke else ""
+    if args.weights != "cnn_w64":
+        tag += f"_{args.weights}"
     df.to_parquet(C.RESULTS_DIR / f"coinc_inj{tag}.parquet")  # raw scores -> free re-binning
     mc = 3 if args.smoke else 10
     rs = bin_snr50(df, "det_single", mc)

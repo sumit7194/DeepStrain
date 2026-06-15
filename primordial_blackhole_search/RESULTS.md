@@ -540,6 +540,28 @@ consistency (a finer coincidence should gain more → G2); (2) matched-FAR thres
 (transfer, not L1-optimized → H1+L1 training is upside); (4) network-SNR axis, internal single-vs-coinc
 comparison (not directly the per-detector 0.41–0.48). Artifacts: scripts/coinc_eval.py,
 results/coinc_eval.{json,png}, results/coinc_inj.parquet (raw scores → free re-binning).
+**G2a follow-up (coinc_stat.py): the `sum` statistic is already (near-)optimal.** Tested sum / min /
+prod-prob / max+min on the saved scores at matched FAR: sum 1.37× (mean), max+min 1.34×, prod-prob
+1.24×, min 1.11×. `min` is worst (too strict — penalizes the antenna-weaker detector). ⇒ no free lift
+from the combination rule. **Note on "finer (timing) coincidence":** true ~10 ms timing/phase
+coincidence needs matched-filter arrival times → a dense bank → the SAME intractable wall as G0/F0, so
+it is blocked for us.
+
+**G2b (2026-06-15): H1+L1 training — NO improvement (clean negative).** Built a 64-s H1+L1 spectrogram
+dataset (build_hl.py, self-contained + resumable; 16 H1-train + 5 L1-train-time segments, val on H1 val;
+NO leakage — eval uses the 5 L1-test-time segments) → trained `cnn_hl` (same recipe as cnn_w64) → re-ran
+G1 coincidence (coinc_eval.py --weights cnn_hl). Result: cnn_hl val AUC **0.804** (> cnn_w64's 0.793), but
+coincidence sensitive distance **0.345 / 0.375 / 0.420 ≈ cnn_w64's 0.345 / 0.382 / 0.428** (flat, even
+fractionally lower). ⇒ a higher global AUC did NOT translate to better coincidence: the operating-point
+performance is set by **tail separation**, not AUC, and the H1→L1 transfer was already adequate so training
+on L1 didn't sharpen the relevant tail. Artifacts: models/cnn_hl.pt, results/coinc_eval_cnn_hl.{json,png}.
+
+**Path G CONCLUSION — every tractable lever squeezed; +1.37× is the honest ceiling.** Coincidence is the
+win (+1.3–1.5× distance, ~2.3–3.3× volume over single-detector ML). Better statistic: no gain (sum optimal).
+H1+L1 training: no gain (AUC↑ but coincidence flat). Finer timing coincidence: blocked by the bank-density
+wall. Remaining is robustness only (lower FAR needs more coincident data). The arc's honest headline: a
+single-detector learned subsolar search is noise-floor-limited; two-detector coincidence recovers ~1.4×
+sensitive distance, and that is the ceiling for the learned approach at this data/compute scale.
 
 ### Path F milestone F0 (2026-06-14): bank-mismatch gate — NOT CLEARED, two-sided squeeze (clean negative)
 Replaced the oracle's true template with a coarse equal-mass bank (mass-only grid, B up to 64),

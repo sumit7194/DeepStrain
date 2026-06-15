@@ -11,6 +11,21 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-06-15 — pbh path G CLOSED: +1.37× coincidence is the ceiling (G2a/G2b negatives)
+- (G2a, coinc_stat.py) better coincidence statistic: no gain — `sum` already optimal (min/prod-prob/
+  max+min all ≤ it). (G2b, build_hl.py + cnn_hl) H1+L1 training: built a 64-s H1+L1 spectrogram set
+  (self-contained, resumable, no eval leakage), trained cnn_hl → val AUC 0.804 (> cnn_w64 0.793) but
+  coincidence FLAT (0.345/0.375/0.420 ≈ cnn_w64's 0.345/0.382/0.428). Higher AUC didn't carry to the
+  operating point (tail-separation-limited, not AUC-limited). Finer 10-ms timing coincidence stays
+  blocked by the bank-density wall.
+- **Path G headline:** single-detector learned subsolar search is noise-floor-limited; H1×L1 coincidence
+  recovers ~1.4× sensitive distance (~2.5× volume) — the honest ceiling for the learned approach at this
+  data/compute scale. Remaining work is robustness only (lower FAR ← more coincident data).
+- **Infra:** survived ANOTHER reboot (~11:56). build_hl.py resumable; build+train+eval all finished
+  pre-reboot (cnn_hl.pt 05:24, coinc_eval_cnn_hl.json 05:52), only /tmp logs lost. Note: the g2b_chain.sh
+  orchestrator does NOT survive a reboot (a nohup bash dies with it) — fine here since work completed first,
+  but truly reboot-proof automation would need launchd/cron. Saved a documentation-discipline memory.
+
 ## 2026-06-14 — pbh v2 second pass: cross-field brainstorm → coincidence PIVOT → FIRST POSITIVE (+1.3–1.5×)
 - Took 3 external models' brainstorms, triaged them; convergent diagnosis (weak supervision / noise floor)
   held. Ran the cheap diagnostics first: glitch-robust re-threshold (threshold_robust_eval.py) REFUTED the

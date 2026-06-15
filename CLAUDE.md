@@ -136,6 +136,15 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   high-mass; ~2.3–3.3× volume), first positive of the arc.** Pipeline cross-checks v1's SNR50. Caveats:
   coarse window-level coincidence, modest FAR (~1/6h), H1→L1 transfer. Next: **G2 = finer coincidence
   (timing/phase consistency)**. Full tables + caveats in RESULTS.md.
+- **v2 path G CLOSED (2026-06-15): +1.37× coincidence is the honest ceiling — every lever squeezed.**
+  (G2a) better coincidence statistic: no gain (sum already optimal; min/prod/max+min all ≤). (G2b) H1+L1
+  training (build_hl.py + cnn_hl, no eval leakage): val AUC 0.804 > cnn_w64 0.793 but coincidence FLAT
+  (0.345/0.375/0.420 ≈ 0.345/0.382/0.428) — higher AUC doesn't help because the operating point is set by
+  tail separation, not AUC. (timing) finer 10-ms coincidence is BLOCKED by the same bank-density wall.
+  **Headline: single-detector learned subsolar search is noise-floor-limited; H1×L1 coincidence recovers
+  ~1.4× distance (~2.5× volume), and that is the ceiling for the learned approach at this scale.** Robust
+  infra survived ANOTHER reboot (build_hl resumable; everything finished pre-reboot, only /tmp logs lost).
+  Artifacts: cnn_hl.pt, coinc_eval_cnn_hl.json. Remaining = robustness only (lower FAR needs more L1 data).
 - **Dashboard:** `python3 dashboard.py` (repo root, stdlib only) serves a live run monitor
   over `*/results/progress/*.json` for all three sub-projects; pbh gained `pbh/progress.py`
   (same heartbeat convention as echolib/rdlib). Writes `.dashboard.pid` on start; **stop it
