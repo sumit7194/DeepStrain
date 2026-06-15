@@ -242,6 +242,17 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
   from 09's __main__ needs the class redefined in the loading script).
 - v4 shelf: per-param/flow recalibration; simulator realism (+10% mass pull);
   tone-count selection; stacking; SXS injections.
+- **v4 tone-count selection PARKED (2026-06-15): honest NEGATIVE.** Amortized,
+  start-time-marginalized 1-tone vs 2-tone classifier (sbilib.simulate_tonecount + 11_tonecount.py).
+  First cut didn't transfer to real data; chased it through a full diagnostic chain — fixed scale
+  (norm), noise coloring (real-O4 training), an SNR shortcut (SNR-matched classes), the injection
+  convention (whitening reshapes the ringdown — raw-vs-whitened shape overlap 0.48; FD whitening matches
+  gwpy to 1.000), and overfitting (60-chunk pool + fresh-per-epoch + early-stop). Only with ALL fixed is
+  the model trustworthy — and then it's **honest but WEAK: held-out AUC ~0.61, ECE 0.006 (well-calibrated),
+  but it can't confidently call tone count on real events** (GW250114 P(2-tone)=0.32; the earlier 0.69 was
+  an overfitting mirage). ⇒ black-box ML tone-count is too weak at this data/SNR scale. Salvage: calibrated
+  detectability threshold (overtone SNR≈5 for 50%). Six-attempt table + diagnostics in notes/lab_notebook.md.
+  Come-back-later: more data / coherent model, multi-event stacking, or explicit Bayesian model selection.
 
 ## Status & ground rules
 - **All three arcs are PARKED COMPLETE** (FOCUS DIRECTIVE in ../SpaceTime: curvature

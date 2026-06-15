@@ -118,10 +118,11 @@ def get_noise_pool(n_chunks=14):
 
 def get_noise_pool_asd(n_chunks=14):
     """Fix D: per-chunk REAL whitened O4 noise + that chunk's ASD (so ringdowns can be
-    whitened through the SAME filter the noise saw). Cached (reboot-safe)."""
-    if NOISE_CACHE_ASD.exists():
-        d = np.load(NOISE_CACHE_ASD)
-        print(f"loaded conv pool {NOISE_CACHE_ASD.name} ({d['H1'].shape[0]} chunks)")
+    whitened through the SAME filter the noise saw). Cached (reboot-safe), keyed by count."""
+    cache = DATA / f"o4_noise_pool_asd_{n_chunks}.npz"
+    if cache.exists():
+        d = np.load(cache)
+        print(f"loaded conv pool {cache.name} ({d['H1'].shape[0]} chunks)")
         return {k: d[k] for k in ("H1", "L1", "asd_f", "asd_H1", "asd_L1")}
     base = rdlib.event_gps("GW250114_082203")
     edge = 4 * int(sbilib.FS)
@@ -154,8 +155,8 @@ def get_noise_pool_asd(n_chunks=14):
     pool = {"H1": np.stack([a[:ml] for a in whit["H1"]]),
             "L1": np.stack([a[:ml] for a in whit["L1"]]),
             "asd_f": asd_f, "asd_H1": np.stack(asds["H1"]), "asd_L1": np.stack(asds["L1"])}
-    np.savez(NOISE_CACHE_ASD, **pool)
-    print(f"cached conv pool -> {NOISE_CACHE_ASD.name}")
+    np.savez(cache, **pool)
+    print(f"cached conv pool -> {cache.name}")
     return pool
 
 
@@ -228,39 +229,47 @@ def main():
                     help="fix C': SNR-match the 1-tone/2-tone classes (removes the 'loud=>2-tone' shortcut)")
     ap.add_argument("--raw-conv", action="store_true",
                     help="fix D: injection-convention-matched (whiten raw ringdowns through real ASD)")
+    ap.add_argument("--chunks", type=int, default=14, help="real-noise chunks (more = less overfit)")
+    ap.add_argument("--fresh", action="store_true",
+                    help="regenerate training data EACH epoch (kills memorization of a fixed set)")
+    ap.add_argument("--weight-decay", type=float, default=1e-4)
     args = ap.parse_args()
     global SNR_MATCH
     SNR_MATCH = args.snr_match
     TAG = args.tag
-    n_train = 4000 if args.smoke else 80_000
+    n_train = 4000 if args.smoke else (40_000 if args.fresh else 80_000)  # per-epoch if fresh
     epochs = 4 if args.smoke else 30
-    print(f"device {DEVICE} | n_train {n_train} | epochs {epochs} | real_noise {args.real_noise} "
-          f"| snr_match {SNR_MATCH} | raw_conv {args.raw_conv}")
+    print(f"device {DEVICE} | n_train {n_train} | epochs {epochs} | raw_conv {args.raw_conv} "
+          f"| chunks {args.chunks} | fresh {args.fresh} | wd {args.weight_decay}")
 
     if args.raw_conv:
-        pool = get_noise_pool_asd()
+        pool = get_noise_pool_asd(args.chunks)
         batch = lambda n, r: make_batch_conv(n, pool, r)
     elif args.real_noise:
-        pool = get_noise_pool()
+        pool = get_noise_pool(args.chunks)
         batch = lambda n, r: make_batch_real(n, pool, r)
     else:
         batch = make_batch
 
-    # -------------------------------------------------------------- train
-    print("simulating training set ...")
-    xtr, ytr, _ = batch(n_train, rng)
+    # held-out validation set (FIXED) for early-stopping
+    xval, yval, _ = batch(4000, rng)
+    xtr, ytr, _ = batch(n_train, rng)               # epoch-0 set (regenerated if --fresh)
     rdlib.progress("11_tonecount_sims", n_train, n_train)
     model = ToneCounter().to(DEVICE)
-    model(torch.tensor(xtr[:8]).to(DEVICE))  # init LazyLinear
-    opt = torch.optim.AdamW(model.parameters(), lr=3e-4, weight_decay=1e-4)
+    model(torch.tensor(xtr[:8]).to(DEVICE))         # init LazyLinear
+    opt = torch.optim.AdamW(model.parameters(), lr=3e-4, weight_decay=args.weight_decay)
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=epochs)
     loss_fn = torch.nn.BCEWithLogitsLoss()
-    xt = torch.tensor(xtr); yt = torch.tensor(ytr)
-    bs, nb = 256, (n_train + 255) // 256
+    bs = 256
+    best_auc, best_state = 0.0, None
     print("training tone-count classifier ...")
     for ep in range(epochs):
+        if args.fresh and ep > 0:
+            xtr, ytr, _ = batch(n_train, rng)       # FRESH data -> the net can't memorize a fixed set
+        xt, yt = torch.tensor(xtr), torch.tensor(ytr)
+        nb = (len(xt) + bs - 1) // bs
         model.train()
-        perm = torch.randperm(n_train)
+        perm = torch.randperm(len(xt))
         tot = 0.0
         for b in range(nb):
             idx = perm[b * bs:(b + 1) * bs]
@@ -274,9 +283,19 @@ def main():
                 rdlib.progress("11_tonecount_train", ep * nb + b, epochs * nb,
                                loss=tot / max((b + 1) * bs, 1), epoch=float(ep))
         sched.step()
-        print(f"  epoch {ep:2d}  loss {tot/n_train:.4f}", flush=True)
+        model.eval()
+        va = auc(predict(model, xval), yval)         # early-stop signal
+        if va > best_auc:
+            best_auc = va
+            best_state = {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
+        rdlib.progress("11_tonecount_train", (ep + 1) * nb, epochs * nb,
+                       loss=tot / len(xt), epoch=float(ep), val_auc=va)
+        print(f"  epoch {ep:2d}  loss {tot/len(xt):.4f}  val AUC {va:.4f}  (best {best_auc:.4f})", flush=True)
+    if best_state:                                   # use the BEST epoch, not the over-trained final one
+        model.load_state_dict(best_state)
     model.eval()
     torch.save(model.state_dict(), MODELS / f"11_tonecount{TAG}.pt")
+    print(f"using best-val-AUC model: {best_auc:.4f}", flush=True)
 
     # ---------------------------------------------------- T1 capacity (AUC)
     xte, yte, ote = batch(4000, rng)

@@ -321,3 +321,24 @@ discriminator. Cause: the small 14-chunk noise pool reused across 80k examples (
 whether GW250114→2-tone holds with a model that actually generalizes. The convention fix is the real
 unlock; overfitting is now the bottleneck, not the transfer. Artifacts: results/11_tonecount_conv.json,
 models/11_tonecount_conv.pt, data/o4_noise_pool_asd.npz.
+
+### 2026-06-15 — v4 CLOSED: overfitting fixed → model is HONEST but WEAK; GW250114=2-tone was a mirage
+Fixed the overfitting properly: 60-chunk noise pool (4× diversity), FRESH data regenerated each epoch
+(`--fresh`, kills memorization of a fixed set), early-stopping on held-out AUC (keep best epoch, not the
+over-trained final). Run (`_convbig`, 60 chunks + fresh + conv-match + SNR-match):
+- **Overfitting GONE:** train loss flat ~0.67 (not 0.35), train≈held-out AUC (no gap), **ECE 0.006**
+  (near-perfectly calibrated — best of the whole arc).
+- **But the honest model is WEAK:** held-out **AUC 0.607**, specificity 0.63 — it only weakly separates
+  1-tone from 2-tone. T2b real-noise injections now read **1t 0.79 ≈ 2t 0.77** (it CANNOT tell them apart
+  in real noise). **GW250114 → P(2-tone) = 0.315 (1-tone-leaning), GW150914 → 0.469** — i.e. **fix D's
+  exciting GW250114=0.69 was an OVERFITTING ARTIFACT; the trustworthy model reads it as ambiguous/1-tone.**
+- **v4 VERDICT — honest NEGATIVE (now with a trustworthy model).** A black-box ML tone-count classifier,
+  done correctly (real noise, convention-matched, SNR-matched, fresh data, early-stop, calibrated), only
+  WEAKLY distinguishes 1 vs 2 tones (AUC ~0.61) and cannot make confident per-event calls at this
+  data/SNR scale. The methodology chain itself is the contribution: scale→coloring→SNR-shortcut→injection-
+  convention→overfitting were each diagnosed and fixed, and only then is the result believable.
+  **Salvageable deliverable:** the calibrated detectability threshold — overtone SNR ≈ 5 for 50% detection.
+  **Come-back-later levers:** far more data + a bigger/coherent model; a stacked multi-event statistic; or
+  abandon the black-box for explicit Bayesian model selection with a real noise model (what the field uses).
+  No verify.sh gate added (negative — nothing green to lock). Artifacts: results/11_tonecount_convbig.json,
+  plots/11_tonecount_convbig.png. **v4 tone-count PARKED.**

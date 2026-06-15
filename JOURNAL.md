@@ -11,6 +11,24 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-06-15 — ringdown v4 tone-count: PARKED, honest negative (6 attempts, full diagnostic chain)
+- Pivoted from pbh (parked) to a new ringdown thread: an amortized, start-time-marginalized AI to count
+  QNM tones (1 = 220 only, 2 = 220+221 overtone) — addressing the live GW150914 overtone controversy,
+  whose crux is start-time dependence (which the SBI infra marginalizes by construction).
+- First cut didn't transfer to real data. Chased it down a clean diagnostic chain: (A) scale → norm;
+  (B) noise coloring → train on real O4 noise; DIAGNOSTIC → caught a "loud⇒2-tone" SNR shortcut;
+  (C') SNR-matched classes → removed it; DIAGNOSTIC → whitening reshapes the ringdown (raw-vs-whitened
+  shape overlap 0.48; built a fast FD whitening matching gwpy to 1.000); (D) injection-convention-matched
+  training → transfer pathology GONE (GW250114 read 2-tone) BUT model overfit the 14-chunk pool;
+  finally 60 chunks + fresh-per-epoch + early-stop → overfitting fixed.
+- **Verdict (honest NEGATIVE with a now-trustworthy model):** calibrated (ECE 0.006) but WEAK — held-out
+  AUC ~0.61, can't confidently call tone count on real events (GW250114 P(2-tone)=0.32; the earlier 0.69
+  was an overfitting mirage). Black-box ML tone-count is too weak at this data/SNR scale. Salvage: a
+  calibrated detectability threshold (overtone SNR≈5 for 50% detection). The diagnostic chain itself is
+  the contribution. Six-attempt table in ringdown notes/lab_notebook.md; survived 3 power losses (all
+  artifacts disk-cached/reboot-safe). Come-back-later: more data/coherent model, multi-event stacking,
+  or explicit Bayesian model selection with a real noise model.
+
 ## 2026-06-15 — pbh path G CLOSED: +1.37× coincidence is the ceiling (G2a/G2b negatives)
 - (G2a, coinc_stat.py) better coincidence statistic: no gain — `sum` already optimal (min/prod-prob/
   max+min all ≤ it). (G2b, build_hl.py + cnn_hl) H1+L1 training: built a 64-s H1+L1 spectrogram set
