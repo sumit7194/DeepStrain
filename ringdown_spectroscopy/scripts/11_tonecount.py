@@ -35,6 +35,7 @@ DATA = Path(__file__).resolve().parent.parent / "data"
 MODELS.mkdir(exist_ok=True)
 DATA.mkdir(exist_ok=True)
 NOISE_CACHE = DATA / "o4_noise_pool.npz"  # fetched once; survives reboots
+NOISE_CACHE_ASD = DATA / "o4_noise_pool_asd.npz"  # fix D: per-chunk whitened noise + ASD
 EVENTS = {"GW250114_082203": "GW250114", "GW150914": "GW150914"}
 SEG = sbilib.SEG
 AMP_FRAC = (0.1, 1.5)          # 221/220 amplitude-ratio prior for 2-tone training
@@ -115,6 +116,72 @@ def get_noise_pool(n_chunks=14):
     return pool
 
 
+def get_noise_pool_asd(n_chunks=14):
+    """Fix D: per-chunk REAL whitened O4 noise + that chunk's ASD (so ringdowns can be
+    whitened through the SAME filter the noise saw). Cached (reboot-safe)."""
+    if NOISE_CACHE_ASD.exists():
+        d = np.load(NOISE_CACHE_ASD)
+        print(f"loaded conv pool {NOISE_CACHE_ASD.name} ({d['H1'].shape[0]} chunks)")
+        return {k: d[k] for k in ("H1", "L1", "asd_f", "asd_H1", "asd_L1")}
+    base = rdlib.event_gps("GW250114_082203")
+    edge = 4 * int(sbilib.FS)
+    whit = {"H1": [], "L1": []}
+    asds = {"H1": [], "L1": []}
+    asd_f, k, got = None, 0, 0
+    while got < n_chunks and k < n_chunks * 4:
+        center = base - 500 - 300 * k
+        k += 1
+        try:
+            cw, ca = {}, {}
+            for det in ("H1", "L1"):
+                raw = TimeSeries.fetch_open_data(det, center - 32, center + 32, cache=True)
+                if not np.isfinite(raw.value).all():
+                    raise ValueError("NaN")
+                asd = raw.asd(4, 2)
+                w = raw.whiten(4, 2).value.astype(np.float32)[edge:-edge]
+                if not np.isfinite(w).all() or len(w) < 4 * N_SAMP:
+                    raise ValueError("short")
+                cw[det], ca[det] = w, asd.value.astype(np.float32)
+                asd_f = asd.frequencies.value.astype(np.float32)
+            for det in ("H1", "L1"):
+                whit[det].append(cw[det]); asds[det].append(ca[det])
+            got += 1
+            rdlib.progress("11_conv_pool", got, n_chunks)
+            print(f"  conv chunk {got}/{n_chunks} @ {center:.0f}", flush=True)
+        except Exception as e:
+            print(f"  conv chunk {k} skip: {e}", flush=True)
+    ml = min(len(a) for a in whit["H1"] + whit["L1"])
+    pool = {"H1": np.stack([a[:ml] for a in whit["H1"]]),
+            "L1": np.stack([a[:ml] for a in whit["L1"]]),
+            "asd_f": asd_f, "asd_H1": np.stack(asds["H1"]), "asd_L1": np.stack(asds["L1"])}
+    np.savez(NOISE_CACHE_ASD, **pool)
+    print(f"cached conv pool -> {NOISE_CACHE_ASD.name}")
+    return pool
+
+
+def make_batch_conv(n, pool, rng):
+    """Fix D: inject RAW ringdowns whitened through each chunk's real ASD (convention-matched
+    to T2b/T4), into real whitened-noise windows. SNR-matched inside simulate_tonecount_conv."""
+    x = np.empty((n, 2 * N_SAMP), dtype=np.float32)
+    y = np.empty(n, dtype=np.float32)
+    osnr = np.empty(n, dtype=np.float32)
+    nchunks, clen = pool["H1"].shape
+    asd_f = pool["asd_f"]
+    for k in range(n):
+        m, c = rng.uniform(40, 120), rng.uniform(0.05, 0.95)
+        two = k % 2 == 1
+        frac = rng.uniform(*AMP_FRAC) if two else 0.0
+        ci = int(rng.integers(0, nchunks))
+        oh, ol = int(rng.integers(0, clen - N_SAMP)), int(rng.integers(0, clen - N_SAMP))
+        nz = np.stack([pool["H1"][ci, oh:oh + N_SAMP], pool["L1"][ci, ol:ol + N_SAMP]])
+        asd_vs = np.stack([pool["asd_H1"][ci], pool["asd_L1"][ci]])
+        seg, s = sbilib.simulate_tonecount_conv(m, c, 2 if two else 1, frac, rng, nz, asd_f, asd_vs)
+        x[k] = norm_seg(seg).reshape(-1)
+        y[k] = 1.0 if two else 0.0
+        osnr[k] = s
+    return x, y, osnr
+
+
 def make_batch_real(n, pool, rng):
     """Like make_batch but injects into REAL whitened O4-noise windows (fix B)."""
     x = np.empty((n, 2 * N_SAMP), dtype=np.float32)
@@ -159,16 +226,21 @@ def main():
                     help="fix B: train on REAL O4 whitened noise windows (domain-matched)")
     ap.add_argument("--snr-match", action="store_true",
                     help="fix C': SNR-match the 1-tone/2-tone classes (removes the 'loud=>2-tone' shortcut)")
+    ap.add_argument("--raw-conv", action="store_true",
+                    help="fix D: injection-convention-matched (whiten raw ringdowns through real ASD)")
     args = ap.parse_args()
     global SNR_MATCH
     SNR_MATCH = args.snr_match
     TAG = args.tag
     n_train = 4000 if args.smoke else 80_000
     epochs = 4 if args.smoke else 30
-    print(f"device {DEVICE} | n_train {n_train} | epochs {epochs} | "
-          f"real_noise {args.real_noise} | snr_match {SNR_MATCH}")
+    print(f"device {DEVICE} | n_train {n_train} | epochs {epochs} | real_noise {args.real_noise} "
+          f"| snr_match {SNR_MATCH} | raw_conv {args.raw_conv}")
 
-    if args.real_noise:
+    if args.raw_conv:
+        pool = get_noise_pool_asd()
+        batch = lambda n, r: make_batch_conv(n, pool, r)
+    elif args.real_noise:
         pool = get_noise_pool()
         batch = lambda n, r: make_batch_real(n, pool, r)
     else:

@@ -302,3 +302,22 @@ for 50% detection — is a clean, simulation-only "detectability threshold" that
 broken transfer. **Come-back-later lever:** injection-convention-matched training (raw-domain inject +
 whiten per example), or abandon the black-box classifier for explicit Bayesian model selection with a
 real noise model (what the field actually does). Artifacts: results/11_tonecount_{,_norm,_realnoise,_matched}.json.
+
+### 2026-06-15 — v4 fix D (injection-convention-matched): TRANSFER PATHOLOGY GONE, but model overfits
+Confirmed FIRST (cheap shape diagnostic): whitening RESHAPES the ringdown — raw vs gwpy-whitened shape
+overlap only **0.48** ⇒ training on the raw shape (all prior variants) fed the net the wrong template.
+Then validated a fast FD whitening (irfft(rfft(raw)/asd), full-band) reproduces gwpy's whiten(4,2) to
+**shape-overlap 1.000** (band-limiting drops it to 0.43 — gwpy is full-band). Built it: sbilib.whiten_shape
++ simulate_tonecount_conv (whiten raw ringdowns through each chunk's real ASD, crop from the whitened
+PEAK like T4, SNR-matched) + a per-chunk ASD noise pool (cached) + `--raw-conv`. No application changes
+(T2b/T4 already full-band → now convention-matched to training).
+**Result (`_conv`): the transfer pathology is GONE** — real-noise injections no longer saturate and are
+correctly ordered (1t **0.60** < 2t **0.76**; every prior variant pinned both ~1.0), and **GW250114 reads
+P(2-tone) = 0.687** (2-tone, consistent with the official 221 detection!); GW150914 0.458 (ambiguous —
+fitting for the controversial event). **BUT the model OVERFITS:** train loss 0.35 vs held-out AUC **0.53**
+(chance), ECE 0.26, injection spread ±0.34 ⇒ it removed the gross pathology but is NOT yet a trustworthy
+discriminator. Cause: the small 14-chunk noise pool reused across 80k examples (the net memorizes noise).
+**Next (to discuss):** more noise diversity (many more chunks) + regularization/early-stop, then re-check
+whether GW250114→2-tone holds with a model that actually generalizes. The convention fix is the real
+unlock; overfitting is now the bottleneck, not the transfer. Artifacts: results/11_tonecount_conv.json,
+models/11_tonecount_conv.pt, data/o4_noise_pool_asd.npz.

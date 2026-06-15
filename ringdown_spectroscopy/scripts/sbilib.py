@@ -19,6 +19,64 @@ CHI_GRID = np.linspace(0.01, 0.97, 200)
 W220 = np.array([kerr220.f_tau(1.0, c) for c in CHI_GRID])
 W221 = np.array([kerr221.f_tau(1.0, c) for c in CHI_GRID])
 
+CONV_BUFLEN = 16384  # 4-s buffer (df=0.25 Hz, matches raw.asd(4,2)) for whitening a ringdown
+
+
+def whiten_shape(raw_rd, asd_f, asd_v):
+    """Whiten a raw ringdown buffer through a chunk's ASD (fix D). Whitening is linear &
+    LTI given a fixed ASD, so the correctly-RESHAPED whitened ringdown = irfft(rfft(raw)/asd).
+    FULL-BAND: validated to match gwpy's whiten(4,2) to shape-overlap 1.000 (band-limiting
+    drops it to 0.43 — gwpy whitens full-band). Normalization is arbitrary (caller rescales)."""
+    L = len(raw_rd)
+    fgrid = np.fft.rfftfreq(L, 1.0 / FS)
+    asd_i = np.interp(fgrid, asd_f, asd_v)
+    W = np.where(asd_i > 0, 1.0 / asd_i, 0.0)
+    return np.fft.irfft(np.fft.rfft(raw_rd) * W, n=L)
+
+
+def simulate_tonecount_conv(mass, chi, n_tones, amp_frac, rng, noise_wins, asd_f, asd_vs):
+    """Fix D: injection-convention-matched. Build the RAW ringdown, whiten it through
+    each detector's real ASD (so the net sees the filter-RESHAPED whitened shape, as on
+    real data), crop 40 s from the whitened PEAK (matching T4's find_peak), SNR-match the
+    2-tone, scale to a target SNR, add to a real whitened-noise window. Returns (seg, osnr)."""
+    i = min(max(np.searchsorted(CHI_GRID, chi), 0), len(CHI_GRID) - 1)
+    f1, tau1 = W220[i][0] / mass, W220[i][1] * mass
+    f2, tau2 = W221[i][0] / mass, W221[i][1] * mass
+    L = CONV_BUFLEN
+    c = L // 2
+    dt = (np.arange(L) - c) / FS
+    mask = dt >= 0
+    a220 = rng.uniform(*PEAK_AMP_RANGE)
+    x = np.empty((len(noise_wins), N_SAMP), dtype=np.float32)
+    overtone_snr2 = 0.0
+    crop_jit = int(rng.uniform(0, T0_MAX_MS / 1000.0 * FS))  # start-time jitter from the peak
+    for d in range(len(noise_wins)):
+        amp1 = a220 * rng.uniform(0.7, 1.3)
+        ph1, ph2 = rng.uniform(-np.pi, np.pi), rng.uniform(-np.pi, np.pi)
+        s220 = np.zeros(L); s220[mask] = amp1 * np.exp(-dt[mask] / tau1) * np.cos(2 * np.pi * f1 * dt[mask] + ph1)
+        w220 = whiten_shape(s220, asd_f, asd_vs[d])
+        if n_tones == 2:
+            s221 = np.zeros(L); s221[mask] = amp1 * amp_frac * np.exp(-dt[mask] / tau2) * np.cos(2 * np.pi * f2 * dt[mask] + ph2)
+            w221 = whiten_shape(s221, asd_f, asd_vs[d])
+            wsig = w220 + w221
+        else:
+            w221 = np.zeros(L); wsig = w220
+        snr_d = amp1                                     # target whitened SNR for this detector
+        pk = c + int(np.abs(wsig[c:]).argmax())          # whitened peak (>= onset), as T4's find_peak
+        start = min(pk + crop_jit, L - N_SAMP)
+        seg_sig = wsig[start:start + N_SAMP]
+        seg_ot = w221[start:start + N_SAMP]
+        norm = float(np.sqrt(np.sum(seg_sig ** 2)))
+        if norm > 0:
+            # scale the WHOLE whitened signal to energy snr_d^2. Both 1-tone and 2-tone are
+            # scaled to the SAME target -> SNR-matched by construction (no loudness shortcut);
+            # the overtone just steals a share of that fixed energy.
+            scale = snr_d / norm
+            seg_sig, seg_ot = seg_sig * scale, seg_ot * scale
+        overtone_snr2 += float(np.sum(seg_ot ** 2))
+        x[d] = seg_sig + noise_wins[d]
+    return x, float(np.sqrt(overtone_snr2))
+
 
 def simulate(mass, chi, delta, rng, n_det=2):
     """Whitened-domain segment: Kerr 220 + (1+delta)-shifted 221 + white noise."""
