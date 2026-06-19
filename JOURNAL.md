@@ -30,6 +30,18 @@ sub-project's `notes/lab_notebook.md`.*
   information wall — only SNR~80 events measure δ). Corrected lab notebook / CLAUDE / ROADMAP / verify.sh
   (removed the misleading "stack<singles" gate; added the stress-test gate). The north star caught our
   own fresh over-claim within the hour — working as intended.
+- **STRESS-TEST SWEEP (north star) — full results:**
+  - **δ-stacking:** ❌ real-event payoff was a prior artifact → CORRECTED + parked (method valid).
+  - **Echo upper limits:** ✅ PASSED (statistic == 05/06 convention; self-consistent; threshold not
+    glitch-driven; cross-checks v1) — but caught + fixed a wrong GW151226 Δt (0.105→0.0579 → A90 1.55σ).
+  - **Leg-8b family robustness:** ✅ SETTLED at N=300 (in-band differences real & physical; OOB control =
+    known whitened-domain artifact).
+  - **pbh coincidence +1.37×:** ✅ PASSED — single-det SNR50÷√2 = 19.3/19.6 per-det matches v1's
+    independent 18.6; matched-FAR accounting correct (305th-of-305 livetimes = 1 FA/livetime = single-det);
+    zero-lag max < strict thr. The biggest win holds up.
+  - **No-hair single-event:** ✅ incidentally validated (GW250114 genuinely informative; δ unbiased on
+    Kerr injections despite the known +10% mass pull).
+  ⇒ Net: 2 errors in fresh work caught + corrected; all surviving claims now adversarially verified.
 
 ## 2026-06-15 — ringdown v4 tone-count: PARKED, honest negative (6 attempts, full diagnostic chain)
 - Pivoted from pbh (parked) to a new ringdown thread: an amortized, start-time-marginalized AI to count
