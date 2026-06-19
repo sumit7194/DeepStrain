@@ -269,6 +269,7 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
   README/lab notebook, status blocks here updated when milestones land).
 
 ## Documentation taxonomy (mirror of SpaceTime's)
+- `ROADMAP.md` (this root) — forward-looking next moves + guardrails (P1/P2 + carried blockers).
 - `JOURNAL.md` (this root) — dated activity log, one entry per session, newest first.
 - `<sub>/notes/lab_notebook.md` — raw per-subproject record: pre-registrations, results,
   gotchas, corrections.
