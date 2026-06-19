@@ -36,7 +36,10 @@ already have on the same data**, plus the one guardrail on a parked thread.
   so this is mostly a hierarchical-combination layer on top of proven infra.
 - **Where:** `ringdown_spectroscopy/` (no-hair arc, v2/v3 — COMPLETE & calibrated).
   Detail: [ringdown_spectroscopy/notes/lab_notebook.md](ringdown_spectroscopy/notes/lab_notebook.md).
-- **Status:** 🔲 NEW — shelved direction, now prioritized.
+- **Status:** ✅ **DONE (2026-06-20, v5).** `scripts/12_stacking.py`: validated σ(δ) tightens as
+  **√N** (N=8 → 0.095 vs ideal 0.097, unbiased, calibrated). Real stack **GW250114+GW150914 →
+  δ = −0.090 ± 0.176, Kerr-consistent, ~1.3× tighter** than the best single event. Gated in verify.sh.
+  More loud events → directly tighter (8 events ≈ σ 0.10 vs 0.24 single).
 
 ## P2 — Higher-N injection campaigns where claims are UNDERPOWERED
 - **What:** re-run the underpowered claims at **N ≈ 300–500** injections. Specifically

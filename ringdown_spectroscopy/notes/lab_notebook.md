@@ -342,3 +342,19 @@ over-trained final). Run (`_convbig`, 60 chunks + fresh + conv-match + SNR-match
   abandon the black-box for explicit Bayesian model selection with a real noise model (what the field uses).
   No verify.sh gate added (negative — nothing green to lock). Artifacts: results/11_tonecount_convbig.json,
   plots/11_tonecount_convbig.png. **v4 tone-count PARKED.**
+
+## 2026-06-20 — v5: multi-event no-hair δ STACKING (roadmap P1) ✓✓
+Combine the no-hair deviation δ across events under a common-δ assumption (Kerr deviation is universal):
+precision-weighted Gaussian combination of the recalibrated per-event posteriors, σ_stack = (Σ1/σ_i²)^(-1/2).
+Reuses the v2/v3 amortized NPE (09_posterior_150k.pt) + v3 temperature (T=1.05). `12_stacking.py`.
+- **S2 (the headline) ✓✓ σ(δ) tightens as √N — measured matches ideal almost exactly:** N=1→0.275,
+  2→0.191, 3→0.155, 5→0.122, **8→0.095** (ideal σ_single/√N = 0.097). σ_single≈0.274.
+- **S1 ✓ unbiased** (δ=0 injections → stacked median −0.005 at N=8). **S3 ✓ coverage** in [0.80,1.0] for all N
+  (in fact ~1.0 — slightly CONSERVATIVE/over-covering, so the σ values are if anything pessimistic; the
+  √N scaling is the robust result).
+- **S4 ✓ real events:** GW250114 δ=−0.126±0.225, GW150914 δ=−0.034±0.281 → **STACKED δ = −0.090 ± 0.176
+  [−0.380, +0.199] 90%** — Kerr-consistent, **~1.3× tighter than the best single event** (0.225→0.176).
+- ⇒ the amortized no-hair network combines across events exactly as theory predicts; more events directly
+  sharpen the GR test (8 events would reach σ(δ)≈0.10 vs 0.24 single). Caveat: real-event posteriors inherit
+  the NPE's GW250114-loudness domain (GW150914 fainter → broader, lower weight — honest). Gate added to
+  verify.sh (S2 √N tightening). Artifacts: results/12_stacking.json, plots/12_stacking.png.

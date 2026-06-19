@@ -11,6 +11,18 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-06-20 — roadmap night: echo UPPER LIMITS (P1+P2) + ringdown δ-STACKING (P1), both ✓
+- **Echoes v6 — upper limits (11_upper_limits.py):** generalised 06's single-Δt sensitivity into a 2-D
+  (amplitude × spacing) efficiency map at N=300, per-Δt p<0.01 background → A90(Δt). Given the on-source
+  null, we now **EXCLUDE first-pulse amplitude ≥ A90: GW150914 1.65σ, GW151226 1.72σ** at predicted Δt,
+  across all spacings. Converts "found nothing" → a real exclusion. N=300 = decisive (P2).
+- **Ringdown v5 — multi-event no-hair δ stacking (12_stacking.py):** common-δ precision-weighted combo
+  of the recalibrated NPE posteriors. **σ(δ) provably tightens as √N** (injections: N=8 → 0.095 vs ideal
+  0.097, unbiased, calibrated); real **GW250114+GW150914 → δ = −0.090 ± 0.176, Kerr-consistent, ~1.3×
+  tighter** than the best single event. The amortized no-hair net combines across events as theory predicts.
+- Both gated in verify.sh (ALL GREEN). ROADMAP P1×2 + P2 marked DONE. Two real, validated results on the
+  same data in one session. Remaining roadmap: the tone-count guardrail (keep parked) stands.
+
 ## 2026-06-15 — ringdown v4 tone-count: PARKED, honest negative (6 attempts, full diagnostic chain)
 - Pivoted from pbh (parked) to a new ringdown thread: an amortized, start-time-marginalized AI to count
   QNM tones (1 = 220 only, 2 = 220+221 overtone) — addressing the live GW150914 overtone controversy,

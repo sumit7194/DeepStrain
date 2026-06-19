@@ -34,6 +34,18 @@ assert 0.80 <= d["coverage"]["delta"] <= 0.96, f"delta coverage: {d['coverage']}
 print("PASS  ringdown v2 headline artifacts")
 PYEOF
 
+echo "--- ringdown v5 delta-stacking (12: sigma tightens as sqrt(N))"
+./ringdown_spectroscopy/.venv/bin/python - << 'PYEOFS' || FAIL=1
+import json
+d = json.loads(open("ringdown_spectroscopy/results/12_stacking.json").read())
+big = d["injection"][-1]  # N=8
+assert big["N"] == 8 and abs(big["sigma_stack"] - big["expect"]) / big["expect"] < 0.15, \
+    f"stacking no longer ~sqrt(N): {big['sigma_stack']} vs {big['expect']}"
+assert d["gates"]["S1_unbiased"] and d["gates"]["S3_coverage"], "stacking S1/S3 regressed"
+assert d["stacked"]["sigma"] < min(v["sigma"] for v in d["events"].values()), "stack not tighter than singles"
+print("PASS  ringdown v5 delta-stacking (sigma(delta) ~sqrt(N); GW250114+GW150914 -> tighter Kerr test)")
+PYEOFS
+
 echo "--- pbh sensitivity artifacts (eval_cnn)"
 ./primordial_blackhole_search/.venv/bin/python - << 'PYEOF4' || FAIL=1
 import json
