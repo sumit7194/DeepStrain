@@ -242,11 +242,16 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
   from 09's __main__ needs the class redefined in the loading script).
 - v4 shelf: per-param/flow recalibration; simulator realism (+10% mass pull);
   tone-count selection; stacking; SXS injections.
-- **v5 multi-event δ STACKING DONE (2026-06-20) ✓✓ (roadmap P1).** 12_stacking.py: common-δ
-  precision-weighted combo of the recalibrated per-event no-hair posteriors. Validated σ(δ)
-  tightens as **√N** (injections: N=8 → 0.095 vs ideal 0.097, unbiased, calibrated); real stack
-  **GW250114+GW150914 → δ = −0.090 ± 0.176 [−0.38,+0.20] 90%, Kerr-consistent, ~1.3× tighter** than
-  the best single event. More loud events directly sharpen the GR test. Gated in verify.sh.
+- **v5 δ STACKING (2026-06-20): METHOD validated ✓, but real multi-event stack NOT achievable (stress-test
+  correction).** 12_stacking.py validated the common-δ stacking METHOD: σ(δ) tightens as **√N** on
+  informative injections (N=8 → 0.095 vs ideal 0.097, unbiased, calibrated) — solid. BUT the
+  stress-test (13_more_events.py, per the robustness north star) cross-checked the NPE on 8 real events
+  and found **only GW250114 measures δ** (δ_σ/prior 0.82); all 7 fainter events (GW150914, GW170814, …)
+  **return ≈ the prior** (δ_σ/prior 0.93–0.99, χ pulled to ~0.5). ⇒ the v5 "GW250114+GW150914 → 1.3×
+  tighter" was a **Gaussian-approx-of-prior artifact** (GW150914 ≈ flat posterior fit as a fake σ=0.27
+  measurement); genuine combined constraint ≈ GW250114 alone. Root cause = per-event SNR information wall
+  (only GW250114 SNR~80 is loud enough). **Real multi-event δ sharpening parked, honestly.** verify.sh
+  gate = √N METHOD + the stress-test (only GW250114 informative). Artifacts: results/13_more_events.json.
 - **v4 tone-count selection PARKED (2026-06-15): honest NEGATIVE.** Amortized,
   start-time-marginalized 1-tone vs 2-tone classifier (sbilib.simulate_tonecount + 11_tonecount.py).
   First cut didn't transfer to real data; chased it through a full diagnostic chain — fixed scale

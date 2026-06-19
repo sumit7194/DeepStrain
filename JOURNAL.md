@@ -22,6 +22,14 @@ sub-project's `notes/lab_notebook.md`.*
   tighter** than the best single event. The amortized no-hair net combines across events as theory predicts.
 - Both gated in verify.sh (ALL GREEN). ROADMAP P1×2 + P2 marked DONE. Two real, validated results on the
   same data in one session. Remaining roadmap: the tone-count guardrail (keep parked) stands.
+- **STRESS-TEST CORRECTION (north star, 13_more_events.py):** before stacking MORE events I cross-checked
+  the NPE on 8 real events → **only GW250114 measures δ; all 7 fainter events return ≈ the prior**
+  (δ_σ/prior 0.93–0.99). ⇒ the δ-stacking REAL-event "GW250114+GW150914 → 1.3× tighter" was a
+  Gaussian-approx-of-prior **artifact** — genuine combined constraint ≈ GW250114 alone. The stacking
+  METHOD (√N on informative injections) stands; the real multi-event payoff is **parked** (per-event SNR
+  information wall — only SNR~80 events measure δ). Corrected lab notebook / CLAUDE / ROADMAP / verify.sh
+  (removed the misleading "stack<singles" gate; added the stress-test gate). The north star caught our
+  own fresh over-claim within the hour — working as intended.
 
 ## 2026-06-15 — ringdown v4 tone-count: PARKED, honest negative (6 attempts, full diagnostic chain)
 - Pivoted from pbh (parked) to a new ringdown thread: an amortized, start-time-marginalized AI to count

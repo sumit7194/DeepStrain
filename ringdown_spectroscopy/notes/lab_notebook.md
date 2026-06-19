@@ -358,3 +358,25 @@ Reuses the v2/v3 amortized NPE (09_posterior_150k.pt) + v3 temperature (T=1.05).
   sharpen the GR test (8 events would reach σ(δ)≈0.10 vs 0.24 single). Caveat: real-event posteriors inherit
   the NPE's GW250114-loudness domain (GW150914 fainter → broader, lower weight — honest). Gate added to
   verify.sh (S2 √N tightening). Artifacts: results/12_stacking.json, plots/12_stacking.png.
+
+## 2026-06-20 — v5 STRESS-TEST (13_more_events.py): the real-event δ-stack is NOT achievable — correction
+Per the robustness north star, before stacking MORE events I cross-checked the NPE on 8 candidate
+events (recovered M roughly consistent with published det-frame remnants, allowing the known +10–15%
+mass pull). **The decisive finding (info content = δ posterior width vs the δ PRIOR width 0.289):**
+- **GW250114 INFORMATIVE** (δ_σ/prior 0.82; χ=0.77 away from prior mean) — the only one.
+- **ALL 7 fainter events (GW150914, GW170814, GW170104, GW170809, GW170818, GW200129, GW190828) return
+  ≈ the PRIOR** (δ_σ/prior 0.93–0.99; χ medians pulled to ~0.5, the prior mean). They "look Kerr-
+  consistent" only because the prior is centred at 0 — it is NOT a measurement.
+- **⇒ CORRECTION to the v5 real-event result.** The "GW250114+GW150914 → 1.3× tighter" (12) was a
+  **Gaussian-approximation artifact**: GW150914's ≈-flat (prior-dominated) posterior, fit to a Gaussian
+  σ=0.27, acted as a spurious second "measurement" in the precision-weighted stack. The GENUINE combined
+  real-event constraint ≈ GW250114 alone (σ_δ ≈ 0.24). There is effectively ONE informative real event.
+- **What still stands:** the stacking METHOD validation (S1/S2/S3 on informative INJECTIONS — √N
+  tightening, unbiased, calibrated) is correct and valuable: it proves that *if* we had N informative
+  events, σ(δ) would shrink as √N. We just don't, with current public data + this NPE.
+- **Root cause = the per-event SNR information wall** (same flavour as v4 tone-count): only GW250114
+  (SNR~80) is loud enough for the NPE to extract δ; GW150914 (~24) and O2 events (~10–20) cannot.
+  To actually stack you need either more SNR-80-class events (rare) or an NPE that extracts δ at lower
+  SNR (likely information-limited). **Real multi-event δ sharpening: parked, honestly.** verify.sh gate
+  reduced to the √N METHOD assertion only (the "stack < singles" assertion removed — it locked in the
+  artifact). Artifacts: results/13_more_events.json.

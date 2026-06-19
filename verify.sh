@@ -34,17 +34,31 @@ assert 0.80 <= d["coverage"]["delta"] <= 0.96, f"delta coverage: {d['coverage']}
 print("PASS  ringdown v2 headline artifacts")
 PYEOF
 
-echo "--- ringdown v5 delta-stacking (12: sigma tightens as sqrt(N))"
+echo "--- ringdown v5 delta-stacking METHOD (12: sigma tightens as sqrt(N) on informative injections)"
 ./ringdown_spectroscopy/.venv/bin/python - << 'PYEOFS' || FAIL=1
 import json
 d = json.loads(open("ringdown_spectroscopy/results/12_stacking.json").read())
 big = d["injection"][-1]  # N=8
 assert big["N"] == 8 and abs(big["sigma_stack"] - big["expect"]) / big["expect"] < 0.15, \
-    f"stacking no longer ~sqrt(N): {big['sigma_stack']} vs {big['expect']}"
+    f"stacking method no longer ~sqrt(N): {big['sigma_stack']} vs {big['expect']}"
 assert d["gates"]["S1_unbiased"] and d["gates"]["S3_coverage"], "stacking S1/S3 regressed"
-assert d["stacked"]["sigma"] < min(v["sigma"] for v in d["events"].values()), "stack not tighter than singles"
-print("PASS  ringdown v5 delta-stacking (sigma(delta) ~sqrt(N); GW250114+GW150914 -> tighter Kerr test)")
+# NOTE: NO real-event "stack < singles" assertion -- 13_more_events.py stress-test showed only
+# GW250114 is informative; the 2-event tightening was a Gaussian-approx-of-prior artifact (corrected).
+print("PASS  ringdown v5 stacking METHOD (sigma(delta)~sqrt(N) on informative injections; real stack parked)")
 PYEOFS
+
+echo "--- ringdown v5 stress-test (13: only GW250114 informative, rest ~prior)"
+./ringdown_spectroscopy/.venv/bin/python - << 'PYEOFT' || FAIL=1
+import json, numpy as np
+d = json.loads(open("ringdown_spectroscopy/results/13_more_events.json").read())
+prior = 1.0/np.sqrt(12)
+def dsig(v): return (v["delta"][2]-v["delta"][1])/(2*1.645)
+g = d["GW250114_082203"]
+assert dsig(g)/prior < 0.85, "GW250114 no longer informative?!"
+faint = [k for k in d if d[k] and k != "GW250114_082203"]
+assert all(dsig(d[k])/prior > 0.88 for k in faint), "a faint event became informative -- recheck stacking"
+print("PASS  ringdown v5 stress-test (only GW250114 measures delta; fainter events ~prior -> no real stack)")
+PYEOFT
 
 echo "--- pbh sensitivity artifacts (eval_cnn)"
 ./primordial_blackhole_search/.venv/bin/python - << 'PYEOF4' || FAIL=1
