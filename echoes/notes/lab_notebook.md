@@ -296,3 +296,18 @@ p_pred>0.01), echo trains louder than A90(Δt) would have been seen ≥90% of th
   tighten A90 ~1.2× (v5 head-to-head); comb used here = the statistic that produced the on-source null,
   so the limit is self-consistent. Artifacts: results/11_upper_limits_{GW150914,GW151226}.{npy,png}.
 - **This converts the project's headline from "we found nothing" to "we exclude echoes above ~1.65σ."**
+
+## 2026-06-20 — leg-8b SETTLED: the family-robustness "sensitivity reversal" is real signal, not noise
+Re-ran 08 family-robustness at **N=300** (was N=30 → CIs overlapped, the leg-8b concern). `08
+--n-trials 300 --tag _n300` adds binomial CIs + a two-proportion z-test vs baseline at the
+discriminating 0.2σ. Result (baseline 82±4%):
+- **In-band differences are REAL and physically sensible** (not a pathological reversal): f0=320 99%
+  (+7.2σ) and gamma=0.9 97% (+6.2σ) genuinely EASIER; f0=150 73% (−2.7σ) and gamma=0.5 64% (−5.1σ)
+  genuinely HARDER; tau=10/50ms consistent with baseline (noise). I.e. the ML scorer's sensitivity tracks
+  waveform frequency/reflectivity in the expected direction — the N=30 "reversal" was just CI overlap.
+- **The only true anomaly** — the f0=450 OUT-OF-BAND control reading 100% (+8.1σ, not noise) — is the
+  KNOWN whitened-domain-injection invalidity: the valid v4 raw-injection test (09_raw_injection.json)
+  correctly collapses it to **10%** (oob_rate 0.1). Convention artifact, already diagnosed + corrected.
+- ⇒ leg-8b resolved: family-robustness holds at tight stats; no pathological reversal survives. The N=30
+  version was underpowered, exactly as flagged. Original N=30 result preserved (08_family_robustness.json);
+  high-N in 08_family_robustness_n300.{json,png}.

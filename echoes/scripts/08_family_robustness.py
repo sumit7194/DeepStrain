@@ -7,6 +7,7 @@ deliberate out-of-band control (f0=450 Hz vs the 30-350 Hz bandpass) that MUST
 collapse. Pre-registration (W1, W2) in notes/lab_notebook.md.
 """
 
+import argparse
 import importlib.util
 import json
 import sys
@@ -30,7 +31,7 @@ spec.loader.exec_module(ml)
 
 EVENT = "GW150914"
 AMPS = (0.2, 0.5, 1.0)
-N_TRIALS = 30
+N_TRIALS = 30  # default; --n-trials raises it to settle small-N "reversals" (leg 8b)
 BASE = dict(f0=250.0, tau=0.02, gamma=0.7)
 CONFIGS = [
     ("baseline", BASE),
@@ -45,6 +46,11 @@ CONFIGS = [
 
 
 def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--n-trials", type=int, default=N_TRIALS)
+    ap.add_argument("--tag", default="")  # e.g. _n300 to keep the v3 N=30 result intact
+    args = ap.parse_args()
+    n_trials = args.n_trials
     rng = np.random.default_rng(31)
     dt_grid = np.arange(0.05, 0.5, 0.005)
     j_pred = int(np.argmin(np.abs(dt_grid - GW150914_DT_PRED)))
@@ -65,12 +71,13 @@ def main() -> None:
     thresh = prev["thresh"]
     print(f"reusing scorers + threshold {thresh:.3f} (99th pct of v2 background)")
 
-    table = {}
+    print(f"N_TRIALS = {n_trials} (binomial σ ≈ {0.5/np.sqrt(n_trials):.3f} at p=0.5)")
+    table, hits_tab = {}, {}
     for name, cfg in CONFIGS:
-        table[name] = {}
+        table[name], hits_tab[name] = {}, {}
         for amp in AMPS:
             hits = 0
-            for _ in range(N_TRIALS):
+            for _ in range(n_trials):
                 i = eval_list[int(rng.integers(0, len(eval_list)))]
                 inj = echo_train(
                     n_samp, fs, GW150914_DT_PRED, amp=amp,
@@ -83,9 +90,26 @@ def main() -> None:
                         fs, dt_grid,
                     )
                 hits += float(total[j_pred]) > thresh
-            table[name][amp] = hits / N_TRIALS
+            table[name][amp] = hits / n_trials
+            hits_tab[name][amp] = hits
+        ci = lambda p: 1.96 * np.sqrt(p * (1 - p) / n_trials)
         print(f"  {name:32s}: " + "  ".join(
-            f"{amp}σ → {100 * table[name][amp]:3.0f}%" for amp in AMPS))
+            f"{amp}σ → {100*table[name][amp]:3.0f}±{100*ci(table[name][amp]):.0f}%" for amp in AMPS))
+
+    # --- leg-8b: which family configs differ SIGNIFICANTLY from baseline at the
+    #     discriminating amp (0.2σ)? two-proportion z-test, plus the OOB control check.
+    a = 0.2
+    base_p = table["baseline"][a]
+    print(f"\nleg-8b check — significance vs baseline at {a}σ (baseline {100*base_p:.0f}%):")
+    for name, _ in CONFIGS:
+        if name == "baseline":
+            continue
+        p = table[name][a]
+        se = np.sqrt(base_p*(1-base_p)/n_trials + p*(1-p)/n_trials)
+        z = (p - base_p) / se if se > 0 else 0.0
+        verdict = "SIGNIFICANT" if abs(z) >= 1.96 else "consistent (noise)"
+        flag = "  [OOB control — should COLLAPSE; v4 raw-inj gives 10%]" if "450" in name else ""
+        print(f"  {name:32s}: {100*p:3.0f}%  (z={z:+.2f}, {verdict}){flag}")
 
     fig, ax = plt.subplots(figsize=(10, 5.5))
     x = np.arange(len(CONFIGS))
@@ -100,10 +124,11 @@ def main() -> None:
     ax.set_title("v3: family-robustness of the ML scorer's sensitivity")
     ax.legend()
     fig.tight_layout()
-    out = RESULTS / "08_family_robustness.png"
+    out = RESULTS / f"08_family_robustness{args.tag}.png"
     fig.savefig(out, dpi=140)
     print(f"plot -> {out}")
-    (RESULTS / "08_family_robustness.json").write_text(json.dumps(table, indent=1))
+    (RESULTS / f"08_family_robustness{args.tag}.json").write_text(
+        json.dumps({"n_trials": n_trials, "eff": table, "hits": hits_tab}, indent=1))
 
 
 if __name__ == "__main__":

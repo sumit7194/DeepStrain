@@ -48,9 +48,11 @@ already have on the same data**, plus the one guardrail on a parked thread.
 - **Why:** cheap and **decisive** — settles whether the effect is real instead of leaving
   it ambiguous. Low effort, high clarity.
 - **Where:** `echoes/`. Detail: [echoes/notes/lab_notebook.md](echoes/notes/lab_notebook.md).
-- **Status:** ✅ **DONE (2026-06-20).** Folded into `11_upper_limits.py` — the exclusion curves
-  run at **N=300** (binomial σ≈1.7% near 90%), decisive vs the old N=25/60. Re-running any
-  underpowered echo claim at this N is now a one-flag `--n-trials` job.
+- **Status:** ✅ **DONE (2026-06-20).** (a) Upper limits run at **N=300**. (b) The specific leg-8b
+  "sensitivity reversal" SETTLED: re-ran `08 --n-trials 300` → the in-band family differences are REAL
+  & physically sensible (f0=320/γ=0.9 genuinely easier, +6–7σ; f0=150/γ=0.5 harder), NOT a pathology —
+  the N=30 overlap was just underpower. The one true anomaly (out-of-band control not collapsing) is the
+  known whitened-domain artifact (valid v4 raw test = 10%). No pathological reversal survives.
 
 ## GUARDRAIL — Do NOT throw more ML at the tone-count gap
 - **What:** keep the ringdown **v4 tone-count thread PARKED**. Do not iterate more
