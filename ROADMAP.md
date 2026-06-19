@@ -25,7 +25,8 @@ already have on the same data**, plus the one guardrail on a parked thread.
   sensitivity-curve harness `06`; this generalizes it to a per-Δt efficiency → λ map.)
 - **Status:** ✅ **DONE (2026-06-20, v6).** `scripts/11_upper_limits.py`: per-Δt exclusion
   curve at N=300. **GW150914: exclude amplitude ≥ A90=1.65σ** at predicted Δt (A50 1.33σ);
-  GW151226: ≥1.72σ. Smooth across all spacings. (γ=0.7 fixed; ML scorer would tighten ~1.2×.)
+  GW151226: ≥1.55σ at its canonical Δt=0.0579 s. Smooth across all spacings; stress-tested
+  (statistic verified, threshold not glitch-driven). (γ=0.7 fixed; ML scorer would tighten ~1.2×.)
 
 ## P1 — Multi-event no-hair δ STACKING
 - **What:** combine the no-hair deviation δ across **multiple events**, not just the

@@ -290,12 +290,24 @@ p_pred>0.01), echo trains louder than A90(Δt) would have been seen ≥90% of th
 **we EXCLUDE first-pulse amplitude ≥ A90(Δt), at each spacing.**
 - **GW150914 (N=300):** at predicted Δt=0.2925 s, **exclude amplitude ≥ A90 = 1.65σ** (A50 1.33σ);
   tightest A90 = 1.56σ at Δt=0.38 s. Curve smooth ~1.5–1.85σ across all spacings.
-- **GW151226 (N=300):** at predicted Δt=0.105 s, **exclude ≥ A90 = 1.72σ** (A50 1.41σ); tightest 1.57σ.
+- **GW151226 (N=300):** at predicted Δt=**0.0579 s** (canonical on-source value), **exclude ≥ A90 =
+  1.55σ** (A50 1.18σ) — also the tightest over the grid. [CORRECTED 2026-06-20: an earlier pass used a
+  wrong Δt=0.105 s (a guess) and quoted 1.72σ; the north-star re-check caught it against the canonical
+  0.0579 s from 05. GW150914's Δt=0.2925 s was correct throughout.]
 - N=300 makes it decisive (binomial σ≈1.7% near 90%) — addresses P2 (underpowered-N concern).
 - Units: whitened-noise σ (per-pulse SNR scale), reflectivity γ=0.7 fixed. The ML scorer (07) would
   tighten A90 ~1.2× (v5 head-to-head); comb used here = the statistic that produced the on-source null,
   so the limit is self-consistent. Artifacts: results/11_upper_limits_{GW150914,GW151226}.{npy,png}.
 - **This converts the project's headline from "we found nothing" to "we exclude echoes above ~1.65σ."**
+- **STRESS-TEST (north star, 2026-06-20) — PASSED.** (1) The single-Δt comb scoring (`score_at`) is
+  provably identical to the validated 05/06 grid-then-index convention — `comb_on_env` computes each Δt
+  independently and `_acf` normalizes per-segment, NO cross-Δt normalization. (2) Self-consistent: the
+  exclusion, the per-Δt background, and the on-source null are all the same whitened-comb statistic.
+  (3) No "13× artifact" — that was the v2 ML scorer's whitened number; the comb never had it. (4) The
+  per-Δt threshold is a SMOOTH-tail 99th pct (top off-source scores 0.264/0.258/0.215…, no lone glitch;
+  2.4σ above median) → not outlier-driven. (5) Cross-checks v1 (~100% @ 2σ). ⇒ the echo upper limit is
+  sound and honestly framed (whitened-σ units, interpretable via the v4 raw-strain calibration slopes).
+  Unlike the δ-stack, this fresh result holds up.
 
 ## 2026-06-20 — leg-8b SETTLED: the family-robustness "sensitivity reversal" is real signal, not noise
 Re-ran 08 family-robustness at **N=300** (was N=30 → CIs overlapped, the leg-8b concern). `08

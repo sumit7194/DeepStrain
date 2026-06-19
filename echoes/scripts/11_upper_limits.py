@@ -38,7 +38,7 @@ from echolib import (
     progress,
 )
 
-DT_PRED = {"GW150914": GW150914_DT_PRED, "GW151226": 0.105}  # 151226 lighter -> shorter Δt
+DT_PRED = {"GW150914": GW150914_DT_PRED, "GW151226": 0.0579}  # 0.0579 = canonical on-source value (05)
 AMPS = np.array([0.5, 0.75, 1.0, 1.25, 1.5, 1.75, 2.0, 2.5, 3.0, 4.0])
 
 
