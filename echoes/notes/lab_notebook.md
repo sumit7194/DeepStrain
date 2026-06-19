@@ -281,3 +281,18 @@ case study in why production-path validation must precede sensitivity claims.
    (currently hardcoded from Abedi Table I for the three O1 events).
 4. Raw-strain injection (replace the whitened-domain v1 simplification).
 5. Stack evidence across events (the predicted-Δt statistic combines naturally).
+
+## 2026-06-20 — v6: UPPER LIMITS (roadmap P1 + P2) — non-detection → exclusion curve
+Generalised 06's single-Δt sensitivity into a 2-D (amplitude × spacing Δt) efficiency map at HIGH N
+(`11_upper_limits.py`). Per-Δt background threshold (comb-at-Δt over all off-source pairs, 99th pct =
+p<0.01) → per-Δt amplitude A90 (90% recovery). Because the on-source data showed NO detection (05:
+p_pred>0.01), echo trains louder than A90(Δt) would have been seen ≥90% of the time and were not ⇒
+**we EXCLUDE first-pulse amplitude ≥ A90(Δt), at each spacing.**
+- **GW150914 (N=300):** at predicted Δt=0.2925 s, **exclude amplitude ≥ A90 = 1.65σ** (A50 1.33σ);
+  tightest A90 = 1.56σ at Δt=0.38 s. Curve smooth ~1.5–1.85σ across all spacings.
+- **GW151226 (N=300):** at predicted Δt=0.105 s, **exclude ≥ A90 = 1.72σ** (A50 1.41σ); tightest 1.57σ.
+- N=300 makes it decisive (binomial σ≈1.7% near 90%) — addresses P2 (underpowered-N concern).
+- Units: whitened-noise σ (per-pulse SNR scale), reflectivity γ=0.7 fixed. The ML scorer (07) would
+  tighten A90 ~1.2× (v5 head-to-head); comb used here = the statistic that produced the on-source null,
+  so the limit is self-consistent. Artifacts: results/11_upper_limits_{GW150914,GW151226}.{npy,png}.
+- **This converts the project's headline from "we found nothing" to "we exclude echoes above ~1.65σ."**

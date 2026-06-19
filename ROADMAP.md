@@ -23,7 +23,9 @@ already have on the same data**, plus the one guardrail on a parked thread.
 - **Where:** `echoes/`. Detail + the v1/v5 sensitivity machinery to extend:
   [echoes/notes/lab_notebook.md](echoes/notes/lab_notebook.md). (v1 already has a
   sensitivity-curve harness `06`; this generalizes it to a per-Δt efficiency → λ map.)
-- **Status:** 🔲 NEW — not started. **Top priority.**
+- **Status:** ✅ **DONE (2026-06-20, v6).** `scripts/11_upper_limits.py`: per-Δt exclusion
+  curve at N=300. **GW150914: exclude amplitude ≥ A90=1.65σ** at predicted Δt (A50 1.33σ);
+  GW151226: ≥1.72σ. Smooth across all spacings. (γ=0.7 fixed; ML scorer would tighten ~1.2×.)
 
 ## P1 — Multi-event no-hair δ STACKING
 - **What:** combine the no-hair deviation δ across **multiple events**, not just the
@@ -43,7 +45,9 @@ already have on the same data**, plus the one guardrail on a parked thread.
 - **Why:** cheap and **decisive** — settles whether the effect is real instead of leaving
   it ambiguous. Low effort, high clarity.
 - **Where:** `echoes/`. Detail: [echoes/notes/lab_notebook.md](echoes/notes/lab_notebook.md).
-- **Status:** 🔲 NEW — not started.
+- **Status:** ✅ **DONE (2026-06-20).** Folded into `11_upper_limits.py` — the exclusion curves
+  run at **N=300** (binomial σ≈1.7% near 90%), decisive vs the old N=25/60. Re-running any
+  underpowered echo claim at this N is now a one-flag `--n-trials` job.
 
 ## GUARDRAIL — Do NOT throw more ML at the tone-count gap
 - **What:** keep the ringdown **v4 tone-count thread PARKED**. Do not iterate more
