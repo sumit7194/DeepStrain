@@ -45,6 +45,11 @@ already have on the same data**, plus the one guardrail on a parked thread.
   is effectively ONE informative real event. **Real multi-event sharpening is blocked by the per-event
   SNR information wall** (only SNR~80-class events measure δ). Come-back-later = more very-loud events, or
   an NPE that extracts δ at lower SNR (likely information-limited, like tone-count).
+  **v6 (2026-06-20) MAPPED THE WALL:** `14_delta_threshold.py` swept injected ringdown loudness and
+  measured σ(δ) vs SNR — δ only becomes informative (σ/prior < 0.90) at **ringdown SNR ≳ 37**, and even
+  at the top of the NPE's trained loudness it's just **~13% tighter than the prior**; GW250114 (real,
+  σ/prior 0.83) sits right at that edge. So the stacking starvation is now quantitative, not anecdotal:
+  every public event lands at-or-below the informative threshold. Seed-robust, gated.
 
 ## P2 — Higher-N injection campaigns where claims are UNDERPOWERED
 - **What:** re-run the underpowered claims at **N ≈ 300–500** injections. Specifically

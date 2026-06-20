@@ -380,3 +380,22 @@ mass pull). **The decisive finding (info content = δ posterior width vs the δ 
   SNR (likely information-limited). **Real multi-event δ sharpening: parked, honestly.** verify.sh gate
   reduced to the √N METHOD assertion only (the "stack < singles" assertion removed — it locked in the
   artifact). Artifacts: results/13_more_events.json.
+
+## 2026-06-20 — v6: the δ-MEASURABILITY THRESHOLD (14_delta_threshold.py) — the SNR wall, MAPPED ✓
+The natural follow-up to 13's negative: *13 says only GW250114 measures δ; 14 quantifies WHY.* Inject
+Kerr (δ=0) ringdowns across a sweep of loudness (220 amplitude a220 ∈ [2,12], the NPE's trained range),
+run the v2/v3 NPE, and measure σ(δ) vs the **injected whitened ringdown SNR** (= √Σsig² in the 40 ms
+window — the MF SNR for a known template in white noise). n=60 per loudness point.
+- **Result (seed-robust over seeds 0/1/2):** σ(δ) shrinks **monotonically** with loudness but only
+  reaches **σ/prior ≈ 0.87 (≈13% tighter than the prior) even at the top of the trained range**
+  (ringdown SNR ≈ 40). Onset of any informativeness (σ/prior < 0.90) is at **ringdown SNR ≈ 37–38**.
+  Below ringdown SNR ~30 the posterior **is** the prior (ratio ≥ 0.93).
+- **The anchor:** GW250114 (real, from 13) reaches σ/prior ≈ 0.83 — i.e. it sits **at/just past the
+  informative edge** of this curve. That is the whole story in one number: the single loudest public
+  ringdown is *just barely* informative on δ, and nothing fainter is. The √N stacking method (12) is
+  correct but starves for inputs because **essentially every event lands left of ringdown SNR ~37**.
+- **Caveat (honest):** the NPE is trained on a220 ∈ [2,12]; I deliberately did NOT sweep louder
+  (extrapolation would be untrustworthy), so the curve maps the wall *up to* GW250114-class loudness,
+  not beyond. The "ringdown SNR" here is the post-peak in-band SNR (≈half the full-event SNR), which is
+  why GW250114's full SNR~80 maps to a ringdown SNR in the ~40s. Artifacts: results/14_delta_threshold.json,
+  plots/14_delta_threshold.png. Gated in verify.sh (monotone shrink + GW250114 at the edge).

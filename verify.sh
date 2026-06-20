@@ -60,6 +60,19 @@ assert all(dsig(d[k])/prior > 0.88 for k in faint), "a faint event became inform
 print("PASS  ringdown v5 stress-test (only GW250114 measures delta; fainter events ~prior -> no real stack)")
 PYEOFT
 
+echo "--- ringdown v6 delta-measurability threshold (14: sigma(delta) shrinks with SNR; GW250114 at the edge)"
+./ringdown_spectroscopy/.venv/bin/python - << 'PYEOFD' || FAIL=1
+import json
+d = json.loads(open("ringdown_spectroscopy/results/14_delta_threshold.json").read())
+c = d["curve"]
+faint = next(r for r in c if r["a220"] == 2.0); loud = next(r for r in c if r["a220"] == 12.0)
+assert faint["ratio"] >= 0.95, f"faint ringdown no longer ~prior: {faint['ratio']}"          # uninformative when quiet
+assert loud["ratio"] <= 0.90, f"loudest trained ringdown not informative: {loud['ratio']}"     # monotone shrink
+assert loud["ratio"] > d["gw250114_ratio"], "trained edge passed GW250114 -- recheck loudness mapping"
+assert d["best_ratio"] >= 0.80, f"single-event delta got implausibly tight: {d['best_ratio']}" # still prior-limited
+print("PASS  ringdown v6 threshold (delta informative only at GW250114-class loudness; ~13% tighter, the SNR wall)")
+PYEOFD
+
 echo "--- pbh sensitivity artifacts (eval_cnn)"
 ./primordial_blackhole_search/.venv/bin/python - << 'PYEOF4' || FAIL=1
 import json
