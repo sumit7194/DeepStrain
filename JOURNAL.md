@@ -31,9 +31,23 @@ sub-project's `notes/lab_notebook.md`.*
   ringdown SNR — δ only becomes informative at **ringdown SNR ≳ 37**, and even at the top of the trained loudness
   it's just ~13% tighter than prior; GW250114 (real, σ/prior 0.83) sits right at that edge. Seed-robust (0/1/2),
   gated. The stacking starvation is now quantitative, not anecdotal.
-- **Infra/notes:** used both machines (VM for pbh, idle Mac for ringdown). Weathered transient SSH/IAP drops and a
-  git-pull conflict (locally-committed artifacts vs VM-generated untracked copies — cleaned the VM copies, pulled).
-  Full regression gate ALL GREEN (15 gates). Detail: RESULTS.md (Build C-2), ringdown notes/lab_notebook.md (v6).
+- **Pushing Build C-2 further (morning): two robustness probes + a real bug caught.** Per "keep pushing the
+  learned coincidence": **(A)** head-seed robustness — learned > sum across 5 independent head seeds (not a lucky
+  init). **(B)** does a higher-AUC base model compound? — verified cnn_hl leakage-free on the Build-C segs, then
+  found it helps the learned statistic too (base-agnostic) but does NOT compound (≈ cnn_w64 within seed noise);
+  the gate-critical cnn_w64 suffices. **Lower FAR:** the leakage-clean `--holdout-noise` reaches 1/year with
+  learned still significantly > sum (Δ+0.048[+0.030,+0.071]).
+- **🐛 honest-slides bug, caught while pushing FAR (north star at work).** The time-slide background used 4000
+  lags on only ~500–1500 noise windows — but there are only N−1 distinct circular lags; the rest repeat (and
+  re-inject the zero-lag/on-source). That overcounted T_bg ~5–8× and inflated the reachable-FAR *labels*
+  (held-out-segments really reaches 1/month, not 1/year; Build C's "12.3 yr" is honestly 4.6 yr). Fixed in
+  coinc_learned.py + coinc_far.py (cap at N−1), re-ran everything honest. **The learned>sum and Build-C
+  conclusions are unchanged — only the optimistic labels were.** Also corrected an over-claim: the light mass
+  bin's gain is marginal at the loosest FAR (high-mass is the robust headline). Gates updated to the honest FARs.
+- **Infra/notes:** used both machines (VM for pbh, idle Mac for ringdown). Weathered repeated transient SSH/IAP
+  drops (retry loops; don't hold sessions open) and git-pull conflicts from VM-regenerated tracked artifacts
+  (lesson: scp result JSONs directly, don't `rm`+checkout before pulling — that restores stale committed copies).
+  Full regression gate ALL GREEN (17 gates). Detail: RESULTS.md (Build C-2 + honest-slides), ringdown lab notebook (v6).
 
 ## 2026-06-20 — Build C on GPU VM: pbh coincidence advantage is FAR-ROBUST (the win, completed at scale)
 - Moved to a free L4 GPU VM (alphaludo-l4) for the one carried blocker the Mac couldn't touch: does the
@@ -46,7 +60,8 @@ sub-project's `notes/lab_notebook.md`.*
   the batch cnn forward, RAM to hold data. Did NOT GPU-port the spectrogram (would change the inputs the
   model trained on — north star).
 - **Result (fetch_coinc.py + coinc_far.py):** 24 fresh H1×L1 coincident O3a segments (26.9 h, no train
-  leakage), global time-slide background = 4000 slides × 26.9 h = **12.3 yr** → probe FAR to **1/year**.
+  leakage), global time-slide background = **N−1=1511 distinct lags × 26.9 h = 4.6 yr** (honest; an earlier
+  "12.3 yr" used 4000 lags but there are only N−1 distinct circular lags — overcounting, fixed) → probe FAR to **1/year**.
   Coincidence degrades only GRACEFULLY (1/6h→1/year loses ~15–20%). **Coinc @1/day = 1.33/1.32/1.43× over
   single-det floor — reproduces the stress-tested local G1 +1.37–1.48× (cross-check ✓); even @1/year (a FAR
   the single detector cannot reach from this data) coinc still beats the single-det floor by ~1.2×.**

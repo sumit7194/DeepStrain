@@ -558,9 +558,12 @@ Built scripts/coinc_check.py: inject one event into H1+L1 (v1 search.py geometry
 ### Build C (2026-06-20, GPU VM): coincidence advantage HOLDS at realistic FAR — the win is FAR-robust
 Roadmap follow-up to G1: the +1.37× was at a modest FAR (~1/6 h). On an L4 VM (`fetch_coinc.py` +
 `coinc_far.py`), fetched **24 fresh H1×L1 coincident O3a segments** (26.9 h coincident livetime, none in
-cnn_w64 training — no leakage), scored with cnn_w64, and built a **global time-slide background**: 4000
-slides × 26.9 h = **4480 days (12.3 yr)** of effective background → sets the coincident threshold down to
-**1/year**. 2400 coincident injections (parallel: 1 worker/segment over 8 cores, GPU batch-score).
+cnn_w64 training — no leakage), scored with cnn_w64, and built a **global time-slide background**:
+**N−1 = 1511 distinct circular lags × 26.9 h = 1692 days (4.6 yr)** of honest background → sets the coincident
+threshold down to **1/year**. 2400 coincident injections (parallel: 1 worker/segment over 8 cores, GPU
+batch-score). *(An earlier write-up said "4480 days / 12.3 yr" — that used 4000 lags, but there are only N−1
+distinct circular lags; lags beyond N−1 just repeat. Corrected via the honest-slides fix; the ratios below are
+unchanged, only the background-livetime label.)*
 
 | FAR | 0.17–0.35 | 0.35–0.55 | 0.55–0.88 |
 |---|---|---|---|
@@ -588,44 +591,59 @@ scores — "sum is optimal." Build C-2 revisits that with a **learned** statisti
 **256-d embeddings** of the H1 and L1 windows, form consistency features `[eH, eL, |eH−eL|, eH·eL]`, and train
 a small head (`scripts/coinc_learned.py`, `CoincHead` 4·256→128→32→1) to separate real coincident injections
 from time-slid (accidental) noise pairs. Intuition: the head learns whether H1 and L1 *agree* in morphology —
-a real signal correlates across detectors, a glitch-coincidence does not. Evaluated against a global time-slide
-background (4000 slides → 4.1 yr) across the FAR sweep, vs the `sum` baseline on the SAME embeddings.
-- **The result (sensitive-distance fraction, high-mass, held-out-segments):** sum → learned = 0.370→0.390 (1/6h),
-  0.350→0.390 (1/day), 0.324→0.372 (1/month), **0.293→0.338 (1/year)** — learned wins at **5/5 FARs, all 3 mass
-  bins**, the gain *growing* at stricter FAR.
+a real signal correlates across detectors, a glitch-coincidence does not. Evaluated against an **honest
+time-slide background** (only the N−1 distinct non-zero circular lags — see the "honest-slides" note below)
+across the FAR sweep, vs the `sum` baseline on the SAME embeddings.
+- **The result (sensitive-distance fraction, high-mass, held-out-segments, honest slides):** sum → learned =
+  0.370→0.390 (1/6h), 0.350→0.384 (1/day), 0.331→0.374 (1/week), 0.320→0.371 (1/month) — learned wins at
+  **every honestly-supported FAR, all 3 mass bins**, the gain *growing* at stricter FAR. (Held-out-segments has
+  only 504 eval-noise windows → honest background 0.51 yr → the sweep stops at 1/month; for the 1/year result see
+  the lower-FAR row below.)
 - **Stress-test 1 — LEAKAGE (the decisive one).** The head's training negatives are noise; the eval background is
   also noise → risk of memorizing noise realizations (the δ-stacking trap). Ran THREE modes: `leaky` (shared
   noise), `--holdout-noise` (head-neg and eval-bg are disjoint noise halves), and the gold-standard
   `--holdout-segments` (train on 16 segments, eval on **8 entirely unseen** segments — no noise *or* injection
-  overlap). The gain is **stable across all three** (1/year high-mass: 0.366 / 0.359 / 0.338) ⇒ NOT memorization;
+  overlap). The gain is **stable across all three** (1/month high-mass: 0.369 / 0.369 / 0.371) ⇒ NOT memorization;
   it survives the strongest leakage test we can run.
 - **Stress-test 2 — SIGNIFICANCE.** Bootstrap (B=500) over the 2000 held-out-segment eval injections, 90% CI on
-  (learned − sum): at **every FAR and every mass bin the CI excludes zero**, P(learned>sum)=1.00. E.g. 1/year:
-  high-mass Δ=+0.039 [+0.024,+0.059], mid Δ=+0.032 [+0.024,+0.041], light Δ=+0.014 [+0.007,+0.021]. The gain is
-  real, not Monte-Carlo noise.
+  (learned − sum): the **high-mass gain (the headline) excludes zero at every honest FAR** (1/month Δ=+0.050
+  [+0.024,+0.081], P=1.00), and mid-mass is significant too (1/month Δ=+0.018). The **light bin (0.17–0.35) is the
+  weakest** — its gain is real by 1/month (Δ=+0.008) but only *marginal* at the loosest FAR (1/day 90% CI grazes
+  zero, ≈[−0.001,…]). Honest: the advantage is strongest at high mass and tapers toward the light end.
 - **Stress-test 3 — TRAINING STOCHASTICITY.** The bootstrap covers injection-sampling noise but not a *lucky
   head initialization*. Re-trained the head with 5 independent seeds (`--head-seed 0–4`; the split stays fixed,
-  only init + negative-pair sampling + batch order vary). At 1/year held-out-segments high-mass, learned =
-  {0.338, 0.370, 0.325, 0.344, 0.325} vs sum 0.293 — **above sum at every seed, every mass bin, every FAR**
-  (≈±0.02 magnitude spread, sign never flips). Not a lucky init.
+  only init + negative-pair sampling + batch order vary): learned beats sum at **every seed, every mass bin, and
+  every honestly-supported FAR** (≈±0.02 magnitude spread, sign never flips). Not a lucky init.
+- **Lower FAR (the "1/year" result, honest + leakage-clean).** Held-out-segments runs out of background at 1/month;
+  to reach 1/year *cleanly*, the `--holdout-noise` mode keeps the leakage-clean property (head never sees the
+  eval-background noise) but pools 756 eval-noise windows → honest background **1.16 yr**, which supports 1/year.
+  There learned still beats sum at **5/5 FARs incl. 1/year**: 1/year high-mass Δ=+0.048 [+0.030,+0.071],
+  P(learned>sum)=1.00 (1/year is ~1 background event → thin but supported). The full `leaky` background (1512
+  windows → 4.6 yr) reaches 1/year *robustly* and agrees: 1/year high-mass Δ=+0.032 [+0.018,+0.053] (leakage
+  shown negligible above). **So the learned advantage holds, significantly, down to 1/year.**
+- **honest-slides note (a rigor fix found while pushing to lower FAR).** The background was built as
+  `sH+roll(sL,k)` for k=1..slides. With only N noise windows there are just **N−1 distinct circular lags**;
+  slides>N−1 *repeats* lags (period N) and re-injects the zero-lag/on-source at k=N,2N,… → it **overcounts T_bg**
+  (≈5–8× for the small held-out backgrounds) and inflates the reachable FAR. Fixed in `coinc_learned.py` and
+  `coinc_far.py` (cap at N−1 distinct lags; the FAR sweep auto-drops any FAR with <1 expected background event).
+  All numbers above are post-fix. The learned>sum conclusion is unchanged — only the optimistic FAR *labels* were.
 - **Bottom line:** the learned H1×L1 consistency statistic adds a **significant +0.02–0.05 sensitive-distance
   fraction (≈+5–15%, growing with mass and with FAR strictness) on top of the `sum` coincidence** — which itself
-  is +1.37× over single-detector (G1/Build C). This is the first thing to *beat* sum for subsolar coincidence and
-  it does so leakage-free. **Honest caveats:** the per-detector model is cnn_w64 (H1-trained, applied to both
-  detectors); the 1/year threshold is set by a small eval-noise background (504 windows × 4000 slides — same
-  stationarity caveat as Build C); the head is trained per this data scale (more coincident data → revisit).
-  Gated in verify.sh (cross-segment + bootstrap CI>0). Artifacts: results/coinc_learned_segments.json
-  (+ _holdout, + leaky for the leakage comparison).
+  is +1.37× over single-detector (G1/Build C). First thing to *beat* sum for subsolar coincidence, leakage-free,
+  significant, and stable to 1/year. **Honest caveats:** per-detector model is cnn_w64 (H1-trained, applied to both
+  detectors); 1/year rests on a thin (clean) or leakage-caveated (robust) background; head trained at this data
+  scale (more coincident data → 1/decade). Gated in verify.sh (cross-segment + bootstrap CI>0, honest FAR ≤1/month).
+  Artifacts: results/coinc_learned_segments.json (+ _holdout for the clean 1/year, + leaky).
 - **Follow-up — does a better base embedder COMPOUND? (honest no.)** G2b found the higher-AUC, H1+L1-trained
   `cnn_hl` (0.804 vs cnn_w64 0.793) did NOT help the `sum` statistic — the operating point is tail-separation,
   not AUC. Re-ran the learned coincidence on `cnn_hl` embeddings (`--weights cnn_hl`; first verified cnn_hl's
   training GPS times are **disjoint** from all 24 Build-C segments → leakage-free). Two findings: **(i)** the
-  learned statistic helps on cnn_hl too — significant at 4/5 FARs (1/year high-mass Δ=+0.054 [+0.030,+0.082]),
-  so the mechanism is *base-model-agnostic*; **(ii)** but it does NOT compound — learned-on-cnn_hl high-mass =
-  0.386/0.381/0.353 (1/6h/1/day/1/year) vs learned-on-cnn_w64 0.390/0.385/0.331, i.e. **within the ±0.02
-  head-seed spread** (0.325–0.370 at 1/year). The higher-AUC base buys no clear extra distance — G2b's logic
-  extends to the learned statistic. **Takeaway: the win is base-model-robust; the simpler, gate-critical cnn_w64
-  is sufficient — no need to ship cnn_hl.** Artifact: results/coinc_learned_segments_cnn_hl.json.
+  learned statistic helps on cnn_hl too — significant at 3/4 honest FARs (1/month high-mass Δ=+0.030
+  [+0.013,+0.056]; 1/week marginal P=0.92), so the mechanism is *base-model-agnostic*; **(ii)** but it does NOT
+  compound — learned-on-cnn_hl high-mass = 0.386/0.381/0.362 (1/6h/1/day/1/month) vs learned-on-cnn_w64
+  0.390/0.384/0.371, i.e. **within the ±0.02 head-seed spread**. The higher-AUC base buys no clear extra distance
+  — G2b's logic extends to the learned statistic. **Takeaway: the win is base-model-robust; the simpler,
+  gate-critical cnn_w64 is sufficient — no need to ship cnn_hl.** Artifact: results/coinc_learned_segments_cnn_hl.json.
 
 ### Path G milestone G1 (2026-06-14): H1×L1 COINCIDENCE WORKS — first positive result (+1.3–1.5× distance)
 After G0 forced the pivot (bank density-limited → ride coincidence on the LEARNED model), built

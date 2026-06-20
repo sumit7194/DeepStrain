@@ -155,7 +155,8 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   Artifacts: cnn_hl.pt, coinc_eval_cnn_hl.json. Remaining = robustness only (lower FAR needs more L1 data).
 - **Build C DONE (2026-06-20, L4 GPU VM): coincidence advantage is FAR-ROBUST.** Fetched 24 fresh H1×L1
   coincident O3a segments (26.9 h, no train leakage; fetch_coinc.py), global time-slide background (4000
-  slides → 12.3 yr effective → reach 1/year), 2400 parallel injections (coinc_far.py, 1 worker/seg × 8
+  N−1=1511 distinct lags → 4.6 yr honest [an earlier "12.3 yr" overcounted by using 4000>N−1 lags; fixed] →
+  reach 1/year), 2400 parallel injections (coinc_far.py, 1 worker/seg × 8
   cores, GPU batch-score). Result: coincidence degrades only GRACEFULLY with FAR (1/6h→1/year loses ~15–20%);
   **coinc @1/day = 1.33/1.32/1.43× over single-det floor (reproduces local G1 +1.37×), and even @1/year
   (single-det can't reach it) coinc still beats the single-det floor by ~1.2×.** Gated in verify.sh.
@@ -164,22 +165,28 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   Overturns G2a's "sum is optimal" (that was for *simple* scalar combos). `coinc_learned.py`: cnn_w64 256-d
   penultimate **embeddings** of H1+L1 windows → consistency features `[eH, eL, |eH−eL|, eH·eL]` → small head
   (CoincHead) trained to separate real coincident injections from time-slid noise pairs (it learns whether H1
-  *agrees* with L1). vs `sum` on the same embeddings, global time-slide bg (4000 slides → 4.1 yr). **Learned wins
-  5/5 FARs, all 3 mass bins, gain grows at stricter FAR** (1/year high-mass 0.293→0.338). **Two stress-tests
-  (north star): (1) LEAKAGE** — 3 modes (leaky / `--holdout-noise` / gold-standard `--holdout-segments` = train 16
-  segs, eval 8 UNSEEN segs); gain stable across all three (1/year hi 0.366/0.359/0.338) ⇒ not memorization.
-  **(2) SIGNIFICANCE** — bootstrap B=500 over 2000 eval inj, **every FAR × every mass-bin 90% CI excludes zero,
-  P(learned>sum)=1.00** (1/year: hi +0.039[+0.024,+0.059], mid +0.032, light +0.014). **(3) STOCHASTICITY** —
-  5 head seeds (--head-seed 0–4, split fixed): learned > sum at every seed/bin/FAR (1/year hi 0.325–0.370 vs
-  sum 0.293) ⇒ not a lucky init. **Net: learned adds a
-  significant +0.02–0.05 sensitive-distance fraction (≈+5–15%) on top of sum's +1.37× over single-det — the first
-  thing to beat sum for subsolar coincidence, leakage-free.** Caveats: cnn_w64 H1-trained applied to both; small
-  1/year eval-noise bg; this data scale. Gated (cross-segment + bootstrap CI>0). Segment-tagged embedding cache
-  (coinc_emb_6000.npz). Artifacts: results/coinc_learned_segments.json (+ _holdout, + leaky).
+  *agrees* with L1). vs `sum` on the same embeddings, **HONEST** distinct-lag time-slide bg (see honest-slides
+  below). **Learned wins at every honestly-supported FAR, all 3 mass bins, gain grows at stricter FAR**
+  (held-out-segments 1/month high-mass 0.320→0.371). **Stress-tests (north star): (1) LEAKAGE** — 3 modes
+  (leaky / `--holdout-noise` / gold-standard `--holdout-segments` = train 16 segs, eval 8 UNSEEN segs); gain
+  stable across all three (1/month hi 0.369/0.369/0.371) ⇒ not memorization. **(2) SIGNIFICANCE** — bootstrap
+  B=500 over 2000 eval inj, **every honest FAR × every mass-bin 90% CI excludes zero, P=1.00** (1/month hi
+  +0.050[+0.024,+0.081]). **(3) STOCHASTICITY** — 5 head seeds (--head-seed 0–4, split fixed): learned > sum at
+  every seed/bin/honest-FAR ⇒ not a lucky init. **(4) LOWER FAR** — held-out-segments runs out of bg at 1/month;
+  the leakage-clean `--holdout-noise` (756 bg windows → honest 1.16 yr) reaches **1/year**: learned still > sum,
+  1/year hi Δ+0.048[+0.030,+0.071] P=1.00 (thin); full leaky bg (4.6 yr) agrees robustly (Δ+0.032[+0.018,+0.053]).
+  **honest-slides FIX (found while pushing FAR):** bg `sH+roll(sL,k)` has only N−1 distinct circular lags; slides>N−1
+  repeats lags + re-injects zero-lag → overcounted T_bg ~5–8× (inflated the reachable FAR). Capped at N−1 in
+  coinc_learned.py + coinc_far.py; FAR sweep auto-drops FARs with <1 bg event. Conclusion unchanged, only labels.
+  **Net: learned adds a significant +0.02–0.05 sensitive-distance fraction (≈+5–15%) on top of sum's +1.37× over
+  single-det, stable to 1/year — first thing to beat sum for subsolar coincidence, leakage-free.** Caveats: cnn_w64
+  H1-trained applied to both; 1/year thin(clean)/caveated(robust); this data scale (→1/decade = more data). Gated
+  (cross-segment + bootstrap CI>0, honest FAR≤1/month). Segment-tagged cache. Artifacts: coinc_learned_segments.json
+  (+ _holdout = clean 1/year, + leaky).
   **Follow-up — base-model COMPOUNDING = honest no.** Ran the learned head on the higher-AUC H1+L1-trained
   `cnn_hl` (--weights cnn_hl; verified leakage-free: cnn_hl train GPS disjoint from all 24 Build-C segs). The
-  learned statistic helps on cnn_hl too (sig 4/5 FARs, 1/year hi Δ+0.054) so it's base-model-agnostic — BUT no
-  compounding: learned-cnn_hl ≈ learned-cnn_w64 within the ±0.02 head-seed spread (G2b's tail-not-AUC logic
+  learned statistic helps on cnn_hl too (sig 3/4 honest FARs, 1/month hi Δ+0.030) so it's base-model-agnostic — BUT
+  no compounding: learned-cnn_hl ≈ learned-cnn_w64 within the ±0.02 head-seed spread (G2b's tail-not-AUC logic
   holds). ⇒ the simpler gate-critical cnn_w64 suffices; don't need cnn_hl. Artifact: coinc_learned_segments_cnn_hl.json.
 - **Dashboard:** `python3 dashboard.py` (repo root, stdlib only) serves a live run monitor
   over `*/results/progress/*.json` for all three sub-projects; pbh gained `pbh/progress.py`
