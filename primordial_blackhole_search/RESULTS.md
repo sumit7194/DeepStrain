@@ -555,6 +555,33 @@ Built scripts/coinc_check.py: inject one event into H1+L1 (v1 search.py geometry
   bank-density-limited (it generalizes across mass), and its single-detector limitation IS the noise
   floor, which is exactly what H1×L1 coincidence + time-slides attack. Artifacts: scripts/coinc_check.py.
 
+### Build C (2026-06-20, GPU VM): coincidence advantage HOLDS at realistic FAR — the win is FAR-robust
+Roadmap follow-up to G1: the +1.37× was at a modest FAR (~1/6 h). On an L4 VM (`fetch_coinc.py` +
+`coinc_far.py`), fetched **24 fresh H1×L1 coincident O3a segments** (26.9 h coincident livetime, none in
+cnn_w64 training — no leakage), scored with cnn_w64, and built a **global time-slide background**: 4000
+slides × 26.9 h = **4480 days (12.3 yr)** of effective background → sets the coincident threshold down to
+**1/year**. 2400 coincident injections (parallel: 1 worker/segment over 8 cores, GPU batch-score).
+
+| FAR | 0.17–0.35 | 0.35–0.55 | 0.55–0.88 |
+|---|---|---|---|
+| 1/6 h | 0.302 | 0.350 | 0.373 |
+| 1/day | 0.295 | 0.332 | 0.358 |
+| 1/week | 0.284 | 0.322 | 0.350 |
+| 1/month | 0.276 | 0.316 | 0.325 |
+| **1/year** | 0.267 | 0.300 | 0.303 |
+| single-det floor (1/27 h) | 0.222 | 0.252 | 0.251 |
+
+- **Graceful degradation:** tightening the FAR 4 orders of magnitude (1/6 h → 1/year) costs only ~15–20%
+  of sensitive distance. The advantage does NOT collapse at low FAR.
+- **Coincidence reaches FAR a single detector can't:** single-det floor = 1/T_real = 1/27 h (no slides
+  possible); coincidence reaches 1/year via time-slides. **At 1/year, coincidence (0.303) still beats the
+  single detector's BEST-achievable (0.251) by ~1.2×.**
+- **Cross-check (validation):** coinc @1/day vs single-det floor = **1.33/1.32/1.43×** — matches the
+  stress-tested local G1 +1.37–1.48× almost exactly. The realistic-data result reproduces the validated one.
+- **Honest caveats:** global slides assume noise stationarity across the 24 segments/days (standard); the
+  single-det floor is data-limited (more single-det data → lower floor, but the point is coincidence reaches
+  far lower FAR from the SAME data); network-SNR axis (same convention as G1). Artifacts: results/coinc_far.{json,png}.
+
 ### Path G milestone G1 (2026-06-14): H1×L1 COINCIDENCE WORKS — first positive result (+1.3–1.5× distance)
 After G0 forced the pivot (bank density-limited → ride coincidence on the LEARNED model), built
 scripts/coinc_eval.py: cnn_w64 per-detector on 64-s windows, H1×L1 coincidence with a **time-slide

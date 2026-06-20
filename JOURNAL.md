@@ -11,6 +11,23 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-06-20 — Build C on GPU VM: pbh coincidence advantage is FAR-ROBUST (the win, completed at scale)
+- Moved to a free L4 GPU VM (alphaludo-l4) for the one carried blocker the Mac couldn't touch: does the
+  +1.37× coincidence advantage survive at a REALISTIC false-alarm rate? Set up an isolated workspace
+  (~/deepstrain, clear of the user's other VM projects), cloned the public repo, built a venv
+  (torch 2.12+CUDA, pycbc, gwpy), transferred cnn_w64.
+- **Efficiency:** the workload is CPU/data-bound (whitening + spectrograms + subsolar-waveform generation),
+  the cnn is tiny → the L4 GPU is overkill for the model. So used the box right: parallel whitening +
+  **1 worker/segment over 8 cores** for injection generation (~8× over serial; ~5 h → 25 min), GPU only for
+  the batch cnn forward, RAM to hold data. Did NOT GPU-port the spectrogram (would change the inputs the
+  model trained on — north star).
+- **Result (fetch_coinc.py + coinc_far.py):** 24 fresh H1×L1 coincident O3a segments (26.9 h, no train
+  leakage), global time-slide background = 4000 slides × 26.9 h = **12.3 yr** → probe FAR to **1/year**.
+  Coincidence degrades only GRACEFULLY (1/6h→1/year loses ~15–20%). **Coinc @1/day = 1.33/1.32/1.43× over
+  single-det floor — reproduces the stress-tested local G1 +1.37–1.48× (cross-check ✓); even @1/year (a FAR
+  the single detector cannot reach from this data) coinc still beats the single-det floor by ~1.2×.**
+- Gated in verify.sh (ALL GREEN). The best win is now a realistic-FAR result. Artifacts: results/coinc_far.{json,png}.
+
 ## 2026-06-20 — roadmap night: echo UPPER LIMITS (P1+P2) + ringdown δ-STACKING (P1), both ✓
 - **Echoes v6 — upper limits (11_upper_limits.py):** generalised 06's single-Δt sensitivity into a 2-D
   (amplitude × spacing) efficiency map at N=300, per-Δt p<0.01 background → A90(Δt). Given the on-source

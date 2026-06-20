@@ -76,6 +76,8 @@ already have on the same data**, plus the one guardrail on a parked thread.
 ## Known blockers carried forward (context for the above)
 - **PBH subsolar:** template-bank density wall — subsolar needs ≤0.1% Mc spacing
   (~1,600+ templates) → intractable locally; blocks a real-MF detector and finer-timing
-  coincidence. Come-back-later = GPU/cloud dense bank + lower FAR. (pbh v2 PARKED;
-  coincidence win +1.37× stands.) See [primordial_blackhole_search/RESULTS.md](primordial_blackhole_search/RESULTS.md).
+  coincidence. Come-back-later = GPU/cloud dense bank. (pbh v2 PARKED; coincidence win +1.37× stands.)
+  **Build C DONE (2026-06-20, L4 VM):** the "lower FAR needs more data" item is closed — coincidence is
+  FAR-robust (graceful to 1/year; @1/day reproduces the +1.37×; @1/year still beats single-det floor ~1.2×).
+  See [primordial_blackhole_search/RESULTS.md](primordial_blackhole_search/RESULTS.md).
 - **Ringdown tone-count:** information-limited (see guardrail above).

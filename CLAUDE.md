@@ -153,6 +153,13 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   ~1.4× distance (~2.5× volume), and that is the ceiling for the learned approach at this scale.** Robust
   infra survived ANOTHER reboot (build_hl resumable; everything finished pre-reboot, only /tmp logs lost).
   Artifacts: cnn_hl.pt, coinc_eval_cnn_hl.json. Remaining = robustness only (lower FAR needs more L1 data).
+- **Build C DONE (2026-06-20, L4 GPU VM): coincidence advantage is FAR-ROBUST.** Fetched 24 fresh H1×L1
+  coincident O3a segments (26.9 h, no train leakage; fetch_coinc.py), global time-slide background (4000
+  slides → 12.3 yr effective → reach 1/year), 2400 parallel injections (coinc_far.py, 1 worker/seg × 8
+  cores, GPU batch-score). Result: coincidence degrades only GRACEFULLY with FAR (1/6h→1/year loses ~15–20%);
+  **coinc @1/day = 1.33/1.32/1.43× over single-det floor (reproduces local G1 +1.37×), and even @1/year
+  (single-det can't reach it) coinc still beats the single-det floor by ~1.2×.** Gated in verify.sh.
+  Workspace ~/deepstrain on alphaludo-l4 (separate from other VM projects). Artifacts: results/coinc_far.{json,png}.
 - **Dashboard:** `python3 dashboard.py` (repo root, stdlib only) serves a live run monitor
   over `*/results/progress/*.json` for all three sub-projects; pbh gained `pbh/progress.py`
   (same heartbeat convention as echolib/rdlib). Writes `.dashboard.pid` on start; **stop it

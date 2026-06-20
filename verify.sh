@@ -132,6 +132,23 @@ assert d["coinc_fraction_matchedFAR"]["0.55-0.88"] >= 0.40, "high-mass coinc dis
 print("PASS  pbh path-G coincidence (H1xL1 +1.3-1.5x sensitive distance over single-det, matched FAR)")
 PYEOF9
 
+echo "--- pbh Build C (coinc_far: coincidence holds at realistic FAR, down to 1/year)"
+./primordial_blackhole_search/.venv/bin/python - << 'PYEOFC' || FAIL=1
+import json
+d = json.loads(open("primordial_blackhole_search/results/coinc_far.json").read())
+ML = ("0.17-0.35", "0.35-0.55", "0.55-0.88")
+s = d["single_det_floor_frac"]
+day = d["coinc_vs_far"]["1/day"]["frac"]; yr = d["coinc_vs_far"]["1/year"]["frac"]
+# cross-check: coinc @1/day reproduces the local G1 +1.3-1.5x over single-det floor
+for m in ML:
+    assert 1.2 <= day[m]/s[m] <= 1.6, f"Build C 1/day gain off [{m}]: {day[m]/s[m]:.2f}"
+# graceful: even at 1/year (FAR a single detector can't reach) coinc still beats the single-det floor
+for m in ML:
+    assert yr[m] > s[m], f"Build C coinc @1/year no longer beats single-det floor [{m}]"
+assert d["bg_days"] > 365, "Build C background livetime < 1 yr -- cannot probe realistic FAR"
+print("PASS  pbh Build C (coinc FAR-robust: 1/day ~1.4x = local G1; 1/year still > single-det floor)")
+PYEOFC
+
 echo "========================================"
 [ $FAIL -eq 0 ] && echo "BLACKHOLE GATE: ALL GREEN" || echo "BLACKHOLE GATE: FAILURES"
 exit $FAIL
