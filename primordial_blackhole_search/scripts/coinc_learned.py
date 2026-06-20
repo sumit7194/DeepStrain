@@ -46,6 +46,16 @@ def embed(model, device, feats):
     return np.concatenate(emb), np.concatenate(sc)
 
 
+@torch.no_grad()
+def score_from_emb(model, device, emb):
+    """Scalar cnn score from a cached 256-d embedding (the final head, model.net[6:])."""
+    out = []
+    for i in range(0, len(emb), 8192):
+        b = torch.from_numpy(np.asarray(emb[i:i+8192])).float().to(device)
+        out.append(model.net[6:](b).squeeze(-1).cpu().numpy())
+    return np.concatenate(out)
+
+
 def pair_feats(eH, eL):
     """Symmetric H1-L1 consistency features: [eH, eL, |eH-eL|, eH*eL] -> 4*256."""
     return np.concatenate([eH, eL, np.abs(eH - eL), eH * eL], axis=1).astype(np.float32)
@@ -75,29 +85,38 @@ def main() -> None:
     per = max(1, args.n_inj // len(segs))
     print(f"dev {dev} | {len(segs)} segs | {per}/seg inj | {args.slides} slides", flush=True)
 
-    t0 = time.time()
-    jobs = [(g, per, SEED + 555 + i) for i, g in enumerate(segs)]
-    res = {}
-    with ProcessPoolExecutor(max_workers=args.workers) as ex:
-        for r in ex.map(_segment_worker, jobs):
-            res[r[0]] = r
-            print(f"  seg {len(res)}/{len(segs)} ({time.time()-t0:.0f}s)", flush=True)
-
-    # --- embeddings: noise (pooled, aligned) + injections ---
-    nH, nL, iH, iL, meta = [], [], [], [], []
-    for g in segs:
-        _, noiseH, noiseL, fH, fL, metas = res[g]
-        eH, _ = embed(model, dev, noiseH); eL, _ = embed(model, dev, noiseL)
-        n = min(len(eH), len(eL)); nH.append(eH[:n]); nL.append(eL[:n])
-        ejH, sjH = embed(model, dev, fH); ejL, sjL = embed(model, dev, fL)
-        iH.append(ejH); iL.append(ejL)
-        meta += [dict(chirp_mass=mc, target_snr=t, sH1=float(a), sL1=float(b))
-                 for (mc, t), a, b in zip(metas, sjH, sjL)]
-    nH = np.concatenate(nH); nL = np.concatenate(nL); N = len(nH)
-    iH = np.concatenate(iH); iL = np.concatenate(iL)
+    # cache the (expensive) embeddings so a post-injection bug never re-pays the ~60 min
+    cache = C.DATA_DIR / f"coinc_emb_{args.n_inj}.npz"
+    if cache.exists():
+        z = np.load(cache, allow_pickle=True)
+        nH, nL, iH, iL = z["nH"], z["nL"], z["iH"], z["iL"]
+        meta = list(z["meta"])
+        print(f"loaded cached embeddings {cache.name}", flush=True)
+    else:
+        t0 = time.time()
+        jobs = [(g, per, SEED + 555 + i) for i, g in enumerate(segs)]
+        res = {}
+        with ProcessPoolExecutor(max_workers=args.workers) as ex:
+            for r in ex.map(_segment_worker, jobs):
+                res[r[0]] = r
+                print(f"  seg {len(res)}/{len(segs)} ({time.time()-t0:.0f}s)", flush=True)
+        nH, nL, iH, iL, meta = [], [], [], [], []
+        for g in segs:
+            _, noiseH, noiseL, fH, fL, metas = res[g]
+            eH, _ = embed(model, dev, noiseH); eL, _ = embed(model, dev, noiseL)
+            n = min(len(eH), len(eL)); nH.append(eH[:n]); nL.append(eL[:n])
+            ejH, sjH = embed(model, dev, fH); ejL, sjL = embed(model, dev, fL)
+            iH.append(ejH); iL.append(ejL)
+            meta += [dict(chirp_mass=mc, target_snr=t, sH1=float(a), sL1=float(b))
+                     for (mc, t), a, b in zip(metas, sjH, sjL)]
+        nH = np.concatenate(nH); nL = np.concatenate(nL)
+        iH = np.concatenate(iH); iL = np.concatenate(iL)
+        np.savez(cache, nH=nH, nL=nL, iH=iH, iL=iL, meta=np.array(meta, dtype=object))
+        print(f"cached embeddings -> {cache.name} ({time.time()-t0:.0f}s)", flush=True)
+    N = len(nH)
     df = pd.DataFrame(meta); df["coinc_sum"] = df.sH1 + df.sL1
     T_real = N * 64.0
-    print(f"\npooled {N} noise windows | {len(df)} injections ({time.time()-t0:.0f}s)", flush=True)
+    print(f"pooled {N} noise windows | {len(df)} injections", flush=True)
 
     # --- train/eval split on injections (no leakage) ---
     rng = np.random.default_rng(0)
@@ -105,8 +124,9 @@ def main() -> None:
     tr, ev = idx[:ntr], idx[ntr:]
     # positives = real coincident injections; negatives = time-slide noise pairs
     Xpos = pair_feats(iH[tr], iL[tr])
-    k = rng.integers(1, N, size=len(tr))
-    Xneg = pair_feats(nH[:len(tr)], nL[(np.arange(len(tr)) + k) % N])
+    ni = rng.integers(0, N, size=len(tr))          # sample noise windows (with replacement)
+    k = rng.integers(1, N, size=len(tr))           # time-slide offsets (>=1 -> non-physical pair)
+    Xneg = pair_feats(nH[ni], nL[(ni + k) % N])
     X = np.concatenate([Xpos, Xneg]); y = np.concatenate([np.ones(len(tr)), np.zeros(len(tr))])
     mu, sd = X.mean(0), X.std(0) + 1e-6                       # standardize
     head = CoincHead().to(dev)
@@ -132,12 +152,8 @@ def main() -> None:
     bg_l = np.concatenate([learned_stat(nH, np.roll(nL, kk, axis=0))
                            for kk in range(1, args.slides + 1)])
     bg_l.sort()
-    # sum-statistic background: pooled scalar noise scores (same windows), time-slid
-    sNH, sNL = [], []
-    for g in segs:
-        nh = embed(model, dev, res[g][1])[1]; nl = embed(model, dev, res[g][2])[1]
-        n = min(len(nh), len(nl)); sNH.append(nh[:n]); sNL.append(nl[:n])
-    sNH = np.concatenate(sNH); sNL = np.concatenate(sNL)
+    # sum-statistic background: scalar scores of the SAME pooled noise embeddings, time-slid
+    sNH = score_from_emb(model, dev, nH); sNL = score_from_emb(model, dev, nL)
     bg_s = np.concatenate([sNH + np.roll(sNL, kk) for kk in range(1, args.slides + 1)]); bg_s.sort()
     T_bg = args.slides * T_real
 
