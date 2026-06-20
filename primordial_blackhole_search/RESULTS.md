@@ -616,6 +616,16 @@ background (4000 slides → 4.1 yr) across the FAR sweep, vs the `sum` baseline 
   stationarity caveat as Build C); the head is trained per this data scale (more coincident data → revisit).
   Gated in verify.sh (cross-segment + bootstrap CI>0). Artifacts: results/coinc_learned_segments.json
   (+ _holdout, + leaky for the leakage comparison).
+- **Follow-up — does a better base embedder COMPOUND? (honest no.)** G2b found the higher-AUC, H1+L1-trained
+  `cnn_hl` (0.804 vs cnn_w64 0.793) did NOT help the `sum` statistic — the operating point is tail-separation,
+  not AUC. Re-ran the learned coincidence on `cnn_hl` embeddings (`--weights cnn_hl`; first verified cnn_hl's
+  training GPS times are **disjoint** from all 24 Build-C segments → leakage-free). Two findings: **(i)** the
+  learned statistic helps on cnn_hl too — significant at 4/5 FARs (1/year high-mass Δ=+0.054 [+0.030,+0.082]),
+  so the mechanism is *base-model-agnostic*; **(ii)** but it does NOT compound — learned-on-cnn_hl high-mass =
+  0.386/0.381/0.353 (1/6h/1/day/1/year) vs learned-on-cnn_w64 0.390/0.385/0.331, i.e. **within the ±0.02
+  head-seed spread** (0.325–0.370 at 1/year). The higher-AUC base buys no clear extra distance — G2b's logic
+  extends to the learned statistic. **Takeaway: the win is base-model-robust; the simpler, gate-critical cnn_w64
+  is sufficient — no need to ship cnn_hl.** Artifact: results/coinc_learned_segments_cnn_hl.json.
 
 ### Path G milestone G1 (2026-06-14): H1×L1 COINCIDENCE WORKS — first positive result (+1.3–1.5× distance)
 After G0 forced the pivot (bank density-limited → ride coincidence on the LEARNED model), built

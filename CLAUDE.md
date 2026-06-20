@@ -176,6 +176,11 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   thing to beat sum for subsolar coincidence, leakage-free.** Caveats: cnn_w64 H1-trained applied to both; small
   1/year eval-noise bg; this data scale. Gated (cross-segment + bootstrap CI>0). Segment-tagged embedding cache
   (coinc_emb_6000.npz). Artifacts: results/coinc_learned_segments.json (+ _holdout, + leaky).
+  **Follow-up — base-model COMPOUNDING = honest no.** Ran the learned head on the higher-AUC H1+L1-trained
+  `cnn_hl` (--weights cnn_hl; verified leakage-free: cnn_hl train GPS disjoint from all 24 Build-C segs). The
+  learned statistic helps on cnn_hl too (sig 4/5 FARs, 1/year hi Δ+0.054) so it's base-model-agnostic — BUT no
+  compounding: learned-cnn_hl ≈ learned-cnn_w64 within the ±0.02 head-seed spread (G2b's tail-not-AUC logic
+  holds). ⇒ the simpler gate-critical cnn_w64 suffices; don't need cnn_hl. Artifact: coinc_learned_segments_cnn_hl.json.
 - **Dashboard:** `python3 dashboard.py` (repo root, stdlib only) serves a live run monitor
   over `*/results/progress/*.json` for all three sub-projects; pbh gained `pbh/progress.py`
   (same heartbeat convention as echolib/rdlib). Writes `.dashboard.pid` on start; **stop it
