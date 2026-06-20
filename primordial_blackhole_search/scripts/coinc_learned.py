@@ -79,6 +79,9 @@ def main() -> None:
     ap.add_argument("--holdout-noise", action="store_true",
                     help="STRESS-TEST: head negatives from noise half A; eval background from "
                          "noise half B (the head never saw it) -> kills noise-memorization leakage")
+    ap.add_argument("--holdout-segments", action="store_true",
+                    help="GOLD-STANDARD STRESS-TEST: train head on the first 2/3 of SEGMENTS, eval on "
+                         "the held-out 1/3 (unseen segments) -> kills noise + segment-specific leakage")
     args = ap.parse_args()
     dev = "cuda" if torch.cuda.is_available() else "cpu"
     model = make_model("cnn")
@@ -90,11 +93,11 @@ def main() -> None:
 
     # cache the (expensive) embeddings so a post-injection bug never re-pays the ~60 min
     cache = C.DATA_DIR / f"coinc_emb_{args.n_inj}.npz"
-    if cache.exists():
+    if cache.exists() and "noise_seg" in np.load(cache, allow_pickle=True):
         z = np.load(cache, allow_pickle=True)
         nH, nL, iH, iL = z["nH"], z["nL"], z["iH"], z["iL"]
-        meta = list(z["meta"])
-        print(f"loaded cached embeddings {cache.name}", flush=True)
+        meta = list(z["meta"]); noise_seg = z["noise_seg"]; inj_seg = z["inj_seg"]
+        print(f"loaded cached embeddings {cache.name} (with segment tags)", flush=True)
     else:
         t0 = time.time()
         jobs = [(g, per, SEED + 555 + i) for i, g in enumerate(segs)]
@@ -103,37 +106,47 @@ def main() -> None:
             for r in ex.map(_segment_worker, jobs):
                 res[r[0]] = r
                 print(f"  seg {len(res)}/{len(segs)} ({time.time()-t0:.0f}s)", flush=True)
-        nH, nL, iH, iL, meta = [], [], [], [], []
-        for g in segs:
+        nH, nL, iH, iL, meta, nseg, iseg = [], [], [], [], [], [], []
+        for si, g in enumerate(segs):
             _, noiseH, noiseL, fH, fL, metas = res[g]
             eH, _ = embed(model, dev, noiseH); eL, _ = embed(model, dev, noiseL)
-            n = min(len(eH), len(eL)); nH.append(eH[:n]); nL.append(eL[:n])
+            n = min(len(eH), len(eL)); nH.append(eH[:n]); nL.append(eL[:n]); nseg.append(np.full(n, si))
             ejH, sjH = embed(model, dev, fH); ejL, sjL = embed(model, dev, fL)
-            iH.append(ejH); iL.append(ejL)
+            iH.append(ejH); iL.append(ejL); iseg.append(np.full(len(metas), si))
             meta += [dict(chirp_mass=mc, target_snr=t, sH1=float(a), sL1=float(b))
                      for (mc, t), a, b in zip(metas, sjH, sjL)]
         nH = np.concatenate(nH); nL = np.concatenate(nL)
         iH = np.concatenate(iH); iL = np.concatenate(iL)
-        np.savez(cache, nH=nH, nL=nL, iH=iH, iL=iL, meta=np.array(meta, dtype=object))
+        noise_seg = np.concatenate(nseg); inj_seg = np.concatenate(iseg)
+        np.savez(cache, nH=nH, nL=nL, iH=iH, iL=iL, meta=np.array(meta, dtype=object),
+                 noise_seg=noise_seg, inj_seg=inj_seg)
         print(f"cached embeddings -> {cache.name} ({time.time()-t0:.0f}s)", flush=True)
     N = len(nH)
     df = pd.DataFrame(meta); df["coinc_sum"] = df.sH1 + df.sL1
     T_real = N * 64.0
     print(f"pooled {N} noise windows | {len(df)} injections", flush=True)
 
-    # --- noise split: head negatives vs eval background (stress-test for leakage) ---
+    # --- split noise (head-neg vs eval-bg) and injections (train vs eval) for leakage tests ---
     rng = np.random.default_rng(0)
-    if args.holdout_noise:
-        pn = rng.permutation(N); h = N // 2
-        noise_tr, noise_ev = pn[:h], pn[h:]        # head sees half A; eval background = half B
-    else:
-        noise_tr = noise_ev = np.arange(N)         # default (leaky): head + eval share the noise
-    print(f"noise split: head-neg {len(noise_tr)} | eval-bg {len(noise_ev)} "
-          f"({'HELD-OUT' if args.holdout_noise else 'shared (leaky)'})", flush=True)
-
-    # --- train/eval split on injections (held out by index) ---
-    idx = rng.permutation(len(df)); ntr = int(0.6 * len(df))
-    tr, ev = idx[:ntr], idx[ntr:]
+    if args.holdout_segments:                      # GOLD: disjoint SEGMENTS for train vs eval
+        nseg_total = len(segs); cut = (2 * nseg_total) // 3
+        tr_segids, ev_segids = set(range(cut)), set(range(cut, nseg_total))
+        noise_tr = np.where(np.isin(noise_seg, list(tr_segids)))[0]
+        noise_ev = np.where(np.isin(noise_seg, list(ev_segids)))[0]
+        tr = np.where(np.isin(inj_seg, list(tr_segids)))[0]
+        ev = np.where(np.isin(inj_seg, list(ev_segids)))[0]
+        mode = f"HELD-OUT SEGMENTS (train {cut} segs, eval {nseg_total-cut} segs)"
+    elif args.holdout_noise:                       # noise-window halves (kills noise memorization)
+        pn = rng.permutation(N); hf = N // 2
+        noise_tr, noise_ev = pn[:hf], pn[hf:]
+        idx = rng.permutation(len(df)); ntr = int(0.6 * len(df)); tr, ev = idx[:ntr], idx[ntr:]
+        mode = "HELD-OUT noise"
+    else:                                          # default (leaky): head + eval share everything
+        noise_tr = noise_ev = np.arange(N)
+        idx = rng.permutation(len(df)); ntr = int(0.6 * len(df)); tr, ev = idx[:ntr], idx[ntr:]
+        mode = "shared (leaky)"
+    print(f"split [{mode}]: head-neg noise {len(noise_tr)} | eval-bg noise {len(noise_ev)} | "
+          f"train inj {len(tr)} | eval inj {len(ev)}", flush=True)
     # positives = real coincident injections; negatives = accidental (time-slid) noise pairs
     Xpos = pair_feats(iH[tr], iL[tr])
     a = noise_tr[rng.integers(0, len(noise_tr), size=len(tr))]   # H1 noise window
@@ -185,15 +198,14 @@ def main() -> None:
         ss = " ".join(f"{fs[m][1]:.3f}" for m in ML); ll = " ".join(f"{fl[m][1]:.3f}" for m in ML)
         print(f"{name:>8} | {ss:>32} | {ll:>32}")
 
-    tag = "_holdout" if args.holdout_noise else ""
+    tag = "_segments" if args.holdout_segments else "_holdout" if args.holdout_noise else ""
     (C.RESULTS_DIR / f"coinc_learned{tag}.json").write_text(json.dumps(
-        {"holdout_noise": args.holdout_noise, "n_eval_inj": int(len(df_ev)), "slides": args.slides,
+        {"mode": mode, "n_eval_inj": int(len(df_ev)), "slides": args.slides,
          "bg_days": T_bg/86400, "vs_far": out}, indent=2))
     # verdict
     hi = "0.55-0.88"
     wins = sum(out[n]["learned"][hi] > out[n]["sum"][hi] + 0.01 for n in out)
-    print(f"\nVERDICT [{'HELD-OUT noise' if args.holdout_noise else 'shared noise (leaky)'}]: "
-          f"learned beats sum (high-mass, >+0.01) at {wins}/{len(out)} FARs "
+    print(f"\nVERDICT [{mode}]: learned beats sum (high-mass, >+0.01) at {wins}/{len(out)} FARs "
           + ("-> LEARNED COINCIDENCE HELPS" if wins >= max(1, len(out)//2 + 1) else "-> sum optimal (honest)"))
     print(f"wrote coinc_learned{tag}.json")
 
