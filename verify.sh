@@ -151,16 +151,17 @@ import json
 d = json.loads(open("primordial_blackhole_search/results/coinc_learned_segments.json").read())
 assert "HELD-OUT SEGMENTS" in d["mode"], "not the gold-standard cross-segment run"   # no noise/segment leakage
 ML = ("0.17-0.35", "0.35-0.55", "0.55-0.88")
-# learned beats sum (high-mass) at every FAR ...
+# learned beats sum (high-mass) at every honestly-supported FAR ...
 for far, v in d["vs_far"].items():
     assert v["learned"]["0.55-0.88"] > v["sum"]["0.55-0.88"], f"learned <= sum high-mass at {far}"
-# ... AND the gain is statistically significant (bootstrap 90% CI lower bound > 0) at 1/day and 1/year, all bins
-for far in ("1/day", "1/year"):
+# ... AND the gain is significant (bootstrap 90% CI lower bound > 0) at 1/day and 1/month, all bins.
+# (honest distinct-lag slides: 504 eval-noise windows -> bg ~0.5 yr -> 1/year is NOT supported, auto-dropped)
+for far in ("1/day", "1/month"):
     for m in ML:
         lo = d["bootstrap"][far][m]["ci90"][0]
         assert lo > 0, f"learned-sum gain not significant [{far} {m}]: CI lower bound {lo}"
-assert d["bg_days"] > 365, "Build C-2 background < 1 yr"
-print("PASS  pbh Build C-2 (learned coincidence: +0.02-0.05 sensitive distance over sum, cross-segment, 90% CI>0)")
+assert "1/year" not in d["vs_far"], "1/year present -> overcounted slides regressed (honest bg is ~0.5 yr)"
+print("PASS  pbh Build C-2 (learned coincidence: +0.02-0.05 sensitive distance over sum, cross-segment, 90% CI>0, honest FAR<=1/month)")
 PYEOFL
 
 echo "--- pbh Build C (coinc_far: coincidence holds at realistic FAR, down to 1/year)"

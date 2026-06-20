@@ -125,10 +125,14 @@ def main() -> None:
     print(f"\npooled {N} noise windows ({T_real/3600:.1f} h) | {len(df)} injections "
           f"({time.time()-t0:.0f}s total)", flush=True)
 
-    # --- time-slide background (global slides) ---
-    bg = np.concatenate([sH1 + np.roll(sL1, k) for k in range(1, args.slides + 1)])
+    # --- time-slide background (HONEST: only the N-1 distinct non-zero circular lags) ---
+    # slides>N-1 just repeats lags (period N) and re-injects zero-lag at k=N,2N,... -> overcounts T_bg.
+    n_lags = min(args.slides, N - 1)
+    if args.slides > N - 1:
+        print(f"[honest-slides] requested {args.slides} > N-1={N-1} distinct lags -> capped to {n_lags}", flush=True)
+    bg = np.concatenate([sH1 + np.roll(sL1, k) for k in range(1, n_lags + 1)])
     bg.sort()
-    T_bg = args.slides * T_real
+    T_bg = n_lags * T_real
     print(f"background {len(bg):,} coincidences over {T_bg/86400:.0f} days "
           f"(FAR floor 1/{T_bg/86400:.0f}d)", flush=True)
 
