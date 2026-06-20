@@ -582,6 +582,36 @@ slides × 26.9 h = **4480 days (12.3 yr)** of effective background → sets the 
   single-det floor is data-limited (more single-det data → lower floor, but the point is coincidence reaches
   far lower FAR from the SAME data); network-SNR axis (same convention as G1). Artifacts: results/coinc_far.{json,png}.
 
+### Build C-2 (2026-06-20, GPU VM): a LEARNED coincidence statistic beats the sum baseline — significant + leakage-free
+G2a had found *simple* coincidence statistics (min/prod/max+min) don't beat the plain `sum` of per-detector
+scores — "sum is optimal." Build C-2 revisits that with a **learned** statistic: take the cnn_w64 penultimate
+**256-d embeddings** of the H1 and L1 windows, form consistency features `[eH, eL, |eH−eL|, eH·eL]`, and train
+a small head (`scripts/coinc_learned.py`, `CoincHead` 4·256→128→32→1) to separate real coincident injections
+from time-slid (accidental) noise pairs. Intuition: the head learns whether H1 and L1 *agree* in morphology —
+a real signal correlates across detectors, a glitch-coincidence does not. Evaluated against a global time-slide
+background (4000 slides → 4.1 yr) across the FAR sweep, vs the `sum` baseline on the SAME embeddings.
+- **The result (sensitive-distance fraction, high-mass, held-out-segments):** sum → learned = 0.370→0.390 (1/6h),
+  0.350→0.390 (1/day), 0.324→0.372 (1/month), **0.293→0.338 (1/year)** — learned wins at **5/5 FARs, all 3 mass
+  bins**, the gain *growing* at stricter FAR.
+- **Stress-test 1 — LEAKAGE (the decisive one).** The head's training negatives are noise; the eval background is
+  also noise → risk of memorizing noise realizations (the δ-stacking trap). Ran THREE modes: `leaky` (shared
+  noise), `--holdout-noise` (head-neg and eval-bg are disjoint noise halves), and the gold-standard
+  `--holdout-segments` (train on 16 segments, eval on **8 entirely unseen** segments — no noise *or* injection
+  overlap). The gain is **stable across all three** (1/year high-mass: 0.366 / 0.359 / 0.338) ⇒ NOT memorization;
+  it survives the strongest leakage test we can run.
+- **Stress-test 2 — SIGNIFICANCE.** Bootstrap (B=500) over the 2000 held-out-segment eval injections, 90% CI on
+  (learned − sum): at **every FAR and every mass bin the CI excludes zero**, P(learned>sum)=1.00. E.g. 1/year:
+  high-mass Δ=+0.039 [+0.024,+0.059], mid Δ=+0.032 [+0.024,+0.041], light Δ=+0.014 [+0.007,+0.021]. The gain is
+  real, not Monte-Carlo noise.
+- **Bottom line:** the learned H1×L1 consistency statistic adds a **significant +0.02–0.05 sensitive-distance
+  fraction (≈+5–15%, growing with mass and with FAR strictness) on top of the `sum` coincidence** — which itself
+  is +1.37× over single-detector (G1/Build C). This is the first thing to *beat* sum for subsolar coincidence and
+  it does so leakage-free. **Honest caveats:** the per-detector model is cnn_w64 (H1-trained, applied to both
+  detectors); the 1/year threshold is set by a small eval-noise background (504 windows × 4000 slides — same
+  stationarity caveat as Build C); the head is trained per this data scale (more coincident data → revisit).
+  Gated in verify.sh (cross-segment + bootstrap CI>0). Artifacts: results/coinc_learned_segments.json
+  (+ _holdout, + leaky for the leakage comparison).
+
 ### Path G milestone G1 (2026-06-14): H1×L1 COINCIDENCE WORKS — first positive result (+1.3–1.5× distance)
 After G0 forced the pivot (bank density-limited → ride coincidence on the LEARNED model), built
 scripts/coinc_eval.py: cnn_w64 per-detector on 64-s windows, H1×L1 coincidence with a **time-slide

@@ -11,6 +11,30 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-06-20 (night) — Build C-2 + ringdown v6: a LEARNED coincidence beats sum (significant, leakage-free), and the δ-SNR wall is mapped
+- **PBH Build C-2 (GPU VM) — the night's headline.** Asked whether a *learned* H1×L1 coincidence statistic can
+  beat the plain `sum` of per-detector scores (G2a had said no — but only for simple scalar combos). Built
+  `coinc_learned.py`: cnn_w64's 256-d penultimate embeddings of the H1 and L1 windows → consistency features
+  `[eH, eL, |eH−eL|, eH·eL]` → a small head trained to tell real coincident injections from time-slid noise pairs
+  (it learns whether the two detectors *agree*). **Learned beats sum at 5/5 FARs, all 3 mass bins, the gain
+  growing at stricter FAR.**
+- **Held to the north star — two stress-tests before claiming.** (1) *Leakage:* the head trains on noise and is
+  evaluated against noise → could memorize noise realizations (the δ-stacking trap). Ran three modes — leaky,
+  held-out-noise, and the gold-standard **held-out-segments** (train 16 segments, eval 8 *unseen* ones). The gain
+  is stable across all three ⇒ not memorization. (2) *Significance:* bootstrap B=500 over the 2000 held-out-segment
+  injections — **every FAR × every mass-bin 90% CI excludes zero, P(learned>sum)=1.00**. The +0.02–0.05
+  sensitive-distance gain (≈+5–15%, on top of sum's +1.37× over single-det) is real. First thing to beat sum for
+  subsolar coincidence. Gated (cross-segment + bootstrap CI>0). Added a segment-tagged embedding cache so the
+  cross-segment test was a fast re-run, not a 60-min regen.
+- **Ringdown v6 (Mac, in parallel) — `14_delta_threshold.py`.** Completed the δ-stacking story from the other side:
+  13 found only GW250114 measures δ; 14 maps *why*. Swept injected ringdown loudness, measured σ(δ) vs whitened
+  ringdown SNR — δ only becomes informative at **ringdown SNR ≳ 37**, and even at the top of the trained loudness
+  it's just ~13% tighter than prior; GW250114 (real, σ/prior 0.83) sits right at that edge. Seed-robust (0/1/2),
+  gated. The stacking starvation is now quantitative, not anecdotal.
+- **Infra/notes:** used both machines (VM for pbh, idle Mac for ringdown). Weathered transient SSH/IAP drops and a
+  git-pull conflict (locally-committed artifacts vs VM-generated untracked copies — cleaned the VM copies, pulled).
+  Full regression gate ALL GREEN (15 gates). Detail: RESULTS.md (Build C-2), ringdown notes/lab_notebook.md (v6).
+
 ## 2026-06-20 — Build C on GPU VM: pbh coincidence advantage is FAR-ROBUST (the win, completed at scale)
 - Moved to a free L4 GPU VM (alphaludo-l4) for the one carried blocker the Mac couldn't touch: does the
   +1.37× coincidence advantage survive at a REALISTIC false-alarm rate? Set up an isolated workspace

@@ -160,6 +160,20 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   **coinc @1/day = 1.33/1.32/1.43× over single-det floor (reproduces local G1 +1.37×), and even @1/year
   (single-det can't reach it) coinc still beats the single-det floor by ~1.2×.** Gated in verify.sh.
   Workspace ~/deepstrain on alphaludo-l4 (separate from other VM projects). Artifacts: results/coinc_far.{json,png}.
+- **Build C-2 DONE (2026-06-20, L4 GPU VM): a LEARNED coincidence statistic BEATS sum — significant + leakage-free.**
+  Overturns G2a's "sum is optimal" (that was for *simple* scalar combos). `coinc_learned.py`: cnn_w64 256-d
+  penultimate **embeddings** of H1+L1 windows → consistency features `[eH, eL, |eH−eL|, eH·eL]` → small head
+  (CoincHead) trained to separate real coincident injections from time-slid noise pairs (it learns whether H1
+  *agrees* with L1). vs `sum` on the same embeddings, global time-slide bg (4000 slides → 4.1 yr). **Learned wins
+  5/5 FARs, all 3 mass bins, gain grows at stricter FAR** (1/year high-mass 0.293→0.338). **Two stress-tests
+  (north star): (1) LEAKAGE** — 3 modes (leaky / `--holdout-noise` / gold-standard `--holdout-segments` = train 16
+  segs, eval 8 UNSEEN segs); gain stable across all three (1/year hi 0.366/0.359/0.338) ⇒ not memorization.
+  **(2) SIGNIFICANCE** — bootstrap B=500 over 2000 eval inj, **every FAR × every mass-bin 90% CI excludes zero,
+  P(learned>sum)=1.00** (1/year: hi +0.039[+0.024,+0.059], mid +0.032, light +0.014). **Net: learned adds a
+  significant +0.02–0.05 sensitive-distance fraction (≈+5–15%) on top of sum's +1.37× over single-det — the first
+  thing to beat sum for subsolar coincidence, leakage-free.** Caveats: cnn_w64 H1-trained applied to both; small
+  1/year eval-noise bg; this data scale. Gated (cross-segment + bootstrap CI>0). Segment-tagged embedding cache
+  (coinc_emb_6000.npz). Artifacts: results/coinc_learned_segments.json (+ _holdout, + leaky).
 - **Dashboard:** `python3 dashboard.py` (repo root, stdlib only) serves a live run monitor
   over `*/results/progress/*.json` for all three sub-projects; pbh gained `pbh/progress.py`
   (same heartbeat convention as echolib/rdlib). Writes `.dashboard.pid` on start; **stop it

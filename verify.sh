@@ -145,6 +145,24 @@ assert d["coinc_fraction_matchedFAR"]["0.55-0.88"] >= 0.40, "high-mass coinc dis
 print("PASS  pbh path-G coincidence (H1xL1 +1.3-1.5x sensitive distance over single-det, matched FAR)")
 PYEOF9
 
+echo "--- pbh Build C-2 (coinc_learned_segments: LEARNED H1xL1 coincidence beats sum, leakage-free + significant)"
+./primordial_blackhole_search/.venv/bin/python - << 'PYEOFL' || FAIL=1
+import json
+d = json.loads(open("primordial_blackhole_search/results/coinc_learned_segments.json").read())
+assert "HELD-OUT SEGMENTS" in d["mode"], "not the gold-standard cross-segment run"   # no noise/segment leakage
+ML = ("0.17-0.35", "0.35-0.55", "0.55-0.88")
+# learned beats sum (high-mass) at every FAR ...
+for far, v in d["vs_far"].items():
+    assert v["learned"]["0.55-0.88"] > v["sum"]["0.55-0.88"], f"learned <= sum high-mass at {far}"
+# ... AND the gain is statistically significant (bootstrap 90% CI lower bound > 0) at 1/day and 1/year, all bins
+for far in ("1/day", "1/year"):
+    for m in ML:
+        lo = d["bootstrap"][far][m]["ci90"][0]
+        assert lo > 0, f"learned-sum gain not significant [{far} {m}]: CI lower bound {lo}"
+assert d["bg_days"] > 365, "Build C-2 background < 1 yr"
+print("PASS  pbh Build C-2 (learned coincidence: +0.02-0.05 sensitive distance over sum, cross-segment, 90% CI>0)")
+PYEOFL
+
 echo "--- pbh Build C (coinc_far: coincidence holds at realistic FAR, down to 1/year)"
 ./primordial_blackhole_search/.venv/bin/python - << 'PYEOFC' || FAIL=1
 import json
