@@ -185,11 +185,18 @@ def main() -> None:
     df_ev = df.iloc[ev].copy()
     df_ev["coinc_learned"] = learned_stat(iH[ev], iL[ev])
     nHe, nLe = nH[noise_ev], nL[noise_ev]                 # background noise the head never trained on
-    bg_l = np.concatenate([learned_stat(nHe, np.roll(nLe, kk, axis=0))
-                           for kk in range(1, args.slides + 1)]); bg_l.sort()
+    Nev = len(noise_ev)
+    # HONEST time-slides: only the N-1 distinct non-zero circular lags. Using slides>N-1 just repeats
+    # lags (period N) and re-injects the zero-lag/on-source at k=N,2N,... -> overcounts T_bg. Cap here.
+    n_lags = min(args.slides, Nev - 1)
+    if args.slides > Nev - 1:
+        print(f"[honest-slides] requested {args.slides} > N-1={Nev-1} distinct lags -> capped to {n_lags} "
+              f"(no overcounting, no zero-lag leak)", flush=True)
+    lags = range(1, n_lags + 1)
+    bg_l = np.concatenate([learned_stat(nHe, np.roll(nLe, kk, axis=0)) for kk in lags]); bg_l.sort()
     sNH = score_from_emb(model, dev, nHe); sNL = score_from_emb(model, dev, nLe)
-    bg_s = np.concatenate([sNH + np.roll(sNL, kk) for kk in range(1, args.slides + 1)]); bg_s.sort()
-    T_bg = args.slides * (len(noise_ev) * 64.0)           # background livetime = eval-noise livetime
+    bg_s = np.concatenate([sNH + np.roll(sNL, kk) for kk in lags]); bg_s.sort()
+    T_bg = n_lags * Nev * 64.0                            # honest background livetime (distinct lags only)
 
     def thr(bg, far):
         return float(bg[-max(1, int(round(far * T_bg)))])
