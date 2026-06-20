@@ -603,6 +603,11 @@ background (4000 slides → 4.1 yr) across the FAR sweep, vs the `sum` baseline 
   (learned − sum): at **every FAR and every mass bin the CI excludes zero**, P(learned>sum)=1.00. E.g. 1/year:
   high-mass Δ=+0.039 [+0.024,+0.059], mid Δ=+0.032 [+0.024,+0.041], light Δ=+0.014 [+0.007,+0.021]. The gain is
   real, not Monte-Carlo noise.
+- **Stress-test 3 — TRAINING STOCHASTICITY.** The bootstrap covers injection-sampling noise but not a *lucky
+  head initialization*. Re-trained the head with 5 independent seeds (`--head-seed 0–4`; the split stays fixed,
+  only init + negative-pair sampling + batch order vary). At 1/year held-out-segments high-mass, learned =
+  {0.338, 0.370, 0.325, 0.344, 0.325} vs sum 0.293 — **above sum at every seed, every mass bin, every FAR**
+  (≈±0.02 magnitude spread, sign never flips). Not a lucky init.
 - **Bottom line:** the learned H1×L1 consistency statistic adds a **significant +0.02–0.05 sensitive-distance
   fraction (≈+5–15%, growing with mass and with FAR strictness) on top of the `sum` coincidence** — which itself
   is +1.37× over single-detector (G1/Build C). This is the first thing to *beat* sum for subsolar coincidence and

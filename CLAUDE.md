@@ -169,7 +169,9 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   (north star): (1) LEAKAGE** — 3 modes (leaky / `--holdout-noise` / gold-standard `--holdout-segments` = train 16
   segs, eval 8 UNSEEN segs); gain stable across all three (1/year hi 0.366/0.359/0.338) ⇒ not memorization.
   **(2) SIGNIFICANCE** — bootstrap B=500 over 2000 eval inj, **every FAR × every mass-bin 90% CI excludes zero,
-  P(learned>sum)=1.00** (1/year: hi +0.039[+0.024,+0.059], mid +0.032, light +0.014). **Net: learned adds a
+  P(learned>sum)=1.00** (1/year: hi +0.039[+0.024,+0.059], mid +0.032, light +0.014). **(3) STOCHASTICITY** —
+  5 head seeds (--head-seed 0–4, split fixed): learned > sum at every seed/bin/FAR (1/year hi 0.325–0.370 vs
+  sum 0.293) ⇒ not a lucky init. **Net: learned adds a
   significant +0.02–0.05 sensitive-distance fraction (≈+5–15%) on top of sum's +1.37× over single-det — the first
   thing to beat sum for subsolar coincidence, leakage-free.** Caveats: cnn_w64 H1-trained applied to both; small
   1/year eval-noise bg; this data scale. Gated (cross-segment + bootstrap CI>0). Segment-tagged embedding cache
