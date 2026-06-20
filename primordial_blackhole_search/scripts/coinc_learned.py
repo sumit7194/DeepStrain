@@ -76,6 +76,9 @@ def main() -> None:
     ap.add_argument("--n-inj", type=int, default=6000)
     ap.add_argument("--slides", type=int, default=4000)
     ap.add_argument("--workers", type=int, default=8)
+    ap.add_argument("--holdout-noise", action="store_true",
+                    help="STRESS-TEST: head negatives from noise half A; eval background from "
+                         "noise half B (the head never saw it) -> kills noise-memorization leakage")
     args = ap.parse_args()
     dev = "cuda" if torch.cuda.is_available() else "cpu"
     model = make_model("cnn")
@@ -118,15 +121,24 @@ def main() -> None:
     T_real = N * 64.0
     print(f"pooled {N} noise windows | {len(df)} injections", flush=True)
 
-    # --- train/eval split on injections (no leakage) ---
+    # --- noise split: head negatives vs eval background (stress-test for leakage) ---
     rng = np.random.default_rng(0)
+    if args.holdout_noise:
+        pn = rng.permutation(N); h = N // 2
+        noise_tr, noise_ev = pn[:h], pn[h:]        # head sees half A; eval background = half B
+    else:
+        noise_tr = noise_ev = np.arange(N)         # default (leaky): head + eval share the noise
+    print(f"noise split: head-neg {len(noise_tr)} | eval-bg {len(noise_ev)} "
+          f"({'HELD-OUT' if args.holdout_noise else 'shared (leaky)'})", flush=True)
+
+    # --- train/eval split on injections (held out by index) ---
     idx = rng.permutation(len(df)); ntr = int(0.6 * len(df))
     tr, ev = idx[:ntr], idx[ntr:]
-    # positives = real coincident injections; negatives = time-slide noise pairs
+    # positives = real coincident injections; negatives = accidental (time-slid) noise pairs
     Xpos = pair_feats(iH[tr], iL[tr])
-    ni = rng.integers(0, N, size=len(tr))          # sample noise windows (with replacement)
-    k = rng.integers(1, N, size=len(tr))           # time-slide offsets (>=1 -> non-physical pair)
-    Xneg = pair_feats(nH[ni], nL[(ni + k) % N])
+    a = noise_tr[rng.integers(0, len(noise_tr), size=len(tr))]   # H1 noise window
+    b = noise_tr[rng.integers(0, len(noise_tr), size=len(tr))]   # L1 noise window (different time)
+    Xneg = pair_feats(nH[a], nL[b])
     X = np.concatenate([Xpos, Xneg]); y = np.concatenate([np.ones(len(tr)), np.zeros(len(tr))])
     mu, sd = X.mean(0), X.std(0) + 1e-6                       # standardize
     head = CoincHead().to(dev)
@@ -146,16 +158,15 @@ def main() -> None:
         x = torch.tensor((pair_feats(eH, eL) - mu) / sd).float().to(dev)
         return head(x).cpu().numpy()
 
-    # --- learned statistic on eval injections + time-slide background ---
+    # --- learned + sum statistics on eval injections + time-slide background (eval-noise only) ---
     df_ev = df.iloc[ev].copy()
     df_ev["coinc_learned"] = learned_stat(iH[ev], iL[ev])
-    bg_l = np.concatenate([learned_stat(nH, np.roll(nL, kk, axis=0))
-                           for kk in range(1, args.slides + 1)])
-    bg_l.sort()
-    # sum-statistic background: scalar scores of the SAME pooled noise embeddings, time-slid
-    sNH = score_from_emb(model, dev, nH); sNL = score_from_emb(model, dev, nL)
+    nHe, nLe = nH[noise_ev], nL[noise_ev]                 # background noise the head never trained on
+    bg_l = np.concatenate([learned_stat(nHe, np.roll(nLe, kk, axis=0))
+                           for kk in range(1, args.slides + 1)]); bg_l.sort()
+    sNH = score_from_emb(model, dev, nHe); sNL = score_from_emb(model, dev, nLe)
     bg_s = np.concatenate([sNH + np.roll(sNL, kk) for kk in range(1, args.slides + 1)]); bg_s.sort()
-    T_bg = args.slides * T_real
+    T_bg = args.slides * (len(noise_ev) * 64.0)           # background livetime = eval-noise livetime
 
     def thr(bg, far):
         return float(bg[-max(1, int(round(far * T_bg)))])
@@ -174,15 +185,17 @@ def main() -> None:
         ss = " ".join(f"{fs[m][1]:.3f}" for m in ML); ll = " ".join(f"{fl[m][1]:.3f}" for m in ML)
         print(f"{name:>8} | {ss:>32} | {ll:>32}")
 
-    (C.RESULTS_DIR / "coinc_learned.json").write_text(json.dumps(
-        {"n_eval_inj": int(len(df_ev)), "slides": args.slides, "bg_days": T_bg/86400,
-         "vs_far": out}, indent=2))
+    tag = "_holdout" if args.holdout_noise else ""
+    (C.RESULTS_DIR / f"coinc_learned{tag}.json").write_text(json.dumps(
+        {"holdout_noise": args.holdout_noise, "n_eval_inj": int(len(df_ev)), "slides": args.slides,
+         "bg_days": T_bg/86400, "vs_far": out}, indent=2))
     # verdict
     hi = "0.55-0.88"
     wins = sum(out[n]["learned"][hi] > out[n]["sum"][hi] + 0.01 for n in out)
-    print(f"\nVERDICT: learned beats sum (high-mass, >+0.01) at {wins}/{len(out)} FARs "
-          + ("-> LEARNED COINCIDENCE HELPS" if wins >= len(out)//2 else "-> sum already optimal (honest)"))
-    print("wrote coinc_learned.json")
+    print(f"\nVERDICT [{'HELD-OUT noise' if args.holdout_noise else 'shared noise (leaky)'}]: "
+          f"learned beats sum (high-mass, >+0.01) at {wins}/{len(out)} FARs "
+          + ("-> LEARNED COINCIDENCE HELPS" if wins >= max(1, len(out)//2 + 1) else "-> sum optimal (honest)"))
+    print(f"wrote coinc_learned{tag}.json")
 
 
 if __name__ == "__main__":
