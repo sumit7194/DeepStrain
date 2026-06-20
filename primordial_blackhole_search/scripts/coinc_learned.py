@@ -84,17 +84,23 @@ def main() -> None:
                          "the held-out 1/3 (unseen segments) -> kills noise + segment-specific leakage")
     ap.add_argument("--bootstrap", type=int, default=0,
                     help="resample eval injections B times -> 90%% CI on (learned-sum) sensitive distance")
+    ap.add_argument("--head-seed", type=int, default=0,
+                    help="STRESS-TEST: vary head init + negative-pair sampling + batch order (the SPLIT "
+                         "stays fixed) -> is the learned advantage robust to training stochasticity?")
+    ap.add_argument("--weights", default="cnn_w64",
+                    help="per-detector embedder (cnn_w64 default; cnn_hl = H1+L1-trained base model)")
     args = ap.parse_args()
     dev = "cuda" if torch.cuda.is_available() else "cpu"
     model = make_model("cnn")
-    model.load_state_dict(torch.load(C.MODEL_DIR / "cnn_w64.pt", map_location=dev))
+    model.load_state_dict(torch.load(C.MODEL_DIR / f"{args.weights}.pt", map_location=dev))
     model.to(dev).eval()
     segs = json.loads((C.DATA_DIR / "manifest_far.json").read_text())["coinc"]
     per = max(1, args.n_inj // len(segs))
     print(f"dev {dev} | {len(segs)} segs | {per}/seg inj | {args.slides} slides", flush=True)
 
     # cache the (expensive) embeddings so a post-injection bug never re-pays the ~60 min
-    cache = C.DATA_DIR / f"coinc_emb_{args.n_inj}.npz"
+    wtag = "" if args.weights == "cnn_w64" else f"_{args.weights}"
+    cache = C.DATA_DIR / f"coinc_emb_{args.n_inj}{wtag}.npz"
     if cache.exists() and "noise_seg" in np.load(cache, allow_pickle=True):
         z = np.load(cache, allow_pickle=True)
         nH, nL, iH, iL = z["nH"], z["nL"], z["iH"], z["iL"]
@@ -149,6 +155,8 @@ def main() -> None:
         mode = "shared (leaky)"
     print(f"split [{mode}]: head-neg noise {len(noise_tr)} | eval-bg noise {len(noise_ev)} | "
           f"train inj {len(tr)} | eval inj {len(ev)}", flush=True)
+    # head-training stochasticity ONLY (negatives, init, batch order); the split above is already fixed
+    torch.manual_seed(args.head_seed); rng = np.random.default_rng(100 + args.head_seed)
     # positives = real coincident injections; negatives = accidental (time-slid) noise pairs
     Xpos = pair_feats(iH[tr], iL[tr])
     a = noise_tr[rng.integers(0, len(noise_tr), size=len(tr))]   # H1 noise window
@@ -222,6 +230,10 @@ def main() -> None:
                   f"P(learned>sum)={d['p_gt0']:.2f}")
 
     tag = "_segments" if args.holdout_segments else "_holdout" if args.holdout_noise else ""
+    if args.weights != "cnn_w64":
+        tag += f"_{args.weights}"
+    if args.head_seed != 0:
+        tag += f"_seed{args.head_seed}"
     (C.RESULTS_DIR / f"coinc_learned{tag}.json").write_text(json.dumps(
         {"mode": mode, "n_eval_inj": int(len(df_ev)), "slides": args.slides,
          "bg_days": T_bg/86400, "vs_far": out, "bootstrap": sig}, indent=2))
