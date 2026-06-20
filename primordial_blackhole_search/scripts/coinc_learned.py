@@ -82,6 +82,8 @@ def main() -> None:
     ap.add_argument("--holdout-segments", action="store_true",
                     help="GOLD-STANDARD STRESS-TEST: train head on the first 2/3 of SEGMENTS, eval on "
                          "the held-out 1/3 (unseen segments) -> kills noise + segment-specific leakage")
+    ap.add_argument("--bootstrap", type=int, default=0,
+                    help="resample eval injections B times -> 90%% CI on (learned-sum) sensitive distance")
     args = ap.parse_args()
     dev = "cuda" if torch.cuda.is_available() else "cpu"
     model = make_model("cnn")
@@ -187,21 +189,42 @@ def main() -> None:
     ML = ("0.17-0.35", "0.35-0.55", "0.55-0.88")
     print(f"\n=== learned vs sum coincidence: sensitive distance vs FAR ({len(df_ev)} eval inj) ===")
     print(f"{'FAR':>8} | {'sum':>32} | {'learned':>32}")
-    out = {}
+    out = {}; det = {}
     for name, far in FARS.items():
         if far * T_bg < 1:
             continue
         df_ev["_s"] = df_ev.coinc_sum > thr(bg_s, far)
         df_ev["_l"] = df_ev.coinc_learned > thr(bg_l, far)
+        det[name] = (df_ev._s.values.copy(), df_ev._l.values.copy())
         fs = bin_snr50(df_ev, "_s", 8); fl = bin_snr50(df_ev, "_l", 8)
         out[name] = {"sum": {m: fs[m][1] for m in ML}, "learned": {m: fl[m][1] for m in ML}}
         ss = " ".join(f"{fs[m][1]:.3f}" for m in ML); ll = " ".join(f"{fl[m][1]:.3f}" for m in ML)
         print(f"{name:>8} | {ss:>32} | {ll:>32}")
 
+    # --- bootstrap CI on the learned-minus-sum sensitive-distance gain (significance) ---
+    sig = {}
+    if args.bootstrap:
+        print(f"\n=== bootstrap significance (B={args.bootstrap}: learned - sum sensitive distance) ===")
+        rb = np.random.default_rng(123); base = df_ev.reset_index(drop=True); n = len(base)
+        for name in out:
+            s_b, l_b = det[name]; diffs = {m: [] for m in ML}
+            for _ in range(args.bootstrap):
+                j = rb.integers(0, n, size=n); b = base.iloc[j].copy()
+                b["_s"] = s_b[j]; b["_l"] = l_b[j]
+                fsb = bin_snr50(b, "_s", 8); flb = bin_snr50(b, "_l", 8)
+                for m in ML:
+                    diffs[m].append(flb[m][1] - fsb[m][1])
+            sig[name] = {m: dict(median=float(np.median(diffs[m])),
+                                 ci90=[float(np.percentile(diffs[m], 5)), float(np.percentile(diffs[m], 95))],
+                                 p_gt0=float((np.array(diffs[m]) > 0).mean())) for m in ML}
+            d = sig[name]["0.55-0.88"]
+            print(f"{name:>8} high-mass: Δ={d['median']:+.3f} 90%CI[{d['ci90'][0]:+.3f},{d['ci90'][1]:+.3f}] "
+                  f"P(learned>sum)={d['p_gt0']:.2f}")
+
     tag = "_segments" if args.holdout_segments else "_holdout" if args.holdout_noise else ""
     (C.RESULTS_DIR / f"coinc_learned{tag}.json").write_text(json.dumps(
         {"mode": mode, "n_eval_inj": int(len(df_ev)), "slides": args.slides,
-         "bg_days": T_bg/86400, "vs_far": out}, indent=2))
+         "bg_days": T_bg/86400, "vs_far": out, "bootstrap": sig}, indent=2))
     # verdict
     hi = "0.55-0.88"
     wins = sum(out[n]["learned"][hi] > out[n]["sum"][hi] + 0.01 for n in out)
