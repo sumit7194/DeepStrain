@@ -22,6 +22,23 @@ early universe, a dark-matter candidate).
 - All data is public (GWOSC). Sensitivity is *measurable* by injection campaigns —
   a null result still produces a real number.
 
+## Prior art & how this differs (literature-checked 2026-06-23)
+Two distinct literatures touch "ML + (primordial) black holes + GW"; our niche sits precisely between
+them, so we make only the **scoped** claim — NOT a broad "no ML subsolar work exists" (it does):
+- **Subsolar DETECTION is matched-filter, not ML.** Every published subsolar search uses template-bank
+  matched filtering — LVK [O3a 2106.08979](https://arxiv.org/abs/2106.08979),
+  [O3b 2212.01477](https://arxiv.org/abs/2212.01477), [O4 bank 2412.10951](https://arxiv.org/abs/2412.10951),
+  [hierarchical 2409.11317](https://arxiv.org/abs/2409.11317). Their documented bottleneck — dense banks up to
+  ~O(10⁷) templates for long-duration subsolar signals — is *exactly* the wall we measured (v2 PARKED: subsolar
+  needs ≤0.1 % Mꜜ spacing). That's the gap a learned trigger is meant to amortise.
+- **ML + PBH exists, but for POPULATION inference, not strain-level triggering.** The deep-learning PBH line
+  estimates population hyperparameters (f_PBH) from *event catalogues* via NPE / normalizing flows
+  ([2503.05570](https://arxiv.org/abs/2503.05570), [2505.15530](https://arxiv.org/abs/2505.15530)) or uses DINGO
+  for per-event posteriors — a different task from our strain-level CNN detection trigger.
+- **The ML-vs-MF detection benchmark ([MLGWSC-1, 2209.11146](https://arxiv.org/abs/2209.11146)) only tested
+  ≤20 s signals.** So the defensible niche is a *strain-level ML detection trigger for minutes-long subsolar
+  signals* — the modest, scoped version is the only one we claim.
+
 ## Phases — v1 COMPLETE (see RESULTS.md for all numbers)
 - **Phase 0 ✅ feasibility spike**: fetch real strain, inject subsolar chirp, recover
   (MF SNR 81.8, 16 ms timing). `spike/`
