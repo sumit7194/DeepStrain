@@ -28,12 +28,21 @@ applied to spacetime itself.
   et al. 2022 vs the bug-fix rebuttal vs "low evidence when marginalizing over time").
   Fit too early → contaminated by merger; too late → tone sunk in noise. **Robustness to
   this choice is the research opportunity.**
-- **SBI for ringdown exists but is young** (≈4 papers, 2023–2026: NPE-with-coverage on
-  GW150914; time-domain SBI; a CVAE variant). NOT virgin ground — our angle must be
-  sharper than "apply SBI." Candidate angles (to be pinned down after reproducing
-  baselines): **(a)** amortize/marginalize the start time *inside* the SBI model,
-  **(b)** neural model-selection for *how many tones the data supports*, **(c)**
-  hierarchical stacking across many quiet events.
+- **SBI for ringdown exists and is now growing** (literature-checked 2026-06-23): NPE-with-coverage
+  on GW150914 ([2305.18528](https://arxiv.org/abs/2305.18528)), time-domain SBI
+  ([2404.11373](https://arxiv.org/abs/2404.11373)), a CVAE variant ([2506.17618](https://arxiv.org/abs/2506.17618)),
+  plus 2025 additions (mode-content [2510.13954](https://arxiv.org/abs/2510.13954), spin-precession
+  [2512.05193](https://arxiv.org/abs/2512.05193)). NOT virgin ground — "apply SBI" is taken.
+  **Where our angle survives the prior art:** the two relevant ingredients exist *separately* —
+  amortized SBI for ringdown is at a **fixed** start time (2305.18528, peak amplitude), and start-time
+  *marginalization* exists but in a **classical** frequency-domain analysis ([2312.14118](https://arxiv.org/abs/2312.14118)).
+  Joining them — **marginalizing the start time *inside* an amortized SBI model so the no-hair test is
+  start-time-agnostic by construction** (`08`/`09`) — is the niche we found unclaimed. (The honest
+  contribution is the *construction* + calibrated sensitivity characterization, not a new physics
+  result; our δ lands on the classical Kerr-consistent value, and v6 maps why only GW250114 is informative.)
+  Other candidate angles, both since explored and PARKED as honest negatives: **(b)** neural tone-count
+  model-selection (v4, information-limited); **(c)** hierarchical δ-stacking (v5, starves — only GW250114
+  measures δ).
 
 ## Ground rules (same discipline as `../echoes/`)
 

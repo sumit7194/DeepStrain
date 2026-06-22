@@ -83,11 +83,15 @@ opening for us:
 > assumptions — then flag post-merger segments containing structure the noise model
 > can't explain, *especially repeating structure at the predicted per-event spacing*.
 
-Honest calibration: autoencoder-style **anomaly detection on GW data exists** as a
-field ([e.g. arXiv:2411.19450](https://arxiv.org/abs/2411.19450)); what we did **not**
-find published is that paradigm aimed specifically at **post-merger echoes** with
-injection-calibrated sensitivity. The niche is "known ML paradigm, unsolved contentious
-target," not "new paradigm." That's still a real contribution, because:
+Honest calibration (literature-checked 2026-06-23): autoencoder / reconstruction-error
+**anomaly detection on GW data is an established paradigm** — train on noise, flag what the
+noise model can't reconstruct ([arXiv:2411.19450](https://arxiv.org/abs/2411.19450),
+[DeepGrav 2503.03799](https://arxiv.org/abs/2503.03799),
+[2511.13154](https://arxiv.org/abs/2511.13154)), which is exactly our v2 scorer. What a careful
+search did **not** find is that paradigm aimed specifically at **post-merger echoes** with
+injection-calibrated sensitivity (the echo searches in the literature are template/comb-based,
+à la Abedi–Westerweck). So the niche is "known ML paradigm, unsolved contentious target," **not**
+"new paradigm" — and we claim only that scoped version. That's still a real contribution, because:
 
 - **Either outcome is reportable.** Jackpot = repeating structure at each event's
   predicted spacing across multiple events, with honest statistics. Realistic good
