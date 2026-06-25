@@ -114,6 +114,19 @@ assert any(o["dA90_ci90"][1] < 0 for o in d["events"].values()), "no event shows
 print("PASS  echoes N2 (consistency-weighted statistic: modest, event-dependent, not a universal win -- selection-bias avoided)")
 PYEOFN2
 
+echo "--- ringdown A5 tone-fit export for TheBridge (18: per-event 220/221 fits, reliability-flagged)"
+./ringdown_spectroscopy/.venv/bin/python - << 'PYEOFA5' || FAIL=1
+import json
+d = json.loads(open("ringdown_spectroscopy/results/18_tonefits.json").read())
+ok = {k: v for k, v in d.items() if v is not None}
+assert len(ok) >= 7, f"too few events exported: {len(ok)}"
+reliable = [k for k, v in ok.items() if not v["tone220_railed"]]
+assert len(reliable) >= 4, f"too few reliable (non-railed) 220 fits for the bridge: {len(reliable)}"
+g = ok["GW250114_082203"]["tone220_1mode"]
+assert g["M_inv"] and 60 < g["M_inv"] < 100, f"GW250114 220 inversion implausible: {g['M_inv']}"
+print(f"PASS  ringdown A5 export ({len(ok)}/8 events, {len(reliable)} reliable 220 fits; railed flagged for TheBridge)")
+PYEOFA5
+
 echo "--- ringdown recalibration artifacts (10)"
 ./ringdown_spectroscopy/.venv/bin/python - << 'PYEOF3' || FAIL=1
 import json

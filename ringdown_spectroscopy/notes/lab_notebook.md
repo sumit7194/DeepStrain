@@ -456,3 +456,18 @@ peak+offset for offset ∈ {0,2,4,6,8,12} ms and run the NPE at each.
   evidence** for the systematic; the real-event sweep is **consistent with it but noise-limited**. Net: the
   no-hair test passes at every start time, and understanding the systematic only *strengthens* the
   Kerr-consistency (apparent −0.16 → mitigated ≈0). Gated. Artifacts: results/16_gw250114_starttime.{json,png}.
+
+## 2026-06-25 — SISTER-PROJECT requests (TheBridge SISTER_REQUESTS.md): A5 ✅ + A1 (running)
+TheBridge (read-only consumer of the source repos) relayed two deepstrain asks; produced the artifacts here.
+- **A5 (precise multi-event no-hair) ✅** — `18_export_tonefits.py`: ran the §06-style classical fit (joint
+  H1+L1, shared f/τ, per-det amp/φ via rdlib.fit_modes) on all 8 §13 events; exported f_220, τ_220, f_221,
+  τ_221, amplitudes + the 220 inversion (M,χ). **5/8 have a reliable (non-railed) 220** (GW250114, GW150914,
+  GW170814, GW170104, GW190828); 3 rail at the f/τ bounds (GW200129, GW170809, GW170818 — the faint events
+  §13 flagged) → `tone220_railed:true`. 221 flagged `tone221_reliable:false` (§06: free 2-tone can't split the
+  ~6-Hz tones at this SNR). The bridge inverts the robust 220 → predicts 221 → per-event δ → stacks. Gated.
+  Artifact: results/18_tonefits.json.
+- **A1 (the §9 "most original": does amortization gap predict sim→real transfer?) — RUNNING.**
+  `19_amortization_transfer.py`: trains 5 no-hair NPE variants spanning N_TRAIN {5k,15k,40k,90k,150k} (clean
+  common protocol, §09 architecture); per variant reports amortization_gap = mean|sim 90%-coverage − 0.90| and
+  transfer = mean(real-O4-noise coverage) − mean(sim coverage), saves a checkpoint + JSON. The bridge correlates
+  gap vs transfer (read-only). Artifacts (pending): results/19_amortization_transfer.json + 19_npe_n{N}.pt.
