@@ -466,8 +466,18 @@ TheBridge (read-only consumer of the source repos) relayed two deepstrain asks; 
   §13 flagged) → `tone220_railed:true`. 221 flagged `tone221_reliable:false` (§06: free 2-tone can't split the
   ~6-Hz tones at this SNR). The bridge inverts the robust 220 → predicts 221 → per-event δ → stacks. Gated.
   Artifact: results/18_tonefits.json.
-- **A1 (the §9 "most original": does amortization gap predict sim→real transfer?) — RUNNING.**
-  `19_amortization_transfer.py`: trains 5 no-hair NPE variants spanning N_TRAIN {5k,15k,40k,90k,150k} (clean
-  common protocol, §09 architecture); per variant reports amortization_gap = mean|sim 90%-coverage − 0.90| and
-  transfer = mean(real-O4-noise coverage) − mean(sim coverage), saves a checkpoint + JSON. The bridge correlates
-  gap vs transfer (read-only). Artifacts (pending): results/19_amortization_transfer.json + 19_npe_n{N}.pt.
+- **A1 (the §9 "most original": does amortization gap predict sim→real transfer?) ✅ DONE.**
+  `19_amortization_transfer.py`: 5 no-hair NPE variants spanning N_TRAIN {5k,15k,40k,90k,150k} (clean common
+  protocol, §09 architecture). Per variant: amortization_gap = mean|sim 90%-coverage − 0.90|; transfer =
+  mean(real-O4-noise coverage) − mean(sim coverage). **Results:** amort_gap shrinks **monotonically** with
+  training (0.095→0.072→0.058→0.035→0.028 — calibration improves as expected); transfer is **negative
+  throughout** (−0.016…−0.142, real noise degrades inference). **gap vs transfer correlation = +0.04 ≈ 0 — the
+  amortization gap does NOT predict sim→real transfer in this sample** (the bridge's §9 prediction is not borne
+  out here; they're roughly decoupled).
+  **Honest caveats for the bridge:** (1) only 5 points; (2) transfer is noise-limited — 60 real injections/variant
+  → ±~0.06 per-param, and the 40k transfer (−0.142, the outlier driving most of the scatter) sits on a low
+  real_cov [0.55,0.65,…] that may be a noisy realization; (3) single lever (N_TRAIN) — capacity/flow levers
+  untried; (4) amortization_gap is the coverage-deviation proxy, not the C2ST. So read corr≈0 as "no detectable
+  relationship at this resolution," not a strong null — more variants / more real injections / the C2ST proxy
+  would sharpen it. Checkpoints 19_npe_n{N}.pt + results/19_amortization_transfer.json saved for the read-only
+  correlation. Gated.

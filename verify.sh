@@ -127,6 +127,19 @@ assert g["M_inv"] and 60 < g["M_inv"] < 100, f"GW250114 220 inversion implausibl
 print(f"PASS  ringdown A5 export ({len(ok)}/8 events, {len(reliable)} reliable 220 fits; railed flagged for TheBridge)")
 PYEOFA5
 
+echo "--- ringdown A1 amortization->transfer for TheBridge (19: 5 NPE variants, gap + transfer per variant)"
+./ringdown_spectroscopy/.venv/bin/python - << 'PYEOFA1' || FAIL=1
+import json
+d = json.loads(open("ringdown_spectroscopy/results/19_amortization_transfer.json").read())
+v = d["variants"]
+assert len(v) >= 5, f"too few NPE variants: {len(v)}"
+g = {x["n_train"]: x["amortization_gap"] for x in v}
+assert g[5000] > g[150000], "amortization gap should shrink with training (5k > 150k)"   # clean lever
+assert all(x["transfer"] <= 0.02 for x in v), "transfer should be ~<=0 (sim->real degrades)"
+assert "amortization_gap_vs_transfer_corr" in d, "gap-vs-transfer correlation missing"
+print(f"PASS  ringdown A1 ({len(v)} variants; amort_gap {g[5000]:.3f}->{g[150000]:.3f} with N; gap-vs-transfer corr {d['amortization_gap_vs_transfer_corr']:+.2f}, for TheBridge)")
+PYEOFA1
+
 echo "--- ringdown recalibration artifacts (10)"
 ./ringdown_spectroscopy/.venv/bin/python - << 'PYEOF3' || FAIL=1
 import json

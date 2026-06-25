@@ -1,0 +1,81 @@
+{
+  "variants": [
+    {
+      "n_train": 5000,
+      "sim_cov": [
+        0.83,
+        0.79,
+        0.795
+      ],
+      "real_cov": [
+        0.7833333333333333,
+        0.7,
+        0.8166666666666667
+      ],
+      "amortization_gap": 0.09500000000000001,
+      "transfer": -0.03833333333333344
+    },
+    {
+      "n_train": 15000,
+      "sim_cov": [
+        0.86,
+        0.83,
+        0.795
+      ],
+      "real_cov": [
+        0.7333333333333333,
+        0.8166666666666667,
+        0.8666666666666667
+      ],
+      "amortization_gap": 0.0716666666666667,
+      "transfer": -0.022777777777777786
+    },
+    {
+      "n_train": 40000,
+      "sim_cov": [
+        0.86,
+        0.83,
+        0.835
+      ],
+      "real_cov": [
+        0.55,
+        0.65,
+        0.9
+      ],
+      "amortization_gap": 0.05833333333333338,
+      "transfer": -0.1416666666666666
+    },
+    {
+      "n_train": 90000,
+      "sim_cov": [
+        0.87,
+        0.865,
+        0.86
+      ],
+      "real_cov": [
+        0.8,
+        0.8166666666666667,
+        0.7666666666666667
+      ],
+      "amortization_gap": 0.03500000000000003,
+      "transfer": -0.07055555555555548
+    },
+    {
+      "n_train": 150000,
+      "sim_cov": [
+        0.875,
+        0.86,
+        0.88
+      ],
+      "real_cov": [
+        0.8166666666666667,
+        0.8666666666666667,
+        0.8833333333333333
+      ],
+      "amortization_gap": 0.02833333333333336,
+      "transfer": -0.016111111111111076
+    }
+  ],
+  "amortization_gap_vs_transfer_corr": 0.0406834458985318,
+  "note": "lever=N_train; gap=mean|cov_sim-0.9|; transfer=mean(cov_real)-mean(cov_sim). Checkpoints 19_npe_n{N}.pt. For TheBridge \u00a79 read-only correlation."
+}
