@@ -33,7 +33,15 @@ memory. Items worked, in order, each gated + documented honestly:
   verified formula → a tight echo Δt prior (0.357s [0.304,0.445]) → conditioned the echo search on the SAME
   event. 3.2× fewer trials → **1.11× more sensitive** (A90 1.90→1.72σ); on-source null. The first echo search
   conditioned on its own ringdown. Honest: modest gain (steep efficiency curve), bigger for tighter-mass events.
-- Infra: dashboard live; transient gwosc SSL timeouts on the GW250114 fetch (retry-to-cache); 19 gates green.
+- **N3 ✅ (stacked population echo).** `16_stacked_echo.py`: stacked the comb statistic across 4 events at each
+  one's formula-predicted Δt → population NULL (stacked z=−5.17 vs +5.05 threshold, p=0.998), combined limit
+  1.21× tighter than best single (below √N=2× — heterogeneous events). A population non-detection.
+- **R3 ✅ (IMR referee) — the other standout.** `15_imr_referee.py`: injected NR-calibrated full-IMR ringdowns
+  (IMRPhenomXAS via pbh pycbc) into the no-hair NPE. Unbiased on its analytic-tone family (δ=+0.02) but a
+  **δ≈−0.33 systematic on realistic ringdowns from the peak**, decaying to ~0 by 6 ms post-peak → it's the
+  early-time merger/overtone content the two-tone model omits. **Independently quantifies the start-time
+  systematic** central to the no-hair controversy; a caveat on the GW250114 δ (Kerr-consistent still holds).
+- Infra: dashboard live; transient gwosc SSL timeouts on the GW250114 fetch (retry-to-cache); **21 gates green**.
 
 ## 2026-06-20 (night) — Build C-2 + ringdown v6: a LEARNED coincidence beats sum (significant, leakage-free), and the δ-SNR wall is mapped
 - **PBH Build C-2 (GPU VM) — the night's headline.** Asked whether a *learned* H1×L1 coincidence statistic can
