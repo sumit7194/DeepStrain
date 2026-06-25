@@ -17,6 +17,19 @@ assert max(d["control_irregular"].values()) <= 0.15, "specificity regressed"
 print("PASS  echoes v2/v3 headline artifacts")
 PYEOF
 
+echo "--- echoes E1 production-path upper limit (12: ML scorer does NOT tighten the exclusion -- honest negative)"
+./echoes/.venv/bin/python - << 'PYEOFE1' || FAIL=1
+import json
+d = json.loads(open("echoes/results/12_ul_production.json").read())
+i = d["dt"].index(min(d["dt"], key=lambda x: abs(x - d["dt_pred"])))   # predicted-Δt index
+a90_cb, a90_ml = d["a90"]["comb"][i], d["a90"]["ml"][i]
+assert 1.0 <= a90_cb <= 2.0, f"production-path comb A90 out of sane range: {a90_cb}"
+# the ML scorer must NOT look ">1.2x tighter" (that's the whitened-domain artifact); honest result is ML ~= comb
+assert d["ratio_at_pred"] <= 1.15, f"ML A90 'tighter' than comb by >15% -> whitened-domain artifact leaked in: {d['ratio_at_pred']}"
+assert d["ratio_at_pred"] >= 0.80, f"ML A90 implausibly worse than comb: {d['ratio_at_pred']}"
+print(f"PASS  echoes E1 (production-path: ML A90={a90_ml:.2f} ~ comb A90={a90_cb:.2f}; ML does NOT tighten the UL)")
+PYEOFE1
+
 echo "--- ringdown recalibration artifacts (10)"
 ./ringdown_spectroscopy/.venv/bin/python - << 'PYEOF3' || FAIL=1
 import json

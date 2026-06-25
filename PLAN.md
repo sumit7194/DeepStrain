@@ -11,9 +11,13 @@
 ---
 
 ## Tier 1 — quick wins (bounded improvements to existing gated results, all local)
-- [ ] **E1 · Echoes: ML scorer on the upper limits** 🟢 — re-run the per-Δt exclusion (`11_upper_limits.py`)
-      using the v2 ML scorer (`07_scorer_{H1,L1}.pt`) instead of the fixed-γ comb. ROADMAP predicts ~1.2×
-      tighter A90. *Done =* ML A90 < comb A90 at the predicted Δt, gated.
+- [x] **E1 · Echoes: ML scorer on the upper limits** ✅ **DONE — honest NEGATIVE (2026-06-25).** Two findings:
+      **(gotcha)** the whitened-domain `11` harness reproduces the known v5 *convention artifact* (~13× fake
+      tightening) — must NOT be read as a limit. **(result)** through the honest production path
+      (`12_ul_production.py`, reuses `09`/`10`), at the predicted Δt **A90 comb=1.43σ vs ML=1.45σ → 0.98×: the ML
+      scorer does NOT tighten the exclusion.** v5's ~1.2× edge is at the 50% point; it vanishes at the 90% level
+      (ML's heavier-tailed background can't reliably reach 90% — NaN A90 at 4/12 spacings). ⇒ **corrects the
+      ROADMAP "~1.2× tighter" note.** Gated in verify.sh; the gated comb UL (`11`) stands as the honest best.
 - [ ] **E2 · Echoes: independent background blocks** 🟢 — build the background from *different days*, not the
       event's own 512 s block. *Done =* on-source p-values stable under the harder background.
 - [ ] **R1 · Ringdown: per-parameter recalibration** 🟢 — v3 fit one global temperature T; fit per-parameter

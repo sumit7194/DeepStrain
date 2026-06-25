@@ -323,3 +323,22 @@ discriminating 0.2σ. Result (baseline 82±4%):
 - ⇒ leg-8b resolved: family-robustness holds at tight stats; no pathological reversal survives. The N=30
   version was underpowered, exactly as flagged. Original N=30 result preserved (08_family_robustness.json);
   high-N in 08_family_robustness_n300.{json,png}.
+
+## 2026-06-25 — E1 (PLAN.md): does the ML scorer TIGHTEN the upper limit? Honest NO + an artifact trap caught
+The ROADMAP guessed the v2 ML scorer would tighten the echo A90 exclusion by ~1.2× (the v5 production-path
+advantage). Two findings, in order:
+- **Artifact trap (caught before claiming).** The naive route — run the ML scorer through the whitened-domain
+  upper-limit harness (`11`) — gives A90 ≈ 0.15σ, ~10× "tighter" than the comb. That is the **known v5
+  whitened-domain convention artifact** (the same one that inflated the original "13×"), NOT a real limit.
+  Reverted; `11` stays the clean gated comb UL.
+- **Honest version** (`12_ul_production.py`, reuses the `09`/`10` raw-injection machinery): both statistics on the
+  SAME re-whitened segments, p<0.01 over 45 off-source centers, n=120/cell. **At the predicted Δt: A90 comb=1.43σ
+  vs ML=1.45σ → 0.98× — the ML scorer does NOT tighten the exclusion.** Across the grid the comb A90 is stable
+  (1.3–1.6σ) while the ML A90 is noisier (NaN at 4/12 spacings: its heavier-tailed background pushes the p<0.01
+  threshold up, so it can't reliably hit 90% efficiency).
+- **Why:** v5's ~1.2× ML edge is at the **50% point** (low amplitude, where the AE-residual statistic helps); the
+  upper limit is set at the **90% point**, in the steep/saturated part of the efficiency curve where the edge
+  vanishes and the ML scorer's fatter noise tail actively hurts. ⇒ **ML doesn't help the exclusion; the gated comb
+  UL stands.** Corrects the ROADMAP note. Caveat: 45 bg centers + n=120 is the production-path budget (coarser than
+  `11`'s 159 whitened-domain centers); the predicted-Δt verdict is stable across n=12 and n=120 (both 0.98×).
+  Gated in verify.sh. Artifacts: results/12_ul_production.{json,png}.
