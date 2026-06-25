@@ -41,7 +41,13 @@ memory. Items worked, in order, each gated + documented honestly:
   **δ≈−0.33 systematic on realistic ringdowns from the peak**, decaying to ~0 by 6 ms post-peak → it's the
   early-time merger/overtone content the two-tone model omits. **Independently quantifies the start-time
   systematic** central to the no-hair controversy; a caveat on the GW250114 δ (Kerr-consistent still holds).
-- Infra: dashboard live; transient gwosc SSL timeouts on the GW250114 fetch (retry-to-cache); **21 gates green**.
+- **N2 ✅ (honest mixed/modest).** Tested a robust H1×L1 consistency-weighted echo statistic (a learned head
+  would overfit the tiny echo data). Caught a selection-bias trap (best-λ at n=20 looked like ~10%); rigorous
+  pre-chosen λ + bootstrap → significant for GW150914 (~4%) but not GW250114 → event-dependent, not a universal
+  win (the comb-sum is already Δt-consistency-aware).
+- Infra: dashboard live; transient gwosc SSL timeouts on the GW250114 fetch (retry-to-cache); **23 gates green**.
+  **All tractable PLAN.md items now complete** — only the big multi-session builds (N4 self-supervised backbone,
+  N5 triple-detector) and the low-value tail (R1) remain.
 
 ## 2026-06-20 (night) — Build C-2 + ringdown v6: a LEARNED coincidence beats sum (significant, leakage-free), and the δ-SNR wall is mapped
 - **PBH Build C-2 (GPU VM) — the night's headline.** Asked whether a *learned* H1×L1 coincidence statistic can
