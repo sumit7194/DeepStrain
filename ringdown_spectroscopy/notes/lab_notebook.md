@@ -399,3 +399,22 @@ window — the MF SNR for a known template in white noise). n=60 per loudness po
   not beyond. The "ringdown SNR" here is the post-peak in-band SNR (≈half the full-event SNR), which is
   why GW250114's full SNR~80 maps to a ringdown SNR in the ~40s. Artifacts: results/14_delta_threshold.json,
   plots/14_delta_threshold.png. Gated in verify.sh (monotone shrink + GW250114 at the edge).
+
+## 2026-06-25 — R2 (PLAN.md): explicit Bayesian tone-count — ATTEMPTED, PARKED (simplified version not a fair test)
+The v4 ML tone-count was a parked negative; the guardrail sanctions the non-ML route, explicit Bayesian model
+selection. Built `14_bayes_tonecount.py`: the ringdown amplitudes are linear given (M,χ,t0), so the evidence
+marginalizes them analytically (linear-Gaussian), and (M,χ,t0) — start time marginalized — are integrated on a
+grid; logB_21 calibrated on 1-tone vs 2-tone injections.
+- **It doesn't work, and the oracle says why.** The diagnostic (Bayes factor at the TRUE M,χ,t0, no grid) shows
+  **NO separation between 1-tone and 2-tone at any σ_a ∈ [0.3, 8]** — in fact 1-tone injections often score
+  *higher* logB than 2-tone. Cause: 220 (239 Hz, τ4.8 ms) and 221 (235 Hz, τ1.6 ms) are **near-degenerate over
+  the 0.04 s segment** (4 Hz apart; only the damping differs), so the 2-tone model just flexibly fits the loud
+  220, overfitting noise regardless of a real overtone. Same wall that beat the free LSQ (`06`) and the ML (v4).
+- **But this is NOT the information limit — it's MY implementation.** The published GW250114 analysis
+  (arXiv:2509.08099) reports a clean two-tone Kerr test, i.e. a proper Bayesian analysis DOES detect the overtone.
+  My simplified machinery — time-domain, white-noise likelihood, independent per-detector amplitudes, flat σ_a,
+  0.04 s segment, injections possibly fainter than the real event — is too crude to be a fair test. **So I will
+  NOT claim "Bayesian model selection also fails" (that would be a false negative).**
+- **Verdict: R2 PARKED — needs the proper frequency-domain coherent pipeline with physical priors (the `ringdown`
+  package, Python 3.11, deferred env).** Script kept as the reproducible diagnostic, NOT gated. North-star call:
+  diagnosed why the cheap version isn't fair and stopped, rather than shipping a misleading negative.

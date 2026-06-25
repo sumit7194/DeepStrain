@@ -1,0 +1,37 @@
+{
+  "event": "GW250114_082203",
+  "sigma_a": 8.0,
+  "threshold": 77.61582920341252,
+  "false_positive_1tone": 0.5,
+  "efficiency": {
+    "0.0": 0.5,
+    "0.3": 0.375,
+    "0.5": 0.25,
+    "0.8": 0.5
+  },
+  "calibration": {
+    "0.0": {
+      "logB_median": 95.22007556927667,
+      "overtone_snr": 0.0
+    },
+    "0.3": {
+      "logB_median": 69.56988924975843,
+      "overtone_snr": 3.7775718892305523
+    },
+    "0.5": {
+      "logB_median": 2.726168005699451,
+      "overtone_snr": 7.020902941719143
+    },
+    "0.8": {
+      "logB_median": 60.011582837548374,
+      "overtone_snr": 10.118088306929138
+    }
+  },
+  "logB_real": 5.638181237883941,
+  "sigma_a_sensitivity": {
+    "4.0": 3.3692366744603532,
+    "8.0": 5.638181237883941,
+    "16.0": 4.770869970472518
+  },
+  "verdict": "does NOT clear the 2-tone threshold"
+}

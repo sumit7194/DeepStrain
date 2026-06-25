@@ -26,9 +26,13 @@
       (M, χ, δ) temperatures. *Done =* per-param held-out coverage ∈ [0.85,0.95], gated.
 
 ## Tier 2 — medium, self-contained (local)
-- [ ] **R2 · Ringdown: explicit Bayesian tone-count model selection** 🟢 — the non-ML route the field uses
-      (the black-box classifier was a parked negative; guardrail says don't re-throw ML at it). Nested-sampling
-      / evidence ratio 1-tone vs 2-tone on GW250114. *Done =* an honest Bayes factor with calibration.
+- [P] **R2 · Ringdown: explicit Bayesian tone-count model selection** 🔴 **ATTEMPTED → PARKED (2026-06-25).**
+      Built the linear-Gaussian evidence (`14_bayes_tonecount.py`, amplitudes marginalized analytically,
+      start-time marginalized). **Oracle diagnostic: NO 1-tone/2-tone separation at any σ_a** — the 220/221 are
+      near-degenerate over the 0.04 s segment (the `06`/v4 wall). **But the published GW250114 analysis DOES
+      detect the overtone** → my simplified machinery (white-noise likelihood, independent amplitudes, flat prior)
+      isn't a *fair* test; the failure is an implementation limit, NOT the info limit. Won't claim a false
+      negative. **Needs the proper FD coherent pipeline (`ringdown` pkg, Python 3.11, deferred).** Not gated.
 - [ ] **E3 · Echoes: per-event scorers + per-event Δt + broaden on-source set** 🟢 — train a scorer per event,
       compute Δt from each event's catalog mass+spin, run on more O3 events. *Done =* a small table of honest
       per-event nulls/limits.
