@@ -342,3 +342,18 @@ advantage). Two findings, in order:
   UL stands.** Corrects the ROADMAP note. Caveat: 45 bg centers + n=120 is the production-path budget (coarser than
   `11`'s 159 whitened-domain centers); the predicted-Δt verdict is stable across n=12 and n=120 (both 0.98×).
   Gated in verify.sh. Artifacts: results/12_ul_production.{json,png}.
+
+## 2026-06-25 — E2 (PLAN.md): the on-source null holds against an INDEPENDENT, different-time background
+v1 simplification #3 (this notebook): the background shared the event's own 512 s block (N≈160, one PSD,
+adjacent in time → smallest measurable p ≈ 1/160, stationarity assumed). `13_independent_bg.py` rebuilds the
+background from blocks at ±0.5h…±16h offsets from GW150914 (each whitened against its OWN PSD, hours away →
+genuinely independent), pools them, recomputes the on-source p. O1's ~40% duty cycle killed many offset fetches
+(handled: skip on fetch error or <64 s finite after NaN-cropping), but **12 offsets → 660 pooled pairs survived
+(4× the 159 shared-block)**.
+- **Result: the null HOLDS.** A (max over Δt) on=0.299, p=0.319 (vs 05 shared-block 0.375); B (predicted Δt)
+  on=−0.253, p=0.977 (vs 1.000). Essentially the same conclusion on a 4× larger, genuinely-independent,
+  different-PSD background ⇒ the GW150914 echo non-detection is **robust to the stationarity / shared-block
+  assumption**, not an artifact of reusing the event's own noise.
+- Caveat: the on-source is whitened against the event block's PSD while the background uses other blocks' PSDs
+  — the null holding *is* the (passed) cross-time stationarity check. Gated in verify.sh.
+  Artifacts: results/13_independent_bg_GW150914.{json,png}.

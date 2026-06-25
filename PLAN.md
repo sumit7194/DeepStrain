@@ -18,8 +18,10 @@
       scorer does NOT tighten the exclusion.** v5's ~1.2× edge is at the 50% point; it vanishes at the 90% level
       (ML's heavier-tailed background can't reliably reach 90% — NaN A90 at 4/12 spacings). ⇒ **corrects the
       ROADMAP "~1.2× tighter" note.** Gated in verify.sh; the gated comb UL (`11`) stands as the honest best.
-- [ ] **E2 · Echoes: independent background blocks** 🟢 — build the background from *different days*, not the
-      event's own 512 s block. *Done =* on-source p-values stable under the harder background.
+- [x] **E2 · Echoes: independent background blocks** ✅ **DONE (2026-06-25).** `13_independent_bg.py` pools
+      off-source blocks at ±0.5h…±16h from GW150914 (each own-PSD whitened) → **660-pair independent background
+      (4× the 159 shared-block)**. The null HOLDS: A p=0.319 (vs 0.375), B p=0.977 (vs 1.000) → non-detection is
+      robust to the stationarity/shared-block assumption. Gated. (O1 duty cycle killed many offsets — handled.)
 - [ ] **R1 · Ringdown: per-parameter recalibration** 🟢 — v3 fit one global temperature T; fit per-parameter
       (M, χ, δ) temperatures. *Done =* per-param held-out coverage ∈ [0.85,0.95], gated.
 
@@ -60,5 +62,7 @@
 - **Ringdown real multi-event δ-stacking** — SNR information wall: only GW250114-class loudness measures δ (v6 mapped it).
 - **Ringdown black-box tone-count** — parked honest-negative; guardrail: don't re-throw ML architectures at it.
 
-## Suggested order
-E1 → R1 → E2  (warm-up wins) → **N1** (the flagship) → N2 → R2 → E3 → N3 → (R3, N4, N5 as appetite allows).
+## Chosen execution order (driving it; we do them all)
+**E1 ✅** → **E2** (harden the headline nulls) → **R2** (Bayesian tone-count, field's method vs our failed ML) →
+**N2** (reuse learned coincidence) → **N1** (flagship, focused effort) → **E3** → **N3** → R3 → N4 → N5.
+**R1 deprioritized to the tail** — low-value (v3's global T already calibrates each param to 0.90–0.92).

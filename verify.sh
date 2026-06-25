@@ -30,6 +30,16 @@ assert d["ratio_at_pred"] >= 0.80, f"ML A90 implausibly worse than comb: {d['rat
 print(f"PASS  echoes E1 (production-path: ML A90={a90_ml:.2f} ~ comb A90={a90_cb:.2f}; ML does NOT tighten the UL)")
 PYEOFE1
 
+echo "--- echoes E2 independent background (13: GW150914 null holds vs a different-time, 4x-larger background)"
+./echoes/.venv/bin/python - << 'PYEOFE2' || FAIL=1
+import json
+d = json.loads(open("echoes/results/13_independent_bg_GW150914.json").read())
+assert d["n_bg"] >= 300, f"independent background too small to be meaningful: {d['n_bg']}"
+assert d["n_bg"] > 159, "independent background not larger than the shared-block one"   # genuinely more data
+assert min(d["p_max"], d["p_pred"]) > 0.05, f"on-source no longer null vs independent bg: {d['p_max']}, {d['p_pred']}"
+print(f"PASS  echoes E2 (independent {d['n_bg']}-pair background: null holds, p_max={d['p_max']:.3f} p_pred={d['p_pred']:.3f})")
+PYEOFE2
+
 echo "--- ringdown recalibration artifacts (10)"
 ./ringdown_spectroscopy/.venv/bin/python - << 'PYEOF3' || FAIL=1
 import json
