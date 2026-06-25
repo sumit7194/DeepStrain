@@ -418,3 +418,25 @@ grid; logB_21 calibrated on 1-tone vs 2-tone injections.
 - **Verdict: R2 PARKED — needs the proper frequency-domain coherent pipeline with physical priors (the `ringdown`
   package, Python 3.11, deferred env).** Script kept as the reproducible diagnostic, NOT gated. North-star call:
   diagnosed why the cheap version isn't fair and stopped, rather than shipping a misleading negative.
+
+## 2026-06-25 — R3 (PLAN.md): IMR-waveform referee — the no-hair NPE has a START-TIME WAVEFORM SYSTEMATIC
+The strongest referee: does the no-hair NPE (09, trained on analytic 220+(1+δ)·221 tones) stay unbiased on
+REALISTIC full-merger ringdowns? Generated 3 NR-calibrated IMRPhenomXAS ringdowns via pbh's pycbc (42+42 s0.4,
+40+40 s0.3, 45+38 s0.5 → f_ring 215–226 Hz; data/imr_ringdowns.npz), injected the post-peak shape (unit-peak,
+scaled to GW250114 loudness) into the NPE's whitened/unit-noise convention, sampled δ, recalibrated (v3 T).
+`15_imr_referee.py`, n=80/case.
+- **Result:** the NPE is **unbiased on its own analytic family** (control δ=+0.02±0.13) but recovers
+  **δ≈−0.33 to −0.35 on all 3 realistic IMR ringdowns injected from the peak** — a ≈1σ(δ) systematic. True δ=0
+  (IMR is GR), so this is a model-incompleteness bias.
+- **MECHANISM CONFIRMED (start-time sweep, matched loudness):** δ_hat = −0.327 (0 ms) → −0.290 (2) → −0.211 (4)
+  → **−0.014 (6 ms)**. The bias decays monotonically to ~0 as the injection starts later ⇒ it is the **early-time
+  merger-transition + higher-overtone content** (the first few ms after the peak) that the two-tone model cannot
+  fit; by 6 ms the ringdown is clean 220+221 and the NPE is unbiased. NOT a convention artifact (that would
+  persist at all offsets).
+- **Significance:** R3 independently **quantifies the start-time systematic** — the exact methodological issue the
+  whole project is about (Isi/Farr vs Cotesta). It's also a **caveat on the 09 GW250114 result** (δ=−0.16): that
+  analysis crops from the peak, so it inherits some of this negative systematic; the "Kerr-consistent" verdict
+  still holds (−0.16 sits well inside the broad σ(δ)≈0.36 posterior, and the systematic is comparable to one σ),
+  but the waveform systematic belongs in the uncertainty budget. **Mitigation = start the fit later (≳6 ms
+  post-peak) where the bias vanishes — at the cost of ringdown SNR (the v6 wall).** Gated. Caveat: IMRPhenomXAS is
+  NR-calibrated (true SXS NR + coherent multi-detector deferred). Artifacts: results/15_imr_referee.json.

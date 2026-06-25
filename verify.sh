@@ -75,6 +75,19 @@ assert d["stack_gain"] > 1.0, f"stack gain <= 1: {d['stack_gain']}"
 print(f"PASS  echoes N3 (stacked {len(d['events'])}-event echo search: null p={d['p_stacked']:.2f}, limit {d['stack_gain']:.2f}x tighter than best single)")
 PYEOFN3
 
+echo "--- ringdown R3 IMR referee (15: no-hair NPE unbiased on tones, start-time systematic on realistic IMR)"
+./ringdown_spectroscopy/.venv/bin/python - << 'PYEOFR3' || FAIL=1
+import json
+d = json.loads(open("ringdown_spectroscopy/results/15_imr_referee.json").read())
+assert abs(d["control_delta_mean"]) < 0.10, f"analytic control no longer unbiased: {d['control_delta_mean']}"
+assert d["peak_bias"] > 0.20, f"IMR-from-peak bias vanished (expected the systematic): {d['peak_bias']}"
+assert d["bias_shrinks_late"], "bias no longer shrinks at later start -> mechanism not reproduced"
+sweep = d["start_time_sweep_ms"]
+late = sweep.get("6.0", sweep[max(sweep, key=lambda k: float(k))])
+assert abs(late) < 0.10, f"bias not gone by the latest start offset: {late}"
+print(f"PASS  ringdown R3 (control δ={d['control_delta_mean']:+.2f}; IMR-peak δ≈{-d['peak_bias']:.2f} systematic, decays to {late:+.2f} by 6ms)")
+PYEOFR3
+
 echo "--- ringdown recalibration artifacts (10)"
 ./ringdown_spectroscopy/.venv/bin/python - << 'PYEOF3' || FAIL=1
 import json

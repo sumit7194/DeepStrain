@@ -36,9 +36,14 @@
 - [ ] **E3 · Echoes: per-event scorers + per-event Δt + broaden on-source set** 🟢 — train a scorer per event,
       compute Δt from each event's catalog mass+spin, run on more O3 events. *Done =* a small table of honest
       per-event nulls/limits.
-- [ ] **R3 · Ringdown: SXS / NR-waveform injection referee** 🟡 — inject *full-merger* numerical-relativity
-      waveforms (SXS catalog) instead of analytic tones; re-check the no-hair pipeline is unbiased. *Done =*
-      δ recovered unbiased on NR injections (the strongest referee we can build).
+- [x] **R3 · Ringdown: IMR-waveform referee** ✅ **DONE (2026-06-25) — found a real systematic.** Injected
+      realistic full-IMR ringdowns (IMRPhenomXAS via pbh's pycbc, NR-calibrated) into the no-hair NPE
+      (`15_imr_referee.py`). The NPE is unbiased on its analytic-tone training family (control δ=+0.02) but
+      carries a **δ≈−0.33 SYSTEMATIC on realistic ringdowns injected from the peak** — and the start-time sweep
+      shows it **decays to ~0 by 6 ms post-peak** (−0.33→−0.01), proving it's the early-time
+      merger-transition/overtone content the 220+221 model omits (NOT a convention artifact). This independently
+      **quantifies the start-time systematic** at the heart of the no-hair controversy, and is a caveat on the
+      09 GW250114 δ. Gated. (True SXS NR deferred — IMRPhenomXAS is NR-calibrated + needed no download.)
 
 ## Tier 3 — new angles (separate directions, the interesting ones)
 - [x] **N1 · 🌟 Joint ringdown ↔ echo analysis** ✅ **DONE (2026-06-25).** `15_joint_ringdown_echo.py`: propagated
