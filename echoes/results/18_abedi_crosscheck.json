@@ -1,0 +1,65 @@
+{
+  "_for": "TheBridge leg 8 (ECO / echo templates) \u2014 literature cross-check of the inter-echo spacing",
+  "formula": {
+    "name": "Kerr-tortoise echo round-trip (Abedi-Dvali Planck-proximity wall)",
+    "reference": "Abedi, Dvali, et al. 2017, arXiv:1612.00266, Eq.2 / Table I; Cardoso & Pani reviews",
+    "expression": "dt_echo = 2[r*(r_peak) - r*(r_mem)],  r*(r) = r + cp\u00b7ln(r-r+) - cm\u00b7ln(r-r-),  cp = 2M\u00b7r+/(r+-r-), cm = 2M\u00b7r-/(r+-r-);  r\u00b1 = M(1\u00b1\u221a(1-\u03c7\u00b2)), a = \u03c7M, r_peak = 3M (photon sphere);  membrane r_mem = r+ + \u03b4 with \u03b4 = (n\u00b7\u2113_P)\u00b2(r+-r-)/(4(r+\u00b2+a\u00b2)) [proper distance n\u00b7\u2113_P above r+]",
+    "leading_order_scaling": "dt_echo \u2248 8\u00b7M\u00b7ln(M/\u2113_P)\u00b7[1 + O(a\u00b2)]   (Abedi abstract; Planck units)",
+    "no_free_parameter_tuned_to_dt": true,
+    "constants": {
+      "T_sun_s_GMsun_over_c3": 4.925490947e-06,
+      "lp_geo_s_lP_over_c": 5.391246366844893e-44,
+      "n_planck": 1.0,
+      "r_peak_factor": 3.0
+    }
+  },
+  "events": [
+    {
+      "event": "GW150914",
+      "dt_echo_model_s": 0.29703,
+      "dt_abedi_predicted_s": 0.2925,
+      "percent_agreement": 98.45,
+      "M_f_detframe_Msun": 68.0,
+      "chi_f": 0.69,
+      "abedi_table_I": true
+    },
+    {
+      "event": "GW151226",
+      "dt_echo_model_s": 0.10097,
+      "dt_abedi_predicted_s": 0.1013,
+      "percent_agreement": 99.68,
+      "M_f_detframe_Msun": 22.4,
+      "chi_f": 0.74,
+      "abedi_table_I": true
+    },
+    {
+      "event": "GW151012",
+      "dt_echo_model_s": 0.17862,
+      "dt_abedi_predicted_s": 0.1778,
+      "percent_agreement": 99.54,
+      "M_f_detframe_Msun": 42.0,
+      "chi_f": 0.66,
+      "abedi_table_I": true
+    },
+    {
+      "event": "GW250114",
+      "dt_echo_model_s": 0.35442,
+      "dt_abedi_predicted_s": null,
+      "percent_agreement": null,
+      "M_f_detframe_Msun": 76.0,
+      "chi_f": 0.76,
+      "abedi_table_I": false
+    }
+  ],
+  "validation_summary": {
+    "abedi_table_I_events": [
+      "GW150914",
+      "GW151226",
+      "GW151012"
+    ],
+    "min_percent_agreement": 98.45,
+    "max_percent_agreement": 99.68,
+    "claim": "uncalibrated first-principles formula reproduces Abedi 2017 Table I to <2% (>98% agreement) on all 3 published events; the same closed form is applied to GW250114 (post-2017).",
+    "source_artifact": "echoes/results/14_echo_spacing.json (gated in verify.sh)"
+  }
+}

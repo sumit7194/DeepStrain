@@ -140,6 +140,18 @@ assert "amortization_gap_vs_transfer_corr" in d, "gap-vs-transfer correlation mi
 print(f"PASS  ringdown A1 ({len(v)} variants; amort_gap {g[5000]:.3f}->{g[150000]:.3f} with N; gap-vs-transfer corr {d['amortization_gap_vs_transfer_corr']:+.2f}, for TheBridge)")
 PYEOFA1
 
+echo "--- echoes Abedi cross-check export for TheBridge leg 8 (18: per-event Δt vs Abedi, formula + % agreement)"
+./echoes/.venv/bin/python - << 'PYEOFAB' || FAIL=1
+import json
+d = json.loads(open("echoes/results/18_abedi_crosscheck.json").read())
+assert "expression" in d["formula"] and d["formula"]["no_free_parameter_tuned_to_dt"], "formula string/flag missing"
+abedi = [e for e in d["events"] if e["abedi_table_I"]]
+assert len(abedi) >= 3, "fewer than 3 Abedi-Table-I cross-check events"
+assert all(e["percent_agreement"] >= 98.0 for e in abedi), "Abedi agreement dropped below 98% (>2% error)"
+assert any(e["event"] == "GW250114" for e in d["events"]), "GW250114 (post-2017 closed-form application) missing"
+print(f"PASS  echoes Abedi cross-check ({len(abedi)} events {d['validation_summary']['min_percent_agreement']:.1f}-{d['validation_summary']['max_percent_agreement']:.1f}% agreement; for TheBridge leg 8)")
+PYEOFAB
+
 echo "--- ringdown recalibration artifacts (10)"
 ./ringdown_spectroscopy/.venv/bin/python - << 'PYEOF3' || FAIL=1
 import json
