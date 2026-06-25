@@ -1,0 +1,60 @@
+# DeepStrain — execution plan (knock-out tracker)
+
+> Granular, do-able backlog mined from all sub-project docs (2026-06-23) + new cross-cutting
+> angles. Complements [ROADMAP.md](ROADMAP.md) (higher-level moves) and the per-sub-project lab
+> notebooks. **Discipline:** north-star — each item is real only once stress-tested + gated +
+> documented. Tackle one at a time; mark `[x]` when its gate is green.
+>
+> **Status key:** 🟢 tractable now · 🟡 tractable, needs data/VM · 🔴 blocked by a known wall
+> (see "Parked" — discuss before attempting). Skipping all 🔴 per the user's call.
+
+---
+
+## Tier 1 — quick wins (bounded improvements to existing gated results, all local)
+- [ ] **E1 · Echoes: ML scorer on the upper limits** 🟢 — re-run the per-Δt exclusion (`11_upper_limits.py`)
+      using the v2 ML scorer (`07_scorer_{H1,L1}.pt`) instead of the fixed-γ comb. ROADMAP predicts ~1.2×
+      tighter A90. *Done =* ML A90 < comb A90 at the predicted Δt, gated.
+- [ ] **E2 · Echoes: independent background blocks** 🟢 — build the background from *different days*, not the
+      event's own 512 s block. *Done =* on-source p-values stable under the harder background.
+- [ ] **R1 · Ringdown: per-parameter recalibration** 🟢 — v3 fit one global temperature T; fit per-parameter
+      (M, χ, δ) temperatures. *Done =* per-param held-out coverage ∈ [0.85,0.95], gated.
+
+## Tier 2 — medium, self-contained (local)
+- [ ] **R2 · Ringdown: explicit Bayesian tone-count model selection** 🟢 — the non-ML route the field uses
+      (the black-box classifier was a parked negative; guardrail says don't re-throw ML at it). Nested-sampling
+      / evidence ratio 1-tone vs 2-tone on GW250114. *Done =* an honest Bayes factor with calibration.
+- [ ] **E3 · Echoes: per-event scorers + per-event Δt + broaden on-source set** 🟢 — train a scorer per event,
+      compute Δt from each event's catalog mass+spin, run on more O3 events. *Done =* a small table of honest
+      per-event nulls/limits.
+- [ ] **R3 · Ringdown: SXS / NR-waveform injection referee** 🟡 — inject *full-merger* numerical-relativity
+      waveforms (SXS catalog) instead of analytic tones; re-check the no-hair pipeline is unbiased. *Done =*
+      δ recovered unbiased on NR injections (the strongest referee we can build).
+
+## Tier 3 — new angles (separate directions, the interesting ones)
+- [ ] **N1 · 🌟 Joint ringdown ↔ echo analysis** 🟢 — echo spacing Δt ≈ 8M·ln(M/ℓ_P) depends on the mass that
+      *ringdown measures*. Use the ringdown M-posterior (tight for GW250114) to set a narrow, physical Δt prior
+      for the echo search on the **same** event. Couples two sub-projects; GW250114 is the test case. *Done =*
+      the M-conditioned echo search on GW250114, with its sensitivity vs the flat-Δt-prior version.
+- [ ] **N2 · 🌟 Reuse the learned H1×L1 consistency statistic (Build C-2) in echoes** 🟢 — the "does H1 agree
+      with L1" head is general, not subsolar-specific. Apply cross-detector consistency to the echo structure.
+      *Done =* learned-consistency echo statistic vs the single-detector one, stress-tested for leakage.
+- [ ] **N3 · Full O3/O4 catalog harvest** 🟡 — run the *validated* echo + ringdown pipelines on the whole event
+      catalog with pre-registered per-event Δt / δ. *Done =* a population of honest nulls (or a candidate).
+- [ ] **N4 · Self-supervised noise-embedding backbone** 🟡 — pretrain on unlabeled O3 noise, fine-tune for
+      detection; attacks the "more data" wall shared by PBH + echoes. *Done =* fine-tuned > from-scratch at
+      matched data.
+- [ ] **N5 · Triple-detector H1×L1×V1** 🟡 — add Virgo; the learned-consistency statistic extends to 3
+      detectors. Medium payoff (Virgo less sensitive). 
+
+---
+
+## Parked — blocked by a known wall (discuss before attempting) 🔴
+- **PBH dense template bank / true-waveform front end** — subsolar needs ≤0.1 % Mc spacing (~1,600+ templates);
+  intractable without serious GPU/cloud compute. Blocks the real-MF detector + fine-timing coincidence.
+- **PBH lower-FAR → 1/decade** — tractable but needs the VM back on + a fresh coincident-data fetch (~2 h, VM cost).
+  *Not blocked, just deferred to a VM session.*
+- **Ringdown real multi-event δ-stacking** — SNR information wall: only GW250114-class loudness measures δ (v6 mapped it).
+- **Ringdown black-box tone-count** — parked honest-negative; guardrail: don't re-throw ML architectures at it.
+
+## Suggested order
+E1 → R1 → E2  (warm-up wins) → **N1** (the flagship) → N2 → R2 → E3 → N3 → (R3, N4, N5 as appetite allows).
