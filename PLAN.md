@@ -41,10 +41,12 @@
       δ recovered unbiased on NR injections (the strongest referee we can build).
 
 ## Tier 3 — new angles (separate directions, the interesting ones)
-- [ ] **N1 · 🌟 Joint ringdown ↔ echo analysis** 🟢 — echo spacing Δt ≈ 8M·ln(M/ℓ_P) depends on the mass that
-      *ringdown measures*. Use the ringdown M-posterior (tight for GW250114) to set a narrow, physical Δt prior
-      for the echo search on the **same** event. Couples two sub-projects; GW250114 is the test case. *Done =*
-      the M-conditioned echo search on GW250114, with its sensitivity vs the flat-Δt-prior version.
+- [x] **N1 · 🌟 Joint ringdown ↔ echo analysis** ✅ **DONE (2026-06-25).** `15_joint_ringdown_echo.py`: propagated
+      GW250114's ringdown M,χ posterior through the verified Δt(M,χ) → echo Δt prior **0.357s [0.304,0.445]**, used
+      it to condition the echo search on the SAME event. Conditioned window = 70/225 grid pts (**3.2× fewer
+      trials**) → p<0.01 threshold −22% → **1.11× more sensitive** (A90 1.90→1.72σ, A50 1.60→1.44σ). On-source
+      GW250114 **null** under both. **First echo search conditioned on the event's own ringdown mass.** Honest:
+      the 3.2× trials cut gives only ~1.1× amplitude sensitivity (steep efficiency curve). Gated.
 - [ ] **N2 · 🌟 Reuse the learned H1×L1 consistency statistic (Build C-2) in echoes** 🟢 — the "does H1 agree
       with L1" head is general, not subsolar-specific. Apply cross-detector consistency to the echo structure.
       *Done =* learned-consistency echo statistic vs the single-detector one, stress-tested for leakage.

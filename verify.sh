@@ -52,6 +52,18 @@ assert abs(d["events"]["GW151226"]["dt_published"] - 0.1013) < 1e-4, "GW151226 r
 print("PASS  echoes echo-spacing formula (uncalibrated Kerr-tortoise Δt reproduces all 3 Abedi values <2%)")
 PYEOFES
 
+echo "--- echoes N1 joint ringdown<->echo (15: mass-conditioned echo search on GW250114 is more sensitive)"
+./echoes/.venv/bin/python - << 'PYEOFN1' || FAIL=1
+import json
+d = json.loads(open("echoes/results/15_joint_ringdown_echo.json").read())
+assert d["trials_ratio"] > 1.5, f"conditioned window not meaningfully tighter: {d['trials_ratio']}x"
+assert 0.30 < d["dt_prior"]["median"] < 0.40, f"GW250114 echo Δt prior off (verified formula): {d['dt_prior']['median']}"
+assert d["A90"]["conditioned"] <= d["A90"]["flat"], "conditioned search not >= as sensitive as flat"
+assert d["thr_cond"] < d["thr_flat"], "conditioned threshold not lower than flat"
+assert min(d["on_source_p"]["flat"], d["on_source_p"]["conditioned"]) > 0.05, "GW250114 echo no longer null"
+print(f"PASS  echoes N1 (ringdown-conditioned echo search {d['sensitivity_gain']:.2f}x more sensitive; GW250114 null)")
+PYEOFN1
+
 echo "--- ringdown recalibration artifacts (10)"
 ./ringdown_spectroscopy/.venv/bin/python - << 'PYEOF3' || FAIL=1
 import json

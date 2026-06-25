@@ -379,3 +379,19 @@ membrane at proper distance 1·ℓ_P above r₊ (coordinate offset δ = ℓ_P²(
   **GW151012** (Abedi's "LVT151012", renamed in GWTC-1; Δt=0.1778) p=0.188 / 0.194. Both clean nulls — the
   Δt-value bug did not hide a detection. (LVT151012 404'd under the old name → updated run_event.py to GW151012.)
   GW150914 unchanged. Artifacts: 11_upper_limits_GW151226.{npy,png}, GW151226_run.png, GW151012_run.png.
+
+## 2026-06-25 — N1 (PLAN.md): JOINT ringdown↔echo — a mass-conditioned echo search on GW250114
+The flagship cross-project synthesis. The echo spacing depends on the remnant mass the RINGDOWN measures, and
+we now have a verified Δt(M,χ) (14_echo_spacing). `15_joint_ringdown_echo.py`: propagate GW250114's ringdown
+posterior (M=76 [68,85], χ=0.76 [0.62,0.86] from 09) through the formula → echo **Δt prior = 0.357 s
+[0.304, 0.445] (90%)** → condition the echo comb search on the SAME event (search only the Δt-prior window,
+vs the usual flat 0.05–0.5 s scan).
+- **Result:** the conditioned window = 70/225 grid points (**3.2× fewer trials**) → p<0.01 threshold drops
+  0.504→0.392 (−22%) → injection-recovery **A90 1.90→1.72 σ, A50 1.60→1.44 σ (≈1.11× more sensitive)**.
+  On-source GW250114 **null** under both (p_flat=0.74, p_cond=1.00). The first echo search conditioned on the
+  event's own ringdown mass.
+- **Honest magnitude:** the 3.2× trials reduction yields only ~1.1× amplitude sensitivity — the injection
+  efficiency curve is steep, so a 22% threshold drop shifts A90 by ~11%, not 3.2×. The gain is real but modest;
+  it would grow for events with a tighter ringdown mass (smaller M,χ posterior → narrower Δt prior). The Δt prior
+  width here is set by GW250114's M,χ 90% box (M 68–85), propagated as independent Gaussians (conservative —
+  the true correlated posterior is tighter). Gated. Artifacts: results/15_joint_ringdown_echo.{json,png}.

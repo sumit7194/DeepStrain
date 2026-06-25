@@ -11,6 +11,30 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-06-25 — backlog-execution day: PLAN tracker + 4 echo/ringdown items + a verified physics formula that caught a bug
+A long "knock them out" session against a new [PLAN.md](PLAN.md) (tractable backlog mined from all docs + new
+cross-cutting angles). Also did a cross-session **prior-art audit** for all three sub-projects (verified every
+citation myself; all novelty claims survive once scoped — pbh strain-trigger vs PBH-population ML, ringdown
+amortized-SBI-with-start-time-marginalized, echoes autoencoder-anomaly-on-echoes) and saved a `prior-art-rigor`
+memory. Items worked, in order, each gated + documented honestly:
+- **E1 ✅ (honest negative).** ML scorer does NOT tighten the echo upper limit. Caught + neutralized the
+  whitened-domain "13× artifact" (it reappears if you run the ML scorer through the whitened harness); the honest
+  production-path A90 (`12_ul_production.py`) is ML≈comb. The gated comb UL stands.
+- **E2 ✅.** GW150914 echo null holds vs an independent 660-pair, different-day background (`13_independent_bg.py`)
+  — 4× larger, own-PSD-whitened → robust to the stationarity/shared-block assumption.
+- **R2 ⏸️ parked honestly.** Built explicit Bayesian tone-count (`14_bayes_tonecount.py`), but the oracle
+  diagnostic + the *published* GW250114 overtone detection proved the simplified machinery isn't a fair test —
+  did NOT ship a false negative. Needs the proper `ringdown` FD pipeline (Py3.11, deferred).
+- **🎯 Echo Δt(M,χ) formula ✅ VERIFIED + caught a data bug.** `14_echo_spacing.py`: Kerr-tortoise echo spacing
+  from first principles (Abedi Eq.2), uncalibrated, reproduces all 3 Abedi Table-I values to **<2%**. Caught that
+  the repo's hardcoded Δt were WRONG (GW151226 0.0579→0.1013, LVT151012 0.1013→0.1778 — a mislabel; a prior
+  session's "correction" was itself the bug). Fixed + re-ran the two events (nulls hold). GW150914 always correct.
+- **N1 ✅ (flagship).** `15_joint_ringdown_echo.py`: propagated GW250114's ringdown mass posterior through the
+  verified formula → a tight echo Δt prior (0.357s [0.304,0.445]) → conditioned the echo search on the SAME
+  event. 3.2× fewer trials → **1.11× more sensitive** (A90 1.90→1.72σ); on-source null. The first echo search
+  conditioned on its own ringdown. Honest: modest gain (steep efficiency curve), bigger for tighter-mass events.
+- Infra: dashboard live; transient gwosc SSL timeouts on the GW250114 fetch (retry-to-cache); 21 gates green.
+
 ## 2026-06-20 (night) — Build C-2 + ringdown v6: a LEARNED coincidence beats sum (significant, leakage-free), and the δ-SNR wall is mapped
 - **PBH Build C-2 (GPU VM) — the night's headline.** Asked whether a *learned* H1×L1 coincidence statistic can
   beat the plain `sum` of per-detector scores (G2a had said no — but only for simple scalar combos). Built
