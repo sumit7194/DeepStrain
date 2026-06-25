@@ -66,6 +66,13 @@
 - **Ringdown real multi-event δ-stacking** — SNR information wall: only GW250114-class loudness measures δ (v6 mapped it).
 - **Ringdown black-box tone-count** — parked honest-negative; guardrail: don't re-throw ML architectures at it.
 
+## 🔑 Shared unblocker discovered (2026-06-25): the echo Δt(M,χ) formula
+The echo spacing is currently HARDCODED from Abedi Table I (O1 events only). N1, E3, and N3 all need a
+**computed** Δt(M,χ): Δt_echo = 2|r₀*| (twice the tortoise distance from the photon sphere to the near-horizon
+membrane at ~ℓ_P; depends on remnant M and spin a; [Abedi 2017](https://arxiv.org/abs/1612.00266)). **Implement
++ verify it reproduces the known O1 values (0.2925 / 0.0579 / 0.1013 s) FIRST — it unblocks N1 + E3 + N3 together.**
+This is the next concrete step (a focused, verifiable physics task).
+
 ## Chosen execution order (driving it; we do them all)
 **E1 ✅** → **E2** (harden the headline nulls) → **R2** (Bayesian tone-count, field's method vs our failed ML) →
 **N2** (reuse learned coincidence) → **N1** (flagship, focused effort) → **E3** → **N3** → R3 → N4 → N5.
