@@ -208,6 +208,23 @@ assert d["best_ratio"] >= 0.80, f"single-event delta got implausibly tight: {d['
 print("PASS  ringdown v6 threshold (delta informative only at GW250114-class loudness; ~13% tighter, the SNR wall)")
 PYEOFD
 
+echo "--- pbh N4 self-supervised backbone (ssl_finetune: SSL-pretrained beats from-scratch at scarce labels)"
+./primordial_blackhole_search/.venv/bin/python - << 'PYEOFN4' || FAIL=1
+import json, numpy as np
+d = json.loads(open("primordial_blackhole_search/results/ssl_finetune.json").read())
+assert d["ssl_helps"], "SSL no longer beats from-scratch at all budgets"
+r = d["results"]
+small = r[min(r, key=int)]                       # smallest labeled budget
+assert small["delta_mean"] > 0.05, f"SSL gain at scarce labels shrank: {small['delta_mean']}"   # data-wall signature
+# significance: the small-budget gap exceeds the seed scatter
+sep = small["pretrained_mean"] - small["scratch_mean"] - 2 * (np.std(small["pretrained_auc"]) + np.std(small["scratch_auc"]))
+assert sep > 0, "SSL gain at scarce labels not beyond ~2-sigma seed scatter"
+# gain should shrink as labels grow (the wall recedes)
+big = r[max(r, key=int)]
+assert small["delta_mean"] > big["delta_mean"], "SSL gain not larger at the scarcer budget (no data-wall trend)"
+print(f"PASS  pbh N4 (SSL beats from-scratch: +{small['delta_mean']:.3f} AUC @{min(r,key=int)} labels, +{big['delta_mean']:.3f} @{max(r,key=int)}; data-wall mitigated)")
+PYEOFN4
+
 echo "--- pbh sensitivity artifacts (eval_cnn)"
 ./primordial_blackhole_search/.venv/bin/python - << 'PYEOF4' || FAIL=1
 import json

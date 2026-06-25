@@ -188,6 +188,13 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   learned statistic helps on cnn_hl too (sig 3/4 honest FARs, 1/month hi Δ+0.030) so it's base-model-agnostic — BUT
   no compounding: learned-cnn_hl ≈ learned-cnn_w64 within the ±0.02 head-seed spread (G2b's tail-not-AUC logic
   holds). ⇒ the simpler gate-critical cnn_w64 suffices; don't need cnn_hl. Artifact: coinc_learned_segments_cnn_hl.json.
+- **N4 DONE (2026-06-26): self-supervised backbone is a data-wall WIN.** `ssl_pretrain.py` (masked-spectrogram
+  autoencoder pretrains the SpectrogramCNN conv backbone on 20k UNLABELED noise specs; MSE 1.05→0.75) +
+  `ssl_finetune.py` (fine-tune vs from-scratch at reduced labels, 3 seeds, input standardized to SSL mu/sd).
+  **SSL wins at every budget, gain ∝ 1/labels: +0.124 val-AUC @1000 labels (0.539→0.663, ~10× seed scatter),
+  +0.021 @4000** — the data-wall signature. Caveats: unlabeled pool = labeled set's 20k noise (more O3 noise →
+  likely more, a VM extension); val AUC not yet sensitive distance (next); mitigates not breaks the wall (0.66<0.79).
+  Gated. Artifacts: results/ssl_finetune.json, models/ssl_encoder.pt.
 - **Dashboard:** `python3 dashboard.py` (repo root, stdlib only) serves a live run monitor
   over `*/results/progress/*.json` for all three sub-projects; pbh gained `pbh/progress.py`
   (same heartbeat convention as echolib/rdlib). Writes `.dashboard.pid` on start; **stop it

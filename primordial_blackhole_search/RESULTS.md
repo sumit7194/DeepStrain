@@ -726,3 +726,19 @@ moderate signals) — exactly what a consistency veto (the oracle had one) or a 
 statistic would suppress. ⇒ the fix must **sharpen the signal/noise statistic or veto the tail**, not
 tweak the threshold or the architecture. Points squarely at dense oracle supervision and/or a real-MF
 front end. Artifacts: results/threshold_robust_semicoherent_{v2,v1def}.json.
+
+### N4 (2026-06-26): self-supervised backbone — a clean data-wall win
+The subsolar detector is labeled-data-limited; unlabeled real-noise spectrograms are abundant. `ssl_pretrain.py`
+pretrains the SpectrogramCNN conv backbone (the exact 4 `_block`s, so weights transfer) as a **masked-spectrogram
+autoencoder** on **20k UNLABELED noise spectrograms** — mask random t-f patches, reconstruct them. It learns
+real structure: masked-recon MSE drops 1.05→0.75 over 30 epochs (the predictable part — PSD shape, lines,
+glitches; the rest is irreducible noise).
+- **The data-wall test** (`ssl_finetune.py`, input standardized to the SSL mu/sd for both models, 3 seeds): fine-tune
+  the pretrained backbone vs from-scratch at a reduced labeled budget. **SSL wins at every budget, gain ∝ 1/labels:**
+  +0.124 val-AUC @1000 labels (0.539±0.006 → 0.663±0.013, ~10× the seed scatter), +0.021 @4000. The gap shrinks as
+  labels grow — exactly the data-wall signature (self-supervision matters most when labels are scarce).
+- **Honest caveats:** (1) the unlabeled pool is the labeled set's own 20k noise windows — pretraining on *more* O3
+  noise (a VM extension) should help further; (2) metric is val AUC, not yet the headline sensitive distance
+  (8/SNR50) — the injection-recovery impact is the next step; (3) SSL **mitigates** the wall (scarce-label AUC 0.66
+  is still below the full-data 0.79), it doesn't erase it. Gated. Artifacts: results/ssl_finetune.json,
+  models/ssl_encoder.pt.

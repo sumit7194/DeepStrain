@@ -66,9 +66,15 @@
       (below √N=2× — heterogeneous events + GW151226 low-sensitivity + equal-weight stacking). Gated.
       (Full O3/O4 catalog deferred — per-event detector-frame remnant masses + fetches; the 4-event stack is the
       tractable core, no new data.)
-- [ ] **N4 · Self-supervised noise-embedding backbone** 🟡 — pretrain on unlabeled O3 noise, fine-tune for
-      detection; attacks the "more data" wall shared by PBH + echoes. *Done =* fine-tuned > from-scratch at
-      matched data.
+- [x] **N4 · Self-supervised noise-embedding backbone** ✅ **DONE — a clean data-wall WIN (2026-06-26).**
+      `ssl_pretrain.py`: masked-spectrogram autoencoder pretrains the SpectrogramCNN conv backbone on 20k
+      UNLABELED noise spectrograms (MSE 1.05→0.75 — it learns the noise's t-f structure). `ssl_finetune.py`:
+      fine-tune that backbone vs from-scratch at a reduced labeled budget (3 seeds). **SSL wins at every budget,
+      gain ∝ 1/labels:** +0.124 AUC @1000 labels (0.539→0.663, ~10× seed scatter — highly significant), +0.021
+      @4000 — textbook data-wall signature. Gated. **Honest caveats:** unlabeled pool = the labeled set's 20k
+      noise windows (more O3 noise → likely more gain — a VM extension); metric is val AUC, not yet sensitive
+      distance (the headline pbh metric — next); SSL *mitigates* the wall (scarce-label AUC 0.66 < full-data 0.79),
+      doesn't break it. Landed in one session, not multi.
 - [ ] **N5 · Triple-detector H1×L1×V1** 🟡 — add Virgo; the learned-consistency statistic extends to 3
       detectors. Medium payoff (Virgo less sensitive). 
 
