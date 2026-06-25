@@ -26,8 +26,8 @@ from echolib import DETECTORS, RESULTS, comb_score, load_segments
 # f0 ~ remnant ringdown frequency (sets the search band, injections in step 06).
 EVENTS = {
     "GW150914": {"dt_pred": 0.2925, "f0": 250.0, "band": (30.0, 350.0)},
-    "LVT151012": {"dt_pred": 0.1013, "f0": 430.0, "band": (30.0, 600.0)},
-    "GW151226": {"dt_pred": 0.0579, "f0": 750.0, "band": (30.0, 900.0)},
+    "LVT151012": {"dt_pred": 0.1778, "f0": 430.0, "band": (30.0, 600.0)},  # Abedi Table I (was wrongly 0.1013)
+    "GW151226": {"dt_pred": 0.1013, "f0": 750.0, "band": (30.0, 900.0)},   # Abedi Table I (was wrongly 0.0579)
 }
 
 

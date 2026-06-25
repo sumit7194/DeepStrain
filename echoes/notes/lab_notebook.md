@@ -357,3 +357,21 @@ genuinely independent), pools them, recomputes the on-source p. O1's ~40% duty c
 - Caveat: the on-source is whitened against the event block's PSD while the background uses other blocks' PSDs
   — the null holding *is* the (passed) cross-time stationarity check. Gated in verify.sh.
   Artifacts: results/13_independent_bg_GW150914.{json,png}.
+
+## 2026-06-25 — echo spacing Δt(M,χ) from first principles — VERIFIED vs Abedi Table I + CAUGHT a data bug
+The unblocker for N1/E3/N3: the echo spacing was hardcoded; N1 (M-posterior → Δt prior) and adding O3 events
+need a computed Δt(M,χ). Implemented the Kerr-tortoise round-trip Δt = 2[r*(r_peak) − r*(r_mem)] from first
+principles (`14_echo_spacing.py`; Abedi 2017 arXiv:1612.00266 Eq. 2): r*(r) = r + cp·ln(r−r₊) − cm·ln(r−r₋),
+membrane at proper distance 1·ℓ_P above r₊ (coordinate offset δ = ℓ_P²(r₊−r₋)/(4(r₊²+a²))), barrier at the
+3M photon sphere. **No free parameter tuned to Δt.**
+- **Result: reproduces ALL 3 Abedi Table-I values to <2%** — GW150914 0.297 (pub 0.2925), GW151226 0.101 (0.1013),
+  LVT151012 0.179 (0.1778). Strong validation of an uncalibrated formula. Gated in verify.sh.
+- **Float gotcha (caught):** δ ~ 1e-85 s, so r₊+δ rounds to r₊ in float64 → r−r₊ = 0 → ln(0) = −inf. Fix: use
+  ln(δ) analytically (never subtract); r_mem−r₋ ≈ r₊−r₋.
+- **🐛 DATA BUG CAUGHT.** The formula at first "failed" GW151226/LVT151012 by ~75% — because the **repo's hardcoded
+  Δt were WRONG**: GW151226 was 0.0579 (should be 0.1013) and LVT151012 was 0.1013 (should be 0.1778 — i.e. the
+  repo had GW151226's value mislabeled onto LVT151012, and an unrelated 0.0579 on GW151226). A *prior* session's
+  "correction" of GW151226 0.105→0.0579 was itself the error (Abedi's value is 0.1013 ≈ the original 0.105). Fixed
+  in 11_upper_limits.py, run_event.py, 13_independent_bg.py. **GW150914 (the gated/headline event) was always
+  correct (0.2925).** ⚠️ The GW151226 + LVT151012 prior results (upper limits, run_event) were at the wrong Δt →
+  flagged for re-run. Artifact: results/14_echo_spacing.json.

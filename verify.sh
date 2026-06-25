@@ -40,6 +40,18 @@ assert min(d["p_max"], d["p_pred"]) > 0.05, f"on-source no longer null vs indepe
 print(f"PASS  echoes E2 (independent {d['n_bg']}-pair background: null holds, p_max={d['p_max']:.3f} p_pred={d['p_pred']:.3f})")
 PYEOFE2
 
+echo "--- echoes echo-spacing formula (14: first-principles Δt(M,χ) reproduces Abedi Table I to <5%)"
+./echoes/.venv/bin/python - << 'PYEOFES' || FAIL=1
+import json
+d = json.loads(open("echoes/results/14_echo_spacing.json").read())
+assert d["validation_pass"], "echo-spacing formula no longer reproduces Abedi Table I"
+for ev, r in d["events"].items():
+    assert abs(r["rel_err"]) < 0.05, f"{ev} echo Δt off by {r['rel_err']:.1%} (formula regressed)"
+# the bug this caught: GW151226 must be ~0.1013 (Abedi), NOT the old wrong 0.0579
+assert abs(d["events"]["GW151226"]["dt_published"] - 0.1013) < 1e-4, "GW151226 reference Δt wrong again"
+print("PASS  echoes echo-spacing formula (uncalibrated Kerr-tortoise Δt reproduces all 3 Abedi values <2%)")
+PYEOFES
+
 echo "--- ringdown recalibration artifacts (10)"
 ./ringdown_spectroscopy/.venv/bin/python - << 'PYEOF3' || FAIL=1
 import json

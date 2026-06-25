@@ -66,12 +66,15 @@
 - **Ringdown real multi-event δ-stacking** — SNR information wall: only GW250114-class loudness measures δ (v6 mapped it).
 - **Ringdown black-box tone-count** — parked honest-negative; guardrail: don't re-throw ML architectures at it.
 
-## 🔑 Shared unblocker discovered (2026-06-25): the echo Δt(M,χ) formula
-The echo spacing is currently HARDCODED from Abedi Table I (O1 events only). N1, E3, and N3 all need a
-**computed** Δt(M,χ): Δt_echo = 2|r₀*| (twice the tortoise distance from the photon sphere to the near-horizon
-membrane at ~ℓ_P; depends on remnant M and spin a; [Abedi 2017](https://arxiv.org/abs/1612.00266)). **Implement
-+ verify it reproduces the known O1 values (0.2925 / 0.0579 / 0.1013 s) FIRST — it unblocks N1 + E3 + N3 together.**
-This is the next concrete step (a focused, verifiable physics task).
+## 🔑 Shared unblocker ✅ DONE (2026-06-25): the echo Δt(M,χ) formula — VERIFIED + caught a data bug
+`14_echo_spacing.py`: the Kerr-tortoise echo spacing Δt = 2[r*(r_peak) − r*(r_mem)] from first principles
+(Abedi 2017 Eq. 2; membrane at 1 ℓ_P, barrier at 3M). **Uncalibrated, it reproduces all 3 Abedi Table-I values
+to <2%** (GW150914 0.297 vs 0.2925; GW151226 0.101 vs 0.1013; LVT151012 0.179 vs 0.1778). Float gotcha fixed
+(δ~1e-85 s underflows in r₊+δ → use ln(δ) analytically). Gated. **BUG CAUGHT: the repo's hardcoded Δt were
+wrong** — GW151226 was 0.0579 (→ 0.1013) and LVT151012 was 0.1013 (→ 0.1778, a shifted/mislabeled value); a
+prior session's "correction" of GW151226 to 0.0579 was itself the error. Fixed in 11/run_event/13.
+**⚠️ Follow-up: the GW151226 + LVT151012 prior results (upper limits, run_event) were computed at the WRONG Δt
+→ re-run them.** Now unblocks N1 (propagate GW250114 M-posterior → Δt prior), E3, N3.
 
 ## Chosen execution order (driving it; we do them all)
 **E1 ✅** → **E2** (harden the headline nulls) → **R2** (Bayesian tone-count, field's method vs our failed ML) →

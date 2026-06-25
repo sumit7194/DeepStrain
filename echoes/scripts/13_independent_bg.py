@@ -75,7 +75,7 @@ def main() -> None:
     ap.add_argument("--event", default="GW150914")
     args = ap.parse_args()
     event = args.event
-    dt_pred = GW150914_DT_PRED if event == "GW150914" else 0.0579
+    dt_pred = GW150914_DT_PRED if event == "GW150914" else 0.1013   # GW151226 Abedi Table I (was wrongly 0.0579)
     dt_grid = np.arange(max(0.03, dt_pred / 2), 0.5, 0.002)
     j = int(np.argmin(np.abs(dt_grid - dt_pred)))
 
