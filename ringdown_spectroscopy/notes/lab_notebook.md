@@ -440,3 +440,19 @@ scaled to GW250114 loudness) into the NPE's whitened/unit-noise convention, samp
   but the waveform systematic belongs in the uncertainty budget. **Mitigation = start the fit later (≳6 ms
   post-peak) where the bias vanishes — at the cost of ringdown SNR (the v6 wall).** Gated. Caveat: IMRPhenomXAS is
   NR-calibrated (true SXS NR + coherent multi-detector deferred). Artifacts: results/15_imr_referee.json.
+
+## 2026-06-25 — R3 capstone: the GW250114 no-hair δ vs ringdown START TIME (real data)
+Applied the R3 lesson to the real event (`16_gw250114_starttime.py`): crop GW250114's whitened ringdown at
+peak+offset for offset ∈ {0,2,4,6,8,12} ms and run the NPE at each.
+- **δ vs start:** −0.161 (0ms) / +0.068 / −0.092 / −0.154 / −0.083 / **+0.014 (12ms)**; **every offset
+  Kerr-consistent** (0 inside the 90% CI, all CIs ≈ ±0.45).
+- **Two clean takeaways:** (1) the peak-cropped δ=−0.16 **reproduces the 09 headline** (validation); (2) the
+  late-start (systematic-mitigated) δ=+0.01 — drift +0.175 toward Kerr, the **direction R3's injection sweep
+  predicts**. So GW250114's apparent small negative δ is consistent with being partly the early-time waveform
+  systematic, not new physics; the mitigated value is cleanly Kerr.
+- **Honest caveat — don't overclaim the real-data drift.** Unlike the injection sweep (n=80, clean −0.33→0
+  decay), the real event has ONE noise realization per offset and broad σ(δ)≈0.36 posteriors, so the per-offset
+  values scatter (non-monotonic: +6ms gives −0.15) and all overlap zero. The **injection sweep is the decisive
+  evidence** for the systematic; the real-event sweep is **consistent with it but noise-limited**. Net: the
+  no-hair test passes at every start time, and understanding the systematic only *strengthens* the
+  Kerr-consistency (apparent −0.16 → mitigated ≈0). Gated. Artifacts: results/16_gw250114_starttime.{json,png}.

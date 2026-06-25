@@ -88,6 +88,19 @@ assert abs(late) < 0.10, f"bias not gone by the latest start offset: {late}"
 print(f"PASS  ringdown R3 (control δ={d['control_delta_mean']:+.2f}; IMR-peak δ≈{-d['peak_bias']:.2f} systematic, decays to {late:+.2f} by 6ms)")
 PYEOFR3
 
+echo "--- ringdown R3 capstone (16: GW250114 δ vs start time -- reproduces 09 at peak, Kerr-consistent throughout)"
+./ringdown_spectroscopy/.venv/bin/python - << 'PYEOFC3' || FAIL=1
+import json
+d = json.loads(open("ringdown_spectroscopy/results/16_gw250114_starttime.json").read())
+peak = d["delta_vs_start"]["0.0"]["median"]
+assert abs(peak - (-0.16)) < 0.06, f"peak-cropped δ no longer reproduces 09's -0.16: {peak}"   # validation
+assert d["all_kerr_consistent"], "a start offset is no longer Kerr-consistent"                 # headline holds
+# the late-start (systematic-mitigated) δ sits closer to Kerr than the peak value
+late = d["delta_vs_start"][str(d["offsets_ms"][-1])]["median"]
+assert abs(late) <= abs(peak) + 0.05, f"late-start δ not closer-or-equal to Kerr: late={late} peak={peak}"
+print(f"PASS  ringdown R3 capstone (GW250114 δ: peak {peak:+.2f} reproduces 09, late-start {late:+.2f}; all Kerr-consistent)")
+PYEOFC3
+
 echo "--- ringdown recalibration artifacts (10)"
 ./ringdown_spectroscopy/.venv/bin/python - << 'PYEOF3' || FAIL=1
 import json
