@@ -373,5 +373,9 @@ membrane at proper distance 1·ℓ_P above r₊ (coordinate offset δ = ℓ_P²(
   repo had GW151226's value mislabeled onto LVT151012, and an unrelated 0.0579 on GW151226). A *prior* session's
   "correction" of GW151226 0.105→0.0579 was itself the error (Abedi's value is 0.1013 ≈ the original 0.105). Fixed
   in 11_upper_limits.py, run_event.py, 13_independent_bg.py. **GW150914 (the gated/headline event) was always
-  correct (0.2925).** ⚠️ The GW151226 + LVT151012 prior results (upper limits, run_event) were at the wrong Δt →
-  flagged for re-run. Artifact: results/14_echo_spacing.json.
+  correct (0.2925).** Artifact: results/14_echo_spacing.json.
+- **Re-run at corrected Δt (2026-06-25): all nulls HOLD.** Regenerated the two affected events at the right
+  spacing: **GW151226** (Δt=0.1013) on-source p=0.288 (max) / 0.797 (at Δt), upper limit **A90=1.61σ**;
+  **GW151012** (Abedi's "LVT151012", renamed in GWTC-1; Δt=0.1778) p=0.188 / 0.194. Both clean nulls — the
+  Δt-value bug did not hide a detection. (LVT151012 404'd under the old name → updated run_event.py to GW151012.)
+  GW150914 unchanged. Artifacts: 11_upper_limits_GW151226.{npy,png}, GW151226_run.png, GW151012_run.png.
