@@ -52,9 +52,13 @@
       trials**) → p<0.01 threshold −22% → **1.11× more sensitive** (A90 1.90→1.72σ, A50 1.60→1.44σ). On-source
       GW250114 **null** under both. **First echo search conditioned on the event's own ringdown mass.** Honest:
       the 3.2× trials cut gives only ~1.1× amplitude sensitivity (steep efficiency curve). Gated.
-- [ ] **N2 · 🌟 Reuse the learned H1×L1 consistency statistic (Build C-2) in echoes** 🟢 — the "does H1 agree
-      with L1" head is general, not subsolar-specific. Apply cross-detector consistency to the echo structure.
-      *Done =* learned-consistency echo statistic vs the single-detector one, stress-tested for leakage.
+- [x] **N2 · H1×L1 consistency in echoes** ✅ **DONE — honest MIXED/modest (2026-06-25).** A *learned* head
+      (Build C-2 style) would overfit the tiny echo data, so tested a robust training-free consistency statistic
+      `combH+combL−λ|combH−combL|` (penalize per-Δt detector disagreement). `17_echo_consistency.py`, pre-chosen
+      λ=0.5 (no best-λ selection bias), n=200, bootstrap ΔA90. **Significant for GW150914** (A90 2.05→1.97, ~4%,
+      90%CI[−0.19,−0.02]) but **NOT for GW250114** (CI[−0.00,+0.05], P=0.08) ⇒ event-dependent, **not a robust
+      universal win**. (The smoke's "~10% best-λ" was selection-bias-inflated — caught it.) The comb-sum is
+      already largely Δt-consistency-aware. Gated (the honest "modest, not-universal" conclusion).
 - [x] **N3 · Stacked multi-event echo search** ✅ **DONE (2026-06-25).** `16_stacked_echo.py`: stacked the comb
       statistic across 4 well-characterized events (GW150914/GW151226/GW151012/GW250114) at each event's
       formula-predicted Δt (z-scored per event, summed). **Population NULL** (stacked on-source z=−5.17 vs +5.05

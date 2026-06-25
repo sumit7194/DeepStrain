@@ -409,3 +409,18 @@ against that event's own off-source background, then summed → a combined stati
   help but is still √N-bounded). So stacking gives a real but modest tightening. Gated.
 - Caveat: full O3/O4 catalog harvest deferred — needs per-event *detector-frame* remnant masses (source×(1+z))
   + fresh fetches; this 4-event stack is the tractable core with no new data. Artifacts: results/16_stacked_echo.{json,png}.
+
+## 2026-06-25 — N2 (PLAN.md): H1×L1 CONSISTENCY-weighted echo statistic — honest MIXED/modest result
+Build C-2 (pbh) showed a LEARNED H1×L1 consistency head beats `sum`. A learned echo analog would overfit the tiny
+echo data (~159 pairs/event — the R2 lesson), so tested a robust, training-free version:
+`net_λ(Δt) = combH(Δt)+combL(Δt) − λ|combH(Δt)−combL(Δt)|` (penalize per-Δt detector disagreement; λ=0 = plain
+sum). `17_echo_consistency.py`.
+- **Caught a selection-bias trap first.** The n=20 smoke, picking best-λ post-hoc, showed a tempting ~10% A90
+  improvement — selection bias + noise. The rigorous test uses a **PRE-CHOSEN λ=0.5** (no peeking) at n=200 with a
+  **bootstrap CI on ΔA90**.
+- **Result (honest, mixed):** GW150914 A90 2.05→1.97 (~4%), 90%CI[−0.19,−0.02], P(better)=1.00 → **significant**;
+  GW250114 A90 1.91→1.93, 90%CI[−0.00,+0.05], P=0.08 → **not significant**. ⇒ event-dependent, **NOT a robust
+  universal win**. Consistent with the comb-sum already being Δt-consistency-aware (it sums per-Δt → a
+  single-detector peak doesn't survive). The pbh G2a pattern ("simple combos barely beat sum") roughly holds for
+  echoes; only a *learned* statistic clearly beat sum for pbh, and the echo data is too small to train one without
+  overfitting. Gated (the honest "modest, not-universal" conclusion). Artifacts: results/17_echo_consistency.{json,png}.

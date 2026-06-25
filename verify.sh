@@ -101,6 +101,19 @@ assert abs(late) <= abs(peak) + 0.05, f"late-start δ not closer-or-equal to Ker
 print(f"PASS  ringdown R3 capstone (GW250114 δ: peak {peak:+.2f} reproduces 09, late-start {late:+.2f}; all Kerr-consistent)")
 PYEOFC3
 
+echo "--- echoes N2 H1xL1 consistency statistic (17: pre-chosen lambda, bootstrap -- honest mixed/modest, not universal)"
+./echoes/.venv/bin/python - << 'PYEOFN2' || FAIL=1
+import json
+d = json.loads(open("echoes/results/17_echo_consistency.json").read())
+assert not d["consistency_helps"], "N2 now claims a UNIVERSAL win -- recheck (was honest mixed/modest)"
+for ev, o in d["events"].items():
+    assert "dA90_ci90" in o, f"{ev} bootstrap CI missing (significance not assessed)"
+    assert abs(o["pre_a90"] - o["sum_a90"]) < 0.25, f"{ev} consistency effect implausibly large: {o['pre_a90']} vs {o['sum_a90']}"
+# the modest help is real for at least one event (GW150914 CI below 0)
+assert any(o["dA90_ci90"][1] < 0 for o in d["events"].values()), "no event shows even a modest significant gain"
+print("PASS  echoes N2 (consistency-weighted statistic: modest, event-dependent, not a universal win -- selection-bias avoided)")
+PYEOFN2
+
 echo "--- ringdown recalibration artifacts (10)"
 ./ringdown_spectroscopy/.venv/bin/python - << 'PYEOF3' || FAIL=1
 import json
