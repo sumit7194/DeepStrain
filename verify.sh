@@ -225,6 +225,21 @@ assert small["delta_mean"] > big["delta_mean"], "SSL gain not larger at the scar
 print(f"PASS  pbh N4 (SSL beats from-scratch: +{small['delta_mean']:.3f} AUC @{min(r,key=int)} labels, +{big['delta_mean']:.3f} @{max(r,key=int)}; data-wall mitigated)")
 PYEOFN4
 
+echo "--- pbh N4 sensitive-distance follow-up (ssl_sensdist: SSL win translates to distance at a defined FAR)"
+./primordial_blackhole_search/.venv/bin/python - << 'PYEOFN4S' || FAIL=1
+import json
+d = json.loads(open("primordial_blackhole_search/results/ssl_sensdist.json").read())
+r = d["results"]; small, big = r[min(r, key=int)], r[max(r, key=int)]
+# at the strict zero-FA threshold, reduced-budget models are sub-threshold (distance 0) -- the honest floor
+assert all(v["zeroFA"]["ssl_mean"] == 0 and v["zeroFA"]["scratch_mean"] == 0 for v in r.values()), \
+    "zero-FA distance no longer 0 for reduced budgets (recheck the model-strength floor claim)"
+# but at a softer (1%) FAR the SSL win translates to a real sensitive-distance gain, biggest when labels are scarce
+assert d["ssl_helps_at_softFAR"], "SSL no longer helps sensitive distance at the softer FAR"
+assert small["FAR1pct"]["delta_mean"] > 0.10, f"SSL distance gain at scarce labels shrank: {small['FAR1pct']['delta_mean']}"
+assert small["FAR1pct"]["delta_mean"] > big["FAR1pct"]["delta_mean"], "no data-wall trend (gain not larger at scarcer budget)"
+print(f"PASS  pbh N4 sens-dist (SSL distance gain @1%FAR: +{small['FAR1pct']['delta_mean']:.2f}@{min(r,key=int)} -> +{big['FAR1pct']['delta_mean']:.2f}@{max(r,key=int)}; zero-FA needs full-data strength)")
+PYEOFN4S
+
 echo "--- pbh sensitivity artifacts (eval_cnn)"
 ./primordial_blackhole_search/.venv/bin/python - << 'PYEOF4' || FAIL=1
 import json

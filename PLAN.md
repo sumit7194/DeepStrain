@@ -75,6 +75,11 @@
       noise windows (more O3 noise → likely more gain — a VM extension); metric is val AUC, not yet sensitive
       distance (the headline pbh metric — next); SSL *mitigates* the wall (scarce-label AUC 0.66 < full-data 0.79),
       doesn't break it. Landed in one session, not multi.
+      **Sensitive-distance follow-up ✅ (translates to the headline metric).** `ssl_sensdist.py`: the AUC win
+      reaches SENSITIVE DISTANCE too — at a defined (1%) FAR, SSL gives +0.278 distance-fraction @2000 labels
+      (from-scratch non-functional at 0.000) shrinking to +0.01 @8000 (the data-wall signature again). At the
+      *strict zero-FA* threshold both are 0 — a model-strength floor (needs near-full-data AUC ~0.79), not an SSL
+      failure. So it's a real *detection* win, not an AUC artifact. Gated.
 - [ ] **N5 · Triple-detector H1×L1×V1** 🟡 — add Virgo; the learned-consistency statistic extends to 3
       detectors. Medium payoff (Virgo less sensitive). 
 

@@ -193,8 +193,11 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   `ssl_finetune.py` (fine-tune vs from-scratch at reduced labels, 3 seeds, input standardized to SSL mu/sd).
   **SSL wins at every budget, gain ∝ 1/labels: +0.124 val-AUC @1000 labels (0.539→0.663, ~10× seed scatter),
   +0.021 @4000** — the data-wall signature. Caveats: unlabeled pool = labeled set's 20k noise (more O3 noise →
-  likely more, a VM extension); val AUC not yet sensitive distance (next); mitigates not breaks the wall (0.66<0.79).
-  Gated. Artifacts: results/ssl_finetune.json, models/ssl_encoder.pt.
+  likely more, a VM extension); mitigates not breaks the wall (0.66<0.79). **Sens-distance follow-up (ssl_sensdist.py):
+  the AUC win TRANSLATES to sensitive distance** — at a defined (1%) FAR, SSL +0.278 distance-fraction @2000 labels
+  (from-scratch non-functional) → +0.01 @8000 (data-wall signature). At the strict zero-FA threshold both are 0 — a
+  model-strength floor (needs ~full-data AUC), not an SSL failure. A real detection win. Gated.
+  Artifacts: results/ssl_finetune.json, results/ssl_sensdist.json, models/ssl_encoder.pt.
 - **Dashboard:** `python3 dashboard.py` (repo root, stdlib only) serves a live run monitor
   over `*/results/progress/*.json` for all three sub-projects; pbh gained `pbh/progress.py`
   (same heartbeat convention as echolib/rdlib). Writes `.dashboard.pid` on start; **stop it

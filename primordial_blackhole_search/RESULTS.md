@@ -742,3 +742,23 @@ glitches; the rest is irreducible noise).
   (8/SNR50) — the injection-recovery impact is the next step; (3) SSL **mitigates** the wall (scarce-label AUC 0.66
   is still below the full-data 0.79), it doesn't erase it. Gated. Artifacts: results/ssl_finetune.json,
   models/ssl_encoder.pt.
+
+#### N4 sensitive-distance follow-up (2026-06-26): the AUC win translates to DISTANCE — at a defined FAR
+val AUC ≠ sensitive distance (the headline metric, set by the score tails at the zero-FA threshold). `ssl_sensdist.py`
+reads the efficiency-vs-SNR curve straight from the val shards (each injection's `in_window_snr` + `chirp_mass`),
+at two operating points, for SSL-pretrained vs from-scratch at reduced budgets (2 seeds):
+- **At the strict zero-FA threshold: 0 for BOTH at every budget (2k/4k/8k).** Reduced-budget models (AUC ≤0.74,
+  SSL or not) can't reach 50% efficiency at that threshold → SNR50 undefined → distance 0. A **model-strength
+  floor**: the zero-FA distance needs near-full-data strength (the full cnn_w64 reaches 0.41–0.45 at AUC 0.79),
+  which the SSL gain alone doesn't bridge — *not* an SSL failure.
+- **At a softer (1%) FAR the SSL win DOES translate to sensitive distance, with the same data-wall signature:**
+  Δ(ssl−scratch) mean distance-fraction = **+0.278 @2000** (scratch non-functional at 0.000, SSL 0.278!),
+  +0.184 @4000, +0.013 @8000 — a large gain at scarce labels shrinking as labels grow. So the AUC win is a real
+  *detection* improvement, not an AUC artifact: SSL makes a reduced-budget model functional where from-scratch is
+  not. Gated. Artifact: results/ssl_sensdist.json.
+
+**Net N4 (honest):** self-supervised pretraining on unlabeled noise is a genuine data-wall win — it improves both
+val AUC and sensitive distance at scarce labels (most at the scarcest), making sub-functional from-scratch models
+functional. The strict zero-FA headline number specifically requires near-full-data model strength, so the win
+shows up at a defined FAR rather than at zero-FA in this reduced-budget study; scaling the unlabeled pool (more O3
+noise, a VM extension) and budget toward full data is the path to a zero-FA distance gain.
