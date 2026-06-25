@@ -64,6 +64,17 @@ assert min(d["on_source_p"]["flat"], d["on_source_p"]["conditioned"]) > 0.05, "G
 print(f"PASS  echoes N1 (ringdown-conditioned echo search {d['sensitivity_gain']:.2f}x more sensitive; GW250114 null)")
 PYEOFN1
 
+echo "--- echoes N3 stacked multi-event echo search (16: population null + combined limit tighter than best single)"
+./echoes/.venv/bin/python - << 'PYEOFN3' || FAIL=1
+import json
+d = json.loads(open("echoes/results/16_stacked_echo.json").read())
+assert len(d["events"]) >= 4, "stacked over fewer than 4 events"
+assert d["p_stacked"] > 0.05, f"stacked echo search no longer null: p={d['p_stacked']}"
+assert d["a90_stacked"] < d["best_single_a90"], "stacking did not tighten the limit vs best single"
+assert d["stack_gain"] > 1.0, f"stack gain <= 1: {d['stack_gain']}"
+print(f"PASS  echoes N3 (stacked {len(d['events'])}-event echo search: null p={d['p_stacked']:.2f}, limit {d['stack_gain']:.2f}x tighter than best single)")
+PYEOFN3
+
 echo "--- ringdown recalibration artifacts (10)"
 ./ringdown_spectroscopy/.venv/bin/python - << 'PYEOF3' || FAIL=1
 import json

@@ -395,3 +395,17 @@ vs the usual flat 0.05–0.5 s scan).
   it would grow for events with a tighter ringdown mass (smaller M,χ posterior → narrower Δt prior). The Δt prior
   width here is set by GW250114's M,χ 90% box (M 68–85), propagated as independent Gaussians (conservative —
   the true correlated posterior is tighter). Gated. Artifacts: results/15_joint_ringdown_echo.{json,png}.
+
+## 2026-06-25 — N3 (PLAN.md): STACKED multi-event echo search at formula-predicted Δt
+`16_stacked_echo.py`: stack the comb statistic across the 4 events we have characterized + cached (GW150914,
+GW151226, GW151012, GW250114), each at its OWN echo Δt from the verified formula. Per-event score z-scored
+against that event's own off-source background, then summed → a combined statistic (~√N SNR growth ideal).
+- **Population NULL.** Per-event on-source z all consistent with noise (−3.08, −1.36, +0.88, −1.61); the stack
+  sits at z=−5.17, *below* the noise mean, vs a +5.05 (p<0.01) threshold → **p=0.998, no echo excess across the
+  population**. No echoes at the theoretically-predicted spacings in any of the 4 events, individually or stacked.
+- **Combined upper limit A90 = 1.43σ, 1.21× tighter than the best single event** (GW250114, 1.74σ). Honest: well
+  below the √N=2× ideal — the events are heterogeneous (different masses/bands/sensitivities), GW151226 barely
+  contributes (its A90 > 2σ, the AMPS grid top), and equal-weight z-stacking is sub-optimal (SNR-weighting would
+  help but is still √N-bounded). So stacking gives a real but modest tightening. Gated.
+- Caveat: full O3/O4 catalog harvest deferred — needs per-event *detector-frame* remnant masses (source×(1+z))
+  + fresh fetches; this 4-event stack is the tractable core with no new data. Artifacts: results/16_stacked_echo.{json,png}.

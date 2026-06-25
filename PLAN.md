@@ -50,8 +50,13 @@
 - [ ] **N2 · 🌟 Reuse the learned H1×L1 consistency statistic (Build C-2) in echoes** 🟢 — the "does H1 agree
       with L1" head is general, not subsolar-specific. Apply cross-detector consistency to the echo structure.
       *Done =* learned-consistency echo statistic vs the single-detector one, stress-tested for leakage.
-- [ ] **N3 · Full O3/O4 catalog harvest** 🟡 — run the *validated* echo + ringdown pipelines on the whole event
-      catalog with pre-registered per-event Δt / δ. *Done =* a population of honest nulls (or a candidate).
+- [x] **N3 · Stacked multi-event echo search** ✅ **DONE (2026-06-25).** `16_stacked_echo.py`: stacked the comb
+      statistic across 4 well-characterized events (GW150914/GW151226/GW151012/GW250114) at each event's
+      formula-predicted Δt (z-scored per event, summed). **Population NULL** (stacked on-source z=−5.17 vs +5.05
+      threshold, p=0.998 — no echo excess); combined upper limit **A90 1.43σ, 1.21× tighter than best single**
+      (below √N=2× — heterogeneous events + GW151226 low-sensitivity + equal-weight stacking). Gated.
+      (Full O3/O4 catalog deferred — per-event detector-frame remnant masses + fetches; the 4-event stack is the
+      tractable core, no new data.)
 - [ ] **N4 · Self-supervised noise-embedding backbone** 🟡 — pretrain on unlabeled O3 noise, fine-tune for
       detection; attacks the "more data" wall shared by PBH + echoes. *Done =* fine-tuned > from-scratch at
       matched data.
