@@ -87,8 +87,16 @@
       (from-scratch non-functional at 0.000) shrinking to +0.01 @8000 (the data-wall signature again). At the
       *strict zero-FA* threshold both are 0 — a model-strength floor (needs near-full-data AUC ~0.79), not an SSL
       failure. So it's a real *detection* win, not an AUC artifact. Gated.
-- [ ] **N5 · Triple-detector H1×L1×V1** 🟡 — add Virgo; the learned-consistency statistic extends to 3
-      detectors. Medium payoff (Virgo less sensitive). 
+- [x] **N5 · Triple-detector H1×L1×V1** ✅ **DONE — honest NEGATIVE: Virgo does NOT help subsolar (2026-06-27).**
+      `coinc_triple.py` extends the G1 double-coincidence to a 3rd detector (cnn_w64 on H1+L1+V1, 3-way time-slide
+      matched-FAR background, injections projected onto all 3). Local H1∩L1 test segs are ALL Virgo gaps → discovered
+      20 true H1∩L1∩V1 segments (intersecting 3 DATA flags), ran on 4 leakage-free ones. **(1)** Double H1×L1
+      reproduces the win on fresh data (**1.33× over single**, validates G1/Build-C). **(2)** Triple H1×L1×V1 = **0.94×
+      double — Virgo marginally HURTS.** Mechanism: V1's signal responsiveness is **+1.2 vs H1 +5.1 / L1 +7.4 (~19%)**
+      — too insensitive at subsolar to carry signal, so summing its near-noise score + the higher 3-way threshold
+      degrades the statistic. Rules out the learned-triple too (no V1 signal to weight → ≈double at best). **H1×L1
+      double-coincidence remains the subsolar ceiling.** Gated. Eng note: per-segment checkpointing survived repeated
+      power losses + service interruptions.
 
 ---
 

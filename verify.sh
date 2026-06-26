@@ -377,6 +377,21 @@ assert d["bg_days"] > 365, "Build C background livetime < 1 yr -- cannot probe r
 print("PASS  pbh Build C (coinc FAR-robust: 1/day ~1.4x = local G1; 1/year still > single-det floor)")
 PYEOFC
 
+echo "--- pbh N5 triple-detector H1xL1xV1 (coinc_triple: double reproduces, but Virgo does NOT help subsolar)"
+./primordial_blackhole_search/.venv/bin/python - << 'PYEOFN5' || FAIL=1
+import json, numpy as np
+d = json.loads(open("primordial_blackhole_search/results/coinc_triple.json").read())
+# (1) double H1xL1 reproduces the G1/Build-C coincidence win over single-det on fresh triple-coincident data
+assert d["double_over_single"] > 1.2, f"double no longer beats single: {d['double_over_single']}"
+# (2) the honest N5 finding: adding Virgo does NOT improve subsolar sensitive distance (marginally hurts)
+assert d["triple_over_double"] < 1.05 and not d["virgo_helps"], f"Virgo unexpectedly helps: {d['triple_over_double']}"
+# (3) mechanism: V1 barely responds to signal loudness vs H1/L1 (too insensitive at subsolar -> no signal to add)
+r = d["signal_responsiveness"]
+assert r["V1"] < 0.4 * np.mean([r["H1"], r["L1"]]), f"V1 responsiveness not << H1/L1: {r}"
+print(f"PASS  pbh N5 (double {d['double_over_single']:.2f}x single reproduces G1; triple {d['triple_over_double']:.2f}x double "
+      f"= Virgo no help; V1 signal-response {r['V1']:+.1f} vs H1 {r['H1']:+.1f}/L1 {r['L1']:+.1f})")
+PYEOFN5
+
 echo "========================================"
 [ $FAIL -eq 0 ] && echo "BLACKHOLE GATE: ALL GREEN" || echo "BLACKHOLE GATE: FAILURES"
 exit $FAIL

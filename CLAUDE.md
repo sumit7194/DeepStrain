@@ -198,6 +198,17 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   (from-scratch non-functional) → +0.01 @8000 (data-wall signature). At the strict zero-FA threshold both are 0 — a
   model-strength floor (needs ~full-data AUC), not an SSL failure. A real detection win. Gated.
   Artifacts: results/ssl_finetune.json, results/ssl_sensdist.json, models/ssl_encoder.pt.
+- **N5 DONE (2026-06-27): triple-detector H1×L1×V1 — honest NEGATIVE, Virgo does NOT help subsolar.**
+  `coinc_triple.py` extends the G1 double-coincidence to a 3rd detector (cnn_w64 on H1+L1+V1, 3-way time-slide
+  matched-FAR background w/ 8000 livetimes, injections projected onto all 3 via pycbc antenna+delay). Local H1∩L1
+  test segs are ALL Virgo duty-cycle gaps (0/5 clean V1) → discovered 20 true H1∩L1∩V1 segments (intersect 3 DATA
+  flags), 4 leakage-free fetched by a persistent checkpointing fetcher (GWOSC degraded ~12 h). **(1)** Double H1×L1
+  reproduces the win on fresh data (**1.33× over single** — validates G1/Build-C +1.37×). **(2)** Triple = **0.94×
+  double — Virgo marginally HURTS.** Mechanism (diagnostic): V1 signal responsiveness (loud−faint mean score)
+  **+1.2 vs H1 +5.1 / L1 +7.4 = ~19%** → too insensitive at subsolar to carry signal; summing its near-noise score
+  + the higher 3-way threshold degrades the sum. Rules out the learned-triple (no V1 signal to weight → ≈double at
+  best). **H1×L1 double-coincidence is the subsolar ceiling.** Gated. Per-segment checkpoint (coinc_triple_rows.parquet)
+  survived repeated power losses + service interruptions. Artifact: results/coinc_triple.json.
 - **Dashboard:** `python3 dashboard.py` (repo root, stdlib only) serves a live run monitor
   over `*/results/progress/*.json` for all three sub-projects; pbh gained `pbh/progress.py`
   (same heartbeat convention as echolib/rdlib). Writes `.dashboard.pid` on start; **stop it

@@ -762,3 +762,40 @@ val AUC and sensitive distance at scarce labels (most at the scarcest), making s
 functional. The strict zero-FA headline number specifically requires near-full-data model strength, so the win
 shows up at a defined FAR rather than at zero-FA in this reduced-budget study; scaling the unlabeled pool (more O3
 noise, a VM extension) and budget toward full data is the path to a zero-FA distance gain.
+
+### N5 — triple-detector H1×L1×V1: Virgo does NOT help the subsolar coincidence search (2026-06-27)
+Extended the G1/Build-C H1×L1 double-coincidence (+1.37×) to a 3rd detector. `coinc_triple.py`: cnn_w64
+(H1-trained) scores 64-s windows in H1, L1 AND V1; triple statistic = sH1+sL1+sV1; 3-way time-slide
+background (random (lagL,lagV) pairs, 8000 livetimes) → matched-FAR threshold; injections projected onto
+all 3 detectors (pycbc antenna + delay) at network SNR √(snrH²+snrL²+snrV²). Ran on 4 fresh, leakage-free
+H1∩L1∩V1 triple-coincident O3a segments (the original H1∩L1 test segments are ALL Virgo duty-cycle gaps —
+discovered 20 true triple segments by intersecting the 3 DATA flags; GWOSC was degraded so a persistent
+checkpointing fetcher accumulated the data over ~12 h).
+
+Sensitive-distance fraction (8/SNR50, matched FAR), 2400 injections:
+
+| mass bin | single | double (H1×L1) | triple (H1×L1×V1) | triple/double |
+|---|---|---|---|---|
+| 0.17–0.35 | 0.241 | 0.303 | 0.294 | 0.97× |
+| 0.35–0.55 | 0.268 | 0.355 | 0.337 | 0.95× |
+| 0.55–0.88 | 0.276 | 0.390 | 0.355 | 0.91× |
+| **mean** | 0.261 | **0.349** | 0.329 | **0.94×** |
+
+**Two findings:**
+1. **Double H1×L1 reproduces the win on fresh data: 1.33× over single-det** (0.349/0.261) — independently
+   validates the G1/Build-C +1.37× coincidence advantage on segments never used before.
+2. **Adding Virgo does NOT help — it marginally HURTS (0.94×).** Honest negative, as the PLAN anticipated
+   ("Virgo less sensitive"). **Mechanism (diagnostic):** per-detector signal responsiveness (mean score on
+   loud netSNR>25 minus faint <10 injections) = **H1 +5.1, L1 +7.4, V1 +1.2** — V1 responds at only **~19%**
+   of H1/L1. Virgo is too insensitive at subsolar masses to carry signal, so summing its near-noise score and
+   requiring 3-way agreement (which raises the matched-FAR threshold via the larger 8000-livetime background)
+   slightly degrades the statistic rather than improving it.
+
+**This also rules out the learned-triple extension:** a learned consistency statistic (Build C-2 style) could
+at best learn to *ignore* V1 — there is essentially no V1 subsolar signal to weight — so it would recover ≈ double,
+not beat it. **Conclusion: the H1×L1 double-coincidence remains the ceiling for learned subsolar PBH search;
+Virgo adds no sensitive distance at these masses.** Caveats: cnn_w64 is H1-trained applied to V1 (transfer) — a
+V1-specific model might extract marginally more, but V1's fundamental insensitivity (higher PSD; the +1.2 response
+even to LOUD signals) caps the upside; 4 segments (the double-vs-single cross-check validates the pipeline).
+Gated. Engineering note: the eval is checkpointed per-segment (`coinc_triple_rows.parquet`) — it survived
+repeated power losses + Anthropic service interruptions, resuming from the last finished segment each time.

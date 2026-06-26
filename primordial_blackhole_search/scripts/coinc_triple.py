@@ -126,8 +126,18 @@ def main() -> None:
     print(f"thr single {thr_single:.3f} | double {thr2:.3f} ({n_live2} live) | triple {thr3:.3f} ({n_live3} live)", flush=True)
 
     # --- coincident injections onto all 3 detectors at a range of network SNR ---
-    rows, tb = [], time.time()
+    # per-segment checkpoint (this run survived repeated power losses): each seg's injection rows are
+    # seeded by gps and saved on completion, so a re-run resumes from the last finished segment.
+    rows_path = C.RESULTS_DIR / f"coinc_triple_rows{'_smoke' if args.smoke else ''}.parquet"
+    rows, done = [], set()
+    if rows_path.exists():
+        prev = pd.read_parquet(rows_path); prev = prev[prev.gps.isin(segs)]
+        rows = prev.to_dict("records"); done = set(int(x) for x in prev.gps.unique())
+        print(f"  resuming: {len(done)} seg(s) cached ({len(rows)} rows): {sorted(done)}", flush=True)
+    tb = time.time()
     for si, g in enumerate(segs):
+        if int(g) in done:
+            print(f"  seg {si+1}/{len(segs)} ({g}) cached, skip", flush=True); continue
         wcs = {d: data[(d, g)][0] for d in DETS}; psds = {d: data[(d, g)][2] for d in DETS}
         starts = {d: data[(d, g)][3] for d in DETS}; tH = data[("H1", g)][1]
         rg = np.random.default_rng([SEED, int(g)]); nwin = min(len(starts[d]) for d in DETS)
@@ -146,10 +156,12 @@ def main() -> None:
                 wins[d].append(ww)
             metas.append((p.chirp_mass, target))
         sc = {d: score_wins(model, dev, wins[d]) for d in DETS}
-        rows += [dict(chirp_mass=mc, target_snr=t, sH1=float(sc["H1"][i]), sL1=float(sc["L1"][i]), sV1=float(sc["V1"][i]))
+        rows += [dict(gps=int(g), chirp_mass=mc, target_snr=t,
+                      sH1=float(sc["H1"][i]), sL1=float(sc["L1"][i]), sV1=float(sc["V1"][i]))
                  for i, (mc, t) in enumerate(metas)]
+        pd.DataFrame(rows).to_parquet(rows_path)                    # checkpoint after each segment
         progress("coinc_triple_inj", si + 1, len(segs), elapsed_s=time.time() - tb)
-        print(f"  injected+scored seg {si+1}/{len(segs)} ({time.time()-tb:.0f}s)", flush=True)
+        print(f"  injected+scored seg {si+1}/{len(segs)} ({time.time()-tb:.0f}s, checkpointed)", flush=True)
 
     df = pd.DataFrame(rows)
     df["det_single"] = df.sH1 > thr_single
@@ -160,13 +172,23 @@ def main() -> None:
     for lab in MASS_LABELS:
         ratio = ft[lab] / fd[lab] if fd[lab] else float("nan")
         print(f"{lab:>12} | {fs[lab]:>7.3f} | {fd[lab]:>7.3f} | {ft[lab]:>7.3f} | {ratio:>6.2f}x")
+    mean_s = np.mean(list(fs.values()))
     mean_d, mean_t = np.mean(list(fd.values())), np.mean(list(ft.values()))
-    print(f"\nmean sensitive-distance fraction: double {mean_d:.3f} -> triple {mean_t:.3f} "
-          f"({mean_t/mean_d:.2f}x); Virgo {'HELPS' if mean_t > mean_d + 0.01 else 'does NOT clearly help'}")
+    print(f"\nmean sensitive-distance fraction: single {mean_s:.3f} -> double {mean_d:.3f} -> triple {mean_t:.3f} "
+          f"({mean_t/mean_d:.2f}x triple/double); Virgo {'HELPS' if mean_t > mean_d + 0.01 else 'does NOT clearly help'}")
+    # WHY: per-detector signal responsiveness — mean score on loud (netSNR>25) minus faint (<10) injections.
+    # V1 barely responds at subsolar masses, so it adds noise to the sum + raises the 3-way threshold rather
+    # than contributing signal (a LEARNED triple statistic would also fail — no V1 signal to weight).
+    loud, faint = df[df.target_snr > 25], df[df.target_snr < 10]
+    resp = {d: float(loud[f"s{d}"].mean() - faint[f"s{d}"].mean()) for d in DETS}
+    print(f"signal responsiveness (loud-faint mean score): H1 {resp['H1']:+.2f}  L1 {resp['L1']:+.2f}  V1 {resp['V1']:+.2f} "
+          f"-> V1 {resp['V1']/np.mean([resp['H1'],resp['L1']]):.0%} of H1/L1 (too insensitive at subsolar)")
     (C.RESULTS_DIR / f"coinc_triple{'_smoke' if args.smoke else ''}.json").write_text(json.dumps(
         {"n_segs": len(segs), "single_frac": fs, "double_frac": fd, "triple_frac": ft,
-         "mean_double": float(mean_d), "mean_triple": float(mean_t),
-         "triple_over_double": float(mean_t / mean_d) if mean_d else None}, indent=2))
+         "mean_single": float(mean_s), "mean_double": float(mean_d), "mean_triple": float(mean_t),
+         "double_over_single": float(mean_d / mean_s) if mean_s else None,
+         "triple_over_double": float(mean_t / mean_d) if mean_d else None,
+         "signal_responsiveness": resp, "virgo_helps": bool(mean_t > mean_d + 0.01)}, indent=2))
     print("wrote coinc_triple.json")
 
 

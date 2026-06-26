@@ -26,16 +26,21 @@ Continued the PLAN knock-out. Each item gated + documented honestly; committed a
   each in [0.85,0.95] (PLAN criterion met), **but mean|cov−0.90| 0.020 (per-param) vs 0.011 (global)** — the per-param
   fit overfits the n=600 calibration-set noise. Confirms v3's single global T=1.05 was the right, sufficient choice.
   GW250114 δ −0.16 [−0.46,+0.33] Kerr-consistent, unchanged. Gated.
-- **N5 triple-detector H1×L1×V1 — implementation DONE + hardened, but DATA-BLOCKED by a degraded GWOSC tonight.**
-  Built `coinc_triple.py` (extends the G1 +1.37× double-coincidence eval to a 3rd detector: cnn_w64 scores H1+L1+V1,
-  a 3-way time-slide matched-FAR background, injections projected onto all 3 via pycbc antenna patterns, single→double
-  →triple sensitive-distance comparison). Logic reviewed + matches coinc_eval conventions (WIN, NBINS=63, matched-FAR).
-  **Found the local H1∩L1 test segments are ALL Virgo duty-cycle gaps (0/5 clean V1)** — so discovered 20 true
-  H1∩L1∩V1 triple-coincident segments (intersecting the 3 DATA flags), picked 6 leakage-free vs cnn_w64. But **GWOSC
-  open-data fetches are severely degraded tonight** (GetExceptionGroup on most), so a persistent overnight retrier is
-  grinding; coinc_triple hardened to skip incomplete segments. Will complete when ≥2-3 segments fetch (or on the VM).
-- **Note: both remaining active items (N5, E3) are GWOSC-fetch-dependent** (N5 needs V1; E3 needs off-source blocks
-  for the fainter events — only GW150914 has them cached) → both gated on the network recovering.
+- **N5 triple-detector H1×L1×V1 ✅ DONE (2026-06-27) — honest NEGATIVE: Virgo does NOT help subsolar.**
+  Built `coinc_triple.py` (extends the G1 +1.37× double-coincidence to a 3rd detector: cnn_w64 on H1+L1+V1, 3-way
+  time-slide matched-FAR background, injections projected onto all 3). **Found the local H1∩L1 test segments are ALL
+  Virgo duty-cycle gaps (0/5 clean V1)** → discovered 20 true H1∩L1∩V1 segments (intersecting the 3 DATA flags), 4
+  leakage-free fetched by a **persistent checkpointing fetcher** (GWOSC was badly degraded ~12 h overnight; the
+  fetcher accumulated segments as the network flickered back). **Result: (1) double H1×L1 reproduces the win on fresh
+  data — 1.33× over single (validates G1/Build-C); (2) triple = 0.94× double — Virgo marginally HURTS.** Mechanism
+  (diagnostic): V1 signal responsiveness +1.2 vs H1 +5.1 / L1 +7.4 (~19%) — too insensitive at subsolar to carry
+  signal, so summing its near-noise score + the higher 3-way threshold degrades the sum. Also rules out the
+  learned-triple (no V1 signal to weight). **H1×L1 double-coincidence is the subsolar ceiling.** Gated (30 gates).
+  Eng note: per-segment checkpointing (`coinc_triple_rows.parquet`) survived **5+ power losses + Anthropic
+  service-busy interruptions**, resuming from the last finished segment (3/4 segs survived the final power loss → a
+  ~50-min restart became a ~13-min finish).
+- **PLAN backlog now fully worked through** — every tractable item is gated + documented or honestly parked
+  (R2 needs Py3.11 `ringdown`; E3-broaden + lower-FAR need the VM). 30 gates green.
 
 ## 2026-06-25 — backlog-execution day: PLAN tracker + 4 echo/ringdown items + a verified physics formula that caught a bug
 A long "knock them out" session against a new [PLAN.md](PLAN.md) (tractable backlog mined from all docs + new
