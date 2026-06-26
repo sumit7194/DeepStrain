@@ -160,6 +160,19 @@ assert r["kerr_inside_90"] and all(0.85 <= c <= 0.95 for c in r["coverage_heldou
 print("PASS  ringdown recalibration artifacts")
 PYEOF3
 
+echo "--- ringdown R1 per-parameter recalibration (17: each param in band, but does NOT beat global T)"
+./ringdown_spectroscopy/.venv/bin/python - << 'PYEOFR1' || FAIL=1
+import json
+r = json.loads(open("ringdown_spectroscopy/results/17_recalibrate_perparam.json").read())
+# PLAN criterion: each per-param held-out coverage in [0.85,0.95]
+assert r["each_in_band"] and all(0.85 <= c <= 0.95 for c in r["coverage_heldout_perparam"]), r
+# honest finding: per-param does NOT beat v3's global T (it overfits the calibration-set noise)
+assert r["mad_global"] <= r["mad_perparam"] + 1e-9, f"per-param unexpectedly beat global: {r['mad_perparam']} < {r['mad_global']}"
+assert r["kerr_inside_90"], "GW250114 no longer Kerr-consistent under per-param recalibration"
+print(f"PASS  ringdown R1 (per-param coverage {'/'.join(f'{c:.2f}' for c in r['coverage_heldout_perparam'])} all in-band; "
+      f"global T better: mad {r['mad_global']:.3f} <= per-param {r['mad_perparam']:.3f}; GW250114 δ Kerr-consistent)")
+PYEOFR1
+
 echo "--- ringdown no-hair artifacts (09)"
 ./ringdown_spectroscopy/.venv/bin/python - << 'PYEOF' || FAIL=1
 import json

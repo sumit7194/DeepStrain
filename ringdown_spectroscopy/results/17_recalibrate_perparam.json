@@ -1,0 +1,32 @@
+{
+  "T_perparam": {
+    "M": 1.1,
+    "chi": 1.05,
+    "delta": 1.05
+  },
+  "T_global": 1.05,
+  "coverage_heldout_perparam": [
+    0.935,
+    0.9225,
+    0.9025
+  ],
+  "coverage_heldout_global": [
+    0.9075,
+    0.9225,
+    0.9025
+  ],
+  "coverage_raw": [
+    0.8925,
+    0.8975,
+    0.87
+  ],
+  "each_in_band": true,
+  "mad_perparam": 0.01999999999999998,
+  "mad_global": 0.010833333333333287,
+  "gw250114_delta": [
+    -0.1620241105556488,
+    -0.4598718738555908,
+    0.3343527913838625
+  ],
+  "kerr_inside_90": true
+}

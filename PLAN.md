@@ -22,8 +22,15 @@
       off-source blocks at ±0.5h…±16h from GW150914 (each own-PSD whitened) → **660-pair independent background
       (4× the 159 shared-block)**. The null HOLDS: A p=0.319 (vs 0.375), B p=0.977 (vs 1.000) → non-detection is
       robust to the stationarity/shared-block assumption. Gated. (O1 duty cycle killed many offsets — handled.)
-- [ ] **R1 · Ringdown: per-parameter recalibration** 🟢 — v3 fit one global temperature T; fit per-parameter
-      (M, χ, δ) temperatures. *Done =* per-param held-out coverage ∈ [0.85,0.95], gated.
+- [x] **R1 · Ringdown: per-parameter recalibration** ✅ **DONE — gate-passing but does NOT beat global T
+      (2026-06-26).** `17_recalibrate_perparam.py`: fit a separate T_M/T_chi/T_delta (one T-sweep suffices —
+      widen() rescales each column independently, so param j's coverage depends only on T_j). Per-param T =
+      1.10/1.05/1.05 → held-out coverage **M 0.94, χ 0.92, δ 0.90, each in [0.85,0.95]** (PLAN criterion met).
+      BUT it does **NOT** beat v3's single global T=1.05 (per-param mean|cov−0.90| **0.020 vs global 0.011**) —
+      the per-param fit slightly **overfits the n=600 calibration-set coverage noise** (T_M=1.10 overshoots M to
+      0.94). ⇒ **confirms v3's global temperature was the right, sufficient choice; per-param tuning adds nothing.**
+      GW250114 δ unchanged: −0.16 [−0.46,+0.33], Kerr-consistent. Gated (each-in-band + global≤per-param mad). The
+      honest low-value result the PLAN anticipated.
 
 ## Tier 2 — medium, self-contained (local)
 - [P] **R2 · Ringdown: explicit Bayesian tone-count model selection** 🔴 **ATTEMPTED → PARKED (2026-06-25).**

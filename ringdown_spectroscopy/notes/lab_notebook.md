@@ -481,3 +481,15 @@ TheBridge (read-only consumer of the source repos) relayed two deepstrain asks; 
   relationship at this resolution," not a strong null — more variants / more real injections / the C2ST proxy
   would sharpen it. Checkpoints 19_npe_n{N}.pt + results/19_amortization_transfer.json saved for the read-only
   correlation. Gated.
+## R1 (2026-06-26): per-parameter temperature recalibration — gate-passing, but global T wins
+v3 (`10`) fit one global temperature T=1.05. R1 (`17_recalibrate_perparam.py`) fits a separate T per
+parameter. One T-sweep suffices: `widen()` rescales each column about its own median, so parameter j's
+coverage depends only on T_j. Result (1000 calibration sims, 600 fit / 400 held-out):
+- per-param T = **T_M 1.10, T_chi 1.05, T_delta 1.05**; held-out coverage **M 0.94, χ 0.92, δ 0.90** — each
+  in [0.85,0.95] (the PLAN "done" criterion is met).
+- **But per-param does NOT beat global:** mean|coverage−0.90| = **0.020 (per-param) vs 0.011 (global T=1.05)**.
+  The per-param fit overfits the n=600 calibration-set coverage noise (≈2% per estimate) — T_M=1.10 pushes M to
+  0.94, further from 0.90 than global's 0.91. Honest conclusion: **the single global temperature was already the
+  right, sufficient choice; per-parameter tuning adds nothing** (exactly the low value the PLAN anticipated).
+- GW250114 δ under its own T_delta=1.05: **−0.16 [−0.46,+0.33], Kerr-consistent** — unchanged from v3.
+Gated (each-in-band AND global mad ≤ per-param mad). Artifact: results/17_recalibrate_perparam.json.
