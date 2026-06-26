@@ -11,6 +11,32 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-06-26 — N4 SSL follow-up + R1 recalibration + N5 triple-detector (data-blocked tonight by GWOSC)
+Continued the PLAN knock-out. Each item gated + documented honestly; committed at milestones.
+- **N4 sensitive-distance follow-up ✅ — the SSL win TRANSLATES to distance (at a defined FAR).** `ssl_sensdist.py`
+  reads efficiency-vs-SNR straight from the val shards (each injection's `in_window_snr`+`chirp_mass`). At the
+  **strict zero-FA** threshold the reduced-budget distance is **0 for both** SSL and from-scratch — a model-strength
+  floor (the headline distance needs ~full-data AUC 0.79), NOT an SSL failure. At a **softer (1%) FAR** the SSL win
+  **does** translate, same data-wall signature: +0.278 distance-fraction @2000 labels (from-scratch non-functional)
+  → +0.01 @8000. So the AUC win is a real *detection* improvement, not an AUC artifact. (Realization en route: the
+  SpectrogramCNN is NOT standardization-invariant at eval — BatchNorm uses fixed running stats — so the eval must
+  standardize the input; caught by an assertion.) Gated.
+- **R1 ✅ — per-parameter recalibration: gate-passing, but global T wins (honest low-value).** `17_recalibrate_perparam.py`
+  fits separate T_M/T_χ/T_δ (one T-sweep suffices — `widen()` is per-column). Per-param coverage 0.94/0.92/0.90,
+  each in [0.85,0.95] (PLAN criterion met), **but mean|cov−0.90| 0.020 (per-param) vs 0.011 (global)** — the per-param
+  fit overfits the n=600 calibration-set noise. Confirms v3's single global T=1.05 was the right, sufficient choice.
+  GW250114 δ −0.16 [−0.46,+0.33] Kerr-consistent, unchanged. Gated.
+- **N5 triple-detector H1×L1×V1 — implementation DONE + hardened, but DATA-BLOCKED by a degraded GWOSC tonight.**
+  Built `coinc_triple.py` (extends the G1 +1.37× double-coincidence eval to a 3rd detector: cnn_w64 scores H1+L1+V1,
+  a 3-way time-slide matched-FAR background, injections projected onto all 3 via pycbc antenna patterns, single→double
+  →triple sensitive-distance comparison). Logic reviewed + matches coinc_eval conventions (WIN, NBINS=63, matched-FAR).
+  **Found the local H1∩L1 test segments are ALL Virgo duty-cycle gaps (0/5 clean V1)** — so discovered 20 true
+  H1∩L1∩V1 triple-coincident segments (intersecting the 3 DATA flags), picked 6 leakage-free vs cnn_w64. But **GWOSC
+  open-data fetches are severely degraded tonight** (GetExceptionGroup on most), so a persistent overnight retrier is
+  grinding; coinc_triple hardened to skip incomplete segments. Will complete when ≥2-3 segments fetch (or on the VM).
+- **Note: both remaining active items (N5, E3) are GWOSC-fetch-dependent** (N5 needs V1; E3 needs off-source blocks
+  for the fainter events — only GW150914 has them cached) → both gated on the network recovering.
+
 ## 2026-06-25 — backlog-execution day: PLAN tracker + 4 echo/ringdown items + a verified physics formula that caught a bug
 A long "knock them out" session against a new [PLAN.md](PLAN.md) (tractable backlog mined from all docs + new
 cross-cutting angles). Also did a cross-session **prior-art audit** for all three sub-projects (verified every
