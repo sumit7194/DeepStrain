@@ -56,12 +56,14 @@ def run_segment(gps: int, spacing: float, n_inj: int, n_neighbors: int) -> None:
     path = OUT / f"seg_{gps}_s{spacing}.parquet"
     if path.exists():
         print(f"{gps}: cached"); return
+    ckpt_path = OUT / f"ckpt_{gps}_s{spacing}.npz"
     w, t0, psd = whiten_segment("H1", gps)
     wc = w[CROP:-CROP]
     mcs = bank_mcs(spacing)
     B = len(mcs)
 
-    # all injections for this segment up front (windows kept in RAM as float32, ~2.1 GB at 250)
+    # all injections for this segment up front (windows kept in RAM as float32, ~2.1 GB at 250).
+    # Deterministic from [SEED, gps] -> identical across resumes; fingerprinted in the checkpoint.
     rng = np.random.default_rng([SEED, int(gps)])
     injs = []
     for _ in range(n_inj):
@@ -73,14 +75,27 @@ def run_segment(gps: int, spacing: float, n_inj: int, n_neighbors: int) -> None:
         dwin = wc[m - WIN - PAD : m + PAD].copy()
         dwin[PAD : PAD + WIN] += sig[-WIN:] if len(sig) >= WIN else np.pad(sig, (WIN - len(sig), 0))
         injs.append((p.chirp_mass, target, dwin.astype(np.float32)))
+    fingerprint = float(np.sum([i[2][::4096].sum() for i in injs]))
     print(f"{gps}: {n_inj} injections staged; bank B={B} @ spacing {spacing}", flush=True)
 
     # template-major: generate one template, threshold + neighborhood-injection scores, free
     base = sample_params(np.random.default_rng(0))          # bank_oracle's fiducial extrinsics
     thr = np.empty(B)
     inj_scores = np.full((n_inj, B), np.nan, dtype=np.float32)
+    ti_start = 0
+    if ckpt_path.exists():                                  # resume mid-segment after power loss
+        ck = np.load(ckpt_path)
+        if abs(float(ck["fingerprint"]) - fingerprint) < 1e-3 and int(ck["B"]) == B:
+            ti_start = int(ck["next_ti"])
+            thr[:ti_start] = ck["thr"][:ti_start]
+            inj_scores[:, :ti_start] = ck["inj_scores"][:, :ti_start]
+            print(f"{gps}: RESUMING from template {ti_start}/{B}", flush=True)
+        else:
+            print(f"{gps}: checkpoint fingerprint mismatch — starting fresh", flush=True)
     t0_ = time.time()
     for ti, mc in enumerate(mcs):
+        if ti < ti_start:
+            continue
         h, _ = make_whitened_injection(replace(base, mass1=float(mc * EQ), mass2=float(mc * EQ)), "H1", t0, psd)
         g = h[-WIN:].copy()
         if len(g) < WIN:
@@ -94,6 +109,10 @@ def run_segment(gps: int, spacing: float, n_inj: int, n_neighbors: int) -> None:
         if ti % 5 == 0:
             progress("bank_dense", ti + 1, B, elapsed_s=time.time() - t0_, segment=float(gps))
             print(f"  t{ti}/{B} ({(time.time()-t0_)/60:.1f} min)", flush=True)
+        if ti % 50 == 49:                                   # atomic mid-segment checkpoint (~every 10 min)
+            tmp = ckpt_path.with_suffix(".tmp.npz")
+            np.savez(tmp, next_ti=ti + 1, thr=thr, inj_scores=inj_scores, B=B, fingerprint=fingerprint)
+            os.replace(tmp, ckpt_path)
 
     df = pd.DataFrame(inj_scores, columns=[f"t{k}" for k in range(B)])
     df.insert(0, "chirp_mass", [i[0] for i in injs])
@@ -101,6 +120,7 @@ def run_segment(gps: int, spacing: float, n_inj: int, n_neighbors: int) -> None:
     tmp = path.parent / (path.stem + ".tmp.parquet")
     df.to_parquet(tmp); os.replace(tmp, path)
     np.save(OUT / f"thr_{gps}_s{spacing}.npy", thr)
+    ckpt_path.unlink(missing_ok=True)                       # segment complete -> checkpoint obsolete
     print(f"{gps}: done in {(time.time()-t0_)/60:.0f} min -> {path.name}", flush=True)
 
 
