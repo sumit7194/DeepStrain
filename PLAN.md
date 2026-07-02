@@ -111,6 +111,39 @@
 
 ---
 
+## Follow-up arc (added 2026-07-02) — the post-backlog extensions, tackled in order
+> Direction discussion 2026-07-02: four extensions chosen; A first. GPU VM not available → **A runs on the
+> M4 Mac** (10 cores / 16 GB / MPS), made tractable by three insights: the bank is effectively **1-D in Mc**
+> (extrinsic params proven irrelevant by coinc_check), **512-s chunks** contain the full in-band chirp (the
+> lightest Mc=0.17 chirp is ~360 s from 50 Hz), and **MPS-batched FD correlation** (hand-rolled torch MF,
+> golden-tested against pycbc — Phase-1 style). Injection side may use a nearest-in-Mc template subset
+> (bank is 1-D); the NOISE/FAR side always uses the full bank.
+
+- [ ] **A · pbh: REAL dense-bank matched filter on the Mac — the honest ML-vs-MF benchmark** 🟢 (in progress)
+      The one question the whole v2 arc bumped into: our learned pipeline reaches ~45% of the *idealized* MF —
+      but nobody (verified in the prior-art audit) has published learned-vs-REAL-MF for minutes-long subsolar
+      signals. Steps: (A1) golden-test spike — torch-MPS FD matched filter vs pycbc on injected signals, SNR
+      match <1%; (A2) build the ~1,650-template 0.1%-Mc bank (geomspace, full 512-s in-band templates,
+      generated in batches); (A3) full-bank noise scan on the test/coinc segments → zero-FA + matched-FAR
+      thresholds (the real-MF FAR floor); (A4) injection recovery (2,400 inj, nearest-40-in-Mc subset +
+      spot-check vs full bank on a subsample) → real-MF sensitive distance; (A5) the benchmark table:
+      cnn_w64 single / H1×L1 coinc / REAL MF / idealized MF, same segments, same FAR. Stretch: (A6) fine-timing
+      coincidence + hybrid ML-trigger→MF-verify. *Done =* benchmark table gated; every claim vs the same
+      noise + FAR convention.
+- [ ] **B · ringdown: ride the GW250114 toehold with the field-standard package** 🟢 — (B1) package-based
+      start-time sweep (referee R3's early-time systematic with the proper pipeline); (B2) attempt an
+      independent reproduction of the **nonlinear (quadratic) QNM** claim (arXiv:2601.05734) with our referee
+      discipline; (B3) close the NPE loop: NPE vs package posteriors across events/settings. *Done =* each
+      sub-item gated or honestly recorded.
+- [ ] **D · event watcher: turn the stack into a standing instrument** 🟢 — a harness that, for any new loud
+      public event: fetch → NPE no-hair posterior → package cross-check → echo Δt prediction + comb p-value →
+      one-page report. Amortization means seconds per event; O4b/O5 will supply GW250114-class events (the
+      δ-stacking wall breaks only with more SNR≳37 ringdowns). *Done =* end-to-end run on GW250114 as the
+      reference event + docs.
+- [ ] **C · consolidate & release (capstone, last)** 🟢 — reproducibility pass (env pins everywhere, verify.sh
+      as the CI gate), top-level honest summary (wins AND negatives AND benchmarks), Zenodo/GitHub release.
+      *Done =* a stranger can reproduce the headline numbers from a fresh clone.
+
 ## Parked — blocked by a known wall (discuss before attempting) 🔴
 - **PBH dense template bank / true-waveform front end** — subsolar needs ≤0.1 % Mc spacing (~1,600+ templates);
   intractable without serious GPU/cloud compute. Blocks the real-MF detector + fine-timing coincidence.
