@@ -1,0 +1,29 @@
+{
+  "0.0025": {
+    "n_templates": 649,
+    "rec_median": 0.8580588249418564,
+    "rec_p10": 0.5927866647636867,
+    "rec_min": 0.5150321101891467
+  },
+  "0.005": {
+    "n_templates": 326,
+    "rec_median": 0.5663122004143833,
+    "rec_p10": 0.34636888866114135,
+    "rec_min": 0.31453751474731745
+  },
+  "0.01": {
+    "n_templates": 164,
+    "rec_median": 0.46085754391325573,
+    "rec_p10": 0.3153806050305652,
+    "rec_min": 0.2835619621542575
+  },
+  "0.02": {
+    "n_templates": 83,
+    "rec_median": 0.3664852332571971,
+    "rec_p10": 0.2712652083961006,
+    "rec_min": 0.2553208411986937
+  },
+  "n_chunk": 8,
+  "target_snr": 25.0,
+  "note": "recovery = best-bank newSNR / true-template newSNR, local scan"
+}
