@@ -1,0 +1,8 @@
+{
+  "g1_noiseless_peak": 19.999876324415457,
+  "g3_local_recovery": 17.322285097249335,
+  "g3b_sigma_clean": 0.979345556710729,
+  "g4_mps_vs_cpu_rel": 9.436529003052349e-07,
+  "ms_per_template_chunk": 47.58112132549286,
+  "all_pass": true
+}
