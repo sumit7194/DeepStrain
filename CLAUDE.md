@@ -253,6 +253,13 @@ significance; pre-registered per-event Δt; null results are results).
   a whitened-domain-convention artifact.** Echoes story complete: modest real
   ML edge + band-honest + family-robust + periodicity-specific + on-source
   nulls. Later: independent background blocks, per-event scorers, FAR scaling.
+- **E3 DONE (2026-07-02): per-event ML scorers across the broadened set — all clean nulls.**
+  `19_per_event_ml.py`: per-event autoencoder scorer + v2 ML network comb at each event's formula-Δt, for
+  GW150914 / GW151012 / GW151226 / **GW250114** (Δt from its verified remnant M_f=68.1/χ=0.68 → 0.2952 s).
+  First pass on the tiny own-block background (n=59) threw up GW151012 ML p=0.033 + skipped NaN-cropped
+  GW151226 → swapped to the **independent ±hour background** (E2-style own-PSD whitened, n_bg 660–1815):
+  GW151012's 0.033 **washed to 0.130** (small-sample artifact; comb never flagged it) + GW151226 rescued.
+  **All four events clean nulls under both statistics** (ML p 0.13–0.99). Gated. Artifact: results/19_per_event_ml.json.
 
 ## Sub-project: `ringdown_spectroscopy/`
 Black-hole spectroscopy on public LIGO data: fit the post-merger ringdown tones (QNMs)
