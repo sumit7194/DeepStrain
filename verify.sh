@@ -160,6 +160,29 @@ assert r["kerr_inside_90"] and all(0.85 <= c <= 0.95 for c in r["coverage_heldou
 print("PASS  ringdown recalibration artifacts")
 PYEOF3
 
+echo "--- ringdown R2 v2 (21: proper ringdown-package tone-count + NPE referee)"
+./ringdown_spectroscopy/.venv311/bin/python - << 'PYEOFR2' || FAIL=1
+import json
+r = json.loads(open("ringdown_spectroscopy/results/21_ringdown_crosscheck.json").read())
+g, d1, d2 = r["GW150914_n2"], r["GW250114_082203_n1"], r["GW250114_082203_n2"]
+# (a) validation: GW150914 220+221 lands in the known ballpark (pre-registered band)
+assert 55 < g["m"]["q50"] < 90 and 0.4 < g["chi"]["q50"] < 0.9, f"GW150914 validation off: {g['m']['q50']}, {g['chi']['q50']}"
+# (b) the R2 question: GW250114 overtone amplitude bounded away from zero (field statistic; published = yes)
+assert d2["a221_frac_below_10pct_median"] <= 0.01, f"GW250114 A221 no longer bounded away from 0: {d2['a221_frac_below_10pct_median']}"
+# (c) NPE referee: package (M, chi) median consistent with our 09 NPE on-source posterior (76.0, 0.762)
+npe = json.loads(open("ringdown_spectroscopy/results/09_nohair_GW250114.json").read())["posterior"]
+assert abs(d2["m"]["q50"] - npe["mass"][0]) < 5.0, f"package M {d2['m']['q50']} vs NPE {npe['mass'][0]}"
+assert abs(d2["chi"]["q50"] - npe["chi"][0]) < 0.08, f"package chi {d2['chi']['q50']} vs NPE {npe['chi'][0]}"
+assert npe["mass"][1] < d2["m"]["q50"] < npe["mass"][2], "package M median outside NPE 90% CI"
+# (d) convergence: NUTS chains healthy
+for k, dd in (("GW150914_n2", g), ("n1", d1), ("n2", d2)):
+    dg = dd["diagnostics"]
+    assert all(v < 1.01 for n, v in dg.items() if n.startswith("rhat")), f"{k} rhat: {dg}"
+    assert all(v > 400 for n, v in dg.items() if n.startswith("ess")), f"{k} ess: {dg}"
+print(f"PASS  ringdown R2 v2 (GW250114 overtone bounded away from 0 [P={d2['a221_frac_below_10pct_median']:.3f}]; "
+      f"package M={d2['m']['q50']:.1f}/chi={d2['chi']['q50']:.2f} vs NPE {npe['mass'][0]:.1f}/{npe['chi'][0]:.2f}; rhat<1.01)")
+PYEOFR2
+
 echo "--- ringdown R1 per-parameter recalibration (17: each param in band, but does NOT beat global T)"
 ./ringdown_spectroscopy/.venv/bin/python - << 'PYEOFR1' || FAIL=1
 import json

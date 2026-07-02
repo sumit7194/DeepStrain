@@ -11,6 +11,28 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-07-02 — R2 v2: the Python-3.11 wall falls; the proper pipeline detects the GW250114 overtone; NPE arc cross-validated
+Back after a few days. The PLAN backlog was cleared, so attacked the parked shelf: **R2** (tone-count via the real
+`ringdown` package) with **E3 off-source prefetch** riding in the background while GWOSC was healthy.
+- **Environment (why R2 was parked):** `ringdown` needs Py3.11 — built `.venv311` with uv. Its `jax~=0.4` pins are
+  too loose for 2026: three successive era-mismatches (newest jax kills `jaxlib.xla_extension`, matplotlib 3.11
+  kills arviz 0.19, scipy 1.17's STFT kills ringdown's pandas-Series in Welch). Working set frozen in
+  `.venv311-pins.txt`. Two-venv pipeline: `20_extract_strain.py` (3.12/gwpy → npz) + `21_ringdown_crosscheck.py` (3.11).
+- **Rigor:** targets verified before fitting (GW150914 = docs example values; GW250114 = LVK max-likelihood via
+  arXiv:2601.05734: t0=1420878141.2362, ra=2.35, dec=0.22, psi=1.37); gates pre-registered in the lab notebook;
+  reran at x64 with R̂/ESS recorded (all R̂ ≤ 1.004, ESS ≥ 950) before reading anything off.
+- **(a) Validation ✓** GW150914 220+221 lands in the known ballpark (M 77.5, χ 0.76).
+- **(b) THE R2 ANSWER ✓ — GW250114's overtone is REAL to the field statistic: A221 bounded away from zero
+  (P = 0.000; A221/A220 = 1.02 at peak)**, matching arXiv:2509.08099 — on the same event where our simplified
+  white-noise Bayes factor (`14`) saw nothing. The parked "implementation limit, not information limit" call is
+  now positively demonstrated; refusing the false negative was right. GW150914 comes out marginal (P = 0.049) —
+  consistent with the contested Isi/Farr-vs-Cotesta literature, so the statistic isn't trigger-happy.
+- **(c) NPE referee ✓ — the first independent field-standard cross-validation of our whole SBI arc:** package
+  M 74.8 [70.4,79.0] / χ 0.729 vs our 09 NPE 76.0 [68.4,85.2] / 0.762 — medians within 1.2 M☉ / 0.033, the
+  package's tighter coherent CI nests inside the NPE's. The amortized posterior is real, not a simulator artifact.
+- E3 prefetch: off-source blocks accumulating for GW151226/GW151012/GW250114 (GWOSC intermittent; cached-skip
+  makes second passes cheap). 31 gates green.
+
 ## 2026-06-26 — N4 SSL follow-up + R1 recalibration + N5 triple-detector (data-blocked tonight by GWOSC)
 Continued the PLAN knock-out. Each item gated + documented honestly; committed at milestones.
 - **N4 sensitive-distance follow-up ✅ — the SSL win TRANSLATES to distance (at a defined FAR).** `ssl_sensdist.py`

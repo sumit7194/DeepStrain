@@ -33,13 +33,17 @@
       honest low-value result the PLAN anticipated.
 
 ## Tier 2 — medium, self-contained (local)
-- [P] **R2 · Ringdown: explicit Bayesian tone-count model selection** 🔴 **ATTEMPTED → PARKED (2026-06-25).**
-      Built the linear-Gaussian evidence (`14_bayes_tonecount.py`, amplitudes marginalized analytically,
-      start-time marginalized). **Oracle diagnostic: NO 1-tone/2-tone separation at any σ_a** — the 220/221 are
-      near-degenerate over the 0.04 s segment (the `06`/v4 wall). **But the published GW250114 analysis DOES
-      detect the overtone** → my simplified machinery (white-noise likelihood, independent amplitudes, flat prior)
-      isn't a *fair* test; the failure is an implementation limit, NOT the info limit. Won't claim a false
-      negative. **Needs the proper FD coherent pipeline (`ringdown` pkg, Python 3.11, deferred).** Not gated.
+- [x] **R2 · Ringdown: explicit Bayesian tone-count model selection** ✅ **CLOSED (2026-07-02) — the proper
+      pipeline DETECTS the overtone; our parked non-claim was right.** The Py3.11 wall fell (uv `.venv311`;
+      ringdown 1.0.0 needs era-matched pins, frozen in `.venv311-pins.txt`). `20_extract_strain.py` +
+      `21_ringdown_crosscheck.py` run the field-standard FD coherent pipeline on verified targets. **(a)**
+      GW150914 validation in-band (M 77.5, χ 0.76). **(b) GW250114 220+221: A221 bounded away from zero
+      (P = 0.000, A221/A220 = 1.02 at peak)** — matches arXiv:2509.08099, where our simplified white-noise
+      machinery (`14`) saw nothing ⇒ implementation limit POSITIVELY demonstrated. GW150914 comes out marginal
+      (P = 0.049), consistent with the contested literature. **(c) NPE referee: package M 74.8/χ 0.729 vs our
+      09 NPE 76.0/0.762 — medians within 1.2 M☉/0.033, package CI nests inside NPE's ⇒ first independent
+      field-standard cross-validation of the whole NPE arc.** NUTS x64, R̂ ≤ 1.004, ESS ≥ 950. Gated (a+b+c+
+      convergence).
 - [ ] **E3 · Echoes: per-event scorers + per-event Δt + broaden on-source set** 🟢 — train a scorer per event,
       compute Δt from each event's catalog mass+spin, run on more O3 events. *Done =* a small table of honest
       per-event nulls/limits.

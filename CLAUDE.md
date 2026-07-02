@@ -319,6 +319,17 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
   an overfitting mirage). ⇒ black-box ML tone-count is too weak at this data/SNR scale. Salvage: calibrated
   detectability threshold (overtone SNR≈5 for 50%). Six-attempt table + diagnostics in notes/lab_notebook.md.
   Come-back-later: more data / coherent model, multi-event stacking, or explicit Bayesian model selection.
+- **R2 v2 CLOSED (2026-07-02): the PROPER pipeline detects the GW250114 overtone — tone-count resolved.**
+  The Py3.11 wall fell: `.venv311` (uv) runs `ringdown` 1.0.0 (Isi/Farr FD coherent pipeline); its pins are
+  too loose for 2026 — working set frozen in `.venv311-pins.txt` (jax 0.4.35 / numpyro 0.15.3 / arviz 0.19.0 /
+  matplotlib 3.9.4 / scipy 1.14.1). `20_extract_strain.py` (3.12 venv, gwpy→npz) + `21_ringdown_crosscheck.py`
+  (3.11): verified targets (GW150914 = docs example; GW250114 = LVK max-L via arXiv:2601.05734). **(a)** GW150914
+  validation in-band (M 77.5, χ 0.76). **(b) GW250114 220+221: A221 bounded away from zero (P=0.000,
+  A221/A220=1.02 at peak)** = the published result, where our simplified `14` machinery saw nothing ⇒ the parked
+  "implementation limit" call POSITIVELY demonstrated; GW150914 overtone marginal (P=0.049, contested-literature-
+  consistent). **(c) NPE referee: package M 74.8 [70.4,79.0] / χ 0.729 vs our 09 NPE 76.0 [68.4,85.2] / 0.762 —
+  first independent field-standard cross-validation of the NPE arc (package CI nests inside NPE's).** NUTS x64,
+  R̂≤1.004, ESS≥950. Gated. Caveat: all peak-start fits carry the R3 early-time systematic; duration fixed 0.05 s.
 
 ## Status & ground rules
 - **All three arcs are PARKED COMPLETE** (FOCUS DIRECTIVE in ../SpaceTime: curvature

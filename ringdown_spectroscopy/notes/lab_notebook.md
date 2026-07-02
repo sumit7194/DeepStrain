@@ -493,3 +493,45 @@ coverage depends only on T_j. Result (1000 calibration sims, 600 fit / 400 held-
   right, sufficient choice; per-parameter tuning adds nothing** (exactly the low value the PLAN anticipated).
 - GW250114 δ under its own T_delta=1.05: **−0.16 [−0.46,+0.33], Kerr-consistent** — unchanged from v3.
 Gated (each-in-band AND global mad ≤ per-param mad). Artifact: results/17_recalibrate_perparam.json.
+
+## 2026-07-02 — R2 v2 PRE-REGISTRATION: the proper tone-count test via the `ringdown` package
+The Py3.11 wall fell (uv venv `.venv311`; working pins jax 0.4.35 / numpyro 0.15.3 / arviz 0.19.0 /
+matplotlib 3.9.4, frozen in `.venv311-pins.txt` — ringdown 1.0.0's `jax~=0.4` pin is too loose, newest jax
+breaks its `jaxlib.xla_extension` import). Targets verified before fitting (standing directive): GW150914 =
+docs example (t0=1126259462.4083147, ra=1.95, dec=−1.27, psi=0.82); GW250114 = LVK max-L per arXiv:2601.05734
+(t0=1420878141.2362, ra=2.35, dec=0.22, psi=1.37). Settings: duration 0.05 s, 4096→2048 Hz, 20 Hz HP, ACF from
+128 s off-source, m∈[40,200], a_scale 1e-20. Pre-registered gates:
+- **(a) validation:** GW150914 220+221 (M, χ) median lands in the known ballpark (M ~55–90, χ ~0.4–0.9;
+  Isi/Farr 2019 got ~68, ~0.63). If this fails the stack is wrong — stop, don't interpret.
+- **(b) the R2 question:** GW250114 220+221 — is A221 bounded away from zero (field statistic)? Published
+  answer is YES (arXiv:2509.08099). Any outcome recorded honestly.
+- **(c) NPE referee:** GW250114 (M, χ) vs our 09/10 NPE — consistency check of the whole arc.
+
+## 2026-07-02 — R2 v2 RESULT: the proper pipeline DETECTS the GW250114 overtone; NPE arc cross-validated ✓
+All three pre-registered gates pass (fits: NUTS x64, all R̂ ≤ 1.004, ESS ≥ 950; 21_ringdown_crosscheck.py,
+results/21_ringdown_crosscheck.json + posterior npz):
+- **(a) validation ✓** GW150914 220+221 at the docs target: M 77.5 [61.5, 94.5], χ 0.76 [0.38, 0.92] — in the
+  pre-registered band (Isi/Farr-era analyses ~68/0.63; the docs example itself notes it doesn't exactly reproduce
+  Isi 2019 — different polarization model/priors/conditioning). Stack validated.
+- **(b) THE R2 ANSWER ✓ — GW250114 overtone: A221 = 3.6e-21 with q5 = 2.4e-21, P(A221 < 10% of median) = 0.000,
+  A221/A220 = 1.02 at peak.** The field-standard statistic (amplitude bounded away from zero) FIRES, matching
+  arXiv:2509.08099 ("bounded away from zero", ratio ~1 at peak). Adding the 221 also pulls M 84.6→74.8 (the
+  early-time content the 220-only model absorbs into mass — the same start-time systematic R3 measured).
+  **⇒ R2 CLOSED: our 14_bayes_tonecount null was an implementation limit, now POSITIVELY demonstrated —
+  the proper FD coherent pipeline separates the tones on the same event where our simplified time-domain/
+  white-noise machinery could not. Refusing to publish that false negative was correct.**
+  Bonus context: GW150914's overtone comes out MARGINAL here (P = 0.049) — consistent with the contested
+  literature (Isi/Farr claim vs Cotesta skepticism), a nice sanity check that the statistic isn't trigger-happy.
+- **(c) NPE referee ✓ — first independent field-standard cross-validation of the whole arc:** package n=2
+  M 74.8 [70.4, 79.0] / χ 0.729 [0.64, 0.80] vs our 09 NPE on-source M 76.0 [68.4, 85.2] / χ 0.762 [0.62, 0.86].
+  Medians agree to 1.2 M☉ / 0.033; the package's tighter coherent-likelihood CI nests inside the NPE's (expected:
+  FD coherent + antenna patterns vs our sky-independent per-detector amplitudes). The amortized NPE posterior is
+  REAL, not an artifact of our simulator.
+- Environment (the wall that kept R2 parked): `.venv311` via uv; ringdown 1.0.0's pins are too loose for 2026 —
+  working set frozen in `.venv311-pins.txt` (jax 0.4.35 / numpyro 0.15.3 / arviz 0.19.0 / matplotlib 3.9.4 /
+  scipy 1.14.1; newest jax breaks `jaxlib.xla_extension`, newest matplotlib breaks arviz 0.19, newest scipy's
+  STFT breaks ringdown's pandas-Series data in Welch). Targets verified before fitting: GW150914 = docs example;
+  GW250114 = LVK max-L via arXiv:2601.05734 (t0=1420878141.2362, ra=2.35, dec=0.22, psi=1.37).
+- Honest caveats: package M sits ~1 M☉ below NPE median but 6-7 above the 05 start-time-plateau value (~68) —
+  all peak-start fits carry the R3-measured early-time systematic; duration fixed at 0.05 s (docs value), not
+  swept; GW150914 marginal-overtone number is duration/target-sensitive per the literature — we record, not claim.
