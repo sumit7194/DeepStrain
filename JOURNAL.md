@@ -30,8 +30,14 @@ Back after a few days. The PLAN backlog was cleared, so attacked the parked shel
 - **(c) NPE referee ✓ — the first independent field-standard cross-validation of our whole SBI arc:** package
   M 74.8 [70.4,79.0] / χ 0.729 vs our 09 NPE 76.0 [68.4,85.2] / 0.762 — medians within 1.2 M☉ / 0.033, the
   package's tighter coherent CI nests inside the NPE's. The amortized posterior is real, not a simulator artifact.
-- E3 prefetch: off-source blocks accumulating for GW151226/GW151012/GW250114 (GWOSC intermittent; cached-skip
-  makes second passes cheap). 31 gates green.
+- **E3 ✅ (same day) — per-event ML scorers across the broadened set, all clean nulls.** `19_per_event_ml.py`:
+  per-event autoencoder scorer + v2 ML network comb at each event's formula-Δt, for GW150914 / GW151012 /
+  GW151226 / **GW250114** (Δt from its verified remnant → 0.2952 s, a GW150914 twin). A first pass on the tiny
+  own-block background (n=59) threw up GW151012 ML p=0.033 and skipped NaN-cropped GW151226 — so I swapped to the
+  **independent ±hour background** (E2-style, own-PSD whitened, 660–1815 segs): GW151012's 0.033 **washed out to
+  0.130** (small-sample artifact; the comb never flagged it) and GW151226 was rescued. **All four events clean
+  nulls under both statistics.** Gated. **The PLAN backlog is now fully cleared** — every tractable item gated;
+  only VM-scale extensions remain. 32 gates green.
 
 ## 2026-06-26 — N4 SSL follow-up + R1 recalibration + N5 triple-detector (data-blocked tonight by GWOSC)
 Continued the PLAN knock-out. Each item gated + documented honestly; committed at milestones.

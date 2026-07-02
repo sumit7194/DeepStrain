@@ -44,9 +44,16 @@
       09 NPE 76.0/0.762 — medians within 1.2 M☉/0.033, package CI nests inside NPE's ⇒ first independent
       field-standard cross-validation of the whole NPE arc.** NUTS x64, R̂ ≤ 1.004, ESS ≥ 950. Gated (a+b+c+
       convergence).
-- [ ] **E3 · Echoes: per-event scorers + per-event Δt + broaden on-source set** 🟢 — train a scorer per event,
-      compute Δt from each event's catalog mass+spin, run on more O3 events. *Done =* a small table of honest
-      per-event nulls/limits.
+- [x] **E3 · Echoes: per-event scorers + per-event Δt + broaden on-source set** ✅ **DONE — all clean nulls
+      (2026-07-02).** `19_per_event_ml.py`: a per-event autoencoder scorer (per detector, trained on the event's
+      own off-source), the v2 ML network comb run at each event's formula-Δt, across the broadened set
+      GW150914 / GW151012 / GW151226 / **GW250114** (Δt from its verified remnant M_f=68.1/χ=0.68 → 0.2952 s, a
+      GW150914 twin). Background from the **independent ±hour blocks** (E2-style, own-PSD whitened, 660–1815 segs).
+      **All four events are clean nulls under both the ML scorer and the comb** (ML p 0.13–0.99, comb p 0.23–0.97).
+      Robustness payoff: a first pass on the tiny own-block background (n=59) threw up GW151012 ML p=0.033 —
+      which **dissolved to 0.130 against the larger independent background**, a textbook small-sample artifact
+      (and the comb never flagged it). The independent background also **rescued GW151226** (own-block was
+      NaN-cropped to too few segments). Gated.
 - [x] **R3 · Ringdown: IMR-waveform referee** ✅ **DONE (2026-06-25) — found a real systematic.** Injected
       realistic full-IMR ringdowns (IMRPhenomXAS via pbh's pycbc, NR-calibrated) into the no-hair NPE
       (`15_imr_referee.py`). The NPE is unbiased on its analytic-tone training family (control δ=+0.02) but

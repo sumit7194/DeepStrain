@@ -424,3 +424,30 @@ sum). `17_echo_consistency.py`.
   single-detector peak doesn't survive). The pbh G2a pattern ("simple combos barely beat sum") roughly holds for
   echoes; only a *learned* statistic clearly beat sum for pbh, and the echo data is too small to train one without
   overfitting. Gated (the honest "modest, not-universal" conclusion). Artifacts: results/17_echo_consistency.{json,png}.
+
+## 2026-07-02 — E3 (PLAN.md): per-event ML scorers across the broadened set — all clean nulls
+`19_per_event_ml.py` closes E3: a per-event autoencoder scorer (per detector, trained on the event's own
+off-source pool) + the v2 ML network comb at each event's formula-predicted Δt, for GW150914 / GW151012 /
+GW151226 / GW250114. Δt: O1 events from Abedi Table I (reproduced by 14 to <2%); GW250114 from the verified
+echo_spacing formula on its detector-frame remnant (M_f=68.1 M☉, χ=0.68; LSC/arXiv:2509.08099) → 0.2952 s
+(a GW150914 twin). Reuses 07's ConvAE/train_scorer/error_envelope/comb_on_env.
+- **First pass (own-block background, n_bg=59): a trap.** GW151012 came out ML p=0.033 and GW151226 was
+  SKIPPED (its own 512-s block is NaN-cropped to only 117 off-source segments — the known GW151226 gotcha).
+  The 0.033 rested on ~1-2 of 59 background segments (p-resolution ~1/60) — not trustworthy.
+- **Fix (north-star): independent ±hour background.** Swapped the background to the prefetched ±hour blocks
+  (E2/13 convention, each own-PSD whitened → out-of-time, non-stationarity-safe, and far larger). Result on
+  n_bg 660–1815:
+  | event | Δt | n_bg | ML p@Δt | comb p@Δt |
+  |---|---|---|---|---|
+  | GW150914 | 0.2925 | 660 | 0.995 | 0.967 |
+  | GW151012 | 0.1778 | 1815 | **0.130** | 0.233 |
+  | GW151226 | 0.1013 | 990 | 0.404 | 0.850 |
+  | GW250114 | 0.2952 | 990 | 0.617 | 0.331 |
+- **GW151012's 0.033 washed out to 0.130** ⇒ it was a small-sample fluctuation of the 59-segment own-block
+  background, not an echo (and the comb never flagged it — 0.233 — so it wasn't even coherent across the two
+  statistics). GW151226 rescued (n_bg 990). **All four events: clean nulls under both the ML scorer and the
+  comb.** Consistent with every prior echo result (Westerweck-side; no post-merger echo excess).
+- Honest scope: the ML scorer's modest edge (v5 ~1.2×) doesn't change the verdict at these amplitudes — the
+  on-source events simply have no echo signal to find. The value here is the broadened, per-event, independent-
+  background null table (incl. the loud O4 event GW250114) + catching the own-block small-sample trap.
+Gated (all four null, n_bg≥500, GW151012 low-p does not survive). Artifact: results/19_per_event_ml.json.

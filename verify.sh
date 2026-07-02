@@ -160,6 +160,23 @@ assert r["kerr_inside_90"] and all(0.85 <= c <= 0.95 for c in r["coverage_heldou
 print("PASS  ringdown recalibration artifacts")
 PYEOF3
 
+echo "--- echoes E3 per-event ML scorers (19: broadened set, all clean nulls vs independent background)"
+./echoes/.venv/bin/python - << 'PYEOFE3' || FAIL=1
+import json
+d = json.loads(open("echoes/results/19_per_event_ml.json").read())
+evs = {e["event"]: e for e in d["events"]}
+# broadened set incl. GW250114 all ran (no data-starvation skips after the independent-background upgrade)
+for name in ("GW150914", "GW151012", "GW151226", "GW250114_082203"):
+    e = evs[name]
+    assert "error" not in e, f"{name}: {e.get('error')}"
+    assert e["n_bg"] >= 500, f"{name}: background too small ({e['n_bg']})"
+    # every event a clean null under BOTH the ML scorer and the comb baseline (no p<0.05 detection)
+    assert e["ml_p_at_dt"] > 0.05 and e["comb_p_at_dt"] > 0.05, f"{name}: not null ({e['ml_p_at_dt']}, {e['comb_p_at_dt']})"
+# GW151012's small-sample ML p=0.033 (own-block, n=59) must NOT survive the larger independent background
+assert evs["GW151012"]["ml_p_at_dt"] > 0.05, "GW151012 low-p did not wash out"
+print(f"PASS  echoes E3 (4 events all null vs independent bg n_bg 660-1815; GW151012 own-block 0.033 -> {evs['GW151012']['ml_p_at_dt']:.2f}, a small-sample artifact)")
+PYEOFE3
+
 echo "--- ringdown R2 v2 (21: proper ringdown-package tone-count + NPE referee)"
 ./ringdown_spectroscopy/.venv311/bin/python - << 'PYEOFR2' || FAIL=1
 import json

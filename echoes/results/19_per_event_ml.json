@@ -1,0 +1,53 @@
+{
+  "background": "independent \u00b1hour blocks, own-PSD whitened (E2-style)",
+  "events": [
+    {
+      "event": "GW150914",
+      "dt_pred": 0.2925,
+      "band": [
+        30.0,
+        350.0
+      ],
+      "n_train_own": 159,
+      "n_bg": 660,
+      "ml_p_at_dt": 0.9954614220877458,
+      "comb_p_at_dt": 0.9667170953101362
+    },
+    {
+      "event": "GW151012",
+      "dt_pred": 0.1778,
+      "band": [
+        30.0,
+        600.0
+      ],
+      "n_train_own": 159,
+      "n_bg": 1815,
+      "ml_p_at_dt": 0.1299559471365639,
+      "comb_p_at_dt": 0.23348017621145375
+    },
+    {
+      "event": "GW151226",
+      "dt_pred": 0.1013,
+      "band": [
+        30.0,
+        900.0
+      ],
+      "n_train_own": 117,
+      "n_bg": 990,
+      "ml_p_at_dt": 0.4036326942482341,
+      "comb_p_at_dt": 0.8496468213925328
+    },
+    {
+      "event": "GW250114_082203",
+      "dt_pred": 0.2952457935058558,
+      "band": [
+        30.0,
+        350.0
+      ],
+      "n_train_own": 159,
+      "n_bg": 990,
+      "ml_p_at_dt": 0.6165489404641776,
+      "comb_p_at_dt": 0.33097880928355194
+    }
+  ]
+}
