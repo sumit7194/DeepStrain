@@ -230,6 +230,23 @@ print(f"PASS  ringdown B3 (NPE M gap {d['m_median_gap']:.1f} Msun, CI nested; NP
       f"-> inherits +{d['npe_mass_bias_vs_true']:.1f} Msun early-time systematic, shared with the package)")
 PYEOFB3
 
+echo "--- D event watcher (watch_GW250114: one command reproduces all 3 sub-project headlines)"
+./ringdown_spectroscopy/.venv/bin/python - << 'PYEOFD' || FAIL=1
+import json
+d = json.loads(open("watch_GW250114_082203.json").read())
+st = d["stages"]
+rd, npe, ec = st["ringdown"], st["npe"], st["echo"]
+assert all("error" not in x for x in (rd, npe, ec)), f"a watcher stage failed: {[k for k,v in st.items() if 'error' in v]}"
+# ringdown reproduces 21 (M ~74.8, overtone detected)
+assert 70 < rd["M"][0] < 80 and rd["overtone_detected"], f"ringdown stage off: {rd['M'][0]}"
+# NPE reproduces 09 (delta ~ -0.16, Kerr-consistent)
+assert -0.30 < npe["delta"][0] < 0.0 and npe["kerr_consistent_90"], f"NPE stage off: {npe['delta']}"
+# echo reproduces E3 (Dt ~0.295s from the formula, p ~0.33, null)
+assert 0.28 < ec["dt_pred_s"] < 0.31 and 0.1 < ec["comb_p_value"] < 0.6 and not ec["echo_detected"], f"echo stage off: {ec}"
+print(f"PASS  D event watcher (GW250114: ringdown M {rd['M'][0]:.1f}+overtone; NPE delta {npe['delta'][0]:+.2f} Kerr-ok; "
+      f"echo Dt {ec['dt_pred_s']*1e3:.0f}ms p {ec['comb_p_value']:.2f} null -- all sub-projects in one command)")
+PYEOFD
+
 echo "--- ringdown R1 per-parameter recalibration (17: each param in band, but does NOT beat global T)"
 ./ringdown_spectroscopy/.venv/bin/python - << 'PYEOFR1' || FAIL=1
 import json

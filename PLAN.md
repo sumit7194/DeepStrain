@@ -164,11 +164,15 @@
         R3/B1 peak-start systematic** (+7.9 M☉ vs the true 68.1, matching the package's +6.6 peak bias). The NPE
         isn't bias-free from marginalizing t0 — it effectively infers from the peak. Gated.
       **B COMPLETE:** B1 ✅ + B3 ✅ gated; B2 honestly parked (tool-inadequate). Next: D (event watcher).
-- [ ] **D · event watcher: turn the stack into a standing instrument** 🟢 — a harness that, for any new loud
-      public event: fetch → NPE no-hair posterior → package cross-check → echo Δt prediction + comb p-value →
-      one-page report. Amortization means seconds per event; O4b/O5 will supply GW250114-class events (the
-      δ-stacking wall breaks only with more SNR≳37 ringdowns). *Done =* end-to-end run on GW250114 as the
-      reference event + docs.
+- [x] **D · event watcher: turn the stack into a standing instrument** ✅ **DONE (2026-07-03).** `watch_event.py`
+      (repo root) orchestrates 3 stages across 3 venvs → a one-page markdown+JSON report: (1) ringdown remnant +
+      overtone [package, venv311: `watch_ringdown.py`]; (2) no-hair δ + Kerr consistency [amortized NPE, .venv:
+      `watch_npe.py`]; (3) echo Δt(M_f,χ_f) prediction + comb p-value [echoes venv: `watch_echo.py`]. Each stage
+      isolated (one failing doesn't sink the others); event registry with verified sky-loc + remnant. **Reference
+      run on GW250114 in 48 s reproduces ALL three sub-project headlines** — ringdown M 74.7+overtone (=21), NPE
+      δ −0.15 Kerr-consistent (=09), echo Δt 295 ms p 0.33 null (=E3). Amortized NPE → seconds/event; ready for
+      O4b/O5 GW250114-class events. Gated (the report reproduces the committed headlines). Artifacts:
+      watch_GW250114_082203.{md,json}.
 - [ ] **C · consolidate & release (capstone, last)** 🟢 — reproducibility pass (env pins everywhere, verify.sh
       as the CI gate), top-level honest summary (wins AND negatives AND benchmarks), Zenodo/GitHub release.
       *Done =* a stranger can reproduce the headline numbers from a fresh clone.

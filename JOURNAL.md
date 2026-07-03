@@ -11,6 +11,17 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-07-03 (evening) — Follow-up D: the EVENT WATCHER — the whole stack becomes one instrument
+`watch_event.py` (repo root) orchestrates the three sub-projects across their three venvs into a single
+one-page report for any loud event: (1) ringdown remnant + overtone [ringdown package, venv311], (2) no-hair
+delta + Kerr consistency [amortized NPE, .venv], (3) echo Delta-t(M_f,chi_f) prediction + comb p-value [echoes
+venv]. Thin per-venv entrypoints (watch_ringdown/watch_npe/watch_echo) emit JSON; the orchestrator isolates
+each stage (one failing doesn't sink the rest) and assembles the report. **Reference run on GW250114 in 48 s
+reproduces ALL three sub-project headlines** — ringdown M 74.7 + overtone detected (=21/22), NPE delta -0.15
+Kerr-consistent (=09), echo Dt 295 ms comb p 0.33 null (=E3). Amortized NPE + cached strain -> seconds per
+event, so this is genuinely ready to point at O4b/O5 GW250114-class events (the only ones loud enough to
+measure delta, per the v6 wall). Gated (36). Arc: A done, B done, D done -> only C (release capstone) remains.
+
 ## 2026-07-03 (later) — Follow-up B: field-standard start-time referee + NPE loop closed; nonlinear-QNM honestly parked
 Rode the GW250114 toehold with the `ringdown` package (`.venv311` from R2), all local/zero-compute.
 - **B1 ✅** `22_starttime_sweep.py` — GW250114 220+221 across 9 start offsets (0–16 t_Mf). The overtone is
