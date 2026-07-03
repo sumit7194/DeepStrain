@@ -799,3 +799,44 @@ V1-specific model might extract marginally more, but V1's fundamental insensitiv
 even to LOUD signals) caps the upside; 4 segments (the double-vs-single cross-check validates the pipeline).
 Gated. Engineering note: the eval is checkpointed per-segment (`coinc_triple_rows.parquet`) — it survived
 repeated power losses + Anthropic service interruptions, resuming from the last finished segment each time.
+
+### Follow-up A — the REAL matched-filter benchmark: CNN ties a realizable dense bank (2026-07-03)
+The question the whole v2 arc bumped into — "how good is our ML detector vs a REAL matched filter?" — answered
+on the Mac (GPU VM unavailable), made tractable by three facts: 64-s templates (the CNN window + the eval's
+in-window-SNR convention), an effectively 1-D Mc bank (extrinsics proven irrelevant by coinc_check), and MPS-
+batched FD correlation (`pbh/bankmf.py`, golden-tested against first principles — `bank_golden.py`: noiseless
+self-correlation exact, phase-invariant, MPS≡CPU 9e-7).
+
+**Two walls, one tractable path (A1/A2/A2b):**
+- **Fully-coherent MF is intractable** — the coherent fitting factor collapses (FF 0.576 median at 0.3% spacing;
+  templates 25% apart in Mc are near-orthogonal). The 64-s subsolar chirp carries ~1e4 cycles → a full-coherence
+  bank is megatemplate-scale, consistent with LVK's real O4 subsolar bank of **3,452,006 templates**
+  (arXiv:2412.10951). The parked "~1,650 templates" estimate was ~3 orders optimistic for full coherence.
+- **The n=8 SEMI-coherent statistic is the tractable detector** (8-s chunk coherence → ~8× dephasing tolerance +
+  chunk-|·| removes inter-chunk phase). `bank_semiff.py` measured its recovery vs spacing: 0.25%→0.858, 0.5%→0.566,
+  1%→0.461, 2%→0.366 — a steep curve that **quantitatively explains bank_oracle's old 0.000** (its ~2.5%/64-template
+  density gives recovery ~0.3 → under threshold), and sets the real requirement at ~0.1% (~1,619 templates, tractable).
+
+**The benchmark (A3/A5) — `bank_dense.py` runs the semicoherent_oracle statistic at 0.1% density on the 6 real
+test segments (template-major, per-segment + mid-segment atomic checkpointing — survived 2 power losses + a Claude
+restart); `bank_vs_cnn.py` scores cnn_w64 on the IDENTICAL deterministic injections:**
+
+| detector | 0.17–0.35 | 0.35–0.55 | 0.55–0.88 | mean | notes |
+|---|---|---|---|---|---|
+| coarse bank (83 tmpl, ~2.5%) | 0.000 | 0.000 | 0.000 | 0.000 | reproduces bank_oracle's parked 0.000 exactly |
+| **real semi-coherent bank MF (0.1%, 1619 tmpl)** | 0.472 | 0.509 | 0.485 | **0.489** | the realizable detector |
+| cnn_w64 (learned, SAME injections) | 0.436 | 0.505 | 0.477 | **0.472** | 1 forward pass |
+| semi-coherent ORACLE (true template) | 0.663 | 0.764 | 0.752 | 0.720 | unrealizable ceiling |
+
+**Headline (honest): the realizable dense-bank matched filter and the learned CNN are a statistical TIE**
+(0.489 vs 0.472, **1.03×**; per-bin 1.08/1.01/1.02× — only the lowest-mass bin hints at an MF edge, within Monte
+Carlo). A single CNN forward pass matches a 1,619-template matched-filter bank at ~1/1600 the compute. **The
+dominant loss is template-bank MISMATCH, not learned-vs-MF**: both sit far below the true-template oracle (0.72).
+And the **density sweep is the wall made quantitative** — 83→0.000, 326→0.12, 649→0.29, 1619→0.49: you need the
+full ~1,600-template bank to reach the tie, validating A2b's tolerance curve end-to-end.
+
+**North-star note:** the v1 gated CNN number (0.45) vs a different injection realization suggested a ~10% MF win;
+the airtight co-injection (identical injections) shrank it to a ~3% tie — the co-injection prevented an overclaim.
+Caveats: single-detector H1 (coincidence is the separate +1.37× axis); n=8 semi-coherent (not full-coherent, which
+is intractable); 64-s window convention; the newSNR chi²-veto threshold is zero-FA over 6 segments. Gated.
+Artifacts: bank_golden.json, bank_semiff.json, bank_dense.json, bank_vs_cnn.json; pbh/bankmf.py.

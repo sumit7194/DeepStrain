@@ -417,6 +417,26 @@ assert d["bg_days"] > 365, "Build C background livetime < 1 yr -- cannot probe r
 print("PASS  pbh Build C (coinc FAR-robust: 1/day ~1.4x = local G1; 1/year still > single-det floor)")
 PYEOFC
 
+echo "--- pbh A: real dense-bank MF vs CNN (bank_dense + bank_vs_cnn: realizable MF ties the CNN, bank-mismatch-limited)"
+./primordial_blackhole_search/.venv/bin/python - << 'PYEOFA' || FAIL=1
+import json, numpy as np
+bd = json.loads(open("primordial_blackhole_search/results/bank_dense.json").read())
+vc = json.loads(open("primordial_blackhole_search/results/bank_vs_cnn.json").read())
+sw = bd["sweep"]
+# (1) density wall: the coarse bank (~83 templates, bank_oracle's old density) recovers ZERO ...
+assert np.mean(list(sw["83"]["frac"].values())) == 0.0, "coarse bank no longer collapses (density wall)"
+# ... while the full 0.1% bank (~1,619 templates) is functional -> quantifies the density requirement
+assert bd["B"] > 1500 and np.mean(list(sw[str(bd["B"])]["frac"].values())) > 0.45, "full bank not functional"
+# (2) airtight head-to-head on IDENTICAL injections: realizable MF ~ CNN (a tie within ~15%, neither routs)
+r = vc["bank_mean"] / vc["cnn_mean"]
+assert 0.95 < r < 1.15, f"MF-vs-CNN no longer a tie/modest edge: {r}"
+# (3) both far below the true-template semi-coherent oracle -> bank mismatch is the dominant loss, not ML-vs-MF
+orc = json.loads(open("primordial_blackhole_search/results/bank_oracle_B64.json").read())["oracle_vetoed"]
+assert np.mean(list(orc.values())) > 1.4 * vc["bank_mean"], "oracle no longer dominates -> recheck mismatch story"
+print(f"PASS  pbh A (real 0.1% bank MF {vc['bank_mean']:.2f} ~ CNN {vc['cnn_mean']:.2f} [{r:.2f}x, tie]; "
+      f"coarse-bank 0.00 = density wall; both << oracle {np.mean(list(orc.values())):.2f} = bank-mismatch-limited)")
+PYEOFA
+
 echo "--- pbh N5 triple-detector H1xL1xV1 (coinc_triple: double reproduces, but Virgo does NOT help subsolar)"
 ./primordial_blackhole_search/.venv/bin/python - << 'PYEOFN5' || FAIL=1
 import json, numpy as np

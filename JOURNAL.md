@@ -11,6 +11,32 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-07-03 — Follow-up A: the real matched-filter benchmark on the Mac — the CNN TIES a realizable dense bank
+Direction discussion picked a 4-item follow-up arc (A dense-bank MF benchmark → B ringdown-package → D event
+watcher → C release); A first, and — with the GPU VM down — I re-examined the "intractable locally" call and
+found it was made against a *naive* full-coherence plan. Three insights made it tractable on the M4: 64-s
+templates (the CNN window), an effectively 1-D Mc bank, and MPS-batched FD correlation.
+- **A1** ✅ golden-tested the hand-rolled MPS matched filter (`pbh/bankmf.py`) against first principles — exact
+  noiseless recovery, phase-invariant, MPS≡CPU to 9e-7. Found a monster O3a glitch (2310σ) rings the chirp
+  template → the statistic must be newSNR/chi²-vetoed (which production searches already are).
+- **A2/A2b** — the wall, made quantitative. Full-coherent FF collapses (0.576 at 0.3% spacing) → megatemplate
+  scale, matching LVK's real **3,452,006-template** O4 subsolar bank (arXiv:2412.10951; the parked ~1,650 estimate
+  was ~3 orders optimistic). But the n=8 **semi-coherent** statistic is tractable: its recovery-vs-spacing curve
+  (`bank_semiff.py`: 0.25%→0.86, 2%→0.37) **retroactively explains bank_oracle's parked 0.000** and sets ~0.1%/
+  1,619 templates. (A first cut with a 6.4-s injection misalignment gave impossible recovery >1 — caught by the
+  physicality check, fixed to oracle-exact alignment.)
+- **A3/A5** — the benchmark. `bank_dense.py` ran the semicoherent_oracle statistic at 0.1% on the 6 real test
+  segments (template-major, **mid-segment atomic checkpointing** — survived 2 power losses + a Claude app restart,
+  each costing ≤10 min instead of hours). `bank_vs_cnn.py` scored cnn_w64 on the **identical** deterministic
+  injections. **Result: real bank MF 0.489 vs CNN 0.472 = 1.03× — a statistical TIE.** A single CNN forward pass
+  matches a 1,619-template matched-filter bank. The density sweep (83→0.000 reproducing bank_oracle … 1619→0.489)
+  is the wall end-to-end; both sit far below the true-template oracle (0.72) ⇒ **template-bank mismatch is the
+  dominant loss, not learned-vs-MF.**
+- **North-star save:** the v1 gated CNN number (0.45, different injections) implied a ~10% MF win; the airtight
+  co-injection (identical injections) shrank it to a ~3% tie — the co-injection prevented an overclaim of exactly
+  the headline. 33 gates green. **A is done; the honest answer to the arc's central question is: the learned CNN
+  is not leaving meaningful sensitivity on the table versus any realizable detector.** Next: B (ringdown package).
+
 ## 2026-07-02 — R2 v2: the Python-3.11 wall falls; the proper pipeline detects the GW250114 overtone; NPE arc cross-validated
 Back after a few days. The PLAN backlog was cleared, so attacked the parked shelf: **R2** (tone-count via the real
 `ringdown` package) with **E3 off-source prefetch** riding in the background while GWOSC was healthy.

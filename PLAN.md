@@ -119,7 +119,18 @@
 > golden-tested against pycbc — Phase-1 style). Injection side may use a nearest-in-Mc template subset
 > (bank is 1-D); the NOISE/FAR side always uses the full bank.
 
-- [ ] **A · pbh: REAL dense-bank matched filter on the Mac — the honest ML-vs-MF benchmark** 🟢 (in progress)
+- [x] **A · pbh: REAL dense-bank matched filter on the Mac — the honest ML-vs-MF benchmark** ✅ **DONE — the
+      CNN TIES a realizable dense bank; both bank-mismatch-limited (2026-07-03).** A1 golden-tested MPS MF
+      (`pbh/bankmf.py`); A2/A2b: full-coherence is megatemplate-scale (FF collapses; matches LVK's real 3.45M
+      O4 subsolar bank), but the n=8 semi-coherent statistic is tractable and its recovery-vs-spacing curve
+      (`bank_semiff.py`) sets ~0.1%/1,619 templates. A3/A5: `bank_dense.py` (0.1% bank on 6 real segments, mid-
+      segment checkpointed — survived 2 power losses + a restart) + `bank_vs_cnn.py` (cnn_w64 on IDENTICAL
+      injections). **Result: real bank MF 0.489 vs CNN 0.472 = 1.03× (a TIE); density sweep 83→0.000 (reproduces
+      bank_oracle) … 1619→0.489 (the wall, quantified); both << true-template oracle 0.72 ⇒ bank MISMATCH is the
+      dominant loss, not learned-vs-MF.** Co-injection shrank an apparent ~10% win to a ~3% tie (prevented an
+      overclaim). Gated. Stretch A6 (fine-timing coincidence + hybrid trigger→verify) deferred — the tie already
+      answers the core question. **The learned CNN is not leaving meaningful sensitivity on the table vs any
+      realizable detector.**
       The one question the whole v2 arc bumped into: our learned pipeline reaches ~45% of the *idealized* MF —
       but nobody (verified in the prior-art audit) has published learned-vs-REAL-MF for minutes-long subsolar
       signals. Steps: (A1) golden-test spike — torch-MPS FD matched filter vs pycbc on injected signals, SNR

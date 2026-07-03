@@ -209,6 +209,17 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   + the higher 3-way threshold degrades the sum. Rules out the learned-triple (no V1 signal to weight → ≈double at
   best). **H1×L1 double-coincidence is the subsolar ceiling.** Gated. Per-segment checkpoint (coinc_triple_rows.parquet)
   survived repeated power losses + service interruptions. Artifact: results/coinc_triple.json.
+- **Follow-up A DONE (2026-07-03): the REAL matched-filter benchmark — CNN TIES a realizable dense bank.**
+  On the Mac (GPU VM down), `pbh/bankmf.py` (golden-tested MPS FD matched filter, `bank_golden.py`). Full-coherent
+  MF is intractable (coherent FF collapses; matches LVK's real 3,452,006-template O4 subsolar bank, arXiv:2412.10951)
+  — but the n=8 SEMI-coherent statistic is tractable: `bank_semiff.py` measured recovery vs Mc spacing (0.25%→0.86,
+  2%→0.37), quantitatively explaining bank_oracle's old 0.000 and setting ~0.1%/1,619 templates. `bank_dense.py`
+  (0.1% bank, 6 real test segs, template-major + mid-segment atomic checkpoint — survived 2 power losses + a Claude
+  restart) + `bank_vs_cnn.py` (cnn_w64 on IDENTICAL injections): **real bank MF 0.489 vs CNN 0.472 = 1.03× — a
+  statistical TIE** (a CNN forward pass matches a 1,619-template MF bank). Density sweep 83→0.000 (reproduces
+  bank_oracle) … 1619→0.489 = the wall quantified; both far below the true-template oracle (0.72) ⇒ **template-bank
+  MISMATCH is the dominant loss, not learned-vs-MF.** Co-injection shrank an apparent ~10% win to ~3% (prevented an
+  overclaim). Gated. Artifacts: bank_{golden,semiff,dense,vs_cnn}.json.
 - **Dashboard:** `python3 dashboard.py` (repo root, stdlib only) serves a live run monitor
   over `*/results/progress/*.json` for all three sub-projects; pbh gained `pbh/progress.py`
   (same heartbeat convention as echolib/rdlib). Writes `.dashboard.pid` on start; **stop it
