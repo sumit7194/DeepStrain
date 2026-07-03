@@ -173,9 +173,15 @@
       δ −0.15 Kerr-consistent (=09), echo Δt 295 ms p 0.33 null (=E3). Amortized NPE → seconds/event; ready for
       O4b/O5 GW250114-class events. Gated (the report reproduces the committed headlines). Artifacts:
       watch_GW250114_082203.{md,json}.
-- [ ] **C · consolidate & release (capstone, last)** 🟢 — reproducibility pass (env pins everywhere, verify.sh
-      as the CI gate), top-level honest summary (wins AND negatives AND benchmarks), Zenodo/GitHub release.
-      *Done =* a stranger can reproduce the headline numbers from a fresh clone.
+- [x] **C · consolidate & release (capstone)** ✅ **DONE (2026-07-03).** Reproducibility pass: env pins committed
+      for all 4 venvs (`requirements.txt` ×3 + `requirements-py311.txt` for the ringdown package). Top-level
+      **README rewritten** to the honest, current, complete story (wins AND negatives AND benchmarks — coincidence
+      +1.37×, the CNN-ties-real-MF benchmark, Virgo-doesn't-help, echo nulls, no-hair δ + overtone cross-check,
+      the event watcher), with a Reproduce section (uv + `verify.sh` as the 36-check gate). Added `LICENSE` (MIT,
+      user-chosen) + `CITATION.cff`. All README links verified. **A stranger can now recreate each venv from pins,
+      re-fetch GWOSC data via the numbered scripts, and assert every headline with `./verify.sh`.** GitHub push =
+      the release (Zenodo archival = user's optional next step).
+      **Follow-up arc A→B→D→C COMPLETE.**
 
 ## Parked — blocked by a known wall (discuss before attempting) 🔴
 - **PBH dense template bank / true-waveform front end** — subsolar needs ≤0.1 % Mc spacing (~1,600+ templates);

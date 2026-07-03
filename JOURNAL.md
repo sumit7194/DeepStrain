@@ -11,6 +11,18 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-07-03 (night) — Follow-up C: release capstone — the arc closes
+Made the whole thing durable + citable. Env pins committed for all four venvs (requirements.txt x3 +
+requirements-py311.txt for the Py3.11 ringdown package). Rewrote the top-level README from stale (it predated
+the entire follow-up arc) to the honest, complete, current story — coincidence +1.37x, the CNN-ties-a-real-
+matched-filter benchmark, Virgo-doesn't-help, echo nulls, the no-hair delta + overtone cross-check, and the
+event watcher — with a Reproduce section anchored on `uv` + verify.sh (the 36-check gate). Added an MIT LICENSE
+(user's choice) + CITATION.cff; verified every README link resolves. A stranger can now recreate each venv from
+pins, re-fetch GWOSC data via the numbered scripts, and assert every headline with ./verify.sh.
+**The follow-up arc A -> B -> D -> C is COMPLETE:** the real matched-filter benchmark (CNN ties a realizable
+bank), the ringdown-package extensions (start-time referee + NPE loop closed + nonlinear-QNM honestly parked),
+the event watcher (one command, the whole stack), and now the release. 36 gates green.
+
 ## 2026-07-03 (evening) — Follow-up D: the EVENT WATCHER — the whole stack becomes one instrument
 `watch_event.py` (repo root) orchestrates the three sub-projects across their three venvs into a single
 one-page report for any loud event: (1) ringdown remnant + overtone [ringdown package, venv311], (2) no-hair

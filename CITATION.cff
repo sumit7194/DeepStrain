@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this software or its results, please cite it as below."
+title: "DeepStrain: deep-learning searches of public LIGO/Virgo data for black-hole signatures"
+abstract: >-
+  Three real-data gravitational-wave analyses on public LIGO/Virgo/KAGRA (GWOSC) strain:
+  a deep-learning subsolar-mass (primordial black hole) merger search with a real dense-bank
+  matched-filter benchmark; a post-merger gravitational-wave echo search; and amortized
+  simulation-based-inference ringdown spectroscopy (a no-hair test), cross-validated against
+  the field-standard ringdown pipeline. Sensitivity from injections, significance from measured
+  backgrounds, and null results reported as results. A regression gate asserts every headline.
+authors:
+  - given-names: Sumit
+    alias: sumit7194   # replace with your full name/ORCID before archival
+type: software
+repository-code: "https://github.com/sumit7194/DeepStrain"
+license: MIT
+keywords:
+  - gravitational waves
+  - LIGO
+  - primordial black holes
+  - black-hole ringdown
+  - no-hair theorem
+  - gravitational-wave echoes
+  - matched filtering
+  - simulation-based inference
+  - machine learning
