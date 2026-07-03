@@ -535,3 +535,24 @@ results/21_ringdown_crosscheck.json + posterior npz):
 - Honest caveats: package M sits ~1 M☉ below NPE median but 6-7 above the 05 start-time-plateau value (~68) —
   all peak-start fits carry the R3-measured early-time systematic; duration fixed at 0.05 s (docs value), not
   swept; GW150914 marginal-overtone number is duration/target-sensitive per the literature — we record, not claim.
+
+## 2026-07-03 — B1 (PLAN.md): field-standard start-time sweep — package refereess R3's systematic
+`22_starttime_sweep.py` (ringdown 1.0.0, .venv311): GW250114 220+221 at 9 start offsets 0–16 t_Mf
+(t_Mf = M_f·T_sun = 68.1·4.925e-6 = 0.335 ms), duration 0.05 s, NUTS x64 (all rhat < 1.01).
+| t0 [t_Mf] | ms | M | χ | A221/A220 | P(A221≈0) |
+|---|---|---|---|---|---|
+| 0 | 0.00 | 74.7 | 0.730 | 1.01 | 0.000 |
+| 4 | 1.34 | 72.2 | 0.697 | 0.96 | 0.001 |
+| 8 | 2.68 | 71.3 | 0.744 | 1.61 | 0.000 |
+| 12 | 4.03 | 65.4 | 0.643 | 0.81 | 0.013 |
+| 16 | 5.37 | 65.9 | 0.656 | 0.52 | 0.059 |
+- **Overtone: significant from the peak (P=0.000), damps away by ~5.4 ms (P=0.059)** — matches τ221≈1.4 ms
+  (by 16 t_Mf the overtone amplitude is ~e^-3.8 ≈ 2%). A real, fast-damping 221, as the published analysis found.
+- **Peak-start mass biased HIGH: 74.7 vs the true detector-frame remnant 68.1 M☉ (+10%), drifting −8.8 M☉ to
+  ~66 by late start; χ −0.074.** This is the R3 early-time systematic (peak-start fits carry merger/overtone
+  content the 220+221 model omits) — R3 measured it with our NPE (δ≈−0.33 at peak → 0 by 6 ms); B1 **independently
+  reproduces the same qualitative systematic with the field-standard coherent package** (a different tool, a
+  different parameter). The late-start M (~66) sits near the 05 start-time plateau (~68), consistent.
+- Caveat: as t0 increases the signal damps → CIs widen and the A221/A220 point estimate gets noisy (the 6–8 t_Mf
+  bump 1.4–1.6 is that instability, not a physical rise); the clean, monotone signals are the overtone-significance
+  decay and the mass drift. Gated. Artifact: results/22_starttime_sweep.json.

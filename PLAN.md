@@ -141,11 +141,17 @@
       cnn_w64 single / H1×L1 coinc / REAL MF / idealized MF, same segments, same FAR. Stretch: (A6) fine-timing
       coincidence + hybrid ML-trigger→MF-verify. *Done =* benchmark table gated; every claim vs the same
       noise + FAR convention.
-- [ ] **B · ringdown: ride the GW250114 toehold with the field-standard package** 🟢 — (B1) package-based
-      start-time sweep (referee R3's early-time systematic with the proper pipeline); (B2) attempt an
-      independent reproduction of the **nonlinear (quadratic) QNM** claim (arXiv:2601.05734) with our referee
-      discipline; (B3) close the NPE loop: NPE vs package posteriors across events/settings. *Done =* each
-      sub-item gated or honestly recorded.
+- [~] **B · ringdown: ride the GW250114 toehold with the field-standard package** 🟢 (B1 done)
+      - **B1 ✅ DONE (2026-07-03) — package refereess R3's start-time systematic.** `22_starttime_sweep.py`:
+        GW250114 220+221 fit at 9 start offsets (0–16 t_Mf, t_Mf=0.335 ms). **The overtone is significant from
+        the peak (P(A221≈0)=0.000) and damps away by ~5.4 ms (P→0.059)** — a real fast-damping τ221≈1.4 ms mode.
+        **The peak-start mass is biased HIGH (74.7 vs the true 68.1 M☉, +10%) and drifts −8.8 M☉ as the start
+        moves later** — the early-time systematic R3 found with our NPE, now independently reproduced by the
+        coherent package (all rhat<1.01). Gated.
+      - (B2) attempt an independent reproduction of the **nonlinear (quadratic) QNM** claim (arXiv:2601.05734:
+        6 quadratic modes in the (4,4) multiplet, BF 74 at 5 M_f, 3σ) — requires the package to support
+        FIXED-frequency (2×f220) modes; verify feasibility first (R2 fairness) before refereeing or parking.
+      - (B3) close the NPE loop: NPE vs package posteriors across events/settings.
 - [ ] **D · event watcher: turn the stack into a standing instrument** 🟢 — a harness that, for any new loud
       public event: fetch → NPE no-hair posterior → package cross-check → echo Δt prediction + comb p-value →
       one-page report. Amortization means seconds per event; O4b/O5 will supply GW250114-class events (the

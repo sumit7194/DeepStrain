@@ -200,6 +200,22 @@ print(f"PASS  ringdown R2 v2 (GW250114 overtone bounded away from 0 [P={d2['a221
       f"package M={d2['m']['q50']:.1f}/chi={d2['chi']['q50']:.2f} vs NPE {npe['mass'][0]:.1f}/{npe['chi'][0]:.2f}; rhat<1.01)")
 PYEOFR2
 
+echo "--- ringdown B1 start-time sweep (22: package refereess R3 -- overtone damps, peak-mass biased)"
+./ringdown_spectroscopy/.venv311/bin/python - << 'PYEOFB1' || FAIL=1
+import json
+d = json.loads(open("ringdown_spectroscopy/results/22_starttime_sweep.json").read())
+sw = d["sweep"]
+# overtone significant at the peak, lost as the start moves late (real fast-damping 221)
+assert d["overtone_significant_at_peak"] and d["overtone_lost_by_end"], "overtone significance trend broke"
+# peak-start mass biased high vs the true remnant (68.1), drifting down with start time (the R3 systematic)
+assert abs(d["m_drift_peak_to_end"]) > 5.0, f"peak-start mass drift gone: {d['m_drift_peak_to_end']}"
+assert sw[0]["m_med"] > 72.0, f"peak mass no longer biased high: {sw[0]['m_med']}"
+# NUTS healthy throughout
+assert all(r["rhat"] < 1.02 for r in sw), "a sweep fit failed to converge"
+print(f"PASS  ringdown B1 (GW250114 overtone P {sw[0]['a221_frac_below_10pct_median']:.3f}->{sw[-1]['a221_frac_below_10pct_median']:.3f}; "
+      f"peak-mass {sw[0]['m_med']:.1f} drifts {d['m_drift_peak_to_end']:+.1f} Msun -- R3 systematic, package-confirmed)")
+PYEOFB1
+
 echo "--- ringdown R1 per-parameter recalibration (17: each param in band, but does NOT beat global T)"
 ./ringdown_spectroscopy/.venv/bin/python - << 'PYEOFR1' || FAIL=1
 import json
