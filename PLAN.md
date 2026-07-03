@@ -148,10 +148,22 @@
         **The peak-start mass is biased HIGH (74.7 vs the true 68.1 M☉, +10%) and drifts −8.8 M☉ as the start
         moves later** — the early-time systematic R3 found with our NPE, now independently reproduced by the
         coherent package (all rhat<1.01). Gated.
-      - (B2) attempt an independent reproduction of the **nonlinear (quadratic) QNM** claim (arXiv:2601.05734:
-        6 quadratic modes in the (4,4) multiplet, BF 74 at 5 M_f, 3σ) — requires the package to support
-        FIXED-frequency (2×f220) modes; verify feasibility first (R2 fairness) before refereeing or parking.
-      - (B3) close the NPE loop: NPE vs package posteriors across events/settings.
+      - **B2 🅿️ PARKED-HONEST (2026-07-03) — tool inadequate, would be a false negative.** The nonlinear claim
+        (arXiv:2601.05734) is **6 quadratic modes in the (4,4) multiplet** (220×22n coupling), BF 74 at 5 M_f,
+        zero-amplitude excluded at 3σ, reconstructed at 6–10 M_f. Refereeing it needs (a) multi-multipole strain
+        modeling [(2,2)+(4,4) simultaneously] and (b) frequency-LOCKING the quadratic mode to 2×f220 (=497 Hz,
+        6.9% below the linear Kerr 440 at 534 Hz). Verified the vanilla `ringdown` package supports **neither**
+        (only linear (2,2) Kerr QNMs; its "nonlinear/quadratic" source hits are the sampler nuisance params +
+        peak-interpolation, unrelated). Wang & Ma used bespoke PyCBC-Inference templates + 30k live points. A
+        vanilla (2,2)-QNM fit would null a genuinely-present-but-subtle (4,4) signal ⇒ **false negative; won't
+        ship it** (R2 discipline). Come-back-later = the custom multi-multipole pipeline.
+      - **B3 ✅ DONE (2026-07-03) — NPE loop closed.** `23_npe_package_loop.py` (synthesis of 09+21+22): (1) the
+        NPE (M 76.0 [68.4,85.2], χ 0.762) agrees with the package (74.8 [70.4,79.0], 0.729) — gap 1.2 M☉, package
+        CI nested in the NPE's ⇒ the amortized net does real, field-consistent inference; (2) the NPE median sits
+        at ~0 t_Mf (the peak) in B1's start-time family ⇒ it weights the high-SNR early regime and **inherits the
+        R3/B1 peak-start systematic** (+7.9 M☉ vs the true 68.1, matching the package's +6.6 peak bias). The NPE
+        isn't bias-free from marginalizing t0 — it effectively infers from the peak. Gated.
+      **B COMPLETE:** B1 ✅ + B3 ✅ gated; B2 honestly parked (tool-inadequate). Next: D (event watcher).
 - [ ] **D · event watcher: turn the stack into a standing instrument** 🟢 — a harness that, for any new loud
       public event: fetch → NPE no-hair posterior → package cross-check → echo Δt prediction + comb p-value →
       one-page report. Amortization means seconds per event; O4b/O5 will supply GW250114-class events (the

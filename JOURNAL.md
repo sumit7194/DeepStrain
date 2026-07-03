@@ -11,6 +11,26 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-07-03 (later) — Follow-up B: field-standard start-time referee + NPE loop closed; nonlinear-QNM honestly parked
+Rode the GW250114 toehold with the `ringdown` package (`.venv311` from R2), all local/zero-compute.
+- **B1 ✅** `22_starttime_sweep.py` — GW250114 220+221 across 9 start offsets (0–16 t_Mf). The overtone is
+  significant from the peak (P(A221≈0)=0.000) and damps by ~5.4 ms (→0.059) — a real τ221≈1.4 ms mode; the
+  peak-start mass is biased HIGH (74.7 vs true 68.1, +10%), drifting −8.8 M☉ later. **The R3 early-time
+  systematic, independently reproduced by the field-standard coherent pipeline** (all rhat<1.01).
+- **B2 🅿️ parked-honest** — the nonlinear claim (arXiv:2601.05734) is 6 quadratic modes in the (4,4) multiplet
+  (BF 74, 3σ). Verified the vanilla package fits ONLY linear (2,2) QNMs — no multi-multipole, no 2·f220
+  frequency-locking (the quadratic mode = 497 Hz, 6.9% below the linear Kerr 440). Refereeing it with (2,2)
+  machinery would null a real-but-subtle signal → a false negative, which the guardrail forbids. Parked with the
+  requirement stated (needs Wang & Ma's custom PyCBC-Inference pipeline). Same discipline that (correctly) parked
+  R2 until the right tool existed.
+- **B3 ✅** `23_npe_package_loop.py` (synthesis, no new fits) — closes the NPE loop: (1) the NPE (76.0/[68.4,85.2])
+  agrees with the package (74.8, CI nested) ⇒ real field-consistent inference; (2) the NPE median sits at ~0 t_Mf
+  (the peak) in B1's family ⇒ it weights the high-SNR early regime and **inherits the peak systematic** (+7.9 M☉),
+  NOT bias-free from marginalizing t0. Completes the NPE arc: amortized + calibrated + field-cross-validated + now
+  located in the systematic.
+- **B complete** (B1+B3 gated, B2 honestly parked). 35 gates green. Follow-up arc now A ✅ B ✅ → next **D** (event
+  watcher), then **C** (release capstone).
+
 ## 2026-07-03 — Follow-up A: the real matched-filter benchmark on the Mac — the CNN TIES a realizable dense bank
 Direction discussion picked a 4-item follow-up arc (A dense-bank MF benchmark → B ringdown-package → D event
 watcher → C release); A first, and — with the GPU VM down — I re-examined the "intractable locally" call and

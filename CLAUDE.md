@@ -348,6 +348,16 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
   consistent). **(c) NPE referee: package M 74.8 [70.4,79.0] / χ 0.729 vs our 09 NPE 76.0 [68.4,85.2] / 0.762 —
   first independent field-standard cross-validation of the NPE arc (package CI nests inside NPE's).** NUTS x64,
   R̂≤1.004, ESS≥950. Gated. Caveat: all peak-start fits carry the R3 early-time systematic; duration fixed 0.05 s.
+- **B (follow-up) DONE (2026-07-03): package start-time referee + NPE loop closed; nonlinear-QNM honestly parked.**
+  **B1** (`22_starttime_sweep.py`): GW250114 220+221 across 9 start offsets (0–16 t_Mf) — the overtone is
+  significant from the peak (P(A221≈0)=0.000) and damps by ~5.4 ms (→0.059), and the peak-start mass is biased
+  HIGH (74.7 vs true 68.1, +10%), drifting −8.8 M☉ later ⇒ the R3 early-time systematic **independently
+  reproduced by the coherent package**. **B3** (`23_npe_package_loop.py`, synthesis): the NPE (76.0/[68.4,85.2])
+  agrees with the package (74.8/[70.4,79.0], CI nested) AND sits at ~0 t_Mf (the peak) in the sweep ⇒ the NPE
+  **inherits the peak systematic** (+7.9 M☉), not bias-free from marginalizing t0. **B2** (nonlinear (4,4) quadratic
+  mode, arXiv:2601.05734) PARKED — the vanilla package fits only linear (2,2) QNMs; a fair test needs multi-multipole
+  + 2·f220 frequency-locking (Wang & Ma's custom pipeline), so a vanilla fit would be a false negative (R2 discipline).
+  Gated (35). Artifacts: results/22_starttime_sweep.json, 23_npe_package_loop.json.
 
 ## Status & ground rules
 - **All three arcs are PARKED COMPLETE** (FOCUS DIRECTIVE in ../SpaceTime: curvature

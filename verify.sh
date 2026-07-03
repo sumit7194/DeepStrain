@@ -216,6 +216,20 @@ print(f"PASS  ringdown B1 (GW250114 overtone P {sw[0]['a221_frac_below_10pct_med
       f"peak-mass {sw[0]['m_med']:.1f} drifts {d['m_drift_peak_to_end']:+.1f} Msun -- R3 systematic, package-confirmed)")
 PYEOFB1
 
+echo "--- ringdown B3 close the NPE loop (23: NPE agrees with the package AND sits in the peak-start systematic)"
+./ringdown_spectroscopy/.venv/bin/python - << 'PYEOFB3' || FAIL=1
+import json
+d = json.loads(open("ringdown_spectroscopy/results/23_npe_package_loop.json").read())
+# (1) the amortized NPE agrees with the field-standard package (real inference, not an artifact)
+assert d["m_median_gap"] < 3.0 and d["chi_median_gap"] < 0.06, f"NPE-package agreement broke: {d['m_median_gap']}, {d['chi_median_gap']}"
+assert d["package_ci_nested_in_npe"], "package CI no longer nests in the NPE's (loop-closure agreement)"
+# (2) the NPE weights the peak / early start and thus inherits the R3/B1 early-time systematic
+assert d["npe_location_in_sweep_tMf"] < 4.0, f"NPE no longer sits in the early-start regime: {d['npe_location_in_sweep_tMf']}"
+assert d["npe_inherits_peak_systematic"], "NPE peak-systematic inheritance no longer holds"
+print(f"PASS  ringdown B3 (NPE M gap {d['m_median_gap']:.1f} Msun, CI nested; NPE weights ~peak "
+      f"-> inherits +{d['npe_mass_bias_vs_true']:.1f} Msun early-time systematic, shared with the package)")
+PYEOFB3
+
 echo "--- ringdown R1 per-parameter recalibration (17: each param in band, but does NOT beat global T)"
 ./ringdown_spectroscopy/.venv/bin/python - << 'PYEOFR1' || FAIL=1
 import json

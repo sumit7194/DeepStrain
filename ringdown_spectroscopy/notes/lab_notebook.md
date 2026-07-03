@@ -556,3 +556,25 @@ results/21_ringdown_crosscheck.json + posterior npz):
 - Caveat: as t0 increases the signal damps → CIs widen and the A221/A220 point estimate gets noisy (the 6–8 t_Mf
   bump 1.4–1.6 is that instability, not a physical rise); the clean, monotone signals are the overtone-significance
   decay and the mass drift. Gated. Artifact: results/22_starttime_sweep.json.
+
+## 2026-07-03 — B2 PARKED-honest + B3 (NPE loop closed) → B complete
+- **B2 (nonlinear quadratic QNM) PARKED — tool inadequate, R2 discipline.** The claim (arXiv:2601.05734) is 6
+  quadratic modes in the (4,4) multiplet from 220×22n coupling (BF 74 at 5 M_f, 3σ, reconstructed 6–10 M_f). A
+  fair referee needs (a) simultaneous (2,2)+(4,4) multipole strain modeling and (b) frequency-locking the
+  quadratic mode to 2·f220 = 497 Hz (6.9% below the linear Kerr 440, 534 Hz). The vanilla ringdown package does
+  NEITHER — it fits linear (2,2) Kerr QNMs; its "quadratic"/"nonlinear" source strings are peak-interpolation +
+  the sampler's nuisance parameters, unrelated. Wang & Ma used custom PyCBC-Inference templates + dynesty 30k
+  live points. A vanilla (2,2) fit would return ~null on a real-but-subtle (4,4) signal ⇒ a false negative, which
+  the guardrail forbids. Parked with the requirement stated; not attempted, not claimed either way.
+- **B3 (close the NPE loop) DONE.** `23_npe_package_loop.py` — pure synthesis of committed artifacts (09 NPE, 21
+  package-fixed, 22 package-sweep), no new fits:
+  (1) **Agreement:** NPE M 76.0 [68.4,85.2] / χ 0.762 vs package-peak M 74.8 [70.4,79.0] / χ 0.729 — median gap
+      1.2 M☉ / 0.033, and the package 90% CI **nests inside** the NPE's ⇒ the amortized network does real,
+      field-consistent inference (not a simulator artifact).
+  (2) **Location:** the NPE median (76.0) sits at ~0 t_Mf (at/above the peak) in B1's start-time family ⇒ the NPE
+      weights the earliest, highest-SNR configuration rather than averaging over t0, so it **inherits the R3/B1
+      early-time systematic** — NPE mass bias +7.9 M☉ vs the true 68.1, comparable to the package's peak bias +6.6.
+  Take-away: marginalizing the start time does NOT make the NPE bias-free; it effectively infers from the peak,
+  carrying the same +10% systematic every peak-cropped analysis shares. Closes the NPE arc's real-data story:
+  amortized + calibrated (v3) + field-cross-validated (R2/21) + now located in the systematic (B3). Gated.
+  Artifact: results/23_npe_package_loop.json.
