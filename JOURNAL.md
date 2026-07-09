@@ -11,6 +11,16 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-07-10 — TheBridge round 6: no ask; no-chase assessment concurred
+Status note from the sister repo: two new theory papers (G2-manifold BH remnant, GRG; Dorau & Much entropic
+semiclassical-Einstein derivation, PRL) assessed as having NO observational purchase for real GW data —
+remnant QNMs sit ~tens of orders above any detector band; the entropic result is a consistency derivation with
+no predicted deviation. Sanity-checked the scaling (f_QNM ~ c^3/GM -> Planck-scale remnants are ~40+ orders
+above band) and CONCUR: nothing for our stack to chase. Our release capstone + event watcher are featured in
+the bridge's CAPSTONE.md (the §22/§23 start-time referee and Follow-up A's CNN-ties-bank among its entries).
+Standing OPTIONAL item only: an "A1-decisive" amortization follow-up (5+ NPE variants, C2ST scoring) — shelved
+for an instrument-building mood. Nothing waits on us; the watcher watches.
+
 ## 2026-07-03 (night) — Follow-up C: release capstone — the arc closes
 Made the whole thing durable + citable. Env pins committed for all four venvs (requirements.txt x3 +
 requirements-py311.txt for the Py3.11 ringdown package). Rewrote the top-level README from stale (it predated
