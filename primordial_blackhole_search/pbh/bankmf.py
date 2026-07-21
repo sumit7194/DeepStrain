@@ -43,6 +43,34 @@ def snr_series_cpu(d_w: np.ndarray, h_w: np.ndarray) -> np.ndarray:
     return np.roll(rho, len(h_w) - 1)
 
 
+class BankMF:
+    """Bank with analytic spectra precomputed ONCE on the device -> each query is 1 FFT + batched
+    complex-multiply + iFFT. Templates are padded/cropped to n_fft (the analysis window length)."""
+
+    def __init__(self, templates: list[np.ndarray], n_fft: int, device: str = "mps", batch: int = 64):
+        self.n_fft, self.device, self.batch = n_fft, device, batch
+        self.norms = torch.tensor([template_norm(h) for h in templates], dtype=torch.float32, device=device)
+        specs = np.stack([analytic_spectrum(_fit(h, n_fft), n_fft) for h in templates]).astype(np.complex64)
+        self.specs = torch.tensor(specs, device=device)                       # (n_tmpl, n_fft)
+
+    @torch.no_grad()
+    def peaks(self, d_w: np.ndarray) -> np.ndarray:
+        """Phase-maximized peak SNR over time for every template against one chunk d_w (len n_fft)."""
+        D = torch.fft.fft(torch.tensor(_fit(d_w, self.n_fft), dtype=torch.float32, device=self.device), n=self.n_fft)
+        out = np.empty(len(self.norms), dtype=np.float64)
+        for b in range(0, len(self.norms), self.batch):
+            corr = torch.fft.ifft(D.unsqueeze(0) * self.specs[b : b + self.batch].conj(), dim=-1)
+            out[b : b + self.batch] = (corr.abs().amax(dim=-1) / self.norms[b : b + self.batch]).float().cpu().numpy()
+        return out
+
+
+def _fit(x: np.ndarray, n: int) -> np.ndarray:
+    """Right-align x into length n (crop the head / left-pad with zeros) — templates end at the merger."""
+    if len(x) == n:
+        return x
+    return x[-n:] if len(x) > n else np.pad(x, (n - len(x), 0))
+
+
 @torch.no_grad()
 def snr_peaks_mps(d_w: np.ndarray, templates: list[np.ndarray], device: str = "mps",
                   batch: int = 32) -> np.ndarray:
