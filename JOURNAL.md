@@ -11,6 +11,18 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-07-24 — TheBridge Falsification v2: G8 (delta Fisher floor) — assessment, no falsification
+Status note, no ask. v2's live items are lattice/entropy/symbolic — none touch real GW data. Our one standing
+challenge is **G8: "the 221 overtone's information deficit is fundamental at current SNR; no pipeline beats the
+Fisher floor on delta."** Honest read: G8 and our headline are NOT in tension — "sigma(delta) 2.6x tighter" is
+tighter than the poorly-conditioned CLASSICAL fit, not "beats the Fisher floor." Our own stress-tests already
+SUPPORT G8: v5/13 (only GW250114 of 8 events measures delta; the rest return the prior) and v6/14 (delta
+informative only at ringdown SNR >~ 37, ~13% tighter than prior even at the top) are the signature of an
+information-limited observable. The NPE is most likely an EFFICIENT estimator sitting AT the floor, not beating
+it. The decisive check (offered, not yet run): compute the Cramer-Rao floor on delta at GW250114's ringdown SNR
+and compare to the NPE's sigma(delta)~0.14 -- at the floor => G8 holds cleanly; below it => the prior does that
+work (a caveat on the "2.6x" framing, not a falsification). Nothing beats the floor; nothing waits on us.
+
 ## 2026-07-10 — TheBridge round 6: no ask; no-chase assessment concurred
 Status note from the sister repo: two new theory papers (G2-manifold BH remnant, GRG; Dorau & Much entropic
 semiclassical-Einstein derivation, PRL) assessed as having NO observational purchase for real GW data —
