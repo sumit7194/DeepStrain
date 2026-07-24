@@ -247,6 +247,24 @@ print(f"PASS  D event watcher (GW250114: ringdown M {rd['M'][0]:.1f}+overtone; N
       f"echo Dt {ec['dt_pred_s']*1e3:.0f}ms p {ec['comb_p_value']:.2f} null -- all sub-projects in one command)")
 PYEOFD
 
+echo "--- G8 Fisher floor on delta (24: NPE does NOT beat the Cramér-Rao floor; prior-regularized -- G8 stands)"
+./ringdown_spectroscopy/.venv/bin/python - << 'PYEOFG8' || FAIL=1
+import json
+d = json.loads(open("ringdown_spectroscopy/results/24_fisher_floor.json").read())
+# G8 survives (NPE does not beat the data floor by a margin the prior cannot explain)
+assert d["g8_survives"] and not d["g8_killed"], f"G8 verdict flipped: {d['verdict']}"
+# the Fisher matrix was trustworthy for the delta marginal (step-convergence stable)
+assert d["step_convergence_spread"] < 0.05, f"Fisher sigma(delta) not step-stable: {d['step_convergence_spread']}"
+# at this ringdown SNR the data barely constrain delta (data floor ~ prior width) -- consistent with v6
+assert d["sigma_fisher_delta"] > 0.7 * d["sigma_prior"], f"data floor implausibly tight: {d['sigma_fisher_delta']}"
+# the sub-floor precision is PRIOR regularization: an off-center injection is pulled back toward the prior center
+assert d["prior_shrinkage_frac"] > 0.5, f"prior-shrinkage not demonstrated: {d['prior_shrinkage_frac']}"
+# the NPE posterior sits between the data-only and data+prior floors (a proper Bayesian posterior, not floor-beating)
+assert d["sigma_post_min"] <= d["sigma_npe"] <= d["sigma_fisher_delta"] * 1.1, f"NPE width outside the Bayesian band: {d['sigma_npe']}"
+print(f"PASS  G8 Fisher floor (data-only sigma(delta)={d['sigma_fisher_delta']:.2f} ~ prior {d['sigma_prior']:.2f} @ SNR {d['ringdown_snr']:.0f}; "
+      f"NPE {d['sigma_npe']:.2f} is Bayesian data+prior, off-center pulled {d['prior_shrinkage_frac']:.0%} to center -> G8 STANDS)")
+PYEOFG8
+
 echo "--- ringdown R1 per-parameter recalibration (17: each param in band, but does NOT beat global T)"
 ./ringdown_spectroscopy/.venv/bin/python - << 'PYEOFR1' || FAIL=1
 import json

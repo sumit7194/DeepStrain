@@ -1,0 +1,19 @@
+{
+  "ringdown_snr": 24.86870266806652,
+  "sigma_fisher_delta": 0.3205321427137934,
+  "sigma_prior": 0.2886751345948129,
+  "sigma_post_min": 0.214505236019866,
+  "sigma_npe": 0.2626096487790346,
+  "sigma_npe_scatter": 0.1262064386090957,
+  "ratio_npe_over_fisher": 0.81929271291061,
+  "ratio_npe_over_postmin": 1.2242575223418484,
+  "step_convergence_spread": 0.008186359238797366,
+  "preconditioned_cond": 4425103204621998.5,
+  "n_inj": 200,
+  "offcenter_delta": 0.4,
+  "offcenter_npe_median": 0.05509361013537273,
+  "prior_shrinkage_frac": 0.8622659746615682,
+  "g8_survives": true,
+  "g8_killed": false,
+  "verdict": "G8 STANDS \u2014 NPE \u03c3(\u03b4) sits below the data floor but AT the Bayesian data+prior floor: the PRIOR does that work (honesty footnote on '2.6\u00d7 tighter')"
+}

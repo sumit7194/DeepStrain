@@ -578,3 +578,54 @@ results/21_ringdown_crosscheck.json + posterior npz):
   carrying the same +10% systematic every peak-cropped analysis shares. Closes the NPE arc's real-data story:
   amortized + calibrated (v3) + field-cross-validated (R2/21) + now located in the systematic (B3). Gated.
   Artifact: results/23_npe_package_loop.json.
+
+## 2026-07-24 — G8 PRE-REGISTRATION: the Fisher (Cramér-Rao) floor on δ (TheBridge falsification)
+**Postulate G8:** "the 221 δ deficit is fundamental at current SNR — no pipeline beats the Cramér-Rao floor."
+- **KILLED** iff NPE σ(δ) is significantly BELOW the Fisher floor at GW250114's ringdown SNR by a margin the
+  prior cannot explain.
+- **SURVIVES** iff NPE σ(δ) ≈ floor (efficient estimator at the limit).
+**Pre-registered readings (both are results):**
+- σ(δ)_NPE ≈ floor → G8 SURVIVES; headline UPGRADES "2.6× tighter than classical" → "efficient estimator at
+  the information floor" (a stronger claim).
+- σ(δ)_NPE < floor → the prior does that work (a Bayesian posterior legitimately can); G8 still stands, a
+  pre-registered honesty footnote on the "2.6×" framing.
+**Method (`24_fisher_floor.py`, .venv):** the no-hair model is 220 + (1+δ)-shifted 221 damped sinusoids +
+WHITE unit-variance noise (sbilib.simulate) → the Fisher inner product is the plain Euclidean dot product and
+SNR = √(Σh²). Fisher matrix over [M, χ, δ, t0] (shared) + per-detector [A220, φ220, A221, φ221] (2 detectors,
+12 params) via central-difference Jacobians on the CONTINUOUS Kerr f_tau (smooth χ-derivative); σ_Fisher(δ) =
+√[(F⁻¹)_δδ] (marginalized over all nuisances, matching the NPE which marginalizes them). NPE σ(δ) = posterior
+std over N fixed-loudness GW250114 injections (δ=0), same SNR. Fiducial M/χ = GW250114 remnant; loudness = the
+PEAK_AMP_RANGE mean, cross-checked against the published ringdown SNR. Report σ(δ)_NPE, σ_Fisher(δ), ratio,
+verdict. Step-size convergence checked before trusting the matrix.
+
+## 2026-07-24 — G8 RESULT: the NPE does NOT beat the Fisher floor on δ — G8 STANDS (prior-regularized)
+`24_fisher_floor.py`, at GW250114's fiducial ringdown SNR **24.9** (sbilib GW250114-calibrated loudness;
+~30% of the total-80 network SNR in quadrature — plausible):
+| quantity | value |
+|---|---|
+| σ_Fisher(δ) data-only Cramér-Rao | **0.321** |
+| σ_prior (δ ~ U[-0.5,0.5]) | 0.289 |
+| σ_post_min (data+prior Bayesian floor) | 0.215 |
+| σ_NPE (posterior width) | **0.263** |
+| NPE point-estimate scatter | 0.126 |
+| prior-shrinkage test: inject δ=0.4 → NPE median | **+0.055 (86% pulled to prior center)** |
+
+**Verdict: G8 STANDS.** The pre-registered kill condition (NPE σ(δ) below the Fisher floor by a margin the
+PRIOR cannot explain) is NOT met:
+- **The data barely constrain δ at this SNR:** σ_Fisher(δ)=0.32 ≈ σ_prior — independently consistent with v6's
+  "δ informative only at ringdown SNR ≳ 37" (GW250114 sits below that). The overtone simply carries little δ
+  information at SNR ~25.
+- **The NPE posterior width (0.263) is a proper Bayesian combination** sitting between the data-only floor (0.321)
+  and the data+prior floor (0.215) — it does NOT beat the information limit; the sub-data-floor part is the prior.
+- **The apparent point-estimate precision (0.126) is PRIOR REGULARIZATION, proven:** an injected δ=0.4 is pulled
+  86% back to the prior center (median +0.055). At δ=0 (= the injected truth = the prior center) that same
+  shrinkage makes estimates cluster near 0, looking precise — but it's the prior pulling toward a value that
+  happens to be correct, not the data resolving δ.
+- **Trust checks:** σ_Fisher step-convergence 0.8% across a 4× step range (the δ marginal is stable despite the
+  nuisance-subspace degeneracy from the t0/phase near-degeneracy); the NPE's own calibrated posterior width
+  independently corroborates σ_Fisher~0.3.
+
+**Honesty footnote on the headline (pre-registered):** "σ(δ) 2.6× tighter than the classical fit" is TRUE and
+remains our result — but it reflects efficient Bayesian estimation + prior regularization at the prior center,
+NOT beating the Cramér-Rao information floor. No pipeline beats the floor on δ at current SNR; that deficit is
+fundamental, exactly as G8 asserts. Gated. Artifact: results/24_fisher_floor.json.

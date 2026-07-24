@@ -11,17 +11,20 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
-## 2026-07-24 — TheBridge Falsification v2: G8 (delta Fisher floor) — assessment, no falsification
-Status note, no ask. v2's live items are lattice/entropy/symbolic — none touch real GW data. Our one standing
-challenge is **G8: "the 221 overtone's information deficit is fundamental at current SNR; no pipeline beats the
-Fisher floor on delta."** Honest read: G8 and our headline are NOT in tension — "sigma(delta) 2.6x tighter" is
-tighter than the poorly-conditioned CLASSICAL fit, not "beats the Fisher floor." Our own stress-tests already
-SUPPORT G8: v5/13 (only GW250114 of 8 events measures delta; the rest return the prior) and v6/14 (delta
-informative only at ringdown SNR >~ 37, ~13% tighter than prior even at the top) are the signature of an
-information-limited observable. The NPE is most likely an EFFICIENT estimator sitting AT the floor, not beating
-it. The decisive check (offered, not yet run): compute the Cramer-Rao floor on delta at GW250114's ringdown SNR
-and compare to the NPE's sigma(delta)~0.14 -- at the floor => G8 holds cleanly; below it => the prior does that
-work (a caveat on the "2.6x" framing, not a falsification). Nothing beats the floor; nothing waits on us.
+## 2026-07-24 — TheBridge G8: the Fisher-floor number built — NPE does NOT beat the floor, G8 STANDS
+The bridge took up our offer; built the Cramér-Rao floor on δ (`24_fisher_floor.py`), pre-registered in the
+ringdown lab notebook first. The no-hair model is white-noise whitened → the Fisher inner product is a plain dot
+product and SNR=√(Σh²). Fisher matrix over 12 params (M, χ, δ, t0 shared + per-detector A220/φ220/A221/φ221),
+correlation-matrix preconditioned (raw cond ~1e22 is pure parameter-scale, not physics), σ_Fisher(δ) step-stable
+to 0.8% across a 4× step range. **At GW250114's ringdown SNR ~25: data-only σ(δ)=0.32 ≈ the prior width (0.29) —
+the data barely constrain δ**, independently consistent with v6's "informative only at SNR ≳ 37". The NPE
+posterior width (0.263) is a proper Bayesian combination between the data floor (0.32) and the data+prior floor
+(0.215) — it does NOT beat the information limit. **The clincher — a prior-shrinkage test:** inject δ=0.4, the NPE
+median comes back at +0.055 (**86% pulled to the prior center**), PROVING the apparent sub-floor precision is prior
+regularization, not data. **G8 STANDS.** Pre-registered honesty footnote: our "σ(δ) 2.6× tighter than classical"
+is true but is efficient-Bayesian + prior-regularized precision, not floor-beating. Nothing beats the floor on δ at
+current SNR — the deficit is fundamental, exactly as G8 asserts. Gated, 37 gates green. (Process note: a botched
+one-liner truncated this JOURNAL mid-write; restored from git — a reminder to never `open(p,"w")` before reading.)
 
 ## 2026-07-10 — TheBridge round 6: no ask; no-chase assessment concurred
 Status note from the sister repo: two new theory papers (G2-manifold BH remnant, GRG; Dorau & Much entropic
