@@ -1,0 +1,56 @@
+{
+  "sigma_times_snr": 7.97,
+  "sensitivity": [
+    {
+      "mode": "222 (second overtone)",
+      "amp_frac": 0.1,
+      "bias": 0.024333010698222024,
+      "crossover_snr": 327.53858940202394
+    },
+    {
+      "mode": "222 (second overtone)",
+      "amp_frac": 0.3,
+      "bias": 0.07299903209466674,
+      "crossover_snr": 109.17952980067365
+    },
+    {
+      "mode": "222 (second overtone)",
+      "amp_frac": 0.5,
+      "bias": 0.12166505349111123,
+      "crossover_snr": 65.50771788040419
+    },
+    {
+      "mode": "222 (second overtone)",
+      "amp_frac": 1.0,
+      "bias": 0.24333010698222246,
+      "crossover_snr": 32.75385894020209
+    },
+    {
+      "mode": "(4,4,0) (higher multipole)",
+      "amp_frac": 0.1,
+      "bias": 0.22382088118365528,
+      "crossover_snr": 35.60883130229592
+    },
+    {
+      "mode": "(4,4,0) (higher multipole)",
+      "amp_frac": 0.3,
+      "bias": 0.6714626435509674,
+      "crossover_snr": 11.869610434098611
+    },
+    {
+      "mode": "(4,4,0) (higher multipole)",
+      "amp_frac": 0.5,
+      "bias": 1.1191044059182769,
+      "crossover_snr": 7.1217662604591805
+    },
+    {
+      "mode": "(4,4,0) (higher multipole)",
+      "amp_frac": 1.0,
+      "bias": 2.2382088118365537,
+      "crossover_snr": 3.5608831302295902
+    }
+  ],
+  "r3_imr_bias": 0.33,
+  "r3_crossover_snr": 24.15151515151515,
+  "note": "crossover SNR = (sigma*SNR)/|bias| scales as 1/|bias|; it is conditional on the assumed un-modeled content, NOT a constant. The R3 anchor uses an NPE posterior shift on full-IMR injections (not a pure Cutler-Vallisneri linear-response bias) -- order-of-magnitude only."
+}

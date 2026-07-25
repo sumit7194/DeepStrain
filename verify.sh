@@ -283,6 +283,22 @@ print(f"PASS  wall species (sigma_stat slope {d['loglog_slope']:+.3f} = species-
       f"delta={d['systematic_floor_delta']:.3f} SNR-independent -> total error saturates, crossover SNR ~{d['crossover_snr']:.0f})")
 PYEOFWS
 
+echo "--- crossover sensitivity (25b: the species-1->4 crossover is conditional, NOT a constant)"
+./ringdown_spectroscopy/.venv/bin/python - << 'PYEOFCS' || FAIL=1
+import json
+d = json.loads(open("ringdown_spectroscopy/results/25_crossover_sensitivity.json").read())
+xs = [r["crossover_snr"] for r in d["sensitivity"]]
+# the crossover spans a wide range with the assumed un-modeled content -> must never be cited as a constant
+assert max(xs) / min(xs) > 5, f"crossover no longer content-dependent: {min(xs)}-{max(xs)}"
+# scaling identity: crossover = (sigma*SNR)/|bias|
+for r in d["sensitivity"]:
+    assert abs(r["crossover_snr"] * r["bias"] - d["sigma_times_snr"]) < 0.1, "crossover/bias scaling broke"
+# the R3-anchored (directly measured, realistic-IMR) crossover puts GW250114 AT the transition
+assert 15 < d["r3_crossover_snr"] < 40, f"R3-anchored crossover moved: {d['r3_crossover_snr']}"
+print(f"PASS  crossover sensitivity (spans {min(xs):.0f}-{max(xs):.0f} with assumed content; R3-anchored "
+      f"{d['r3_crossover_snr']:.0f} => GW250114 already at the species-1->4 transition)")
+PYEOFCS
+
 echo "--- ringdown R1 per-parameter recalibration (17: each param in band, but does NOT beat global T)"
 ./ringdown_spectroscopy/.venv/bin/python - << 'PYEOFR1' || FAIL=1
 import json

@@ -680,3 +680,31 @@ and effort should shift from detector sensitivity to waveform completeness. This
 peak-start mass bias (+10%) and R3's δ≈−0.33 are the same species of error, and B1 showed it is start-time-
 convention dependent — a species-3 (definitional) flavour on top of the systematic floor. Gated.
 Artifact: results/25_wall_species.json.
+
+## 2026-07-24 — CROSSOVER SENSITIVITY: the species-1→4 crossover is conditional, and GW250114 is already at it
+The bridge formalized our SNR≈124 as "the computable crossover" of the new species-4 (model-fidelity) wall.
+Before that number gets over-cited, measured its sensitivity (`25_wall_species.crossover_sensitivity`,
+results/25_crossover_sensitivity.json). The crossover is **not a constant**: it is
+`SNR_cross = (σ_stat·SNR) / |bias|` = `7.97 / |bias|`, so it scales as 1/|bias| and depends entirely on WHAT
+the forward model omits:
+| un-modeled content | \|bias(δ)\| | crossover SNR |
+|---|---|---|
+| 222 @ 10% of A220 | 0.024 | 328 |
+| **222 @ 30%** (the reported case) | 0.073 | **109** |
+| 222 @ 100% | 0.243 | 33 |
+| (4,4,0) @ 10% | 0.224 | 36 |
+| (4,4,0) @ 30% | 0.672 | 12 |
+| **R3's measured full-IMR peak-start systematic** | **0.33** | **~24** |
+**Material correction to what we told the bridge.** We reported "GW250114 (SNR~25) is comfortably
+statistics-limited; more SNR pays until ~124." That holds ONLY for the idealized single-tone 222-at-30% case.
+Under our OWN directly measured realistic systematic — R3's full-IMR injections give δ ≈ −0.33 at peak start —
+the crossover is **SNR ≈ 24, so GW250114 is AT/PAST the species-1→species-4 transition already.** The honest
+actionable statement is therefore the stronger one: **waveform completeness is plausibly the binding constraint
+on the no-hair test NOW, not at some future louder event.** This also retro-explains two of our own results:
+the δ posterior being prior-dominated (G8) and the start-time systematic being so visible (R3/B1) are both
+symptoms of sitting at the crossover.
+**Caveats (kept explicit):** (a) the R3 anchor is an NPE posterior shift on IMR injections, not a pure
+Cutler–Vallisneri linear-response bias — order-of-magnitude comparison only; (b) the strongly-contaminating
+(4,4,0) rows involve F⁻¹ amplification through a near-singular matrix (preconditioned cond ~1e15), so their
+absolute values are less trustworthy than the 222 rows — the qualitative point (crossover can be ≪124) is what
+survives; (c) all rows share the fixed fiducial (M, χ, t0, A221/A220=1). Gated.

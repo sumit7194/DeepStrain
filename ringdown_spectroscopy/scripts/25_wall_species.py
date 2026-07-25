@@ -158,3 +158,39 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
+# ---------------------------------------------------------------- crossover sensitivity (appended 2026-07-24)
+def crossover_sensitivity():
+    """The species-1 -> species-4 crossover SNR is NOT a constant: it scales as 1/|bias|, and the bias depends
+    on WHAT the model omits. Report a defensible RANGE instead of a single point estimate."""
+    import numpy as np, json
+    base = np.array([0.02, 0.002, 0.02, 2e-5, 0.05, 0.004, 0.05, 0.004, 0.05, 0.004, 0.05, 0.004])
+    sig_x_snr = 7.97                      # the measured invariant sigma_stat * SNR
+    global A222_FRAC, K222
+    rows = []
+    for mode_name, kerr in (("222 (second overtone)", rdlib.KerrMap(2, 2, 2)),
+                            ("(4,4,0) (higher multipole)", rdlib.KerrMap(4, 4, 0))):
+        for frac in (0.1, 0.3, 0.5, 1.0):
+            A222_FRAC, K222 = frac, kerr   # unmodelled_222 reads these globals
+            _, bias, _ = fisher_and_bias(7.0, base)
+            rows.append(dict(mode=mode_name, amp_frac=frac, bias=abs(bias),
+                             crossover_snr=sig_x_snr / abs(bias) if bias else float("inf")))
+    print(f"\n{'un-modeled content':>28} {'A/A220':>7} {'|bias(δ)|':>10} {'crossover SNR':>14}")
+    for r in rows:
+        print(f"{r['mode']:>28} {r['amp_frac']:>7.1f} {r['bias']:>10.4f} {r['crossover_snr']:>14.0f}")
+    # anchor against our OWN measured realistic systematic (R3: delta ~ -0.33 on full-IMR injections at peak)
+    r3_bias, r3_cross = 0.33, sig_x_snr / 0.33
+    print(f"\n[R3 anchor] our measured full-IMR peak-start δ systematic = {r3_bias} -> crossover SNR ~ {r3_cross:.0f}"
+          f"  => GW250114 (SNR~25) is AT/PAST the transition, not comfortably below it")
+    out = {"sigma_times_snr": sig_x_snr, "sensitivity": rows,
+           "r3_imr_bias": r3_bias, "r3_crossover_snr": r3_cross,
+           "note": "crossover SNR = (sigma*SNR)/|bias| scales as 1/|bias|; it is conditional on the assumed "
+                   "un-modeled content, NOT a constant. The R3 anchor uses an NPE posterior shift on full-IMR "
+                   "injections (not a pure Cutler-Vallisneri linear-response bias) -- order-of-magnitude only."}
+    (RESULTS / "25_crossover_sensitivity.json").write_text(json.dumps(out, indent=2))
+    print("wrote 25_crossover_sensitivity.json")
+
+
+if __name__ == "__main__":
+    crossover_sensitivity()

@@ -23,6 +23,12 @@ The bridge classified our δ wall CROSSABLE (species-1) and asked us to falsify 
   19.2% numerical noise floor — I measured that floor rather than loosening an arbitrary threshold to get my
   predicted answer).
 - **LEG 3: the TOTAL error therefore SATURATES at 0.072**, crossover at **SNR ≈ 124**.
+**FOLLOW-UP CORRECTION (same day):** the bridge formalized SNR≈124 as species-4's "computable crossover", so I
+measured its sensitivity before it got over-cited. The crossover = 7.97/|bias| scales as 1/|bias| and spans
+**~4–330** depending on the omitted content; under our OWN measured realistic systematic (R3 full-IMR, δ≈−0.33)
+it is **~24 — GW250114 is already AT the transition**, not comfortably below it. Corrects our "comfortably
+statistics-limited" statement: waveform completeness is plausibly the binding constraint NOW. Retro-explains the
+prior-dominated δ (G8) and the visible start-time systematic (R3/B1) as crossover symptoms. Gated (39).
 **The answer that the two-option framing misses:** δ is precision-limited *statistically* (more SNR genuinely
 helps, exactly 1/SNR) but the total error stops improving at a **model-fidelity floor** — crossable by better
 WAVEFORMS (222, (4,4), nonlinear modes), not by better detectors. Actionable: GW250114 (SNR~25) is still
