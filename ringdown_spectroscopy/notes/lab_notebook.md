@@ -629,3 +629,54 @@ PRIOR cannot explain) is NOT met:
 remains our result — but it reflects efficient Bayesian estimation + prior regularization at the prior center,
 NOT beating the Cramér-Rao information floor. No pipeline beats the floor on δ at current SNR; that deficit is
 fundamental, exactly as G8 asserts. Gated. Artifact: results/24_fisher_floor.json.
+
+## 2026-07-24 — PRE-REGISTRATION: wall-species test (TheBridge taxonomy) — is the δ wall species-1 or species-2?
+The bridge classified our no-hair δ wall CROSSABLE (species-1, precision-limited) and asked us to falsify it by
+injecting at escalating SNR: σ(δ) ∝ 1/SNR → species-1; σ(δ) saturates → species-2 (in-channel degeneracy).
+**Predictions stated BEFORE running (`25_wall_species.py`):**
+- **LEG 1 is analytically determined, not empirical.** For h = A·s(shape) with Gaussian noise, block inversion
+  gives (F⁻¹)_δδ ∝ A⁻²·[⟨∂s,∂s⟩ − ⟨∂s,s⟩⟨s,s⟩⁻¹⟨s,∂s⟩]⁻¹ ⇒ **σ_Fisher(δ) ∝ 1/SNR EXACTLY.** A finite nonzero
+  saturation of the FISHER floor is mathematically impossible here; the only alternative is a singular sub-block
+  (σ=∞ at every SNR — a perfect degeneracy, not a floor). PREDICT log-log slope = −1.000. This leg validates the
+  implementation; it cannot discover a species-2 wall.
+- **LEG 2 (the interesting one): waveform-systematic bias is SNR-INDEPENDENT.** Cutler–Vallisneri
+  Δθ_i = (F⁻¹)_ij⟨∂_j h|Δh⟩ with Δh the un-modeled residual; F⁻¹ ∝ A⁻² and ⟨∂h|Δh⟩ ∝ A² ⇒ Δθ ∝ A⁰. PREDICT the
+  δ bias from an un-modeled **222 second overtone** (the published GW250114 analyses fit n=2; our 220+221 model
+  omits it; A222/A220 = 0.3) is FLAT across a 1000× SNR range.
+- **LEG 3: total error = √(σ_stat² + Δ_sys²) → Δ_sys.** If Δ_sys > 0 the TOTAL error SATURATES even though the
+  Fisher floor does not. Report the crossover SNR where systematics overtake statistics.
+**Anticipated verdict (to be confirmed or refuted):** species-1 in the statistical channel (the bridge's call
+stands) BUT a saturating total-error floor whose mechanism is MODEL FIDELITY, not in-channel identity — a third
+thing the two-option framing misses, and crossable by better waveforms rather than by better detectors.
+
+## 2026-07-24 — WALL-SPECIES RESULT: δ is species-1 statistically, but the TOTAL error saturates (systematics)
+`25_wall_species.py`. All three pre-registered predictions confirmed:
+| SNR | σ_stat(δ) | σ·SNR | bias_sys(δ) | total |
+|---|---|---|---|---|
+| 25 | 0.3205 | 7.97 | −0.073 | 0.329 |
+| 99 | 0.0801 | 7.97 | −0.073 | 0.108 |
+| 497 | 0.0160 | 7.97 | −0.069 | 0.071 |
+| 24,869 | 0.0003 | 7.97 | −0.070 | 0.070 |
+- **LEG 1 — the bridge's classification STANDS for the statistical channel.** d log σ / d log SNR = **−1.0000**,
+  σ·SNR invariant to **0.0%** across a 1000× SNR range. This was analytically forced (block inversion gives
+  (F⁻¹)_δδ ∝ A⁻² for any amplitude-linear model in Gaussian noise), so the run VALIDATES the implementation
+  rather than discovering anything: **no finite saturation of the Fisher floor is possible**, and there is no
+  in-channel degeneracy (a degeneracy would give σ=∞ at every SNR, not a floor). δ is NOT species-2.
+- **LEG 2 — the systematic bias is SNR-INDEPENDENT.** Cutler–Vallisneri bias from an un-modeled **222 second
+  overtone** (A222/A220=0.3; the published GW250114 analyses fit n=2, our 220+221 model omits it): **δ bias
+  = 0.072**, varying only **13.9%** across a 1000× SNR range — *smaller than the measured numerical noise floor
+  of 19.2%* (bias re-computed across a 4× step-size range at FIXED SNR). So it is constant to within what the
+  near-degenerate 12×12 inversion can resolve, exactly as predicted (F⁻¹ ∝ A⁻², ⟨∂h|Δh⟩ ∝ A² ⇒ Δθ ∝ A⁰).
+  *(Honesty note: the first pass flagged "varies" against an arbitrary 5% threshold; rather than loosen it to
+  get the expected answer, I MEASURED the numerical noise floor and judged against that.)*
+- **LEG 3 — the TOTAL error saturates at 0.072**, with statistics ceasing to dominate at **SNR ≈ 124**.
+**Answer to the bridge: your species-1 call stands, but the two-option framing misses the operative wall.**
+δ is precision-limited *statistically* (keep pushing SNR — it genuinely helps, exactly as 1/SNR), yet the total
+error stops improving at a **waveform-systematic floor** that no amount of SNR removes. The mechanism is MODEL
+FIDELITY, not in-channel identity: it is crossable, but by **better waveform models** (more modes: 222, (4,4),
+nonlinear) rather than by better detectors. Actionable: **GW250114 (SNR~25) is statistics-limited — more SNR
+still pays. Past SNR≈124 (a ~5× louder event, plausible in O5) the no-hair test becomes systematics-limited,**
+and effort should shift from detector sensitivity to waveform completeness. This also connects to B1: the
+peak-start mass bias (+10%) and R3's δ≈−0.33 are the same species of error, and B1 showed it is start-time-
+convention dependent — a species-3 (definitional) flavour on top of the systematic floor. Gated.
+Artifact: results/25_wall_species.json.

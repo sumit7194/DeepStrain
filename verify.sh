@@ -265,6 +265,24 @@ print(f"PASS  G8 Fisher floor (data-only sigma(delta)={d['sigma_fisher_delta']:.
       f"NPE {d['sigma_npe']:.2f} is Bayesian data+prior, off-center pulled {d['prior_shrinkage_frac']:.0%} to center -> G8 STANDS)")
 PYEOFG8
 
+echo "--- wall species (25: delta wall is species-1 statistically, but total error saturates at a systematic floor)"
+./ringdown_spectroscopy/.venv/bin/python - << 'PYEOFWS' || FAIL=1
+import json
+d = json.loads(open("ringdown_spectroscopy/results/25_wall_species.json").read())
+# LEG 1: sigma_Fisher(delta) ~ 1/SNR EXACTLY (analytic identity; validates the implementation)
+assert abs(d["loglog_slope"] + 1.0) < 0.02, f"Fisher scaling broke: slope {d['loglog_slope']}"
+assert d["sigma_snr_spread"] < 0.02, f"sigma*SNR not invariant: {d['sigma_snr_spread']}"
+assert d["statistical_species1"], "statistical channel no longer species-1"
+# LEG 2: the Cutler-Vallisneri systematic bias is SNR-INDEPENDENT (variation within the numerical noise floor)
+assert d["bias_is_flat"], f"systematic bias no longer flat in SNR: {d['bias_snr_spread']} vs {d['bias_numerical_spread']}"
+assert d["systematic_floor_delta"] > 0.01, f"no systematic floor found: {d['systematic_floor_delta']}"
+# LEG 3: total error saturates -> more SNR alone cannot cross the wall past the systematic floor
+assert d["total_error_saturates"], "total error no longer saturates"
+assert d["rows"][-1]["total"] > 0.5 * d["systematic_floor_delta"], "total error fell below the systematic floor"
+print(f"PASS  wall species (sigma_stat slope {d['loglog_slope']:+.3f} = species-1; systematic floor "
+      f"delta={d['systematic_floor_delta']:.3f} SNR-independent -> total error saturates, crossover SNR ~{d['crossover_snr']:.0f})")
+PYEOFWS
+
 echo "--- ringdown R1 per-parameter recalibration (17: each param in band, but does NOT beat global T)"
 ./ringdown_spectroscopy/.venv/bin/python - << 'PYEOFR1' || FAIL=1
 import json

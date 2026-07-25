@@ -1,0 +1,64 @@
+{
+  "a222_frac": 0.3,
+  "rows": [
+    {
+      "snr": 24.86870266806652,
+      "sigma_stat": 0.3205321427137934,
+      "sigma_times_snr": 7.971218552707591,
+      "bias_sys": -0.07299903209466674,
+      "total": 0.32873958264780617
+    },
+    {
+      "snr": 49.73740533613304,
+      "sigma_stat": 0.1602660713568967,
+      "sigma_times_snr": 7.971218552707591,
+      "bias_sys": -0.07299903209466674,
+      "total": 0.17610812677140167
+    },
+    {
+      "snr": 99.47481067226607,
+      "sigma_stat": 0.08013303567844834,
+      "sigma_times_snr": 7.971218552707591,
+      "bias_sys": -0.07299903209466674,
+      "total": 0.1083981646237687
+    },
+    {
+      "snr": 248.68702668066518,
+      "sigma_stat": 0.032053214271377244,
+      "sigma_times_snr": 7.971218552707071,
+      "bias_sys": -0.06887387983410953,
+      "total": 0.07596722891174972
+    },
+    {
+      "snr": 497.37405336133037,
+      "sigma_stat": 0.016026607135688622,
+      "sigma_times_snr": 7.971218552707071,
+      "bias_sys": -0.06887387983410953,
+      "total": 0.07071395519757798
+    },
+    {
+      "snr": 2486.870266806652,
+      "sigma_stat": 0.0032053214271369917,
+      "sigma_times_snr": 7.97121855270525,
+      "bias_sys": -0.0789574823278496,
+      "total": 0.07902251641781567
+    },
+    {
+      "snr": 24868.702668066522,
+      "sigma_stat": 0.00032053214271361626,
+      "sigma_times_snr": 7.971218552703188,
+      "bias_sys": -0.070389803112751,
+      "total": 0.07039053290824245
+    }
+  ],
+  "loglog_slope": -1.0000000000000828,
+  "sigma_snr_spread": 5.524360642925873e-13,
+  "bias_snr_spread": 0.13947107983523005,
+  "bias_numerical_spread": 0.19157181630853817,
+  "bias_is_flat": true,
+  "systematic_floor_delta": 0.07229887734183141,
+  "crossover_snr": 123.69249913215839,
+  "statistical_species1": true,
+  "total_error_saturates": true,
+  "verdict": "STATISTICAL CHANNEL = SPECIES-1 (bridge's classification STANDS: sigma_Fisher \u221d 1/SNR exactly, no in-channel degeneracy). BUT the TOTAL error SATURATES at an SNR-independent waveform-systematic floor -> more SNR alone does not cross the no-hair wall past that floor; the mechanism is MODEL FIDELITY (crossable by better waveforms), not in-channel identity (species-2)."
+}

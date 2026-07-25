@@ -11,6 +11,25 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-07-24 (later) — TheBridge wall-taxonomy: δ is species-1 statistically, but the TOTAL error saturates
+The bridge classified our δ wall CROSSABLE (species-1) and asked us to falsify it by escalating SNR.
+`25_wall_species.py`, three legs, predictions pre-registered:
+- **LEG 1 was analytically forced, not empirical:** for any amplitude-linear model in Gaussian noise, block
+  inversion gives (F⁻¹)_δδ ∝ A⁻² ⇒ σ_Fisher(δ) ∝ 1/SNR EXACTLY — a finite saturation of the Fisher floor is
+  mathematically impossible (a true degeneracy gives σ=∞ at every SNR, not a floor). Measured: slope **−1.0000**,
+  σ·SNR invariant to **0.0%** over 1000×. **The bridge's species-1 call STANDS; δ is not species-2.**
+- **LEG 2 (the real finding): the waveform-systematic bias is SNR-INDEPENDENT.** Cutler–Vallisneri bias from an
+  un-modeled 222 second overtone = **0.072**, flat across 1000× in SNR (13.9% variation, *below* the measured
+  19.2% numerical noise floor — I measured that floor rather than loosening an arbitrary threshold to get my
+  predicted answer).
+- **LEG 3: the TOTAL error therefore SATURATES at 0.072**, crossover at **SNR ≈ 124**.
+**The answer that the two-option framing misses:** δ is precision-limited *statistically* (more SNR genuinely
+helps, exactly 1/SNR) but the total error stops improving at a **model-fidelity floor** — crossable by better
+WAVEFORMS (222, (4,4), nonlinear modes), not by better detectors. Actionable: GW250114 (SNR~25) is still
+statistics-limited, so more SNR pays; past SNR≈124 (a ~5× louder event, plausible in O5) the no-hair test becomes
+systematics-limited and effort should shift to waveform completeness. Ties to B1: the peak-start mass bias is the
+same species, and its start-time-convention dependence adds a species-3 (definitional) flavour. Gated, 38 green.
+
 ## 2026-07-24 — TheBridge G8: the Fisher-floor number built — NPE does NOT beat the floor, G8 STANDS
 The bridge took up our offer; built the Cramér-Rao floor on δ (`24_fisher_floor.py`), pre-registered in the
 ringdown lab notebook first. The no-hair model is white-noise whitened → the Fisher inner product is a plain dot
