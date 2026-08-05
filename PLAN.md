@@ -183,6 +183,29 @@
       the release (Zenodo archival = user's optional next step).
       **Follow-up arc A→B→D→C COMPLETE.**
 
+## O4 era (added 2026-08-06) — moving off O3a onto the newest public data
+> Prompted by the 12 Nov 2025 subsolar candidate **S251112cm** (>99% prob. a sub-solar component, FAR 1/6.2 yr,
+> 93±27 Mpc). Its data is **NOT public** (O4c; verified via GWOSC API). But **O4b IS public** (Apr 2024–Jan 2025,
+> H1+L1+V1) and **GWTC-5.0** (161 new O4b events) is out — while our whole PBH arc ran on O3a (May 2019).
+
+- [x] **O4-1 · transfer scout** ✅ **DONE (2026-08-06).** `o4_transfer_scout.py`: the O3a-trained cnn_w64 applied
+      to O4b noise scores **0.97× its O3a sensitive distance — transfers unchanged** (per-segment PSD whitening
+      absorbs the era shift), so O4 work needs no retraining and comparisons aren't model-confounded. O4b is
+      **1.41× more sensitive** in-band; zero-FA threshold 2.111 → 1.141. Committed.
+- [x] **O4-2 · N5 Virgo re-test on O4b** ✅ **DONE — the negative REPLICATES (2026-08-06).** The obvious objection
+      to N5 was that it used weak O3a-era Virgo. On **8 fresh O4b triple-coincident segments** (2× the O3a run):
+      **double/single 1.30× (O3a 1.33×), triple/double 0.95× (O3a 0.94×)** — both replicate within 3%; Virgo still
+      costs ~5%. **Mechanism MEASURED** (`o4_asd_compare.py`): median ASD [50,300] Hz shows V1 is **2.8× louder
+      than the best LIGO detector in O3a and 3.2× in O4b** — Virgo improved 1.14× but LIGO improved 1.29×, so the
+      **gap WIDENED**, and V1's signal responsiveness fell 19% → 12%. Structural, not an artifact of old data.
+      Bycatch: 177 triple windows in a 30-day O4b probe (vs 20 in six months of O3a); 8/8 segments usable (vs 4–5).
+      Gated (40). Committed.
+- [ ] **O4-3 · O4b-era sensitive distance / reach** 🟢 — with transfer established, quote the PBH search's reach
+      against the *current* detector era rather than 2019: run the full evaluate.py-style campaign on a larger
+      O4b test set. *Done =* an O4b reach number gated alongside the O3a one.
+- [ ] **O4-4 · watch for O4c / S251112cm release** 🟡 — if S251112cm survives review and O4c releases, the
+      pipeline is already validated on O4-era noise and can be pointed straight at it. *Done =* a watcher check.
+
 ## Parked — blocked by a known wall (discuss before attempting) 🔴
 - **PBH dense template bank / true-waveform front end** — subsolar needs ≤0.1 % Mc spacing (~1,600+ templates);
   intractable without serious GPU/cloud compute. Blocks the real-MF detector + fine-timing coincidence.

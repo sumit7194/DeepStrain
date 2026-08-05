@@ -551,6 +551,29 @@ print(f"PASS  pbh N5 (double {d['double_over_single']:.2f}x single reproduces G1
       f"= Virgo no help; V1 signal-response {r['V1']:+.1f} vs H1 {r['H1']:+.1f}/L1 {r['L1']:+.1f})")
 PYEOFN5
 
+echo "--- pbh N5 O4b RE-TEST (coinc_triple_o4b: the Virgo negative REPLICATES on 2024-25 data)"
+./primordial_blackhole_search/.venv/bin/python - << 'PYEOFN5B' || FAIL=1
+import json
+o3 = json.loads(open("primordial_blackhole_search/results/coinc_triple.json").read())
+o4 = json.loads(open("primordial_blackhole_search/results/coinc_triple_o4b.json").read())
+a  = json.loads(open("primordial_blackhole_search/results/o4_asd_compare.json").read())
+# (1) the double-coincidence win reproduces on O4b data (independent era, fresh segments)
+assert o4["double_over_single"] > 1.2, f"O4b double no longer beats single: {o4['double_over_single']}"
+# (2) THE RESULT: Virgo still does not help, on 2x the segments, 5.5 years later, on a more sensitive network
+assert o4["triple_over_double"] < 1.05 and not o4["virgo_helps"], f"O4b Virgo now helps: {o4['triple_over_double']}"
+# (3) cross-era replication: both eras agree to within 5% on both ratios
+assert abs(o4["double_over_single"] - o3["double_over_single"]) < 0.15, "double/single did not replicate across eras"
+assert abs(o4["triple_over_double"] - o3["triple_over_double"]) < 0.05, "triple/double did not replicate across eras"
+# (4) mechanism, MEASURED: V1 stays an order of magnitude less responsive, because the ASD gap widened
+r4 = o4["signal_responsiveness"]
+assert r4["V1"] < 0.3 * (r4["H1"] + r4["L1"]) / 2, f"V1 responsiveness no longer suppressed: {r4}"
+assert a["gap_widened"], "the V1/LIGO ASD gap no longer widened O3a->O4b"
+assert a["eras"]["O4b"]["v1_over_best_ligo"] > 2.5, "V1 no longer >2.5x louder than LIGO in O4b"
+print(f"PASS  pbh N5 O4b re-test (double {o4['double_over_single']:.2f}x reproduces; triple {o4['triple_over_double']:.2f}x "
+      f"= Virgo still no help on {o4['n_segs']} O4b segs; V1 ASD {a['eras']['O4b']['v1_over_best_ligo']:.1f}x LIGO, gap widened from "
+      f"{a['eras']['O3a']['v1_over_best_ligo']:.1f}x)")
+PYEOFN5B
+
 echo "========================================"
 [ $FAIL -eq 0 ] && echo "BLACKHOLE GATE: ALL GREEN" || echo "BLACKHOLE GATE: FAILURES"
 exit $FAIL

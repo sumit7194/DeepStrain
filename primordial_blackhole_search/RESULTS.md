@@ -840,3 +840,45 @@ the airtight co-injection (identical injections) shrank it to a ~3% tie — the 
 Caveats: single-detector H1 (coincidence is the separate +1.37× axis); n=8 semi-coherent (not full-coherent, which
 is intractable); 64-s window convention; the newSNR chi²-veto threshold is zero-FA over 6 segments. Gated.
 Artifacts: bank_golden.json, bank_semiff.json, bank_dense.json, bank_vs_cnn.json; pbh/bankmf.py.
+
+### N5 O4b RE-TEST (2026-08-06): the Virgo negative REPLICATES across detector generations
+N5 (O3a, 2019) found Virgo does **not** help subsolar triple-coincidence. The obvious objection: that was
+*O3a-era* Virgo. With O4b now public (Apr 2024–Jan 2025, H1+L1+V1) the objection is testable — and the answer
+is a clean replication on **twice the segments, 5.5 years later, on a more sensitive network**.
+
+**Prerequisite (`o4_transfer_scout.py`):** the O3a-trained `cnn_w64` transfers to O4b noise **unchanged
+(0.97× sensitive distance)** — per-segment PSD whitening absorbs the era shift — so the comparison is not
+confounded by model changes. O4b is **1.41× more sensitive** in-band, and its zero-FA threshold is much lower
+(2.111 → 1.141; cleaner noise). Same statistic, same thresholds convention, same injection population; only
+the era changes (`coinc_triple.py --segs o4b_triple_segs.json --tag _o4b`; the O3a artifact stays gated).
+
+| | O3a (2019, 4 segs) | O4b (2024–25, 8 segs) |
+|---|---|---|
+| single → double → triple | 0.261 → 0.349 → 0.329 | 0.267 → 0.346 → 0.329 |
+| **double / single** | **1.33×** | **1.30×** |
+| **triple / double** | **0.94×** | **0.95×** |
+| V1 signal responsiveness | +1.16 vs H1 +5.11 / L1 +7.37 = **19%** | +0.74 vs H1 +6.20 / L1 +5.75 = **12%** |
+
+**Both headline ratios replicate to within 3%.** H1×L1 coincidence still buys ~1.3× sensitive distance;
+adding Virgo still costs ~5%.
+
+**The mechanism, now MEASURED rather than asserted (`o4_asd_compare.py`)** — median ASD in the subsolar band
+[50, 300] Hz from our own cached strain:
+
+| era | H1 | L1 | V1 | V1 / best LIGO |
+|---|---|---|---|---|
+| O3a | 5.18e-24 | 4.68e-24 | 1.33e-23 | **2.8×** louder |
+| O4b | 3.63e-24 | 3.68e-24 | 1.17e-23 | **3.2×** louder |
+
+**Virgo did improve (1.14×) — but LIGO improved faster (1.29×), so the gap WIDENED from 2.8× to 3.2×.**
+Injections are scaled to a fixed *network* SNR and each detector's share is set by its own PSD, so a detector
+3× louder contributes ~1/3 the amplitude SNR. That is exactly why V1's responsiveness fell 19% → 12% between
+the two runs, and why summing its near-noise score plus paying the higher 3-way threshold still degrades the
+statistic. **The negative is not an artifact of old Virgo data — it is structural at subsolar masses, and it
+got slightly worse, not better.**
+
+Bycatch: O4b has **177 clean H1∩L1∩V1 4096-s windows in a 30-day probe** vs 20 in six months of O3a (Virgo's
+duty cycle is transformed) — and all 8 fetched segments were usable, vs 4–5 in O3a. So the re-test had strictly
+better data in every respect except the one that matters. Gated (double reproduces + triple still no help +
+cross-era replication within 5% + measured ASD gap). Artifacts: coinc_triple_o4b.json, o4_asd_compare.json,
+o4_transfer_scout.json.

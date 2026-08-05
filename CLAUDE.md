@@ -209,6 +209,17 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   + the higher 3-way threshold degrades the sum. Rules out the learned-triple (no V1 signal to weight → ≈double at
   best). **H1×L1 double-coincidence is the subsolar ceiling.** Gated. Per-segment checkpoint (coinc_triple_rows.parquet)
   survived repeated power losses + service interruptions. Artifact: results/coinc_triple.json.
+- **N5 O4b RE-TEST DONE (2026-08-06): the Virgo negative REPLICATES across detector generations.** O4b is now
+  public (Apr 2024–Jan 2025, H1+L1+V1). **Prereq (`o4_transfer_scout.py`): cnn_w64 transfers to O4b UNCHANGED
+  (0.97×)** — per-segment PSD whitening absorbs the era shift, so no retraining and no confound; O4b is 1.41×
+  more sensitive in-band, zero-FA threshold 2.111→1.141. `coinc_triple.py` parameterized (`--segs/--tag`), O3a
+  artifact untouched. **Result on 8 fresh O4b triple segments: double/single 1.30× (vs O3a 1.33×), triple/double
+  0.95× (vs 0.94×) — both replicate to within 3%; Virgo still does NOT help.** **Mechanism MEASURED
+  (`o4_asd_compare.py`), not asserted:** median ASD [50,300] Hz — O3a V1 2.8× louder than best LIGO, O4b V1
+  **3.2×** louder. Virgo improved 1.14× but LIGO improved 1.29×, so **the gap WIDENED**; V1 responsiveness fell
+  19%→12% of H1/L1. Bycatch: O4b has 177 triple-coincident windows in a 30-day probe (vs 20 in six months of
+  O3a) and 8/8 segments usable (vs 4–5) — strictly better data in every respect except the one that matters.
+  Gated (40). Artifacts: coinc_triple_o4b.json, o4_asd_compare.json, o4_transfer_scout.json.
 - **Follow-up A DONE (2026-07-03): the REAL matched-filter benchmark — CNN TIES a realizable dense bank.**
   On the Mac (GPU VM down), `pbh/bankmf.py` (golden-tested MPS FD matched filter, `bank_golden.py`). Full-coherent
   MF is intractable (coherent FF collapses; matches LVK's real 3,452,006-template O4 subsolar bank, arXiv:2412.10951)

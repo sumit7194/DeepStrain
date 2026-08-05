@@ -11,6 +11,31 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-08-06 — O4 era: the Virgo negative REPLICATES (and the mechanism is now measured)
+Triggered by a question about the 12 Nov 2025 subsolar candidate S251112cm. Two findings from the research:
+(a) **S251112cm's data is NOT public** — it is in O4c; verified via the GWOSC API (zero public events after
+June 2025, zero S25* superevents; the one O4c dataset, O4c1DiscC00, covers a 68-minute window on 2025-02-07).
+(b) **I had missed GWTC-5.0** — released May 2026, 161 new O4b events public on GWOSC, 390 total. It contains
+NO confirmed subsolar event, so "a big catalog" and "a subsolar merger" are two separate stories that are easy
+to conflate. Corrected the record.
+Acting on the real opportunity — **O4b bulk data is public (Apr 2024–Jan 2025, H1+L1+V1)** while our entire PBH
+arc was built on O3a (May 2019):
+- **Transfer scout ✅** (`o4_transfer_scout.py`): the O3a-trained cnn_w64 works on O4b noise **unchanged (0.97×
+  sensitive distance)** — per-segment PSD whitening absorbs the era shift, so no retraining needed and the
+  re-test is not confounded by model changes. O4b is **1.41× more sensitive** in-band; zero-FA threshold
+  2.111 → 1.141 (cleaner noise).
+- **N5 Virgo re-test ✅ — REPLICATES.** Our N5 negative ("Virgo does not help subsolar") was measured on weak
+  O3a-era Virgo, the obvious objection. On 8 fresh O4b triple-coincident segments (2× the O3a run, 5.5 years
+  later): **double/single 1.30× (O3a 1.33×), triple/double 0.95× (O3a 0.94×)** — both within 3%. Virgo still
+  costs ~5%.
+- **The mechanism is now MEASURED, not asserted** (`o4_asd_compare.py`): median ASD in [50,300] Hz from our own
+  strain — V1 is **2.8× louder than the best LIGO detector in O3a, 3.2× in O4b**. Virgo improved 1.14×, LIGO
+  improved 1.29×, so **the gap WIDENED**. That is precisely why V1's signal responsiveness fell 19% → 12%.
+  The negative is structural at subsolar masses, not an artifact of old data — and it got slightly worse.
+- Bycatch: O4b has **177 triple-coincident windows in a 30-day probe** (vs 20 in six months of O3a), and 8/8
+  fetched segments were usable (vs 4–5 in O3a). Virgo's duty cycle is transformed; its sensitivity gap is not.
+Gated (40 green). Everything ran detached + checkpointed overnight.
+
 ## 2026-07-24 (later) — TheBridge wall-taxonomy: δ is species-1 statistically, but the TOTAL error saturates
 The bridge classified our δ wall CROSSABLE (species-1) and asked us to falsify it by escalating SNR.
 `25_wall_species.py`, three legs, predictions pre-registered:

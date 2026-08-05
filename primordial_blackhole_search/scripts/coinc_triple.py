@@ -66,13 +66,16 @@ def main() -> None:
     ap.add_argument("--n-inj", type=int, default=2400)
     ap.add_argument("--slides", type=int, default=2000)
     ap.add_argument("--smoke", action="store_true")
+    ap.add_argument("--segs", default="triple_segs.json",
+                    help="segment-list file in data/ (use o4b_triple_segs.json for the O4b Virgo re-test)")
+    ap.add_argument("--tag", default="", help="suffix for output artifacts (e.g. _o4b) so eras don't collide")
     args = ap.parse_args()
     dev = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
     model = make_model("cnn"); model.load_state_dict(torch.load(C.MODEL_DIR / "cnn_w64.pt", map_location=dev))
     model.to(dev).eval()
     # fresh H1∩L1∩V1 triple-coincident segments (the manifest's H1∩L1 test segs are all Virgo
     # duty-cycle gaps; these are discovered by intersecting the 3 DATA flags, leakage-free vs cnn_w64).
-    segs = json.loads((C.DATA_DIR / "triple_segs.json").read_text())
+    segs = json.loads((C.DATA_DIR / args.segs).read_text())
     if args.smoke:
         segs = segs[:2]
     n_inj_per_seg = (30 if args.smoke else args.n_inj) // max(1, len(segs))
@@ -128,7 +131,7 @@ def main() -> None:
     # --- coincident injections onto all 3 detectors at a range of network SNR ---
     # per-segment checkpoint (this run survived repeated power losses): each seg's injection rows are
     # seeded by gps and saved on completion, so a re-run resumes from the last finished segment.
-    rows_path = C.RESULTS_DIR / f"coinc_triple_rows{'_smoke' if args.smoke else ''}.parquet"
+    rows_path = C.RESULTS_DIR / f"coinc_triple_rows{args.tag}{'_smoke' if args.smoke else ''}.parquet"
     rows, done = [], set()
     if rows_path.exists():
         prev = pd.read_parquet(rows_path); prev = prev[prev.gps.isin(segs)]
@@ -183,7 +186,7 @@ def main() -> None:
     resp = {d: float(loud[f"s{d}"].mean() - faint[f"s{d}"].mean()) for d in DETS}
     print(f"signal responsiveness (loud-faint mean score): H1 {resp['H1']:+.2f}  L1 {resp['L1']:+.2f}  V1 {resp['V1']:+.2f} "
           f"-> V1 {resp['V1']/np.mean([resp['H1'],resp['L1']]):.0%} of H1/L1 (too insensitive at subsolar)")
-    (C.RESULTS_DIR / f"coinc_triple{'_smoke' if args.smoke else ''}.json").write_text(json.dumps(
+    (C.RESULTS_DIR / f"coinc_triple{args.tag}{'_smoke' if args.smoke else ''}.json").write_text(json.dumps(
         {"n_segs": len(segs), "single_frac": fs, "double_frac": fd, "triple_frac": ft,
          "mean_single": float(mean_s), "mean_double": float(mean_d), "mean_triple": float(mean_t),
          "double_over_single": float(mean_d / mean_s) if mean_s else None,
