@@ -11,6 +11,15 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-08-07 — O4-3: Subsolar PBH Search Reach Campaign (O4b vs O3a)
+Executed `O4-3` search reach evaluation (`o4_sensitive_distance.py`) across 2,400 subsolar injections per era on held-out test noise (O3a 5 segs, O4b 8 segs) for single-detector (H1) and H1×L1 coincidence modes.
+- **H1×L1 Coincidence Mode Search Reach Results**:
+  - **Chirp Mass [0.17–0.35 M☉]**: O3a 12.68 Mpc (8,541 Mpc³) → **O4b 15.73 Mpc (16,300 Mpc³)** | **1.24× distance, 1.91× volume**
+  - **Chirp Mass [0.35–0.55 M☉]**: O3a 20.61 Mpc (36,655 Mpc³) → **O4b 26.58 Mpc (78,660 Mpc³)** | **1.29× distance, 2.15× volume**
+  - **Chirp Mass [0.55–0.88 M☉]**: O3a 30.76 Mpc (121,907 Mpc³) → **O4b 36.94 Mpc (211,051 Mpc³)** | **1.20× distance, 1.73× volume**
+- **Headline**: The cleaner O4b noise in-band expands our subsolar PBH search reach by **~1.24× in distance** and **~1.93× (1.73–2.15×) in surveyed astrophysical volume** over O3a, reaching **up to 36.9 Mpc** in the highest subsolar mass bin.
+- Artifacts: `results/o4_sensitive_distance.json` and `results/o4_sensitive_distance.png`. Gate #41 added to `verify.sh` (41 gates green).
+
 ## 2026-08-06 — O4 era: the Virgo negative REPLICATES (and the mechanism is now measured)
 Triggered by a question about the 12 Nov 2025 subsolar candidate S251112cm. Two findings from the research:
 (a) **S251112cm's data is NOT public** — it is in O4c; verified via the GWOSC API (zero public events after

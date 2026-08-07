@@ -574,6 +574,27 @@ print(f"PASS  pbh N5 O4b re-test (double {o4['double_over_single']:.2f}x reprodu
       f"{a['eras']['O3a']['v1_over_best_ligo']:.1f}x)")
 PYEOFN5B
 
+echo "--- pbh O4-3 search reach (o4_sensitive_distance: O4b search reach & volume gain over O3a)"
+./primordial_blackhole_search/.venv/bin/python - << 'PYEOFO4REACH' || FAIL=1
+import json
+d = json.loads(open("primordial_blackhole_search/results/o4_sensitive_distance.json").read())
+comp = d["comparison"]["coincidence"]
+# (1) O4b coincidence search reach distance gain is > 1.15x across all subsolar mass bins
+for m in ("0.17-0.35", "0.35-0.55", "0.55-0.88"):
+    gain = comp[m]["d_gain_ratio"]
+    assert gain > 1.15, f"O4b distance gain low [{m}]: {gain}"
+# (2) O4b surveyed volume gain is > 1.6x across all subsolar mass bins
+for m in ("0.17-0.35", "0.35-0.55", "0.55-0.88"):
+    vgain = comp[m]["v_gain_ratio"]
+    assert vgain > 1.6, f"O4b volume gain low [{m}]: {vgain}"
+# (3) O4b reach reaches ~15.7 Mpc (low mass) up to ~36.9 Mpc (high mass)
+assert comp["0.17-0.35"]["d_o4b_mpc"] > 15.0, f"low mass O4b reach off: {comp['0.17-0.35']['d_o4b_mpc']}"
+assert comp["0.55-0.88"]["d_o4b_mpc"] > 35.0, f"high mass O4b reach off: {comp['0.55-0.88']['d_o4b_mpc']}"
+print(f"PASS  pbh O4-3 reach (O4b reach gain over O3a: {comp['0.17-0.35']['d_gain_ratio']:.2f}x [low] -- "
+      f"{comp['0.35-0.55']['d_gain_ratio']:.2f}x [mid] -- {comp['0.55-0.88']['d_gain_ratio']:.2f}x [high] distance; "
+      f"volume gain {comp['0.17-0.35']['v_gain_ratio']:.2f}x -- {comp['0.55-0.88']['v_gain_ratio']:.2f}x)")
+PYEOFO4REACH
+
 echo "========================================"
 [ $FAIL -eq 0 ] && echo "BLACKHOLE GATE: ALL GREEN" || echo "BLACKHOLE GATE: FAILURES"
 exit $FAIL

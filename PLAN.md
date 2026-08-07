@@ -200,9 +200,13 @@
       **gap WIDENED**, and V1's signal responsiveness fell 19% → 12%. Structural, not an artifact of old data.
       Bycatch: 177 triple windows in a 30-day O4b probe (vs 20 in six months of O3a); 8/8 segments usable (vs 4–5).
       Gated (40). Committed.
-- [ ] **O4-3 · O4b-era sensitive distance / reach** 🟢 — with transfer established, quote the PBH search's reach
-      against the *current* detector era rather than 2019: run the full evaluate.py-style campaign on a larger
-      O4b test set. *Done =* an O4b reach number gated alongside the O3a one.
+- [x] **O4-3 · O4b-era sensitive distance / reach** ✅ **DONE (2026-08-07).** `o4_sensitive_distance.py`: evaluated
+      absolute search reach in Mpc and surveyed volume in Mpc³ across 2,400 subsolar injections per era on held-out
+      test noise (O3a 5 segs, O4b 8 segs). Coincidence mode (H1×L1) reach:
+      - Mc [0.17-0.35 Msun]: O3a 12.68 Mpc (8,541 Mpc³) -> **O4b 15.73 Mpc (16,300 Mpc³)** | **1.24× distance, 1.91× volume**
+      - Mc [0.35-0.55 Msun]: O3a 20.61 Mpc (36,655 Mpc³) -> **O4b 26.58 Mpc (78,660 Mpc³)** | **1.29× distance, 2.15× volume**
+      - Mc [0.55-0.88 Msun]: O3a 30.76 Mpc (121,907 Mpc³) -> **O4b 36.94 Mpc (211,051 Mpc³)** | **1.20× distance, 1.73× volume**
+      O4b detector era expands surveyed astrophysical volume by **~1.93× (1.73-2.15×)** over O3a. Gated (41). Committed.
 - [ ] **O4-4 · watch for O4c / S251112cm release** 🟡 — if S251112cm survives review and O4c releases, the
       pipeline is already validated on O4-era noise and can be pointed straight at it. *Done =* a watcher check.
 
