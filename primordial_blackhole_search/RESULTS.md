@@ -911,3 +911,38 @@ volume over O3a — significant in every mass bin, with no evidence of mass depe
 now checkpoints per segment (a power loss destroyed a full 40-min all-or-nothing run) and persists injection rows
 to parquet so re-analysis needs no re-run. Gated (42). Artifacts: o4_sensitive_distance_matched.json,
 o4_reach_bootstrap_matched.json.
+
+### Deep FAR: an 80-year background on O4b — 1/decade reached, zero-lag clean (2026-08-08)
+Build C reached a 1/year false-alarm rate on 24 O3a segments (4.6 yr background). To support a *detection*
+claim you need far more: the bar is "noise fakes this only once per N years", and N must be large. This is
+pure compute, not a wall — global time-slides manufacture background livetime.
+
+**Method (`far_deep.py`).** Shift L1's whole window-score stream against H1's; every surviving coincidence is
+accidental by construction. With N_tot windows there are **N_tot − 1 distinct non-zero circular lags** (the
+honest count — more repeats lags and re-injects zero-lag, the overcounting bug we fixed in Build C-2), each an
+independent copy of the full livetime:
+
+    background_time = (N_tot − 1) × total_livetime      [reproduces Build C's 1692 days exactly — verified first]
+
+Both factors grow with segment count, so **background ∝ N_segments²**. 100 fresh O4b H1∩L1 segments
+(leakage-free: cnn_w64 is O3a-trained) → 6,200 windows, 113.8 h real livetime, **6,199 lags → 80.5 years**
+(**17× Build C**).
+
+| FAR | threshold a signal must exceed |
+|---|---|
+| 1/month | 12.340 |
+| 1/year | 14.112 |
+| **1/decade** | **16.121** |
+| 1/century | not measurable (0.01 × 80.5 yr < 1 expected event) |
+
+**Zero-lag check (the real, unshifted H1×L1 data): loudest coincidence = 11.295 — below even the 1/month
+threshold. A clean null: no subsolar candidate in 114 h of O4b, as expected for randomly-chosen noise stretches.**
+The deepest *measurable* FAR here is ~1/80 yr; we quote 1/decade as the conservative ladder rung.
+
+**Engineering (this ran unattended for ~4 h across a session restart).** The expensive step (fetch → whiten →
+score) is checkpointed per segment as a tiny .npz of window scores, so a completed segment is never re-fetched;
+writes are atomic; re-running resumes and extends. Raw strain is purged after scoring — **and the purge had to
+clear astropy's download cache too**: `gwpy`'s `fetch_open_data(cache=True)` keeps a *second* copy (~0.25 GB per
+segment, 5.3 GB accumulated) that our first purge missed and which would have exhausted disk near segment 80.
+Caught mid-run, fixed, and disk then held flat at 19 GB for the remaining ~60 segments. Gated (45).
+Artifact: far_deep.json; score cache: results/far_scores/ (100 segments, 160 KB — the reusable product).

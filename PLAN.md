@@ -236,8 +236,10 @@
 ## Parked — blocked by a known wall (discuss before attempting) 🔴
 - **PBH dense template bank / true-waveform front end** — subsolar needs ≤0.1 % Mc spacing (~1,600+ templates);
   intractable without serious GPU/cloud compute. Blocks the real-MF detector + fine-timing coincidence.
-- **PBH lower-FAR → 1/decade** — tractable but needs the VM back on + a fresh coincident-data fetch (~2 h, VM cost).
-  *Not blocked, just deferred to a VM session.*
+- **PBH lower-FAR → 1/decade** — ✅ **DONE ON THE MAC (2026-08-08), no VM needed.** `far_deep.py`: 100 fresh
+  O4b H1∩L1 segments (113.8 h) → 6,199 distinct lags → **80.5-year background, 17× Build C's 4.6 yr**, because
+  background ∝ N_segments². **1/decade threshold = 16.121**; zero-lag (real unshifted data) loudest coincidence
+  **11.295 — below even 1/month ⇒ clean null.** Ran unattended ~4 h, per-segment atomic checkpoints. Gated (45).
 - **Ringdown real multi-event δ-stacking** — 🔬 **RE-MEASURED 2026-08-07 against the FULL public catalog
   (was decided on a hand-picked 8-event list from June).** `26_more_events_o4.py` re-selected from all **439**
   public events under the NPE's real constraints (BBH, detector-frame remnant in [40,120] M☉, H1+L1 both on,

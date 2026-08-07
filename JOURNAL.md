@@ -11,6 +11,26 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-08-08 — deep FAR: an 80-year background on O4b, 1/decade reached on the Mac (no VM)
+The last "parked" item claimed lower-FAR needed the GPU VM. It didn't — it needed compute, and the Mac was idle.
+`far_deep.py`: global time-slides give **background = (N_windows−1) distinct lags × total livetime** (formula
+verified FIRST against Build C — reproduces its 1692 days exactly), and since both factors grow with segment
+count, **background ∝ N_segments²**. That is why this was always affordable: 24 segs → 4.6 yr, but 100 → 80 yr.
+- **Result: 100 fresh O4b H1∩L1 segments (113.8 h, leakage-free since cnn_w64 is O3a-trained) → 6,200 windows →
+  6,199 lags → 80.5-year background, 17× Build C.** Ladder: 1/month 12.340, 1/year 14.112, **1/decade 16.121**.
+  1/century is honestly *not measurable* (0.01 × 80.5 yr < 1 expected event) — the deepest measurable is ~1/80 yr,
+  and we quote 1/decade as the conservative rung.
+- **Zero-lag check (real, unshifted H1×L1): loudest coincidence 11.295 — below even the 1/month bar. Clean null**,
+  which is the expected and correct outcome for randomly-chosen noise stretches. The deliverable was never a
+  detection; it is the *calibrated ruler* that a future candidate (e.g. S251112cm, if O4c ever opens) would need.
+- **A disk bug caught mid-run, and a correction owed.** I had told the user disk would stay flat because we purge
+  raw strain after scoring. It didn't: `gwpy`'s `fetch_open_data(cache=True)` keeps a **second copy in astropy's
+  download cache** (~0.25 GB/segment; 5.3 GB had accumulated) that our purge missed — it would have exhausted disk
+  around segment 80, killing a 4-hour run near the finish. Found it by *checking* rather than trusting the claim,
+  fixed the purge, reclaimed 5 GB, and disk then held flat at 19 GB for the remaining 60 segments.
+- Robustness: per-segment atomic score-cache checkpoints meant a mid-run restart (to load the disk fix) resumed
+  from 41 cached segments with **zero work lost**. Gated (45 green).
+
 ## 2026-08-07 (evening) — the δ-stacking "wall" re-measured against 439 events: it HOLDS, and now it has a number
 Prompted by a good challenge — "are only 8 events available? check again." They were right to push: our
 δ-stacking wall was decided in June on a **hand-picked 8-event list from O1–O3**, before GWTC-4.0/5.0 published

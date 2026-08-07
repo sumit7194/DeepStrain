@@ -658,6 +658,28 @@ print(f"PASS  ringdown delta-wall re-measured ({d['n_analyzed']} events from the
       f"{d['snr_needed_for_information']:.0f} -- only GW250114 clears it)")
 PYEOFE26
 
+echo "--- pbh deep FAR (far_deep: 80-yr background on O4b -> 1/decade reached, zero-lag clean)"
+./primordial_blackhole_search/.venv/bin/python - << 'PYEOFFAR' || FAIL=1
+import json
+d = json.loads(open("primordial_blackhole_search/results/far_deep.json").read())
+# (1) the background formula is the honest one: (N_windows-1) distinct lags x total livetime
+#     [verified against Build C: 1511 lags x 26.88 h = 1692 days exactly]
+live_s = d["real_livetime_h"] * 3600
+assert abs(d["n_distinct_lags"] * live_s / 3.156e7 - d["background_years"]) < 0.1, "background formula drifted"
+assert d["n_distinct_lags"] == d["n_windows"] - 1, "not using the honest N-1 distinct-lag count"
+# (2) THE GOAL: beat Build C's 1/year. 10+ yr background => 1/decade is measurable
+assert d["background_years"] > 10.0, f"background too short for 1/decade: {d['background_years']}"
+assert "1/decade" in d["far_ladder"], "1/decade not reached"
+# (3) thresholds must be monotonic (stricter FAR => higher bar)
+lad = d["far_ladder"]
+assert lad["1/month"] < lad["1/year"] < lad["1/decade"], f"FAR ladder not monotonic: {lad}"
+# (4) ZERO-LAG: the real, unshifted H1xL1 data contains NO candidate above even the loosest threshold
+assert d["zero_lag_max"] < lad["1/month"], f"REAL coincidence above 1/month threshold -- INVESTIGATE: {d['zero_lag_max']}"
+print(f"PASS  pbh deep FAR ({d['n_segments']} O4b segments, {d['real_livetime_h']:.0f} h -> "
+      f"{d['background_years']:.1f} yr background = {d['background_years']/4.63:.0f}x Build C; "
+      f"1/decade threshold {lad['1/decade']:.2f}; loudest real coincidence {d['zero_lag_max']:.2f} = clean null)")
+PYEOFFAR
+
 echo "========================================"
 [ $FAIL -eq 0 ] && echo "BLACKHOLE GATE: ALL GREEN" || echo "BLACKHOLE GATE: FAILURES"
 exit $FAIL

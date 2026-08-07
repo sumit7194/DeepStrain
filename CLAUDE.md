@@ -209,6 +209,15 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   + the higher 3-way threshold degrades the sum. Rules out the learned-triple (no V1 signal to weight → ≈double at
   best). **H1×L1 double-coincidence is the subsolar ceiling.** Gated. Per-segment checkpoint (coinc_triple_rows.parquet)
   survived repeated power losses + service interruptions. Artifact: results/coinc_triple.json.
+- **Deep FAR DONE (2026-08-08): 80.5-year background on O4b — 1/decade reached on the Mac, no VM.** `far_deep.py`:
+  global time-slides, **background = (N_windows−1) distinct lags × total livetime** (verified: reproduces Build C's
+  1692 days exactly), so background **∝ N_segments²**. 100 fresh O4b H1∩L1 segments (leakage-free; cnn_w64 is
+  O3a-trained) → 6,200 windows, 113.8 h → **6,199 lags → 80.5 yr = 17× Build C**. Ladder: 1/month 12.340,
+  1/year 14.112, **1/decade 16.121** (1/century not measurable: 0.01×80.5<1 event). **Zero-lag = 11.295, below
+  even 1/month ⇒ clean null, no subsolar candidate in 114 h of O4b.** Engineering: per-segment atomic score-cache
+  checkpoints (never re-fetch a done segment), raw strain purged — **and the purge must clear astropy's download
+  cache too** (`gwpy` keeps a 2nd copy, ~0.25 GB/segment, 5.3 GB accumulated; would have exhausted disk ~segment
+  80 — caught mid-run, fixed, disk then flat at 19 GB). Gated (45). Artifacts: far_deep.json, results/far_scores/.
 - **N5 O4b RE-TEST DONE (2026-08-06): the Virgo negative REPLICATES across detector generations.** O4b is now
   public (Apr 2024–Jan 2025, H1+L1+V1). **Prereq (`o4_transfer_scout.py`): cnn_w64 transfers to O4b UNCHANGED
   (0.97×)** — per-segment PSD whitening absorbs the era shift, so no retraining and no confound; O4b is 1.41×

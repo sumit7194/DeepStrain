@@ -1,0 +1,14 @@
+{
+  "n_segments": 100,
+  "n_windows": 6200,
+  "real_livetime_h": 113.77777777777777,
+  "n_distinct_lags": 6199,
+  "background_years": 80.45343472750316,
+  "zero_lag_max": 11.295368194580078,
+  "far_ladder": {
+    "1/month": 12.339570999145508,
+    "1/year": 14.11172866821289,
+    "1/decade": 16.12076759338379
+  },
+  "reach_far": "1/decade"
+}
