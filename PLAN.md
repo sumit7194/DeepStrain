@@ -219,8 +219,12 @@
       the campaign now checkpoints per segment (a power loss cost a full 40-min run) and persists injection rows
       so re-analysis needs no re-run. **Honest headline: 1.23× distance [1.11–1.35], ~1.9× volume, mass-independent.**
       Gated (42).
-- [ ] **O4-4 · watch for O4c / S251112cm release** 🟡 — if S251112cm survives review and O4c releases, the
-      pipeline is already validated on O4-era noise and can be pointed straight at it. *Done =* a watcher check.
+- [x] **O4-4 · watch for O4c / S251112cm release** ✅ **DONE (2026-08-07).** `o4c_release_watch.py` — a standing
+      GWOSC query that reports whether S251112cm's era has become public. **Current status: still embargoed** —
+      public bulk data ends at O4b (2025-01-28); the only O4c dataset (`O4c1DiscC00`) is a **1.14 h** discovery
+      window around GW250207 and does NOT cover S251112cm (GPS 1446995943); no S25* superevents are public.
+      Gated so the assertion FIRES if that flips — at which point the pipeline is already validated on O4-era
+      noise (cnn_w64 transfers 0.97×) and can be pointed straight at the first sub-solar candidate. Gated (43).
 
 ## Parked — blocked by a known wall (discuss before attempting) 🔴
 - **PBH dense template bank / true-waveform front end** — subsolar needs ≤0.1 % Mc spacing (~1,600+ templates);

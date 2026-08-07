@@ -11,6 +11,17 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-08-07 (later) — O4-4: the S251112cm/O4c release watcher + README refresh
+Closed the last open PLAN item. `o4c_release_watch.py` is a standing GWOSC query that answers one question:
+has the era containing **S251112cm** (the first >99%-probability sub-solar candidate, 12 Nov 2025) become
+public? **Current answer: no.** Public bulk strain still ends at O4b (2025-01-28); the sole O4c dataset
+(`O4c1DiscC00`) is a **1.14 h** discovery window around GW250207 and does not cover S251112cm (GPS 1446995943);
+no S25* superevents are public. The gate asserts the *status*, so if it flips the check fires and we go look —
+and by then nothing blocks us, since cnn_w64 is already validated on O4-era noise (0.97× transfer). Gated (43).
+Also refreshed the README: stale gate counts (39 → 42/43) and, more substantively, the O4-era results were
+missing from the front page entirely — added the 1.23× reach gain and the cross-generation Virgo replication
+to both the PBH section and the headline table.
+
 ## 2026-08-07 (review) — O4-3 stress-tested: gain survives, mass-dependence does not
 Reviewed the O4-3 reach campaign (built in a parallel Gemini session) against the north star. The code follows
 our conventions and the physics is right (d_reach = SNR_ref(1 Mpc)/SNR50), and it carries a strong independent

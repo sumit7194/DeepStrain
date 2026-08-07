@@ -618,6 +618,22 @@ print(f"PASS  pbh O4-3 stress-test (matched-livetime mean gain {s['mean_d_gain']
       f"excludes 1; bin spread noise-consistent -> no mass dependence claimed)")
 PYEOFO4BOOT
 
+echo "--- pbh O4-4 release watcher (o4c_release_watch: S251112cm/O4c embargo status)"
+./primordial_blackhole_search/.venv/bin/python - << 'PYEOFO4C' || FAIL=1
+import json
+d = json.loads(open("primordial_blackhole_search/results/o4c_release_watch.json").read())
+# the watcher must actually be seeing GWOSC (a broken query would silently look like "no release")
+assert "O4b" in d["runs"] and "O3a" in d["runs"], f"GWOSC run list looks wrong: {d['runs']}"
+assert d["n_catalogs"] >= 15, f"catalog list implausibly short: {d['n_catalogs']}"
+# record the embargo status; if this flips, the assert fires and we go look at the new data
+if d["s251112cm_data_public"]:
+    print("PASS  pbh O4-4 watcher (*** S251112cm-era data is now PUBLIC -- point the subsolar search at it ***)")
+else:
+    assert not d["s25_superevents"], "an S25* superevent appeared but the flag says not public -- recheck"
+    print(f"PASS  pbh O4-4 watcher (S251112cm still embargoed; O4c bulk unreleased, "
+          f"public bulk ends at O4b; {d['n_catalogs']} catalogs)")
+PYEOFO4C
+
 echo "========================================"
 [ $FAIL -eq 0 ] && echo "BLACKHOLE GATE: ALL GREEN" || echo "BLACKHOLE GATE: FAILURES"
 exit $FAIL

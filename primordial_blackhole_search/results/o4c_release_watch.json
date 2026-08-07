@@ -1,0 +1,37 @@
+{
+  "runs": [
+    "O1",
+    "O2",
+    "O3GK",
+    "O3a",
+    "O3b",
+    "O4a",
+    "O4b",
+    "O4c1DiscC00",
+    "S5",
+    "S6"
+  ],
+  "o4c_datasets": [
+    {
+      "name": "O4c1DiscC00",
+      "gps": [
+        1422962688,
+        1422966784
+      ],
+      "hours": 1.14,
+      "covers_s251112cm": false
+    }
+  ],
+  "events_after_feb2025": [
+    "GW250207_115645-v1"
+  ],
+  "s25_superevents": [],
+  "n_catalogs": 18,
+  "latest_catalogs": [
+    "O3_Discovery_Papers",
+    "O3_IMBH_marginal",
+    "O4_Discovery_Papers"
+  ],
+  "s251112cm_gps": 1446995943,
+  "s251112cm_data_public": false
+}

@@ -4,7 +4,7 @@
 
 Three real-data gravitational-wave sub-projects — a **subsolar / primordial-black-hole merger search**, a **post-merger echo search**, and **ringdown spectroscopy** (a no-hair test) — plus the black-hole physics notes that started it all. Everything is measured on **real O3a/O4 detector noise**: sensitivity comes from injections, significance from a measured background, and **null results are treated as results.**
 
-> A computer engineer's deep dive into gravitational-wave astronomy. Built carefully: every load-bearing claim is checked against the literature, every sensitivity number comes from injections into real noise, and a regression gate (`./verify.sh`, **39 checks**) asserts the headline results never silently change. Cross-validated against two sister projects — an exact-GR solution engine and a neural-network geometry-discovery model — via **[The Bridge](https://github.com/sumit7194/trivium)**.
+> A computer engineer's deep dive into gravitational-wave astronomy. Built carefully: every load-bearing claim is checked against the literature, every sensitivity number comes from injections into real noise, and a regression gate (`./verify.sh`, **43 checks**) asserts the headline results never silently change. Cross-validated against two sister projects — an exact-GR solution engine and a neural-network geometry-discovery model — via **[The Bridge](https://github.com/sumit7194/trivium)**.
 
 <p align="center"><img src="penrose.png" width="520" alt="Causal map of an (eternal) black hole"></p>
 
@@ -19,6 +19,7 @@ Below ~1 M☉ no star can collapse into a black hole, so a *subsolar* merger wou
 - **The real matched-filter benchmark** — the question the whole project circled. A *realizable* semi-coherent dense-bank matched filter (1,619 templates at 0.1 % chirp-mass spacing, built + run on a laptop GPU) scores **0.489 vs the CNN's 0.472 on identical injections — a statistical tie.** A single CNN forward pass matches a 1,600-template bank. Both sit far below the true-template oracle (0.72), so **the dominant loss is template-bank mismatch, not learned-vs-matched-filter.** The fully-coherent ideal is genuinely intractable (megatemplate scale, consistent with LVK's real 3,452,006-template O4 subsolar bank).
 - **Honest negatives that sharpened the picture:** score-aggregation across windows (two rungs); a learned semi-coherent classifier (caps ~0.70 AUC); and **Virgo** — a triple H1×L1×V1 coincidence *doesn't help* subsolar (V1 is too insensitive at these masses to carry signal).
 - **Self-supervised pretraining** on unlabeled noise is a data-wall win: +0.28 sensitive-distance fraction at scarce labels.
+- **Moved to the O4 era (2024–25 public data).** The O3a-trained model transfers to O4b noise **unchanged (0.97×)** — per-segment PSD whitening absorbs the era shift — and O4b's cleaner in-band noise expands subsolar reach by **1.23× in distance [1.11–1.35] and ~1.9× in surveyed volume**, significant in every mass bin (bootstrap, FAR-matched), with no evidence of mass dependence. The Virgo negative **replicates across detector generations**: V1's measured ASD gap to LIGO *widened* from 2.8× to 3.2×, so its signal responsiveness fell from 19% to 12% of H1/L1.
 
 ### 🔔 `echoes/` — post-merger gravitational-wave echoes
 If black-hole horizons have quantum structure, a merger might be followed by faint, repeating "echoes." A full pipeline (injection-calibrated, background-defined *p*-values) searches the post-ringdown of GW150914 / GW151012 / GW151226 / GW250114.
@@ -45,6 +46,8 @@ Fit the post-merger ringdown tones (quasinormal modes) and test whether they imp
 | Subsolar H1×L1 coincidence | **+1.37×** sensitive distance, FAR-robust to 1/year; learned statistic beats sum | ✓ gated |
 | Subsolar — **CNN vs real matched filter** | **tie** (0.489 vs 0.472 on identical injections); both bank-mismatch-limited | ✓ gated |
 | Subsolar triple H1×L1×V1 | Virgo does **not** help at subsolar masses (honest negative) | ✓ gated |
+| Subsolar O4b reach | **1.23×** distance [1.11–1.35] · **~1.9×** volume over O3a; mass-independent | ✓ gated |
+| Subsolar Virgo (O4b re-test) | negative **replicates**; V1/LIGO ASD gap widened 2.8× → 3.2× | ✓ gated |
 | Echoes ML scorer | **~1.2×** over the classical comb; all on-source events null | ✓ gated |
 | Ringdown no-hair | **σ(δ) 2.6× tighter**; GW250114 δ = −0.16, Kerr-consistent | ✓ gated |
 | Ringdown overtone (field-standard) | GW250114 A₂₂₁ bounded from zero; NPE cross-validated | ✓ gated |
@@ -70,7 +73,7 @@ ringdown_spectroscopy/         QNM fitting + SBI no-hair test + ringdown-package
 watch_event.py  (root)         the event watcher — orchestrates all three into one report
 *.md  (root)                   black-hole physics notes (holography, dimensions, paradox)
 *.py  (root)                   figure generators (light cones, Penrose maps, …)
-verify.sh                      regression gate over every headline artifact (39 checks)
+verify.sh                      regression gate over every headline artifact (43 checks)
 dashboard.py                   live run monitor (stdlib HTTP, no deps)
 ```
 Each sub-project is self-contained: `scripts/` (numbered steps + a shared lib), `notes/lab_notebook.md` (the raw record), `README.md` (methods + decisions), and its own `uv` virtual environment (pins in `requirements.txt`; the ringdown package pipeline needs Python 3.11 — `requirements-py311.txt`).
@@ -81,7 +84,7 @@ Large, regenerable artifacts — raw LIGO strain, spectrogram shards, model weig
 ```bash
 cd <subproject> && uv venv && uv pip install -r requirements.txt   # per-project venv
 .venv/bin/python scripts/01_*.py         # fetch data from GWOSC, then run the numbered pipeline
-./verify.sh                              # from the root: 39 checks assert every headline result
+./verify.sh                              # from the root: 43 checks assert every headline result
 ```
 
 **Docs:** [`ROADMAP.md`](ROADMAP.md) (next moves) · [`PLAN.md`](PLAN.md) (full backlog, done + parked) · [`JOURNAL.md`](JOURNAL.md) (dated log) · each sub-project's `notes/lab_notebook.md`.
