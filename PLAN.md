@@ -226,6 +226,13 @@
       Gated so the assertion FIRES if that flips — at which point the pipeline is already validated on O4-era
       noise (cnn_w64 transfers 0.97×) and can be pointed straight at the first sub-solar candidate. Gated (43).
 
+## Parked — ⚠️ THIS LIST EXPIRES. Re-verify before repeating any "blocked" claim.
+> **Lesson (2026-08-07):** three of four items below were STALE — two we had already solved (the dense
+> template bank was BUILT in Follow-up A; tone-count was CLOSED by R2) and the δ-stacking "physics wall"
+> rested on an 8-event list from June, while **439 events are now public and six BBH are louder than
+> anything we tested except GW250114**. A "blocked" label is a measurement with a timestamp, not a fact.
+> **Rule: before citing anything here as blocked, re-run the check that established it.**
+
 ## Parked — blocked by a known wall (discuss before attempting) 🔴
 - **PBH dense template bank / true-waveform front end** — subsolar needs ≤0.1 % Mc spacing (~1,600+ templates);
   intractable without serious GPU/cloud compute. Blocks the real-MF detector + fine-timing coincidence.
