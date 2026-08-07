@@ -11,6 +11,27 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-08-07 (evening) — the δ-stacking "wall" re-measured against 439 events: it HOLDS, and now it has a number
+Prompted by a good challenge — "are only 8 events available? check again." They were right to push: our
+δ-stacking wall was decided in June on a **hand-picked 8-event list from O1–O3**, before GWTC-4.0/5.0 published
+hundreds of O4 events. Worse, I had queried the catalog two days earlier and *still* answered from the stale doc.
+Re-selected from the **full 439-event public catalog** under the NPE's real constraints (`26_more_events_o4.py`):
+BBH not BNS · detector-frame remnant inside the [40,120] M☉ prior (source mass × (1+z)) · H1 **and** L1 both
+observing · SNR > 20 → **12 analyzable, 9 never tested**.
+- **The physics caught an error the script missed.** The automated verdict said "wall is NOT real — 2 informative
+  events". But the second one, **GW231206 (SNR 21.9), was beating events 1.7× louder** — impossible if the signal
+  is real. Its mass posterior was **jammed against the 120 M☉ prior ceiling** (M 106.3 vs published 80.8, CI to
+  118), and a truncated posterior narrows δ artificially. Added a **CI-based prior-truncation screen**; **5 of 12
+  events fail it** and are excluded. Lesson: I nearly reported an automated verdict that the physics contradicted.
+- **Corrected result: the wall HOLDS — still exactly one informative event (GW250114, σ/prior 0.833).**
+- **But it is now QUANTIFIED, not assumed.** On the 7 clean events, corr(SNR, σ_δ/σ_prior) = **−0.91** (the
+  physics behaves once artifacts are gone), giving **σ/prior = −0.103·ln(SNR) + 1.295 ⇒ SNR ≳ 47 needed** for an
+  event to carry δ information. **Only GW250114 (78.6) clears it in the entire catalog.**
+- Near-miss worth recording: **GW230814 (SNR 43)** would fall just below threshold anyway — and is unusable
+  regardless, because **H1 was offline** (single-detector event; our NPE needs both).
+**Net: the June conclusion was right, but was being defended with a stale argument. It is now measured against
+439 events with a predictive threshold instead of "wait for the universe."** Gated (44 green).
+
 ## 2026-08-07 (later) — O4-4: the S251112cm/O4c release watcher + README refresh
 Closed the last open PLAN item. `o4c_release_watch.py` is a standing GWOSC query that answers one question:
 has the era containing **S251112cm** (the first >99%-probability sub-solar candidate, 12 Nov 2025) become

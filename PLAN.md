@@ -238,7 +238,17 @@
   intractable without serious GPU/cloud compute. Blocks the real-MF detector + fine-timing coincidence.
 - **PBH lower-FAR → 1/decade** — tractable but needs the VM back on + a fresh coincident-data fetch (~2 h, VM cost).
   *Not blocked, just deferred to a VM session.*
-- **Ringdown real multi-event δ-stacking** — SNR information wall: only GW250114-class loudness measures δ (v6 mapped it).
+- **Ringdown real multi-event δ-stacking** — 🔬 **RE-MEASURED 2026-08-07 against the FULL public catalog
+  (was decided on a hand-picked 8-event list from June).** `26_more_events_o4.py` re-selected from all **439**
+  public events under the NPE's real constraints (BBH, detector-frame remnant in [40,120] M☉, H1+L1 both on,
+  SNR>20) → 12 analyzable, **9 never tested before**. Result: **the wall HOLDS — still exactly one informative
+  event (GW250114).** But it is now **quantified instead of asserted**: on the 7 clean events,
+  corr(SNR, σ_δ/σ_prior) = **−0.91**, giving **σ/prior = −0.103·ln(SNR) + 1.295 ⇒ an event needs SNR ≳ 47** to
+  carry any δ information. Only GW250114 (78.6) clears it in the entire catalog. **Caught a fake positive:**
+  GW231206 (SNR 21.9) first read "informative" while beating events 1.7× louder — its mass posterior was
+  **truncated against the 120 M☉ prior ceiling**, which narrows δ artificially. Added a CI-based prior-truncation
+  screen; **5 of 12 events fail it** and are excluded. Near-miss: GW230814 (SNR 43) is both below threshold and
+  unusable (H1 offline — single-detector event). Gated (44).
 - **Ringdown black-box tone-count** — parked honest-negative; guardrail: don't re-throw ML architectures at it.
 
 ## 🔑 Shared unblocker ✅ DONE (2026-06-25): the echo Δt(M,χ) formula — VERIFIED + caught a data bug

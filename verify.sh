@@ -634,6 +634,30 @@ else:
           f"public bulk ends at O4b; {d['n_catalogs']} catalogs)")
 PYEOFO4C
 
+echo "--- ringdown delta-stacking wall RE-MEASURED vs the full catalog (26: still one informative event, SNR>=47)"
+./ringdown_spectroscopy/.venv/bin/python - << 'PYEOFE26' || FAIL=1
+import json
+d = json.loads(open("ringdown_spectroscopy/results/26_more_events_o4.json").read())
+ev = {e["event"]: e for e in d["events"]}
+# (1) re-selected from the FULL public catalog (439 events), not the stale June 8-event list
+assert d["n_analyzed"] >= 10, f"too few events re-tested: {d['n_analyzed']}"
+# (2) prior-truncation artifacts were caught and EXCLUDED (a squashed mass posterior can fake 'informative';
+#     GW231206 was flagged informative at SNR 21.9 while beating events 1.7x louder -- unphysical)
+assert d["n_prior_truncated"] >= 3, f"prior-truncation screen found nothing: {d['n_prior_truncated']}"
+assert not ev["GW231206_233901"]["valid"], "GW231206 (prior-truncated artifact) is no longer excluded"
+# (3) THE RESULT: the wall is real at current data -- still exactly one informative event
+assert d["wall_is_real"] and d["n_informative"] == 1, f"informative count changed: {d['n_informative']}"
+assert ev["GW250114_082203"]["informative"], "GW250114 no longer informative"
+# (4) it is now QUANTIFIED, not asserted: information tracks loudness, with a threshold
+assert 35 < d["snr_needed_for_information"] < 60, f"SNR threshold moved: {d['snr_needed_for_information']}"
+# (5) GW250114 still reproduces the gated no-hair result
+g = ev["GW250114_082203"]
+assert -0.30 < g["delta"][0] < 0.0 and g["kerr_consistent"], f"GW250114 delta moved: {g['delta']}"
+print(f"PASS  ringdown delta-wall re-measured ({d['n_analyzed']} events from the full 439-event catalog; "
+      f"{d['n_prior_truncated']} prior-truncated excluded; still 1 informative; need SNR>="
+      f"{d['snr_needed_for_information']:.0f} -- only GW250114 clears it)")
+PYEOFE26
+
 echo "========================================"
 [ $FAIL -eq 0 ] && echo "BLACKHOLE GATE: ALL GREEN" || echo "BLACKHOLE GATE: FAILURES"
 exit $FAIL
