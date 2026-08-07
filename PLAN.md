@@ -244,7 +244,9 @@
   SNR>20) → 12 analyzable, **9 never tested before**. Result: **the wall HOLDS — still exactly one informative
   event (GW250114).** But it is now **quantified instead of asserted**: on the 7 clean events,
   corr(SNR, σ_δ/σ_prior) = **−0.91**, giving **σ/prior = −0.103·ln(SNR) + 1.295 ⇒ an event needs SNR ≳ 47** to
-  carry any δ information. Only GW250114 (78.6) clears it in the entire catalog. **Caught a fake positive:**
+  carry any δ information. Only GW250114 (78.6) clears it in the entire catalog. **Units caveat:** v6's onset
+  (~37) was in *ringdown* SNR on injections; this ~47 is *network matched-filter* SNR on real events — different
+  scales, not comparable. The real cross-check is that both put GW250114 at σ/prior ≈ 0.83 (v6 0.83, here 0.833). **Caught a fake positive:**
   GW231206 (SNR 21.9) first read "informative" while beating events 1.7× louder — its mass posterior was
   **truncated against the 120 M☉ prior ceiling**, which narrows δ artificially. Added a CI-based prior-truncation
   screen; **5 of 12 events fail it** and are excluded. Near-miss: GW230814 (SNR 43) is both below threshold and

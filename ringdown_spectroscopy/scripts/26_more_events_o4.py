@@ -20,6 +20,12 @@ Re-selecting from the full public catalog (439 unique events) under the constrai
 
 Only events passing (a)+(b) are reported; (c) decides whether the stacking wall is real at current data.
 
+UNITS WARNING — do not conflate with v6 (`14_delta_threshold.py`). That measured the onset on INJECTIONS in
+*ringdown* SNR (onset ~37); this measures real catalog events in *network matched-filter* SNR (onset ~47).
+Different quantities on different scales — the numbers are NOT comparable. What IS a genuine cross-check:
+both routes put GW250114 at sigma/prior ~0.83 (v6: 0.83, here: 0.833), i.e. independent methods agree on the
+one real informative event.
+
 Run:  .venv/bin/python scripts/26_more_events_o4.py
 """
 import json
