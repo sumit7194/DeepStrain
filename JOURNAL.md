@@ -11,6 +11,29 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-08-07 (review) — O4-3 stress-tested: gain survives, mass-dependence does not
+Reviewed the O4-3 reach campaign (built in a parallel Gemini session) against the north star. The code follows
+our conventions and the physics is right (d_reach = SNR_ref(1 Mpc)/SNR50), and it carries a strong independent
+cross-check: **the measured 1.24× distance gain matches our separately-measured 1.29× ASD improvement** — two
+independent routes agreeing. Three issues found, all now addressed:
+- **(a) The eras were not FAR-matched.** O3a used 5 segments (5.7 h) vs O4b 8 (9.1 h); the zero-FA threshold is
+  the max over noise windows, so it grows with livetime (thr_single O3a 2.111 vs O4b **3.233** — our own 3-segment
+  scout gave O4b just 1.141). O4b was being held to a *stricter* bar, biasing **against** the claim. Added
+  `--match-segs` and re-ran at equal livetime: **1.21/1.28/1.20×, mean 1.23× vs 1.24×** — the concern was real but
+  **immaterial** (~1%, within Monte Carlo noise). The result is robust to it.
+- **(b) No uncertainty on the gains.** Added `o4_reach_bootstrap.py` (B=1000, resampling the saved injection rows,
+  no re-run needed): **every mass bin's 90% CI excludes 1** — 1.21 [1.14,1.29], 1.28 [1.21,1.35], 1.20 [1.11,1.30]
+  ⇒ the gain is significant everywhere. **But all three CIs mutually overlap ⇒ the apparent mass-dependence
+  (1.20 vs 1.29) is NOISE.** Removed that from the claim.
+- **(c) Volume uses (mean SNR_ref)³ rather than mean(SNR_ref³).** By Jensen's inequality this *underestimates*
+  absolute volumes (sky/orientation is isotropic, so SNR_ref varies a lot within a bin); the ratio largely cancels
+  it, so the ~1.9× volume gain is sound but the absolute Mpc³ numbers are lower bounds, not survey volumes.
+- Doc fix: the walkthrough said "5 O3a segments (6.8 h)" — 5×4096 s is **5.7 h** (6.8 h was the old 6-segment v1 number).
+- Engineering: a power loss destroyed a full 40-minute all-or-nothing run, so the campaign now **checkpoints per
+  segment atomically** and **persists injection rows to parquet** (re-analysis without re-running 4,800 injections).
+**Honest headline: O4b expands subsolar reach by 1.23× in distance [1.11–1.35] and ~1.9× in volume over O3a,
+significant in every mass bin, with no evidence of mass dependence.** Gated (42 green).
+
 ## 2026-08-07 — O4-3: Subsolar PBH Search Reach Campaign (O4b vs O3a)
 Executed `O4-3` search reach evaluation (`o4_sensitive_distance.py`) across 2,400 subsolar injections per era on held-out test noise (O3a 5 segs, O4b 8 segs) for single-detector (H1) and H1×L1 coincidence modes.
 - **H1×L1 Coincidence Mode Search Reach Results**:

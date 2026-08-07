@@ -207,6 +207,18 @@
       - Mc [0.35-0.55 Msun]: O3a 20.61 Mpc (36,655 Mpc³) -> **O4b 26.58 Mpc (78,660 Mpc³)** | **1.29× distance, 2.15× volume**
       - Mc [0.55-0.88 Msun]: O3a 30.76 Mpc (121,907 Mpc³) -> **O4b 36.94 Mpc (211,051 Mpc³)** | **1.20× distance, 1.73× volume**
       O4b detector era expands surveyed astrophysical volume by **~1.93× (1.73-2.15×)** over O3a. Gated (41). Committed.
+      **STRESS-TESTED (2026-08-07, review pass).** Three issues found and addressed: **(a) the eras were not
+      FAR-matched** — O3a used 5 segments (5.7 h) vs O4b 8 (9.1 h), and the zero-FA threshold grows with livetime
+      (thr_single O3a 2.111 vs O4b 3.233), so O4b was held to a *stricter* bar. Re-ran with `--match-segs` (5 each):
+      **1.21/1.28/1.20× — mean 1.23× vs 1.24×, i.e. the concern was real but immaterial** (~1%, within MC noise).
+      **(b) no uncertainty** — added `o4_reach_bootstrap.py` (B=1000 on the saved injection rows): **every mass
+      bin's 90% CI excludes 1** (1.21 [1.14,1.29], 1.28 [1.21,1.35], 1.20 [1.11,1.30]) ⇒ the gain is significant;
+      but **all CIs mutually overlap ⇒ the bin-to-bin spread is NOISE — do not claim a mass-dependent gain.**
+      **(c) volume uses (mean SNR_ref)³ not mean(SNR_ref³)** — by Jensen this *underestimates* absolute volumes;
+      the ratios largely cancel it, so gains are sound but absolute Mpc³ figures are lower bounds. Engineering:
+      the campaign now checkpoints per segment (a power loss cost a full 40-min run) and persists injection rows
+      so re-analysis needs no re-run. **Honest headline: 1.23× distance [1.11–1.35], ~1.9× volume, mass-independent.**
+      Gated (42).
 - [ ] **O4-4 · watch for O4c / S251112cm release** 🟡 — if S251112cm survives review and O4c releases, the
       pipeline is already validated on O4-era noise and can be pointed straight at it. *Done =* a watcher check.
 

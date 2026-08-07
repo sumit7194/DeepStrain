@@ -80,7 +80,7 @@ def compute_metrics(df: pd.DataFrame, col: str, min_count: int = 10):
     return out
 
 
-def evaluate_era(era_name: str, segs: list[int], model, device, n_inj: int, smoke: bool):
+def evaluate_era(era_name: str, segs: list[int], model, device, n_inj: int, smoke: bool, tag: str = ""):
     crop = C.WHITEN_CROP_SEC * C.SAMPLE_RATE
     data = {}
     noise = {"H1": {}, "L1": {}}
@@ -129,11 +129,19 @@ def evaluate_era(era_name: str, segs: list[int], model, device, n_inj: int, smok
     
     print(f"  [{era_name}] thr_single: {thr_single:.3f} | thr_coinc_matched: {thr_coinc_matched:.3f}", flush=True)
     
-    # Injections
+    # Injections — per-segment atomic checkpoint (power loss costs one segment, not the run)
     n_inj_per_seg = max(10, n_inj // len(usable_segs))
-    rows = []
+    ckpt = C.RESULTS_DIR / f"o4_reach_ckpt_{era_name}{tag}.parquet"
+    rows, done = [], set()
+    if ckpt.exists():
+        prev = pd.read_parquet(ckpt)
+        prev = prev[prev.gps.isin(usable_segs)]
+        rows = prev.to_dict("records"); done = set(int(x) for x in prev.gps.unique())
+        print(f"  [{era_name}] resuming: {len(done)} seg(s) cached ({len(rows)} rows)", flush=True)
     t_inj = time.time()
     for g in usable_segs:
+        if int(g) in done:
+            print(f"    seg {g} cached, skip", flush=True); continue
         (wcH, tH, psdH, startsH) = data[("H1", g)]
         (wcL, tL, psdL, startsL) = data[("L1", g)]
         rng = np.random.default_rng([SEED, int(g)])
@@ -179,7 +187,9 @@ def evaluate_era(era_name: str, segs: list[int], model, device, n_inj: int, smok
                 "det_single": bool(sh > thr_single),
                 "det_coinc": bool(s_coinc > thr_coinc_matched),
             })
-            
+        tmp = ckpt.with_suffix(".tmp.parquet")
+        pd.DataFrame(rows).to_parquet(tmp); tmp.replace(ckpt)   # atomic
+        
     print(f"  [{era_name}] {len(rows)} injections finished in {time.time()-t_inj:.1f}s", flush=True)
     df = pd.DataFrame(rows)
     
@@ -201,6 +211,11 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--n-inj", type=int, default=2400)
     ap.add_argument("--smoke", action="store_true")
+    ap.add_argument("--match-segs", action="store_true",
+                    help="use the SAME number of segments per era so the zero-FA/matched-FAR threshold "
+                         "covers equal livetime (O4b otherwise gets 8 segs vs O3a 5 -> a MORE stringent "
+                         "threshold, which UNDERSTATES the O4b gain)")
+    ap.add_argument("--tag", default="", help="artifact suffix")
     args = ap.parse_args()
     
     if args.smoke:
@@ -210,14 +225,18 @@ def main():
     else:
         o3_segs = O3A_SEGS
         o4_segs = O4B_SEGS
+        if args.match_segs:
+            n = min(len(o3_segs), len(o4_segs))
+            o3_segs, o4_segs = o3_segs[:n], o4_segs[:n]
+            print(f"[match-segs] equal livetime per era: {n} segments each", flush=True)
         
     device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
     model = make_model("cnn")
     model.load_state_dict(torch.load(C.MODEL_DIR / "cnn_w64.pt", map_location=device))
     model.to(device).eval()
     
-    res_o3 = evaluate_era("O3a", o3_segs, model, device, args.n_inj, args.smoke)
-    res_o4 = evaluate_era("O4b", o4_segs, model, device, args.n_inj, args.smoke)
+    res_o3 = evaluate_era("O3a", o3_segs, model, device, args.n_inj, args.smoke, args.tag)
+    res_o4 = evaluate_era("O4b", o4_segs, model, device, args.n_inj, args.smoke, args.tag)
     
     # Compute overall gain ratios
     comparison = {}
@@ -257,7 +276,10 @@ def main():
     }
     
     C.RESULTS_DIR.mkdir(exist_ok=True)
-    out_json = C.RESULTS_DIR / f"o4_sensitive_distance{'_smoke' if args.smoke else ''}.json"
+    sfx = args.tag + ('_smoke' if args.smoke else '')
+    pd.concat([res_o3["df"], res_o4["df"]], ignore_index=True).to_parquet(
+        C.RESULTS_DIR / f"o4_sensitive_distance_rows{sfx}.parquet")   # raw scores -> free re-analysis
+    out_json = C.RESULTS_DIR / f"o4_sensitive_distance{sfx}.json"
     out_json.write_text(json.dumps(out, indent=2))
     print(f"\nWrote results to {out_json}", flush=True)
     
@@ -303,7 +325,7 @@ def main():
         axes[1].text(i + bar_width/2, v_o4_coinc[i] + 0.05 * max(v_o4_coinc), f"{vgain:.2f}x", ha="center", fontsize=9, fontweight="bold")
         
     fig.tight_layout()
-    plot_path = C.RESULTS_DIR / f"o4_sensitive_distance{'_smoke' if args.smoke else ''}.png"
+    plot_path = C.RESULTS_DIR / f"o4_sensitive_distance{sfx}.png"
     fig.savefig(plot_path, dpi=120)
     print(f"Wrote plot to {plot_path}", flush=True)
 

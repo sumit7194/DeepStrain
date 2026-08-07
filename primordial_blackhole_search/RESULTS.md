@@ -882,3 +882,32 @@ duty cycle is transformed) — and all 8 fetched segments were usable, vs 4–5 
 better data in every respect except the one that matters. Gated (double reproduces + triple still no help +
 cross-era replication within 5% + measured ASD gap). Artifacts: coinc_triple_o4b.json, o4_asd_compare.json,
 o4_transfer_scout.json.
+
+#### O4-3 STRESS-TEST (2026-08-07): the reach gain survives; the mass-dependence does not
+Review pass over the O4-3 campaign. It carries a strong independent cross-check — **the measured 1.24× distance
+gain matches the separately-measured 1.29× ASD improvement** (`o4_asd_compare.json`), two independent routes
+agreeing. Three issues found and addressed:
+- **(a) The eras were not FAR-matched.** O3a used 5 segments (5.7 h), O4b 8 (9.1 h); the zero-FA threshold is the
+  max over noise windows, so it grows with livetime (thr_single O3a 2.111 vs O4b **3.233**, while the 3-segment
+  scout gave O4b 1.141). O4b was held to a *stricter* bar — biasing **against** the claim. Re-ran at equal
+  livetime (`--match-segs`, 5 each): **1.21 / 1.28 / 1.20×, mean 1.23× vs 1.24×.** Real concern, **immaterial
+  effect** (~1%, within MC noise).
+- **(b) No uncertainty.** `o4_reach_bootstrap.py` (B=1000, resamples the saved injection rows — no re-run):
+
+  | mass bin | reach gain | 90% CI | significant? |
+  |---|---|---|---|
+  | 0.17–0.35 | 1.21× | [1.14, 1.29] | ✅ |
+  | 0.35–0.55 | 1.28× | [1.21, 1.35] | ✅ |
+  | 0.55–0.88 | 1.20× | [1.11, 1.30] | ✅ |
+
+  Every bin's CI excludes 1 ⇒ **the gain is real everywhere**. But **all three CIs mutually overlap ⇒ the apparent
+  mass-dependence (1.20 vs 1.29) is NOISE** — that claim is withdrawn.
+- **(c) Volume uses (mean SNR_ref)³, not mean(SNR_ref³).** By Jensen's inequality this *underestimates* absolute
+  volumes (isotropic sky/orientation ⇒ wide SNR_ref spread within a bin). The ratio largely cancels it, so the
+  ~1.9× volume gain stands, but **absolute Mpc³ figures are lower bounds, not survey volumes.**
+
+**Honest headline: O4b expands subsolar search reach by 1.23× in distance [1.11–1.35] and ~1.9× in surveyed
+volume over O3a — significant in every mass bin, with no evidence of mass dependence.** Engineering: the campaign
+now checkpoints per segment (a power loss destroyed a full 40-min all-or-nothing run) and persists injection rows
+to parquet so re-analysis needs no re-run. Gated (42). Artifacts: o4_sensitive_distance_matched.json,
+o4_reach_bootstrap_matched.json.

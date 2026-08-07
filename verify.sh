@@ -595,6 +595,29 @@ print(f"PASS  pbh O4-3 reach (O4b reach gain over O3a: {comp['0.17-0.35']['d_gai
       f"volume gain {comp['0.17-0.35']['v_gain_ratio']:.2f}x -- {comp['0.55-0.88']['v_gain_ratio']:.2f}x)")
 PYEOFO4REACH
 
+echo "--- pbh O4-3 STRESS-TEST (matched livetime + bootstrap: the reach gain is significant and mass-independent)"
+./primordial_blackhole_search/.venv/bin/python - << 'PYEOFO4BOOT' || FAIL=1
+import json
+b = json.loads(open("primordial_blackhole_search/results/o4_reach_bootstrap_matched.json").read())
+m = json.loads(open("primordial_blackhole_search/results/o4_sensitive_distance_matched.json").read())
+s = b["_summary"]
+# (1) FAR-matched (equal livetime per era) reproduces the headline gain -> the 5-vs-8-segment
+#     threshold mismatch in the original run does NOT drive the result
+comp = m["comparison"]["coincidence"]
+assert 1.15 < s["mean_d_gain"] < 1.35, f"matched-livetime gain moved: {s['mean_d_gain']}"
+for k in comp:
+    assert comp[k]["d_gain_ratio"] > 1.15, f"matched gain low [{k}]: {comp[k]['d_gain_ratio']}"
+# (2) bootstrap: the gain is SIGNIFICANT in every mass bin (90% CI excludes 1)
+assert s["all_bins_significant"], "a mass bin's reach-gain CI no longer excludes 1"
+for k, v in b.items():
+    if k.startswith("_"): continue
+    assert v["d_gain_ci90"][0] > 1.0, f"{k} CI includes 1: {v['d_gain_ci90']}"
+# (3) the bin-to-bin spread is consistent with noise -> do NOT claim a mass-dependent gain
+assert s["bin_spread_consistent_with_noise"], "bin spread no longer noise-consistent -- recheck mass dependence"
+print(f"PASS  pbh O4-3 stress-test (matched-livetime mean gain {s['mean_d_gain']:.2f}x; every bin's 90% CI "
+      f"excludes 1; bin spread noise-consistent -> no mass dependence claimed)")
+PYEOFO4BOOT
+
 echo "========================================"
 [ $FAIL -eq 0 ] && echo "BLACKHOLE GATE: ALL GREEN" || echo "BLACKHOLE GATE: FAILURES"
 exit $FAIL
