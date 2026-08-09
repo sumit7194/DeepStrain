@@ -1,0 +1,65 @@
+{
+  "n_windows": 6200,
+  "n_segments": 100,
+  "max_H1": 12.532333374023438,
+  "max_L1": 6.2563581466674805,
+  "one_sided_ceiling": 12.532333374023438,
+  "zero_lag_sum": 11.295368194580078,
+  "zero_lag_H1": 12.532333374023438,
+  "zero_lag_L1": -1.2369648218154907,
+  "zero_lag_two_sided": false,
+  "zero_lag_is_worst_H1_window": true,
+  "zero_lag_min_stat": 1.634705901145935,
+  "bands": [
+    {
+      "lo": 0,
+      "hi": 25,
+      "sum_hi": 18.788692474365234,
+      "sum_lo": 15.093751907348633,
+      "frac_one_sided": 0.0
+    },
+    {
+      "lo": 25,
+      "hi": 100,
+      "sum_hi": 15.048041343688965,
+      "sum_lo": 13.852063179016113,
+      "frac_one_sided": 0.5066666666666667
+    },
+    {
+      "lo": 100,
+      "hi": 500,
+      "sum_hi": 13.848321914672852,
+      "sum_lo": 12.71611499786377,
+      "frac_one_sided": 0.9025
+    },
+    {
+      "lo": 500,
+      "hi": 2000,
+      "sum_hi": 12.71517562866211,
+      "sum_lo": 11.931394577026367,
+      "frac_one_sided": 0.9886666666666667
+    },
+    {
+      "lo": 2000,
+      "hi": 6199,
+      "sum_hi": 11.931360244750977,
+      "sum_lo": 10.481889724731445,
+      "frac_one_sided": 0.9990473922362467
+    }
+  ],
+  "threshold_regimes": {
+    "1/month": {
+      "threshold": 12.339570999145508,
+      "above_single_det_ceiling": false
+    },
+    "1/year": {
+      "threshold": 14.11172866821289,
+      "above_single_det_ceiling": true
+    },
+    "1/decade": {
+      "threshold": 16.12076759338379,
+      "above_single_det_ceiling": true
+    }
+  },
+  "conclusion": "The 1/year and 1/decade thresholds sit ABOVE the single-detector ceiling, so they are set by genuine two-sided accidental coincidences, not glitches. The zero-lag maximum is the single loudest H1 glitch (L1 sees nothing), so the null is cleaner than the sum statistic alone suggests: under min(sH,sL) the zero-lag max is 1.63."
+}

@@ -218,6 +218,30 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   checkpoints (never re-fetch a done segment), raw strain purged — **and the purge must clear astropy's download
   cache too** (`gwpy` keeps a 2nd copy, ~0.25 GB/segment, 5.3 GB accumulated; would have exhausted disk ~segment
   80 — caught mid-run, fixed, disk then flat at 19 GB). Gated (45). Artifacts: far_deep.json, results/far_scores/.
+- **Deep-FAR AUDIT DONE (2026-08-09): thresholds are ±33–44%, NOT ±0.3 — but the null is 4/4 and WIDER than reported.**
+  A "did we miss anything?" pass over the retained score cache (user declined deletion — correct call) became a full
+  stress-test of our own headline. **Assumptions HOLD:** H1⊥L1 independence z=−0.38 **p=0.69** (if this failed the whole
+  ladder would be biased low), per-segment data-quality corr −0.075 p=0.45. **What BROKE:** "80.5 yr" is *livetime*, not
+  independent statistics — all N(N−1) pairs come from 2N window scores, and **1/decade's 8 events trace to just 2 distinct
+  H1 windows** (1/year 2, 1/month 4). Jackknife (drop each 10% block) spread **33–44%** vs the ±√k Poisson band's ~±2% =
+  **an order of magnitude over-precise**. **It is ONE segment:** 6 of the 8 loudest H1 windows are in seg 59 (gps
+  1397232640); dropping it moves 1/decade **16.121→11.261** (diagnostic only — post-hoc removal would be tuning). V5's
+  "non-stationarity" is the *same* finding, not a second problem: bulk noise is identical between halves (median −0.814
+  vs −0.769), only the glitch cluster's placement differs. **Zero-lag was never a near-miss:** 11.295 = H1 +12.53 /
+  L1 −1.24, i.e. the single loudest H1 window with L1 seeing nothing; single-det ceilings (maxH1 12.53, maxL1 6.26) mean
+  **any bg >12.5 REQUIRES both detectors ⇒ 1/year + 1/decade rungs are genuine two-sided coincidences, 1/month is
+  glitch-reachable.** One-sidedness must be read vs loudness (top-25 **0%** one-sided → top-2000+ 100%); a first quick
+  pass claiming "96%" was wrong (sampled every 37th lag ⇒ mid-tail population) and was caught before it reached a claim.
+  **min/veto tested and REFUTED on the signal side** — previously recorded as untestable without the purged strain, but
+  `o4_sensitive_distance_rows_matched` + `coinc_triple_rows_o4b` already store **per-detector** scores for 4,800 O4b
+  injections: at matched FAR `min` = 0.97–0.99× sum's sensitive distance (`veto` 0.99–1.04×) though it *does* halve the
+  background instability (25% vs 46%) ⇒ **extends G2a's "sum is optimal" into the deep regime where we'd flagged it
+  untested; KEEP sum.** **V8 = the result that survives:** null in **4/4** configs (all-segs/drop-59 × sum/min), each vs
+  its OWN threshold, margins **2.0–3.7×** — removing the glitchy segment removes the loudest zero-lag AND the background
+  that nearly matched it, self-consistently, because they are the same glitches. **Net: reach stands, null is STRONGER,
+  precision must be re-quoted as 16.1 ± ~5.** Deep FAR is limited by independent loud-noise samples, not livetime — which
+  is why real LVK searches use signal-consistency vetoes + DQ flags, not raw time-slides alone. Gated (46).
+  Artifacts: far_background_validation.json, far_glitch_anatomy.json, far_min_vs_sum.json.
 - **N5 O4b RE-TEST DONE (2026-08-06): the Virgo negative REPLICATES across detector generations.** O4b is now
   public (Apr 2024–Jan 2025, H1+L1+V1). **Prereq (`o4_transfer_scout.py`): cnn_w64 transfers to O4b UNCHANGED
   (0.97×)** — per-segment PSD whitening absorbs the era shift, so no retraining and no confound; O4b is 1.41×

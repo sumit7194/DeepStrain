@@ -680,6 +680,41 @@ print(f"PASS  pbh deep FAR ({d['n_segments']} O4b segments, {d['real_livetime_h'
       f"1/decade threshold {lad['1/decade']:.2f}; loudest real coincidence {d['zero_lag_max']:.2f} = clean null)")
 PYEOFFAR
 
+echo "--- pbh deep-FAR audit (independence holds; thresholds +-33-44% from ONE segment; null 4/4; min loses)"
+./primordial_blackhole_search/.venv/bin/python - << 'PYEOFAUD' || FAIL=1
+import json
+R = "primordial_blackhole_search/results/"
+v = json.loads(open(R + "far_background_validation.json").read())
+a = json.loads(open(R + "far_glitch_anatomy.json").read())
+m = json.loads(open(R + "far_min_vs_sum.json").read())
+
+# (1) the assumption time-slides REST on: H1 _|_ L1. If this ever fails the whole ladder is biased LOW.
+assert v["V1_independence"]["p_two_sided"] > 0.05, f"H1/L1 correlated -- background biased: {v['V1_independence']}"
+assert v["V6_segment_quality"]["p_perm"] > 0.05, f"segment data quality co-varies: {v['V6_segment_quality']}"
+
+# (2) the honest error bar: the deep tail rests on a handful of windows, so the jackknife spread is LARGE.
+#     This asserts we keep REPORTING that, i.e. nobody quietly re-quotes +-Poisson precision.
+assert v["V2_effective_n"]["1/decade"]["distinct_H1_windows"] <= 5, "effective-N story changed -- recheck the caveat"
+assert v["V7_jackknife"]["1/decade"]["spread_pct"] > 10.0, "jackknife spread shrank -- re-derive the quoted uncertainty"
+
+# (3) THE RESULT: null under every configuration x statistic, each vs its OWN threshold.
+assert v["all_configs_null"], f"a configuration is NOT null -- INVESTIGATE: {v['V8_null_robustness']}"
+
+# (4) the zero-lag 'near miss' is a one-sided H1 glitch, not a coincidence (so the null is wide, not 8%).
+assert not a["zero_lag_two_sided"], "zero-lag loudest became two-sided -- re-examine, this WOULD be a candidate"
+assert a["zero_lag_min_stat"] < a["one_sided_ceiling"], "consistency statistic no longer clean"
+
+# (5) honest negative: the consistency statistic does NOT buy reach (keeps G2a's 'sum is optimal' honest at depth)
+worst = max(m["verdict"]["1/decade"][k] for k in ("min", "veto"))
+assert worst <= 1.05, f"min/veto now BEATS sum at 1/decade ({worst}x) -- that would overturn G2a, investigate"
+
+jk = v["V7_jackknife"]["1/decade"]
+print(f"PASS  pbh deep-FAR audit (independence p={v['V1_independence']['p_two_sided']:.2f}; 1/decade set by "
+      f"{v['V2_effective_n']['1/decade']['distinct_H1_windows']} distinct H1 windows -> jackknife spread "
+      f"{jk['spread_pct']:.0f}% (quote 16.1+-5, not +-0.3); zero-lag = one-sided glitch H1 {a['zero_lag_H1']:+.1f} "
+      f"L1 {a['zero_lag_L1']:+.1f}; min buys {m['verdict']['1/decade']['min']:.2f}x = no gain; null 4/4)")
+PYEOFAUD
+
 echo "========================================"
 [ $FAIL -eq 0 ] && echo "BLACKHOLE GATE: ALL GREEN" || echo "BLACKHOLE GATE: FAILURES"
 exit $FAIL

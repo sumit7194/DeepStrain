@@ -1,0 +1,201 @@
+{
+  "n_segments": 100,
+  "n_windows": 6200,
+  "V1_independence": {
+    "zero_lag_r": -0.005099485628306866,
+    "lag_null_mean": 8.226487703823898e-07,
+    "lag_null_sd": 0.013279558811847624,
+    "z": -0.38407211785732714,
+    "p_two_sided": 0.6931763187610905
+  },
+  "V6_segment_quality": {
+    "r_segment_mean": -0.0746080010061606,
+    "p_perm": 0.453
+  },
+  "background_years": 80.45343472750316,
+  "ladder": {
+    "1/month": {
+      "threshold": 12.339570999145508,
+      "n_bg_events": 965
+    },
+    "1/year": {
+      "threshold": 14.11172866821289,
+      "n_bg_events": 80
+    },
+    "1/decade": {
+      "threshold": 16.12076759338379,
+      "n_bg_events": 8
+    }
+  },
+  "V2_effective_n": {
+    "1/month": {
+      "n_bg_events": 965,
+      "distinct_H1_windows": 4,
+      "distinct_L1_windows": 888,
+      "distinct_frac": 0.46217616580310883
+    },
+    "1/year": {
+      "n_bg_events": 80,
+      "distinct_H1_windows": 2,
+      "distinct_L1_windows": 72,
+      "distinct_frac": 0.4625
+    },
+    "1/decade": {
+      "n_bg_events": 8,
+      "distinct_H1_windows": 2,
+      "distinct_L1_windows": 6,
+      "distinct_frac": 0.5
+    }
+  },
+  "V3_poisson": {
+    "1/month": {
+      "threshold": 12.339570999145508,
+      "band": [
+        12.323125839233398,
+        12.355143547058105
+      ],
+      "k": 965
+    },
+    "1/year": {
+      "threshold": 14.11172866821289,
+      "band": [
+        13.953495979309082,
+        14.201313972473145
+      ],
+      "k": 80
+    },
+    "1/decade": {
+      "threshold": 16.12076759338379,
+      "band": [
+        15.774517059326172,
+        16.778888702392578
+      ],
+      "k": 8
+    }
+  },
+  "V4_convergence": [
+    {
+      "n_segments": 10,
+      "bg_years": 0.8033662864385298,
+      "1/month": 5.418722629547119,
+      "1/year": 7.228300094604492
+    },
+    {
+      "n_segments": 20,
+      "bg_years": 3.216060836501901,
+      "1/month": 5.055340766906738,
+      "1/year": 6.842360496520996
+    },
+    {
+      "n_segments": 40,
+      "bg_years": 12.869434727503169,
+      "1/month": 7.007837295532227,
+      "1/year": 9.1995849609375,
+      "1/decade": 11.03271198272705
+    },
+    {
+      "n_segments": 60,
+      "bg_years": 28.9601216730038,
+      "1/month": 12.598384857177734,
+      "1/year": 14.484895706176758,
+      "1/decade": 17.057510375976562
+    },
+    {
+      "n_segments": 80,
+      "bg_years": 51.4881216730038,
+      "1/month": 12.475042343139648,
+      "1/year": 14.246493339538574,
+      "1/decade": 16.778888702392578
+    },
+    {
+      "n_segments": 100,
+      "bg_years": 80.45343472750316,
+      "1/month": 12.339570999145508,
+      "1/year": 14.11172866821289,
+      "1/decade": 16.12076759338379
+    }
+  ],
+  "V5_stationarity": {
+    "first_half": {
+      "bg_years": 20.110114068441064,
+      "1/month": 6.904742240905762,
+      "1/year": 8.836942672729492,
+      "1/decade": 10.754090309143066
+    },
+    "second_half": {
+      "bg_years": 20.110114068441064,
+      "1/month": 12.7566556930542,
+      "1/year": 14.640928268432617,
+      "1/decade": 15.774517059326172
+    }
+  },
+  "V7_jackknife": {
+    "1/month": {
+      "full": 12.339570999145508,
+      "min": 6.9214677810668945,
+      "max": 12.410118103027344,
+      "sd": 1.6420531985991778,
+      "spread_pct": 44.48007408313083
+    },
+    "1/year": {
+      "full": 14.11172866821289,
+      "min": 8.824437141418457,
+      "max": 14.21695327758789,
+      "sd": 1.6096701207237083,
+      "spread_pct": 38.21300893005578
+    },
+    "1/decade": {
+      "full": 16.12076759338379,
+      "min": 11.03271198272705,
+      "max": 16.394289016723633,
+      "sd": 1.5822213868838986,
+      "spread_pct": 33.258819736332256
+    }
+  },
+  "V7_drop_worst_segment": {
+    "segment_index": 59,
+    "gps": 1397232640,
+    "1/month": 6.939548969268799,
+    "1/year": 8.824437141418457,
+    "1/decade": 11.261191368103027
+  },
+  "V8_null_robustness": [
+    {
+      "config": "all segments",
+      "statistic": "sum",
+      "far": "1/decade",
+      "threshold": 16.12076759338379,
+      "zero_lag_max": 11.295368194580078,
+      "null": true,
+      "margin_x": 1.43
+    },
+    {
+      "config": "all segments",
+      "statistic": "min",
+      "far": "1/decade",
+      "threshold": 5.977736473083496,
+      "zero_lag_max": 1.634705901145935,
+      "null": true,
+      "margin_x": 3.66
+    },
+    {
+      "config": "drop glitchiest seg 59",
+      "statistic": "sum",
+      "far": "1/decade",
+      "threshold": 11.261191368103027,
+      "zero_lag_max": 5.546419620513916,
+      "null": true,
+      "margin_x": 2.03
+    },
+    {
+      "config": "drop glitchiest seg 59",
+      "statistic": "min",
+      "far": "1/decade",
+      "threshold": 5.200544357299805,
+      "zero_lag_max": 1.634705901145935,
+      "null": true,
+      "margin_x": 3.18
+    }
+  ],
+  "all_configs_null": true
+}

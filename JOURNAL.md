@@ -11,6 +11,63 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-08-09 — the cleanup that became an audit: our own 1/decade result stress-tested
+
+Started as disk triage. Before deleting anything the user asked for a pass over the data
+"to see if we did not miss anything genuinely important… look for any accidental findings
+first" — then, after the pass turned up real findings, decided **"lets not delete anything,
+we have lots to get from those."** The right call: nothing was deleted, and the retained
+score cache produced the most useful result of the week.
+
+**A wrong number caught before it became a claim.** The first quick pass reported "96% of
+the loudest background events are one-sided." The careful re-run said 38%. Same data — the
+quick version sampled every 37th lag, which makes its "top 100" a *mid*-tail population,
+where one-sidedness dominates; the true extreme tail behaves oppositely (top-25 is **0%**
+one-sided). One-sidedness has to be reported *against loudness*, not as a single number.
+Resolving that discrepancy is what turned a cleanup into an audit.
+
+**Then the audit inverted the interpretation — twice.** Reading the deep-FAR result as
+"zero-lag 11.295 vs 1/month 12.34 = an 8% near-miss" is wrong on both sides:
+
+- **The event isn't a coincidence.** 11.295 = H1 **+12.53**, L1 **−1.24** — the single
+  loudest Hanford window in all 114 h, with Livingston seeing nothing. Under a consistency
+  statistic it collapses to 1.635.
+- **The threshold isn't 80 years of statistics.** Single-detector ceilings (max H1 12.53,
+  max L1 6.26) mean any background above ~12.5 *requires* both detectors, so 1/year and
+  1/decade are genuine two-sided coincidences — good news, worth verifying rather than
+  assuming. But `far_background_validation.py` found the 8 events setting 1/decade trace to
+  **2 distinct H1 windows**, jackknife spread **33–44%** (vs ±2% Poisson), and **6 of the 8
+  loudest H1 windows sit in one segment** (59, gps 1397232640) — dropping it alone moves
+  1/decade 16.121 → 11.261. The apparent "non-stationarity" (halves differing 32–46%) is the
+  *same* finding, not a second one: bulk noise is identical between halves.
+
+**What held:** the assumption the whole method rests on. H1⊥L1 independence, z = −0.38,
+**p = 0.69**; per-segment data-quality correlation p = 0.45. Had that failed, every threshold
+would have been biased low.
+
+**A hypothesis I had recorded as untestable turned out to be testable.** I'd written that
+min-vs-sum at deep FAR needed injections into O4b strain that `far_deep.py` purged. It
+didn't: `o4_sensitive_distance_rows_matched` and `coinc_triple_rows_o4b` already store
+**per-detector** scores for 4,800 O4b injections. Measured at matched FAR, `min` gives
+**0.97–0.99×** sum's sensitive distance (`veto` 0.99–1.04×) while halving background
+instability (25% vs 46%) ⇒ **honest negative, keep `sum`** — and G2a's "sum is optimal",
+previously established only at a 4.6-yr background, now holds at depth too. *Lesson: "we
+can't test that" deserves the same verification as any other claim.*
+
+**The result that survived (V8).** Every test above attacks the threshold; what matters is
+the search. Null in **4/4** configurations (all-segments / drop-59 × sum / min), each against
+its own matched threshold, at margins of **2.0–3.7×**. Removing the glitchy segment removes
+the loudest zero-lag event *and* the background that nearly matched it — self-consistently,
+because they are the same glitches.
+
+**Net correction:** reach stands, the null is *stronger* than we published, and the precision
+must be re-quoted as **16.1 ± ~5 (33%)**, not ±0.3. Deep FAR is limited by the number of
+independent loud-noise samples, not by livetime — which is why real LVK searches use
+signal-consistency vetoes and DQ flags rather than raw time-slides alone. RESULTS/CLAUDE/
+README corrected; gate now **46** green.
+
+---
+
 ## 2026-08-08 — deep FAR: an 80-year background on O4b, 1/decade reached on the Mac (no VM)
 The last "parked" item claimed lower-FAR needed the GPU VM. It didn't — it needed compute, and the Mac was idle.
 `far_deep.py`: global time-slides give **background = (N_windows−1) distinct lags × total livetime** (formula

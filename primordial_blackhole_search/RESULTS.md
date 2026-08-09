@@ -919,8 +919,9 @@ pure compute, not a wall — global time-slides manufacture background livetime.
 
 **Method (`far_deep.py`).** Shift L1's whole window-score stream against H1's; every surviving coincidence is
 accidental by construction. With N_tot windows there are **N_tot − 1 distinct non-zero circular lags** (the
-honest count — more repeats lags and re-injects zero-lag, the overcounting bug we fixed in Build C-2), each an
-independent copy of the full livetime:
+honest count — more repeats lags and re-injects zero-lag, the overcounting bug we fixed in Build C-2), each a
+full copy of the livetime (**but NOT an independent sample — see the validation section below, which measures
+exactly how far from independent they are**):
 
     background_time = (N_tot − 1) × total_livetime      [reproduces Build C's 1692 days exactly — verified first]
 
@@ -938,6 +939,8 @@ Both factors grow with segment count, so **background ∝ N_segments²**. 100 fr
 **Zero-lag check (the real, unshifted H1×L1 data): loudest coincidence = 11.295 — below even the 1/month
 threshold. A clean null: no subsolar candidate in 114 h of O4b, as expected for randomly-chosen noise stretches.**
 The deepest *measurable* FAR here is ~1/80 yr; we quote 1/decade as the conservative ladder rung.
+*(The follow-up audit below shows this number is not a near-miss at all: 11.295 is a one-sided H1 glitch, and
+the null is far wider than the 8% margin suggests.)*
 
 **Engineering (this ran unattended for ~4 h across a session restart).** The expensive step (fetch → whiten →
 score) is checkpointed per segment as a tiny .npz of window scores, so a completed segment is never re-fetched;
@@ -946,3 +949,89 @@ clear astropy's download cache too**: `gwpy`'s `fetch_open_data(cache=True)` kee
 segment, 5.3 GB accumulated) that our first purge missed and which would have exhausted disk near segment 80.
 Caught mid-run, fixed, and disk then held flat at 19 GB for the remaining ~60 segments. Gated (45).
 Artifact: far_deep.json; score cache: results/far_scores/ (100 segments, 160 KB — the reusable product).
+
+### Deep-FAR AUDIT: the 80-year background stress-tested — thresholds are ±33–44%, but the null is 4/4 (2026-08-09)
+A pass over the retained score cache asking "did we miss anything?" turned into a full audit of the deep-FAR
+result. It found a real over-claim in our own reporting *and* a null considerably stronger than we had stated.
+**Every test below can only weaken the headline — that is the point of running them.**
+
+**Assumptions that HOLD.** `far_background_validation.py`:
+- **Detector independence (V1).** Time-slides are only valid if H1 and L1 noise are independent; shared
+  environmental noise would make the background understate the true accidental rate and thresholds too *low*.
+  Zero-lag corr(sH, sL) = −0.0051 against a null of 0.0000 ± 0.0133 over 6,199 lags: **z = −0.38, p = 0.69.**
+- **Shared data quality (V6).** Per-segment mean-score correlation H1 vs L1 = −0.075, permutation p = 0.45.
+  No co-varying data quality, which is the physical mechanism that would have broken V1.
+
+**What BROKE — "80.5 years" is livetime, not 80.5 years of independent statistics.** All N(N−1) slid pairs are
+built from only 2N underlying window scores, and the extreme tail is dominated by the few loudest windows:
+
+| rung | bg events setting it | distinct H1 windows behind them |
+|---|---|---|
+| 1/month | 965 | **4** |
+| 1/year | 80 | **2** |
+| 1/decade | 8 | **2** |
+
+So the 1/decade threshold rests on 2 Hanford glitches slid against everything, not on 80 years of statistics.
+The consequences, all measured:
+- **Jackknife (V7), dropping each 10% block:** 1/month spread **44%**, 1/year **38%**, 1/decade **33%** of the
+  quoted value — versus the ±sqrt(k) Poisson band of ~±2%, which was **an order of magnitude too optimistic.**
+- **It is ONE segment.** 6 of the 8 loudest H1 windows in all 114 h live in segment 59 (gps 1397232640).
+  Dropping it alone moves 1/decade **16.121 → 11.261**. Reported as a diagnostic, *not adopted* — post-hoc
+  removal of the loudest segment would be tuning.
+- **Not detector drift (V5 explained).** First/second-half thresholds differ 32–46%, but bulk noise is
+  identical between halves (median −0.814 vs −0.769; p99 1.59 vs 2.48). The "non-stationarity" is entirely
+  the placement of one glitch cluster, i.e. the *same* finding as V2, not a second problem.
+- **Convergence (V4)** shows the same fingerprint: the ladder jumps at n=40→60 as segment 59 enters.
+
+**The zero-lag "near miss" was never a coincidence.** `far_glitch_anatomy.py`: the loudest zero-lag event
+(11.295, reported as 8% below the 1/month threshold) is **H1 +12.53, L1 −1.24** — precisely the single loudest
+H1 window in the dataset with Livingston seeing nothing. Single-detector ceilings are max(H1) 12.53,
+max(L1) 6.26, so **any background above ~12.5 physically requires both detectors**: the 1/year (14.11) and
+1/decade (16.12) rungs are set by genuine two-sided accidental coincidences, while 1/month (12.34) is
+glitch-reachable. One-sidedness must be read against loudness, not quoted as a single number:
+
+| rank band | sum range | % one-sided |
+|---|---|---|
+| top 0–25 | 15.1–18.8 | **0%** |
+| top 25–100 | 13.9–15.0 | 51% |
+| top 100–500 | 12.7–13.8 | 90% |
+| top 2000+ | 10.5–11.9 | 100% |
+
+*(A first quick pass reported "96% of the loudest background is one-sided" — wrong, from sampling only every
+37th lag, which makes the "top 100" a MID-tail population. Corrected before it reached any claim.)*
+
+**Would a consistency statistic do better? Measured, and NO — an honest negative.** `far_min_vs_sum.py`.
+This was previously recorded as untestable without the purged O4b strain; it is not — `o4_sensitive_distance_
+rows_matched` and `coinc_triple_rows_o4b` already store **per-detector** scores for 4,800 O4b injections, so
+both sides of the trade are measurable from retained artifacts. At **matched FAR**:
+
+| statistic | bg half-to-half spread | sensitive distance vs sum (1/mo, 1/yr, 1/dec) |
+|---|---|---|
+| `sum` (incumbent) | 46% | 1.00× |
+| `min` (consistency) | **25%** | 0.99× / 0.99× / **0.97×** |
+| `veto` (reject if one det < 15% of other) | 40% | 1.04× / 1.00× / 0.99× |
+
+`min` stabilises the background but **does not buy reach**. This extends G2a's "sum is optimal" — previously
+established only at a 4.6-yr background — into the deep-FAR regime, where we had explicitly flagged it as
+untested. **Keep `sum`.**
+
+**And the result that survives all of it (V8).** Every test above attacks the *threshold*; what matters is the
+*search*. Comparing each configuration's zero-lag maximum against the threshold derived from that same
+configuration:
+
+| config | statistic | 1/decade thr | zero-lag max | verdict |
+|---|---|---|---|---|
+| all 100 segments | sum | 16.121 | 11.295 | NULL |
+| all 100 segments | min | 5.978 | 1.635 | NULL (3.7× below) |
+| drop glitchiest seg 59 | sum | 11.261 | 5.546 | NULL (2.0× below) |
+| drop glitchiest seg 59 | min | 5.201 | 1.635 | NULL (3.2× below) |
+
+**Null in 4/4 configurations.** Removing the glitchy segment removes the loudest zero-lag event *and* the
+background that nearly matched it — self-consistently, because they are the same glitches.
+
+**Net correction to the record.** The 1/decade *reach* stands, and the *null is stronger* than we reported
+(the "8% margin" was a glitch; the honest margin is 2–3.7×). What must change is the **precision**: quote
+1/decade as **16.1 ± ~5 (33%)**, dominated by one glitchy segment, not ±0.3. The deep ladder is limited by the
+number of independent loud-noise samples, not by livetime — which is why real LVK searches use signal-
+consistency vetoes and data-quality flags rather than raw time-slides alone. Gated.
+Artifacts: far_background_validation.json, far_glitch_anatomy.json, far_min_vs_sum.json.
