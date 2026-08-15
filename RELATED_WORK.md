@@ -230,11 +230,29 @@ constraint is **distinct loud-noise samples**, not livetime. Background = (62N�
 | ~112 | 100 yr | 1 | measurable but a 1-event estimator: useless |
 | **~353** | **~1000 yr** | **10** | 1/century on the same footing 1/decade has now |
 
-353 segments ≈ 401 h of O4b H1∩L1 — ample in a 9-month run — and at the observed rate (~4 h per 100 segments,
-fetch + score) that is **roughly 14 h of unattended compute**, plus an O(N²) background pass. Distinct glitch
-samples grow ∝ N, so the jackknife spread should fall roughly as 1/√N: **±33% → ~±18%** at N=353. *Buys:* a
-deeper rung **and** a defensible error bar on the existing one. *Prereq:* none — `far_deep.py` already
-checkpoints per segment and purges strain. **This is the single best use of idle Mac time.**
+Distinct glitch samples grow ∝ N, so the jackknife spread should fall roughly as 1/√N: **±33% → ~±18%** at
+N=353. *Buys:* a deeper rung **and** a defensible error bar on the existing one. *Prereq:* none — `far_deep.py`
+checkpoints per segment and purges strain. **The single best use of idle Mac time.**
+
+> **LAUNCHED 2026-08-15, targeting the FULL 727-segment pool** (not the 353 first scoped) ⇒ **~4,253 yr, 42
+> events at 1/century** — a real estimator rather than the 8 events behind the current ±33%.
+>
+> **Two things learned at launch, both worth keeping.**
+> 1. **`far_deep.py` had no fetch retry.** A single transient SSL-handshake timeout on *one* detector (H1
+>    fetched fine, L1 timed out) discarded a whole segment, and the loop would have burned all 627 pool
+>    entries in minutes while scoring nothing. Fixed: per-segment exponential backoff + a consecutive-failure
+>    detector that sleeps 30 min when GWOSC looks degraded. Validated end-to-end in a live outage. A failure
+>    was never permanent (an unscored segment simply has no cache entry), but it would have wasted the run
+>    and *looked* like progress.
+> 2. **The pool is valid but only covers 2024-04-11 → 2024-07-01.** All 727 segments lie inside the public
+>    O4b window, contiguous at one segment length — so fetch failures are GWOSC availability, not bad GPS.
+>    But **O4b runs to 2025-01-28**, so ~7 further months were never enumerated: *727 is a limit of our
+>    discovery pass, not of the observing run.* If more background is ever wanted, extend the discovery
+>    before concluding the data is exhausted.
+>
+> **Cost check (measured, not assumed):** the O(N²) background kernel scales cleanly at 4.2× per doubling —
+> 0.4 s at 100 segments, 7.5 s at 400, so **~25 s per pass at 727** and ~12 min for a full
+> `far_background_validation.py` re-run. **The analysis side has no wall; GWOSC fetch is the sole bottleneck.**
 
 **L3 — Orthonormal-mode adoption across the ringdown arc. ✅ ANSWERED 2026-08-15 — DEAD as a sensitivity
 play.** Scripts `27_orthonormal_roc.py` / `28_orthonormal_prior.py` measured it: an orthonormal basis and a
