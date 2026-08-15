@@ -302,7 +302,17 @@ runs on an ML-residual envelope, essentially per-detector. *Effort:* weeks. *Buy
 sensitivity rung for echoes, and makes our nulls directly comparable to theirs rather than merely consistent.
 *Prereq:* none, but the echoes arc is parked complete — this is what reopening it should mean.
 
-**L5 — Three-tone spectroscopy.** GWTC-5.0 reports **the first measurement of three tones from a black hole**.
+**L5 — Three-tone spectroscopy. 🔴 CLOSED 2026-08-15 — information-limited, with a reopening number.**
+⚠️ **The [S] claim in this file was WRONG**: GWTC-5.0 does not report "the first measurement of three tones".
+Verified at [arXiv:2510.01001](https://arxiv.org/html/2510.01001v3): GW250114 has strong evidence for
+(2,2,0)+(2,2,1), a *weak early-time* preference for (2,2,2), and (4,4,0) with **"SNR insufficient for
+detection"** — the LVK **constrains** a third tone. Our own measurement (`29_third_tone_floor.py`): the two
+candidates fail for **different** reasons — (2,2,2) is 86% absorbed by refitting 220+221 (**degeneracy**,
+needs an unphysical A/A₂₂₀ = 1.45), while (3,3,0)/(4,4,0) are 61–81% orthogonal but intrinsically faint
+(**weakness**). **Reopens at ~1.5× GW250114's ringdown SNR.** A second [S] entry that did not survive contact.
+*(original scoping follows)*
+
+*(original entry)* **L5 —** GWTC-5.0 reports **the first measurement of three tones from a black hole**.
 Our machinery stops at two (220 + 221). *Effort:* read first (that measurement may itself be the answer), then
 weeks if we extend `sbilib` to a third tone and re-derive the no-hair test with it. *Prereq:* read GWTC-5.0.
 

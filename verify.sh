@@ -759,6 +759,40 @@ print(f"PASS  pbh L1 ratio-filter (algebra EXACT to {min(r['exact'] for r in d['
       f"{100*rc['generation_frac_of_direct']:.0f}% of cost, not the 98% the superseded model assumed)")
 PYEOFRF
 
+echo "--- ringdown L5 third-tone floor (undetectable here; two DIFFERENT reasons, with a reopening number)"
+./ringdown_spectroscopy/.venv/bin/python - << 'PYEOFL5' || FAIL=1
+import json
+d = json.loads(open("ringdown_spectroscopy/results/29_third_tone_floor.json").read())
+m = d["modes"]
+
+# (1) THE TWO FAILURE MODES ARE DIFFERENT -- the whole point. (2,2,2) is absorbed by refitting 220+221;
+#     the higher multipoles are nearly orthogonal but intrinsically faint.
+assert m["222"]["orthogonal_fraction"] < 0.3, f"(2,2,2) no longer degeneracy-limited: {m['222']}"
+assert m["440"]["orthogonal_fraction"] > 0.7, f"(4,4,0) no longer well separated: {m['440']}"
+assert d["prediction_held"], "the degeneracy-vs-weakness split collapsed"
+
+# (2) A third tone is NOT reachable on GW250114-class data: (2,2,2) would need an overtone LOUDER than the
+#     fundamental, which is unphysical.
+assert m["222"]["amplitude_ratio_needed"] > 1.0, \
+    f"(2,2,2) became reachable at A<A220 ({m['222']['amplitude_ratio_needed']:.2f}) -- re-examine, L5 would reopen"
+
+# (3) the REOPENING CRITERION, kept as a number so 'undetectable' cannot drift into a vague claim.
+need = m["440"]["ringdown_snr_needed_at_10pct_amplitude"]
+assert need > d["rho_ringdown"], f"(4,4,0) now reachable at current SNR ({need} vs {d['rho_ringdown']})"
+assert 1.2 < need / d["rho_ringdown"] < 3.0, f"reopening ratio moved materially: {need/d['rho_ringdown']:.2f}x"
+
+# (4) the START-TIME mechanism that explains LVK's early-time-only (2,2,2) preference -- and the record that
+#     the window-length hypothesis was refuted, so it is not quietly reintroduced.
+assert d["start_time_penalty_222"] > 3.0, f"(2,2,2) start-time penalty vanished: {d['start_time_penalty_222']}"
+assert d["window_hypothesis_refuted"], "window-length hypothesis no longer recorded as refuted"
+
+print(f"PASS  ringdown L5 third-tone floor ((2,2,2) orth {m['222']['orthogonal_fraction']:.3f} => needs "
+      f"A/A220 {m['222']['amplitude_ratio_needed']:.2f} (unphysical) = DEGENERACY-limited; (4,4,0) orth "
+      f"{m['440']['orthogonal_fraction']:.3f} but faint => needs rho_rd {need:.0f} = "
+      f"{need/d['rho_ringdown']:.1f}x GW250114 = WEAKNESS-limited; (2,2,2) SNR falls "
+      f"{d['start_time_penalty_222']:.1f}x by t_s=2 ms, the start-time mechanism behind LVK's early-time hint)")
+PYEOFL5
+
 echo "--- ringdown orthonormal-QNM test (27/28: the basis carries NO detection information)"
 ./ringdown_spectroscopy/.venv/bin/python - << 'PYEOFORTH' || FAIL=1
 import json

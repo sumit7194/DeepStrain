@@ -456,6 +456,27 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
   consistent). **(c) NPE referee: package M 74.8 [70.4,79.0] / χ 0.729 vs our 09 NPE 76.0 [68.4,85.2] / 0.762 —
   first independent field-standard cross-validation of the NPE arc (package CI nests inside NPE's).** NUTS x64,
   R̂≤1.004, ESS≥950. Gated. Caveat: all peak-start fits carry the R3 early-time systematic; duration fixed 0.05 s.
+- **L5 THIRD-TONE FLOOR DONE (2026-08-15): a third tone is out of reach here — and the two candidates fail for
+  OPPOSITE reasons.** The prereq ("read GWTC-5.0 first") **corrected our own [S] note**: we had recorded "GWTC-5.0
+  reports the first measurement of three tones"; verified at **arXiv:2510.01001**, GW250114 has strong evidence
+  for **(2,2,0)+(2,2,1)** only, a **weak early-time preference** for (2,2,2) at t≲5 M_f, and (4,4,0) with *"SNR
+  insufficient for detection"* — the LVK **constrains** a third tone, doesn't detect one. So `29_third_tone_floor.py`
+  turns "undetectable" into a number instead of building a chase. **Framework** (reuses 27's linear/quadrature
+  setup): a third mode is measurable only via its component **orthogonal to span{220,221}**. At GW250114's remnant
+  (ρ_rd 24.9, our convention): **(2,2,2) orth frac 0.139 ⇒ needs A/A220 = 1.45** (an overtone louder than the
+  fundamental — unphysical) = **DEGENERACY-limited**; **(3,3,0)/(4,4,0) orth 0.609/0.813** (well separated at
+  394/534 Hz) but need A/A220 ≈ 0.15–0.20 = **WEAKNESS-limited**. **Reproduces the LVK pattern from our own
+  machinery, with a mechanism for each.** **Reopening criterion: (4,4,0) at a 10% amplitude ratio needs ρ_rd ≈ 38
+  = ~1.5× GW250114** (quote the RATIO — 24.9 is our whitened convention). **A hypothesis of mine was REFUTED:** I
+  predicted (2,2,2) would be most separable in a SHORT window; the orthogonal fraction instead RISES with window
+  length and saturates by ~10 ms (0.003@2ms → 0.139@20ms) — in a short window all three modes look alike and are
+  *more* degenerate. The script's auto-written conclusion asserted the opposite and had to be corrected. **The
+  variable that matters is START TIME:** (2,2,2)'s measurable SNR falls **7.4× between t_s=0 and 2 ms** while the
+  long-lived multipoles barely move — *that* is the mechanism behind LVK's early-time-only (2,2,2) hint, and it
+  ties to the R3/B1 early-time systematic. **⇒ L5 closes as information-limited**, consistent with v4's tone-count
+  negative (AUC~0.61) and 27/28's finding that the wall is an information limit, now with a quantitative
+  reopening number. Caveats: linear/fixed-frequency; NR amplitude ratios deliberately NOT recited (result is
+  stated as the ratio REQUIRED). Gated (51). Artifact: 29_third_tone_floor.json.
 - **ORTHONORMAL-QNM TEST DONE (2026-08-15): honest NEGATIVE on a published method — the basis carries NO
   detection information.** From the literature sweep: arXiv:2605.03576 orthonormalizes the QNM basis and reports
   GW250114's overtone significance **82.5%→99.9%**, blaming non-orthogonality for "hindering identification of

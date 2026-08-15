@@ -1,0 +1,155 @@
+{
+  "mass": 68.1,
+  "chi": 0.68,
+  "rho_ringdown": 24.87,
+  "threshold": 3.0,
+  "modes": {
+    "222": {
+      "f_hz": 232.37810222725142,
+      "tau_ms": 0.8054396039407852,
+      "orthogonal_fraction": 0.1392271578955738,
+      "rho_perp_at_equal_amplitude": 2.0687414856981,
+      "amplitude_ratio_needed": 1.4501570257762995,
+      "ringdown_snr_needed_at_10pct_amplitude": 360.65405231056576
+    },
+    "330": {
+      "f_hz": 394.2568540715943,
+      "tau_ms": 4.0075504236002395,
+      "orthogonal_fraction": 0.6093791570890115,
+      "rho_perp_at_equal_amplitude": 14.889178511537514,
+      "amplitude_ratio_needed": 0.20148861790295028,
+      "ringdown_snr_needed_at_10pct_amplitude": 50.11021927246373
+    },
+    "440": {
+      "f_hz": 534.0017964522124,
+      "tau_ms": 3.9406943615915515,
+      "orthogonal_fraction": 0.8133509373361398,
+      "rho_perp_at_equal_amplitude": 19.688099361817212,
+      "amplitude_ratio_needed": 0.15237631347077374,
+      "ringdown_snr_needed_at_10pct_amplitude": 37.89598916018143
+    }
+  },
+  "window_scan": [
+    {
+      "window_ms": 2.0,
+      "window_in_Mf": 5.961038873080844,
+      "orth_frac": {
+        "222": 0.0025429304195386713,
+        "330": 0.008324724959285875,
+        "440": 0.14317743960026028
+      }
+    },
+    {
+      "window_ms": 5.0,
+      "window_in_Mf": 14.902597182702111,
+      "orth_frac": {
+        "222": 0.10636234810553624,
+        "330": 0.44601759868541724,
+        "440": 0.7775255762367171
+      }
+    },
+    {
+      "window_ms": 10.0,
+      "window_in_Mf": 29.805194365404223,
+      "orth_frac": {
+        "222": 0.13528543567146958,
+        "330": 0.6061788329166928,
+        "440": 0.8079848329697567
+      }
+    },
+    {
+      "window_ms": 20.0,
+      "window_in_Mf": 59.610388730808445,
+      "orth_frac": {
+        "222": 0.13919677913351697,
+        "330": 0.6092884666865634,
+        "440": 0.8133262878484437
+      }
+    },
+    {
+      "window_ms": 40.0,
+      "window_in_Mf": 119.22077746161689,
+      "orth_frac": {
+        "222": 0.1392271578955738,
+        "330": 0.6093791570890115,
+        "440": 0.8133509373361398
+      }
+    }
+  ],
+  "best_window_for_222": {
+    "window_ms": 40.0,
+    "window_in_Mf": 119.22077746161689,
+    "orth_frac": {
+      "222": 0.1392271578955738,
+      "330": 0.6093791570890115,
+      "440": 0.8133509373361398
+    }
+  },
+  "window_hypothesis_refuted": true,
+  "start_time_scan": [
+    {
+      "t_start_ms": 0.0,
+      "t_start_in_Mf": 0.0,
+      "rho_perp": {
+        "222": 2.0687414856981,
+        "330": 14.889178511537514,
+        "440": 19.688099361817212
+      }
+    },
+    {
+      "t_start_ms": 0.5,
+      "t_start_in_Mf": 1.490259718270211,
+      "rho_perp": {
+        "222": 1.2556678450572392,
+        "330": 14.840743313416988,
+        "440": 19.582558771267905
+      }
+    },
+    {
+      "t_start_ms": 1.0,
+      "t_start_in_Mf": 2.980519436540422,
+      "rho_perp": {
+        "222": 0.7621550338749211,
+        "330": 14.792465677274457,
+        "440": 19.477583944637644
+      }
+    },
+    {
+      "t_start_ms": 2.0,
+      "t_start_in_Mf": 5.961038873080844,
+      "rho_perp": {
+        "222": 0.2807892139625474,
+        "330": 14.696381042364637,
+        "440": 19.26931946799103
+      }
+    },
+    {
+      "t_start_ms": 3.0,
+      "t_start_in_Mf": 8.941558309621266,
+      "rho_perp": {
+        "222": 0.10344690932087222,
+        "330": 14.600920526331764,
+        "440": 19.063281863648303
+      }
+    },
+    {
+      "t_start_ms": 5.0,
+      "t_start_in_Mf": 14.902597182702111,
+      "rho_perp": {
+        "222": 0.01404079560248233,
+        "330": 14.411855661343427,
+        "440": 18.657792282956734
+      }
+    }
+  ],
+  "start_time_penalty_222": 7.367595985984119,
+  "degeneracy_limited": [
+    "222"
+  ],
+  "weakness_limited": [
+    "330",
+    "440"
+  ],
+  "prediction_held": true,
+  "conclusion": "A third tone is not measurable by this pipeline on existing data, and the two candidates fail for different reasons: (2,2,2) is largely absorbed by refitting the 220+221 amplitudes (degeneracy), while (3,3,0)/(4,4,0) are nearly orthogonal but intrinsically weak for near-equal-mass binaries. This reproduces the LVK pattern on GW250114 -- a weak early-time preference for (2,2,2) and an SNR-insufficient (4,4,0) -- and turns 'not detectable' into the amplitude ratio and ringdown SNR that would be required. L5 closes as information-limited, with a quantitative reopening criterion, consistent with the v4 tone-count negative (AUC ~0.61) and the orthonormal result that the wall is an information limit rather than a basis artifact."
+}

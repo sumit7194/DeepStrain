@@ -786,3 +786,75 @@ basis. B1 shows any single wrong basis is still equivalent, but a union is a dif
 principle break the identity. That is the one remaining route by which the boost could be real information.
 
 Gated (47). Artifacts: results/27_orthonormal_roc.json, results/28_orthonormal_prior.json.
+
+---
+
+## 2026-08-15 — L5: a third ringdown tone is out of reach here, and the two candidates fail for OPPOSITE reasons
+
+**The prerequisite did its job — and corrected our own note.** RELATED_WORK scoped L5 as "extend `sbilib` to a
+third tone and re-derive the no-hair test", gated on *"read GWTC-5.0 first — that measurement may itself be the
+answer"*. Our entry claimed GWTC-5.0 reports *"the first measurement of three tones from a black hole"*; that
+was a **[S]** search snippet and **it does not survive checking**. From
+[arXiv:2510.01001](https://arxiv.org/html/2510.01001v3) on GW250114:
+
+| mode | status |
+|---|---|
+| (2,2,0), (2,2,1) | strong evidence — detected |
+| (2,2,2) | *weak* early-time preference only, t ≲ 5 M_f |
+| (4,4,0) | *"the signal-to-noise ratio … is insufficient for detection"* |
+
+So the LVK, on the loudest event ever recorded and with better machinery than ours, **constrains** a third tone
+rather than detecting one — a companion PRL *places limits* on it. Building a third-tone extension would be
+chasing something undetectable. The useful contribution is to turn "not detectable" into a **number**.
+
+**Framework** (`29_third_tone_floor.py`, reusing 27's linear/quadrature setup): with frequencies fixed, a third
+mode is measurable only through the part of it **orthogonal to span{220, 221}** — whatever lies inside that span
+is absorbed by refitting the first two amplitudes and carries no evidence.
+
+### Result — at GW250114's remnant (M=68.1, χ=0.68), ringdown SNR 24.9 in our convention
+
+| mode | f (Hz) | τ (ms) | orthogonal fraction | A/A₂₂₀ needed | ρ_rd needed @10% |
+|---|---|---|---|---|---|
+| **(2,2,2)** | 232.4 | 0.81 | **0.139** | **1.45** | 361 |
+| (3,3,0) | 394.3 | 4.01 | 0.609 | 0.201 | 50 |
+| **(4,4,0)** | 534.0 | 3.94 | **0.813** | 0.152 | **38** |
+
+**The pre-registered split held: they fail for different reasons.**
+- **(2,2,2) is DEGENERACY-limited.** At 232 Hz against 249/243 Hz it is 86% absorbed by refitting the first two
+  amplitudes, so detecting it would need an overtone **1.45× louder than the fundamental** — unphysical.
+- **(3,3,0)/(4,4,0) are WEAKNESS-limited.** They are 61–81% orthogonal (well separated at 394/534 Hz), so the
+  obstacle is not degeneracy but intrinsic faintness for near-equal-mass binaries.
+
+This reproduces the LVK pattern — a weak (2,2,2) hint and an SNR-insufficient (4,4,0) — **from our own
+machinery, with a mechanism for each.**
+
+**Reopening criterion:** at a 10% amplitude ratio, (4,4,0) needs ringdown SNR ≈ 38, i.e. **~1.5× GW250114**.
+The transferable number is the *ratio*, since 24.9 is our whitened-domain convention.
+
+### A hypothesis of mine, refuted — and the variable I got wrong
+I predicted (2,2,2) would be most separable in a **short** window, since it damps in 0.81 ms. **Wrong:** the
+orthogonal fraction *rises* with window length and saturates by ~10 ms (0.003 at 2 ms → 0.139 at 20 ms). In a
+short window all three modes look alike and are *more* degenerate; the differing damping times only separate
+them once several 220 damping times have elapsed. The script's auto-written conclusion initially asserted the
+opposite and had to be corrected.
+
+**The variable that actually matters is the START TIME, not the window.** Scanning it:
+
+| t_s (ms) | (2,2,2) ρ⊥ | (3,3,0) | (4,4,0) |
+|---|---|---|---|
+| 0.0 | **2.07** | 14.89 | 19.69 |
+| 1.0 | 0.76 | 14.79 | 19.48 |
+| 2.0 | **0.28** | 14.70 | 19.27 |
+
+**(2,2,2)'s measurable SNR falls 7.4× between t_s = 0 and 2 ms** while the long-lived multipoles barely move.
+*That* is why LVK's (2,2,2) preference exists only at early times — a start-time effect, not a window one. It
+also connects to the R3/B1 early-time systematic already documented in this arc.
+
+**Scope and caveats.** Linear, fixed-frequency framework (same as 27/28). ρ_rd figures are in our whitened
+convention, so quote the ratio. The 10% amplitude ratio is illustrative — predicted NR amplitude ratios depend
+on mass ratio and spins and are deliberately **not** recited here; the result is stated as the amplitude ratio
+*required*, which is prior-free and can be compared against any published fit.
+
+**L5 closes as information-limited**, consistent with the v4 tone-count negative (AUC ~0.61) and with 27/28's
+finding that that wall is an information limit rather than a basis artifact — now with a quantitative
+reopening criterion instead of a shrug. Gated (51). Artifact: results/29_third_tone_floor.json.
