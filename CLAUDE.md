@@ -392,6 +392,32 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
   consistent). **(c) NPE referee: package M 74.8 [70.4,79.0] / χ 0.729 vs our 09 NPE 76.0 [68.4,85.2] / 0.762 —
   first independent field-standard cross-validation of the NPE arc (package CI nests inside NPE's).** NUTS x64,
   R̂≤1.004, ESS≥950. Gated. Caveat: all peak-start fits carry the R3 early-time systematic; duration fixed 0.05 s.
+- **ORTHONORMAL-QNM TEST DONE (2026-08-15): honest NEGATIVE on a published method — the basis carries NO
+  detection information.** From the literature sweep: arXiv:2605.03576 orthonormalizes the QNM basis and reports
+  GW250114's overtone significance **82.5%→99.9%**, blaming non-orthogonality for "hindering identification of
+  subdominant QNMs" — a candidate explanation for our parked **v4 tone-count negative**, so queued as L3.
+  **Pre-registered prediction (27's docstring, before running):** with frequencies fixed + whitened noise the
+  model is LINEAR in amplitudes, so overtone detection is the nested GLRT = power in V2⊖V1, which Gram-Schmidt
+  returns — and the SAME quantity appears in the non-orthogonal fit as A221 weighted by the FULL 2×2 covariance
+  block (Schur complement of the 220 block of HᵀH = Gram matrix of the orthogonalized 221 directions) ⇒ ROC must
+  be IDENTICAL. **Premise is real** (251.0 Hz/4.13 ms vs 245.5 Hz/1.36 ms, 5.6 Hz apart, overlap **0.863**).
+  **(A) `27_orthonormal_roc.py`, 40k trials/class paired: max |ΔAUC| = 0.00000** bit-for-bit (monotone
+  transforms ⇒ identical ranks). Only ignoring the covariance costs anything: **ΔAUC ≤ 0.0076**.
+  **(B1) `28_orthonormal_prior.py` mismatch:** basis built at WRONG remnant (ΔM ±5/±8, Δχ ±0.06–0.08) ⇒ still
+  **0.00000** ⇒ it's the Schur algebra, not a lucky fiducial; "helps under mismatch" hatch CLOSED.
+  **(B2) the one lever that DOES move a number:** β=Rθ with R triangular (NOT orthogonal), so "uninformative"
+  priors in the two bases are DIFFERENT physical priors. Savage–Dickey on identical data, uninformative limit
+  (sd 300): **log₁₀BF shifts −0.454 (2.8× odds) at ΔAUC 1.7e−6**; the AUC gap collapses monotonically with
+  prior breadth (−0.051→0.000) while the BF shift persists ⇒ **significance moves, information does not** (pure
+  Occam factor). Separate honest finding: at a TIGHT mis-specified prior the bases do differ (0.5645 vs 0.6157)
+  but the ordering isn't stable across scales — that's the prior as a modelling choice, not decorrelation.
+  **⇒ L3 as a sensitivity play is DEAD, and our v4 tone-count AUC~0.61 wall is NOT explained by
+  non-orthogonality — it stands as an information limit.** **Scope stated honestly:** linear/fixed-frequency
+  case, so this does NOT show their number is wrong — orthonormalization can still help MCMC conditioning and
+  amplitude reporting; what it shows is that decorrelation per se carries no detection information, and that
+  **any significance quoted in a rotated basis must state its prior.** Open thread: real fits span a UNION of
+  bases as (M,χ) vary — B1 covers any single wrong basis, not a union. Gated (47).
+  Artifacts: 27_orthonormal_roc.json, 28_orthonormal_prior.json.
 - **B (follow-up) DONE (2026-07-03): package start-time referee + NPE loop closed; nonlinear-QNM honestly parked.**
   **B1** (`22_starttime_sweep.py`): GW250114 220+221 across 9 start offsets (0–16 t_Mf) — the overtone is
   significant from the peak (P(A221≈0)=0.000) and damps by ~5.4 ms (→0.059), and the peak-start mass is biased

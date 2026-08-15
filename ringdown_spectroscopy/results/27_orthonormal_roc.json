@@ -1,0 +1,85 @@
+{
+  "mass": 68.0,
+  "chi": 0.69,
+  "overlap_220_221": 0.8630688990018466,
+  "n_trial": 40000,
+  "a220": 8.0,
+  "rows": [
+    {
+      "amp_frac": 0.0,
+      "overtone_snr_detectable": 0.0,
+      "auc": {
+        "orth": 0.500350845625,
+        "nonorth_proper": 0.500350845625,
+        "nonorth_naive": 0.500516265625
+      }
+    },
+    {
+      "amp_frac": 0.05,
+      "overtone_snr_detectable": 0.16932481049343173,
+      "auc": {
+        "orth": 0.502319154375,
+        "nonorth_proper": 0.502319154375,
+        "nonorth_naive": 0.5024046975
+      }
+    },
+    {
+      "amp_frac": 0.1,
+      "overtone_snr_detectable": 0.3389188185613664,
+      "auc": {
+        "orth": 0.512197904375,
+        "nonorth_proper": 0.512197904375,
+        "nonorth_naive": 0.51197966875
+      }
+    },
+    {
+      "amp_frac": 0.15,
+      "overtone_snr_detectable": 0.5073601085187519,
+      "auc": {
+        "orth": 0.528242846875,
+        "nonorth_proper": 0.528242846875,
+        "nonorth_naive": 0.52686671625
+      }
+    },
+    {
+      "amp_frac": 0.2,
+      "overtone_snr_detectable": 0.6771872581670971,
+      "auc": {
+        "orth": 0.550816283125,
+        "nonorth_proper": 0.550816283125,
+        "nonorth_naive": 0.5487979075
+      }
+    },
+    {
+      "amp_frac": 0.3,
+      "overtone_snr_detectable": 1.0152332026690989,
+      "auc": {
+        "orth": 0.61089090375,
+        "nonorth_proper": 0.61089090375,
+        "nonorth_naive": 0.60667300625
+      }
+    },
+    {
+      "amp_frac": 0.5,
+      "overtone_snr_detectable": 1.6925244666314994,
+      "auc": {
+        "orth": 0.7467472775,
+        "nonorth_proper": 0.7467472775,
+        "nonorth_naive": 0.73910479375
+      }
+    },
+    {
+      "amp_frac": 0.8,
+      "overtone_snr_detectable": 2.706094650007872,
+      "auc": {
+        "orth": 0.904088860625,
+        "nonorth_proper": 0.904088860625,
+        "nonorth_naive": 0.898561775
+      }
+    }
+  ],
+  "max_abs_auc_diff_orth_vs_proper": 0.0,
+  "max_auc_gain_over_naive": 0.007642483749999984,
+  "prediction_held": true,
+  "conclusion": "In the exact linear case an orthonormal QNM basis and a properly-handled non-orthogonal fit are the SAME detector (identical ROC). Orthonormalization only helps relative to an analysis that ignores the 220/221 covariance. A reported significance can therefore rise with no gain in information, so the 82.5%->99.9% boost cannot be attributed to decorrelation per se without a mismatch mechanism \u2014 which stage B tests."
+}

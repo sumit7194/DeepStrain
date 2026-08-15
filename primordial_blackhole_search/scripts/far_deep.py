@@ -49,12 +49,29 @@ CACHE.mkdir(exist_ok=True, parents=True)
 DETS = ("H1", "L1")
 
 
-def score_segment(model, dev, gps):
-    """Fetch (if needed) -> whiten -> score every non-overlapping 64-s window, both detectors."""
+RETRIES = 4              # per-segment fetch attempts
+BACKOFF_S = 20           # exponential: 20 s, 40 s, 80 s
+FAIL_STREAK = 5          # consecutive failures that mean 'GWOSC is down', not 'this segment is bad'
+OUTAGE_SLEEP = 1800      # 30 min pause before trying again -- the job is designed to run for days
+
+
+def score_segment(model, dev, gps, tries=RETRIES):
+    """Fetch (if needed) -> whiten -> score every non-overlapping 64-s window, both detectors.
+
+    The fetch is retried with exponential backoff: GWOSC returns transient failures often enough that a
+    single attempt loses segments that are perfectly available a minute later."""
     out = {}
     for d in DETS:
-        if not segment_path(d, gps).exists():
-            fetch_segment(d, gps)
+        for attempt in range(tries):
+            if segment_path(d, gps).exists():
+                break
+            try:
+                fetch_segment(d, gps)
+                break
+            except Exception:
+                if attempt == tries - 1:
+                    raise
+                time.sleep(BACKOFF_S * 2 ** attempt)
         w, _, _ = whiten_segment(d, gps)
         if not np.isfinite(w).all():
             raise ValueError(f"{d} {gps} non-finite")
@@ -119,7 +136,17 @@ def main() -> None:
             print(f"no candidate pool at {pool_f} — re-run the O4b H1nL1 discovery first"); return
         todo = [g for g in pool if g not in set(have)][: args.target - len(have)]
         print(f"fetching + scoring {len(todo)} new segments (each checkpointed on completion)\n", flush=True)
+        consec = 0
         for i, g in enumerate(todo):
+            # GWOSC goes degraded for hours at a time (seen: ~12 h during the N5 fetch, and again while
+            # launching this extension, when every segment failed while the data itself was fine). Without
+            # a backoff the loop burns the whole pool in minutes and scores nothing. A failure here is
+            # never permanent: an unscored segment simply has no cache entry, so the next pass retries it.
+            if consec >= FAIL_STREAK:
+                print(f"  {consec} consecutive failures -> GWOSC looks degraded; sleeping "
+                      f"{OUTAGE_SLEEP//60} min (the run is resumable, nothing is lost)", flush=True)
+                time.sleep(OUTAGE_SLEEP)
+                consec = 0
             try:
                 t0 = time.time()
                 h, l = score_segment(model, dev, g)
@@ -136,10 +163,12 @@ def main() -> None:
                         clear_download_cache()
                     except Exception:
                         pass
+                consec = 0
                 print(f"  [{len(have)+i+1}/{args.target}] {g}: {len(h)} windows "
                       f"({time.time()-t0:.0f}s){' purged' if args.purge else ''}", flush=True)
             except Exception as e:
-                print(f"  {g}: SKIP {type(e).__name__}: {str(e)[:60]}", flush=True)
+                consec += 1
+                print(f"  {g}: SKIP {type(e).__name__}: {str(e)[:60]} (streak {consec})", flush=True)
 
     sH, sL, segs = load_all()
     if len(sH) < 100:

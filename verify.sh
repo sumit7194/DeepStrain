@@ -658,6 +658,49 @@ print(f"PASS  ringdown delta-wall re-measured ({d['n_analyzed']} events from the
       f"{d['snr_needed_for_information']:.0f} -- only GW250114 clears it)")
 PYEOFE26
 
+echo "--- ringdown orthonormal-QNM test (27/28: the basis carries NO detection information)"
+./ringdown_spectroscopy/.venv/bin/python - << 'PYEOFORTH' || FAIL=1
+import json
+R = "ringdown_spectroscopy/results/"
+a = json.loads(open(R + "27_orthonormal_roc.json").read())
+b = json.loads(open(R + "28_orthonormal_prior.json").read())
+
+# (1) the premise is real: 220 and 221 ARE strongly non-orthogonal at a GW250114-like remnant.
+assert a["overlap_220_221"] > 0.8, f"overlap changed, the whole setup assumes near-degeneracy: {a['overlap_220_221']}"
+
+# (2) THE RESULT: an orthonormal basis and a properly-handled non-orthogonal fit are the SAME detector.
+#     Asserted as an exact algebraic identity (Schur complement), so the tolerance is numerical, not empirical.
+assert a["prediction_held"], f"orth != nonorth_proper: {a['max_abs_auc_diff_orth_vs_proper']}"
+assert a["max_abs_auc_diff_orth_vs_proper"] < 1e-6, f"identity degraded: {a['max_abs_auc_diff_orth_vs_proper']}"
+
+# (3) ... and it survives building the basis at the WRONG remnant (closes the 'helps under mismatch' hatch)
+assert b["B1_max_abs_diff"] < 1e-6, f"mismatch breaks the identity: {b['B1_max_abs_diff']}"
+
+# (4) the ONLY thing that moves is the reported number, via the prior's Occam factor, in the
+#     uninformative limit where the likelihood-geometry claim is isolated.
+#     NOTE the tolerance differs from (2)/(3) on purpose. Those are EXACT algebraic identities (the two
+#     statistics are monotone transforms, so the ranks -- and hence AUC -- coincide bit for bit). This one is
+#     ASYMPTOTIC: at finite prior sd the regularization differs slightly between bases, so the gap only ->0
+#     as the prior broadens. Assert the convergence, not bitwise equality.
+lim = b["B2_uninformative_limit"]
+assert abs(lim["log10bf_shift"]) > 0.1, f"BF shift vanished -- re-derive the claim: {lim}"
+assert lim["auc_gap"] < 1e-4, f"detection power differs in the uninformative limit: {lim}"
+gaps = [abs(r["auc_orth"] - r["auc_nonorth"]) for r in b["B2_prior"]]
+assert gaps[-1] < gaps[0] / 100, f"AUC gap does not collapse as the prior broadens: {gaps}"
+assert lim["auc_gap"] < 0.01 * a["max_auc_gain_over_naive"], \
+    "the residual gap is no longer negligible against the one real effect (ignoring the covariance)"
+assert b["significance_moves_information_does_not"], "verdict flipped"
+
+# (5) the effect that IS real: an analysis ignoring the covariance is worse -- but only slightly.
+assert 0.0 < a["max_auc_gain_over_naive"] < 0.05, f"naive-gap story changed: {a['max_auc_gain_over_naive']}"
+
+print(f"PASS  ringdown orthonormal-QNM (|<220|221>|={a['overlap_220_221']:.3f} strongly non-orthogonal, yet "
+      f"orth==nonorth_proper to {a['max_abs_auc_diff_orth_vs_proper']:.1e} AUC -- even at a WRONG remnant "
+      f"({b['B1_max_abs_diff']:.1e}); only the REPORTED number moves: log10BF {lim['log10bf_shift']:+.2f} "
+      f"({10**abs(lim['log10bf_shift']):.1f}x odds) at dAUC {lim['auc_gap']:.1e}. Ignoring the covariance "
+      f"costs {a['max_auc_gain_over_naive']:.4f} AUC = the real, small effect)")
+PYEOFORTH
+
 echo "--- pbh deep FAR (far_deep: 80-yr background on O4b -> 1/decade reached, zero-lag clean)"
 ./primordial_blackhole_search/.venv/bin/python - << 'PYEOFFAR' || FAIL=1
 import json

@@ -708,3 +708,81 @@ Cutler–Vallisneri linear-response bias — order-of-magnitude comparison only;
 (4,4,0) rows involve F⁻¹ amplification through a near-singular matrix (preconditioned cond ~1e15), so their
 absolute values are less trustworthy than the 222 rows — the qualitative point (crossover can be ≪124) is what
 survives; (c) all rows share the fixed fiducial (M, χ, t0, A221/A220=1). Gated.
+
+---
+
+## 2026-08-15 — ORTHONORMAL QNM BASIS: an honest negative on a published method (27, 28)
+
+**Why.** The literature sweep surfaced arXiv:2605.03576, which orthonormalizes the QNM basis and reports the
+GW250114 first-overtone significance rising **82.5% → 99.9%**, arguing that non-orthogonal QNMs "induce
+correlations among them, which can hinder the robust identification of subdominant QNMs." That is a candidate
+mechanism for our own parked **v4 tone-count negative** (AUC ~0.61), so it was queued as L3. Before adopting
+it, test what it buys.
+
+**Pre-registered prediction (stated in 27's docstring before running).** With QNM frequencies fixed and
+whitened noise the model is *linear in the amplitudes*; each mode spans a 2-D quadrature subspace. Overtone
+detection is the nested comparison V1 = span{220} vs V2 = span{220, 221}, whose GLRT is the power in V2⊖V1 —
+exactly what Gram-Schmidt returns. The same quantity appears in the non-orthogonal fit as A221 weighted by the
+**full** 2×2 covariance block, because the Schur complement of the 220 block of HᵀH *is* the Gram matrix of the
+orthogonalized 221 directions. So orthonormal and properly-handled non-orthogonal must have **identical ROC**,
+and only an analysis using the covariance *diagonal* (i.e. ignoring the correlations it blames) can be worse.
+
+**The premise is real:** at M=68, χ=0.69 the modes are 251.0 Hz/4.13 ms vs 245.5 Hz/1.36 ms — **5.6 Hz apart**,
+overlap **|⟨220|221⟩| = 0.863**. Strongly non-orthogonal, as claimed.
+
+### Stage A (`27_orthonormal_roc.py`) — the prediction held exactly
+40k trials/class, paired (identical noise realizations), AUC vs known injected overtone truth:
+
+| amp_frac | detectable overtone SNR | orth | nonorth_proper | nonorth_naive |
+|---|---|---|---|---|
+| 0.10 | 0.34 | 0.5122 | 0.5122 | 0.5120 |
+| 0.30 | 1.02 | 0.6109 | 0.6109 | 0.6067 |
+| 0.50 | 1.69 | 0.7467 | 0.7467 | 0.7391 |
+| 0.80 | 2.71 | 0.9041 | 0.9041 | 0.8986 |
+
+**max |ΔAUC| (orth vs nonorth_proper) = 0.00000** — bit-for-bit, as the algebra requires (the two statistics
+are monotone transforms, so their ranks coincide). The *only* real effect is ignoring the covariance, and it
+costs at most **ΔAUC 0.0076**.
+
+### Stage B (`28_orthonormal_prior.py`) — closing both escape hatches
+**B1 mismatch.** Maybe orthonormalization buys robustness when the basis is built at the wrong remnant (the
+realistic case). Tested ΔM = ±5, ±8 M☉ and Δχ = ±0.06–0.08 with truth unchanged: **ΔAUC = 0.00000 in every
+configuration.** The identity holds for *any* design matrix, right or wrong — so it is the Schur-complement
+algebra doing the work, not a lucky fiducial. Hatch closed.
+
+**B2 prior — the mechanism that CAN move a number.** β = Rθ with R upper-triangular from QR, and **R is not
+orthogonal**, so a "flat/uninformative" prior on the orthonormal coefficients is a *different physical prior*
+from the same-looking choice on QNM amplitudes. Savage–Dickey Bayes factor on identical data:
+
+| prior sd | log₁₀BF nonorth | log₁₀BF orth | shift | AUC nonorth | AUC orth |
+|---|---|---|---|---|---|
+| 1 (tight, mis-specified) | +0.237 | −0.065 | −0.302 | 0.5645 | 0.6157 |
+| 10 | −1.106 | −1.537 | −0.431 | 0.6171 | 0.6157 |
+| **300 (uninformative)** | **−4.029** | **−4.483** | **−0.454** | **0.6157** | **0.6157** |
+
+In the uninformative limit — where prior effects vanish and the *likelihood-geometry* claim is isolated — the
+Bayes factor shifts by **0.454 dex (2.8× in odds) at ΔAUC = 1.7e−6.** The AUC gap collapses monotonically with
+prior breadth (−0.0512, +0.0100, +0.0015, +0.0002, 0.0000, 0.0000) while the BF shift *persists*.
+**Significance moves; detection power does not.** The shift is pure Occam factor.
+
+*Separate honest finding:* with a **tight, mis-specified** prior the bases do differ (AUC 0.5645 vs 0.6157) —
+but that is the prior acting as a physical modelling choice, and the ordering is not even stable across scales
+(nonorth is *better* at sd=3). Not decorrelation.
+
+### Verdict and consequence
+**Orthonormalization is not a sensitivity upgrade. L3 as a sensitivity play is dead**, and — the result that
+actually costs us something — **our parked v4 tone-count negative is NOT explained by basis non-orthogonality.**
+The AUC~0.61 wall stands as an information limit, exactly as recorded.
+
+**Scope, stated honestly.** This is the linear case with fixed frequencies. The published analysis marginalizes
+over (M, χ, t₀) nonlinearly via MCMC, so this does **not** show their number is wrong: orthonormalization can
+still genuinely help *sampling conditioning*, and reporting decorrelated amplitudes is a legitimate
+presentational gain. What it does show is that decorrelation *per se* carries no detection information, and it
+identifies the prior's Occam factor as a concrete mechanism by which a reported significance can rise without
+one. **Any significance quoted in a rotated basis must state its prior.**
+
+**Open thread (untested):** real analyses fit over a *union* of bases as (M, χ) vary, rather than one fixed
+basis. B1 shows any single wrong basis is still equivalent, but a union is a different object and could in
+principle break the identity. That is the one remaining route by which the boost could be real information.
+
+Gated (47). Artifacts: results/27_orthonormal_roc.json, results/28_orthonormal_prior.json.

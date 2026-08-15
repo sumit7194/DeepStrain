@@ -11,6 +11,55 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-08-15 (later) — acting on the sweep: L2 launched, and an honest negative on a published method
+
+Two tasks off the new list: launch **L2** (deep background) to run unattended, then run the **orthonormal-mode
+ROC test** that L3 was gated on.
+
+**L2 — and a robustness bug found in the first minute.** Targeted the *full* 727-segment O4b pool rather than
+the 353 I had scoped (≈**4,253 yr** background, 42 events at 1/century — a real estimator, versus the 8 events
+that gave the current rung its ±33%). It immediately failed on **every** segment. Diagnosis: not missing data —
+H1 fetched fine (16.7M samples) while **L1 timed out on the SSL handshake**. GWOSC is flaky, and `far_deep.py`
+had *no retry*, so one transient timeout on one detector cost a whole segment, and the loop would have burned
+all 627 pool entries in minutes and scored nothing. Stopped by PID (3 segments burned, cache intact at 100),
+added per-segment retry with exponential backoff **plus** a consecutive-failure detector that sleeps 30 min
+when GWOSC looks degraded — a job meant to run for days must survive a ~12 h outage, which we have hit before.
+Relaunched. *A failure here was never permanent (an unscored segment simply has no cache entry, so the next
+pass retries it) — but it would have wasted the pool ordering and looked like success.*
+
+**Orthonormal QNM basis — the answer is no, and it costs us a hoped-for rescue.** arXiv:2605.03576 reports
+GW250114's overtone significance rising **82.5% → 99.9%** by orthonormalizing, blaming non-orthogonality for
+"hindering identification of subdominant QNMs" — which would have explained our parked **v4 tone-count
+negative**. Pre-registered the sharp prediction *before running*: with frequencies fixed and whitened noise the
+model is linear in the amplitudes, so overtone detection is the nested GLRT (power in V2⊖V1) — and that is
+**algebraically identical** to A₂₂₁ weighted by the full 2×2 covariance, because the Schur complement of the
+220 block of HᵀH is the Gram matrix of the orthogonalized 221 directions.
+
+It held exactly. The premise is real — 251.0 vs 245.5 Hz, **5.6 Hz apart, overlap 0.863** — yet **max |ΔAUC| =
+0.00000** across 40k paired trials per class, bit-for-bit. Stage B closed both escape hatches: building the
+basis at a **wrong remnant** (ΔM ±5/±8, Δχ ±0.06–0.08) still gives **0.00000**, so it is the algebra and not a
+lucky fiducial; and the one lever that *does* move a number is the prior — β = Rθ with R triangular, not
+orthogonal, so "uninformative" means different things in the two bases, and the Savage–Dickey Bayes factor
+shifts **0.454 dex (2.8× in odds) at ΔAUC 1.7e−6**, with the AUC gap collapsing monotonically as the prior
+broadens while the BF shift persists. **Significance moves; detection power does not.** The one genuinely real
+effect is small: an analysis that *ignores* the covariance loses ≤ **0.0076** AUC.
+
+**Consequence, including the part we did not want:** L3 as a sensitivity play is dead, and **our v4 tone-count
+AUC≈0.61 wall is NOT explained by basis non-orthogonality** — it stands as an information limit, as recorded.
+**Scope stated honestly in the artifacts:** this is the linear/fixed-frequency case, so it does *not* show the
+published number is wrong; orthonormalization can still help MCMC conditioning and amplitude reporting. What it
+shows is that decorrelation *per se* carries no detection information, and that **any significance quoted in a
+rotated basis must state its prior.** Open thread left explicit: real fits span a *union* of bases as (M, χ)
+vary, which B1 does not cover.
+
+**Process note.** The gate initially failed at ΔAUC 1.7e−6 against a 1e−6 tolerance — correctly, because I had
+written one tolerance for two different things. Stage A's identity is **exact** (monotone transforms ⇒
+identical ranks); B2's is **asymptotic** (finite prior regularization differs slightly between bases). Fixed by
+asserting the *convergence* rather than bitwise equality, and by requiring the residual stay two orders of
+magnitude below the one real effect. Gate 46 → **47**, all green.
+
+---
+
 ## 2026-08-15 — literature sweep: where the field is, and what it means for our three arcs
 
 No new measurements this session — a wide read of what's been published, recorded in a new living document

@@ -1,0 +1,118 @@
+{
+  "mass": 68.0,
+  "chi": 0.69,
+  "n_trial": 20000,
+  "amp_frac": 0.3,
+  "B1_mismatch": [
+    {
+      "dM": 0.0,
+      "dchi": 0.0,
+      "auc_orth": 0.6156502575,
+      "auc_nonorth_proper": 0.6156502575,
+      "diff": 0.0
+    },
+    {
+      "dM": 5.0,
+      "dchi": 0.0,
+      "auc_orth": 0.5555589525,
+      "auc_nonorth_proper": 0.5555589525,
+      "diff": 0.0
+    },
+    {
+      "dM": -5.0,
+      "dchi": 0.0,
+      "auc_orth": 0.54478055,
+      "auc_nonorth_proper": 0.54478055,
+      "diff": 0.0
+    },
+    {
+      "dM": 0.0,
+      "dchi": 0.06,
+      "auc_orth": 0.569219935,
+      "auc_nonorth_proper": 0.569219935,
+      "diff": 0.0
+    },
+    {
+      "dM": 8.0,
+      "dchi": -0.08,
+      "auc_orth": 0.524512055,
+      "auc_nonorth_proper": 0.524512055,
+      "diff": 0.0
+    }
+  ],
+  "B1_max_abs_diff": 0.0,
+  "B2_prior": [
+    {
+      "prior_sd": 1.0,
+      "log10bf_nonorth_median": 0.23712468492570313,
+      "log10bf_orth_median": -0.0652337991312147,
+      "shift_log10": -0.30235848405691784,
+      "auc_nonorth": 0.5644991275,
+      "auc_orth": 0.6156502575,
+      "occam_nonorth": -0.20278620028088085,
+      "occam_orth": -0.3010299956639811
+    },
+    {
+      "prior_sd": 3.0,
+      "log10bf_nonorth_median": -0.28669485410251216,
+      "log10bf_orth_median": -0.5755668462410203,
+      "shift_log10": -0.2888719921385081,
+      "auc_nonorth": 0.62565325,
+      "auc_orth": 0.6156502575,
+      "occam_nonorth": -0.6532496251060199,
+      "occam_orth": -0.9999999999999998
+    },
+    {
+      "prior_sd": 10.0,
+      "log10bf_nonorth_median": -1.1059903851557058,
+      "log10bf_orth_median": -1.5373982123316199,
+      "shift_log10": -0.4314078271759141,
+      "auc_nonorth": 0.617139595,
+      "auc_orth": 0.6156502575,
+      "occam_nonorth": -1.5625260885982635,
+      "occam_orth": -2.0043213737826426
+    },
+    {
+      "prior_sd": 30.0,
+      "log10bf_nonorth_median": -2.0322631853048367,
+      "log10bf_orth_median": -2.483655807894735,
+      "shift_log10": -0.4513926225898981,
+      "auc_nonorth": 0.6158221825,
+      "auc_orth": 0.6156502575,
+      "occam_nonorth": -2.5020460769833632,
+      "occam_orth": -2.9547247909790624
+    },
+    {
+      "prior_sd": 100.0,
+      "log10bf_nonorth_median": -3.0746057149950485,
+      "log10bf_orth_median": -3.528498188735184,
+      "shift_log10": -0.4538924737401353,
+      "auc_nonorth": 0.6156664175,
+      "auc_orth": 0.6156502575,
+      "occam_nonorth": -3.5460913463240167,
+      "occam_orth": -4.000043427276863
+    },
+    {
+      "prior_sd": 300.0,
+      "log10bf_nonorth_median": -4.028594721991099,
+      "log10bf_orth_median": -4.482660181698485,
+      "shift_log10": -0.4540654597073859,
+      "auc_nonorth": 0.6156519975,
+      "auc_orth": 0.6156502575,
+      "occam_nonorth": -4.500182952154572,
+      "occam_orth": -4.95424733490676
+    }
+  ],
+  "B2_uninformative_limit": {
+    "prior_sd": 300.0,
+    "log10bf_shift": -0.4540654597073859,
+    "auc_gap": 1.7399999999723192e-06
+  },
+  "significance_moves_information_does_not": true,
+  "B2_tight_prior_note": {
+    "prior_sd": 1.0,
+    "auc_nonorth": 0.5644991275,
+    "auc_orth": 0.6156502575
+  },
+  "conclusion": "Stage A showed an orthonormal QNM basis and a properly-handled non-orthogonal fit are the same detector. B1 shows that holds even when the basis is built at the WRONG remnant, so the Schur-complement identity, not a lucky choice of fiducial, is doing the work. B2 identifies the one lever that does move a reported significance: 'uninformative' priors placed in different parameterizations are different physical priors (beta = R theta with R triangular, not orthogonal), which shifts the Occam factor in the Bayes factor while leaving the likelihood, the data and the ROC untouched. CONSEQUENCE FOR US: do not adopt orthonormalization expecting sensitivity (L3 as a sensitivity play is dead); the parked v4 tone-count negative is NOT explained by basis non-orthogonality. It remains worth using for sampling conditioning and for reporting decorrelated amplitudes -- but any significance quoted in a rotated basis must state its prior."
+}

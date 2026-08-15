@@ -97,6 +97,19 @@ noise and build **ROC curves in both bases**. Higher AUC ⇒ real information ga
 parked tone-count arc). Equal AUC with a higher quoted significance ⇒ the number moved, the information did
 not. Both outcomes are results.
 
+> **✅ RESOLVED, same day — the second branch.** `27_orthonormal_roc.py` / `28_orthonormal_prior.py`:
+> the premise is real (overlap **0.863**, modes 5.6 Hz apart) but orthonormal and properly-handled
+> non-orthogonal are the **same detector** — max |ΔAUC| = **0.00000**, bit-for-bit, *and still 0.00000 when the
+> basis is built at the wrong remnant*, because the Schur complement of the 220 block of HᵀH **is** the Gram
+> matrix of the orthogonalized 221 directions. The only lever that moves a number is the prior: β = Rθ with R
+> triangular, so "uninformative" means different things in the two bases, and the Savage–Dickey Bayes factor
+> shifts **0.454 dex (2.8× odds) at ΔAUC 1.7e−6**. **Significance moves; information does not.**
+> ⇒ **our v4 tone-count negative is NOT explained by non-orthogonality** — it stands as an information limit.
+> **Scope:** linear/fixed-frequency, so this does *not* show their number is wrong; orthonormalization may
+> still help MCMC conditioning and amplitude reporting. Untested route to a real gain: real fits span a
+> *union* of bases as (M, χ) vary, not one fixed basis. Any significance quoted in a rotated basis must state
+> its prior. Gated (47).
+
 ### Supporting ringdown context
 - **[S]** [arXiv:2512.08098](https://arxiv.org/pdf/2512.08098) — *High-overtone ringdown fits: start time,
   no-hair tests, and correlations.* Same start-time systematic our **B1 sweep independently reproduced**
@@ -223,7 +236,17 @@ samples grow ∝ N, so the jackknife spread should fall roughly as 1/√N: **±3
 deeper rung **and** a defensible error bar on the existing one. *Prereq:* none — `far_deep.py` already
 checkpoints per segment and purges strain. **This is the single best use of idle Mac time.**
 
-**L3 — Orthonormal-mode adoption across the ringdown arc.** The weekend ROC test (below) only decides
+**L3 — Orthonormal-mode adoption across the ringdown arc. ✅ ANSWERED 2026-08-15 — DEAD as a sensitivity
+play.** Scripts `27_orthonormal_roc.py` / `28_orthonormal_prior.py` measured it: an orthonormal basis and a
+properly-handled non-orthogonal fit are the **same detector** (max |ΔAUC| = 0.00000, and still 0.00000 when the
+basis is built at the *wrong* remnant). The only thing that moves is the reported number, via the prior's Occam
+factor: log₁₀BF shifts **0.454 dex (2.8× odds) at ΔAUC 1.7e−6** in the uninformative limit. **So the parked v4
+tone-count negative is NOT explained by non-orthogonality**, and there is no retraining to do for sensitivity.
+Residual (not pursued): orthonormalization may still help MCMC conditioning and amplitude reporting, and the
+one untested route to a real gain is that real fits span a *union* of bases as (M, χ) vary rather than one
+fixed basis. Superseded scoping follows for the record —
+
+*(original entry)* **L3 —** The weekend ROC test (below) only decides
 *whether* the basis change carries information. If it does, the follow-through is larger: rebuild the QNM basis
 in `sbilib`, **retrain the NPE** in the orthonormal parameterization, re-run coverage/recalibration (v3's T=1.05
 work), and re-examine the parked **v4 tone-count negative** and the **δ wall**. *Effort:* weeks. *Buys:*
