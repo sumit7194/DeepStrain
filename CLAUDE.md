@@ -419,6 +419,11 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
 
 ## Documentation taxonomy (mirror of SpaceTime's)
 - `ROADMAP.md` (this root) — forward-looking next moves + guardrails (P1/P2 + carried blockers).
+- `RELATED_WORK.md` (this root) — living literature record: what the field has published around our three
+  arcs, what it means for us, and the **L1–L7 long-horizon project list**. Entries are marked [A] (abstract
+  read) vs [S] (search snippet — verify before load-bearing use). Swept 2026-08-15; re-sweep before citing
+  it as current. **Standing rule recorded there: effort is never a reason to drop an item** — long-running
+  jobs are normal, an item leaves only when done or measured impossible.
 - `JOURNAL.md` (this root) — dated activity log, one entry per session, newest first.
 - `<sub>/notes/lab_notebook.md` — raw per-subproject record: pre-registrations, results,
   gotchas, corrections.

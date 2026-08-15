@@ -1035,3 +1035,15 @@ background that nearly matched it — self-consistently, because they are the sa
 number of independent loud-noise samples, not by livetime — which is why real LVK searches use signal-
 consistency vetoes and data-quality flags rather than raw time-slides alone. Gated.
 Artifacts: far_background_validation.json, far_glitch_anatomy.json, far_min_vs_sum.json.
+
+**Related work (added 2026-08-15).** This is not an idiosyncrasy of our pipeline — it is a named open problem.
+[arXiv:2509.05283](https://arxiv.org/abs/2509.05283), *Robustness of Sensitivity Evaluations for Gravitational
+Wave Detection Algorithms*, runs the AresGW ML pipeline across multiple month-long real-noise datasets and
+reports *"notable performance variations, highlighting the challenges introduced by finite-duration datasets"*
+specifically **at low false alarm rates**, calling for *"more rigorous statistical validation"* and better
+GW-specific benchmarking. Our audit is a concrete, mechanism-level instance of exactly that: we can point to
+*which* 2 windows in *which* segment set the rung, and quantify the resulting instability by jackknife.
+Supporting context: blip glitches (which resemble the final cycles of a CBC) occur roughly every 30 min at
+LHO, and time-slide significance is long known to be affected by correlated background triggers,
+non-stationary noise and finite sample size ([arXiv:1601.00130](https://arxiv.org/pdf/1601.00130)).
+See [RELATED_WORK.md](../RELATED_WORK.md) for the full sweep and the L1–L7 long-horizon list.

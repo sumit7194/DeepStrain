@@ -81,10 +81,30 @@ already have on the same data**, plus the one guardrail on a parked thread.
 
 ---
 
+## LONG-HORIZON PROJECTS (L1–L7) — tracked, never dropped for size
+Full scoping in **[RELATED_WORK.md](RELATED_WORK.md)** (§ Long-horizon projects), added 2026-08-15 from a
+literature sweep. **Standing rule: effort is not a reason to drop an item.** There is no deadline; the Mac
+runs unattended; long-running jobs are normal. An item leaves the list when it is *done* or *measured to be
+impossible* — never because it looked big.
+
+| | project | effort | buys |
+|---|---|---|---|
+| **L1** | cheap-template dense bank (de-chirping, ~8× per core → ~13k templates) | weeks | pushes the one axis Follow-up A named as the dominant loss |
+| **L2** | deep background → 1/century (~353 segs ≈ 1000 yr, ~14 h unattended) | days | a deeper rung **and** ±33% → ~±18% on the existing one |
+| **L3** | orthonormal-mode adoption across the ringdown arc (retrain NPE, recalibrate) | weeks | could overturn the parked v4 tone-count negative |
+| **L4** | coherent network echo search (phase-marginalized, cf. arXiv:2512.24730) | weeks | field-standard echo sensitivity; nulls become comparable |
+| **L5** | three-tone spectroscopy (GWTC-5.0 reports the first 3-tone measurement) | read, then weeks | extends the no-hair test beyond 220+221 |
+| **L6** | larger unlabeled pool for the SSL backbone | days | tests whether N4's data-wall win keeps growing |
+| **L7** | S251112cm (FAR 1/6.2 yr subsolar candidate) | — | **blocked: O4c not public.** `o4c_release_watch.py` is the trigger |
+
+---
+
 ## Known blockers carried forward (context for the above)
-- **PBH subsolar:** template-bank density wall — subsolar needs ≤0.1% Mc spacing
-  (~1,600+ templates) → intractable locally; blocks a real-MF detector and finer-timing
-  coincidence. Come-back-later = GPU/cloud dense bank. (pbh v2 PARKED; coincidence win +1.37× stands.)
+- **PBH subsolar:** template-bank density wall — subsolar needs ≤0.1% Mc spacing (~1,600+ templates);
+  1,619 was our laptop ceiling. **⚠️ "Intractable locally" NO LONGER HOLDS (2026-08-15):** the field's
+  ratio-filter de-chirping reports ~8× per-core speedup, i.e. ~13k templates on the same hardware — a real
+  move down the density sweep toward the 0.72 oracle. Reclassified from *blocker* to **L1, a tracked
+  long-horizon project**. Do not restate it as intractable. (pbh v2 PARKED; coincidence win +1.37× stands.)
   **Build C DONE (2026-06-20, L4 VM):** the "lower FAR needs more data" item is closed — coincidence is
   FAR-robust (graceful to 1/year; @1/day reproduces the +1.37×; @1/year still beats single-det floor ~1.2×).
   See [primordial_blackhole_search/RESULTS.md](primordial_blackhole_search/RESULTS.md).

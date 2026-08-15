@@ -1,0 +1,268 @@
+# Related work — the field around this repo
+
+*A living literature record. Extend it; don't rewrite it. Each entry says what the paper claims, **what it
+means for us**, and how well we verified it.*
+
+**Verification marks** — because a search-result snippet is not a citation:
+- **[A]** abstract fetched and read directly
+- **[S]** search-result summary only — *treat the numbers as provisional; fetch the abstract before any
+  load-bearing use* (see the `prior-art-rigor` standing rule)
+
+**Last swept: 2026-08-15.** Literature ages: before citing anything here as "the current state", re-run the
+sweep. Same rule as PLAN.md's parked list — a status is a measurement with a timestamp, not a fact.
+
+---
+
+## 1. Subsolar / PBH — `primordial_blackhole_search/`
+
+### The collaboration's own O4a search — the direct comparison
+**[A]** [arXiv:2602.12115](https://arxiv.org/abs/2602.12115) — *Search for Sub-Solar Mass Binaries in the First
+Part of LIGO's Fourth Observing Run* (PRD). Companion **[S]** [arXiv:2605.05444](https://arxiv.org/abs/2605.05444)
+(LVK, *Searches for Binary Mergers with Sub-solar Mass Components … O4a*).
+
+- **25 million templates**; primary 0.1–2 M☉, secondary 0.1–1 M☉; tidal deformability up to 7×10⁵
+- **No statistically significant candidates**
+- Rate limit **< 2.5×10⁴ Gpc⁻³ yr⁻¹** at Mc = 0.2 M☉; **> 2× better than O1–O3 combined**
+- **f_PBH < 0.5%** at 0.4 M☉ — a 1.8× tightening on O1–O3
+
+**For us:** the honest yardstick for our subsolar arc, and it confirms the regime is null at far greater depth
+than we can reach. Our contribution was never rate limits — it is the *minutes-long ML* corner and the
+CNN-vs-realizable-bank comparison. Nothing here contradicts our results.
+
+### The template-bank wall is being attacked — and it is our parked blocker
+**[S]** A **"ratio filter" de-chirping framework** reports an **~8× per-core speedup** in template processing,
+which is what made 25M templates affordable. Related: **[S]**
+[arXiv:2511.12894](https://arxiv.org/html/2511.12894) — reconstructing matched-filter SNR time series from
+*nearby* templates, aimed at long-duration low-mass signals (BNS, subsolar). **[S]** A dedicated O4 SSM
+template-bank paper exists in PRD (`10.1103/c97v-bmj8`).
+
+**For us — this is a live lever on a wall we called intractable, and the wall is now weaker.** Follow-up A
+measured it quantitatively: 1,619 templates at 0.1% Mc spacing was our laptop ceiling, real-bank MF 0.489 vs
+CNN 0.472 (a tie), both far below the true-template oracle 0.72 ⇒ *bank mismatch dominates*. The field's answer
+is not a smaller bank but **cheaper templates**. An 8× per-core speedup applied to our 1,619-template ceiling
+is ~13,000 templates on the same hardware, i.e. a real move down the density sweep toward the 0.72 oracle —
+**the one axis Follow-up A identified as the dominant loss and could not push.** Scoped as a long-horizon
+project below; **the original "intractable" verdict no longer holds and must not be restated.**
+
+### S251112cm — the subsolar candidate, still unresolved
+**[A]** [arXiv:2603.17009](https://arxiv.org/html/2603.17009v1) (EM counterpart search) and **[A]**
+[ApJ 10.3847/1538-4357/ae48f9](https://iopscience.iop.org/article/10.3847/1538-4357/ae48f9) (PBH interpretation).
+
+| property | value |
+|---|---|
+| FAR | **1 per 6.2 years** |
+| chirp mass | 0.1–0.87 M☉ |
+| P(≥1 component < 1 M☉) | **> 99%** |
+| luminosity distance | 93 ± 27 Mpc |
+| status (2026-08-15) | **under investigation — neither confirmed nor retracted** |
+
+Counterpart search vetted 456 candidates, found nothing (neither confirms nor refutes). PBH interpretation:
+if astrophysical, **f_PBH > 0.04**, with a predicted rate ~0.8 yr⁻¹ matching one detection. Popular commentary
+suggests a refined FAR nearer 1/4 yr — **secondary source, unverified, do not cite.**
+
+**For us, two things.** (1) **Calibration:** a real LVK subsolar candidate sits at 1/6.2 yr, i.e. squarely
+inside the ladder our deep-FAR work measured (1/month, 1/year, 1/decade). We are working at the right scale.
+(2) **Data:** see below — we cannot touch it yet.
+
+### Public data status — why we cannot analyse S251112cm
+**[A]** [gwosc.org/data](https://gwosc.org/data/): public runs are O1, O2, O3a, O3b, **O4a**, **O4b**
+(H1/L1/V1, Apr 2024 – Jan 2025). **O4c is NOT released.** Nov 2025 falls in O4c ⇒ **S251112cm strain is
+unavailable.** Keep `scripts/o4c_release_watch.py` pointed at it. *(Supersedes any earlier session's
+speculation about availability.)*
+
+---
+
+## 2. Ringdown — `ringdown_spectroscopy/`
+
+### Orthonormal QNMs — the most actionable paper of this sweep
+**[A]** [arXiv:2605.03576](https://arxiv.org/abs/2605.03576) — *Ringdown Analysis of GW250114 with Orthonormal
+Modes*.
+
+> QNMs are **not orthogonal**; including multiple QNMs induces correlations among them which "can hinder the
+> robust identification of subdominant QNMs." Orthonormalizing, the ℓ=m=2 first overtone significance rises
+> **82.5% → 99.9%**.
+
+**For us — this may explain a negative we recorded as physics.** The 220 and 221 modes are only ~6 Hz apart:
+near-parallel basis vectors, so their amplitudes trade off against each other and each is individually poorly
+constrained. That is a candidate mechanism for **v4's tone-count negative (AUC ~0.61)**, which we attributed
+to "too weak at this data/SNR scale", and for the parameter correlations throughout the δ work.
+
+**Do not adopt on faith — the open question (pre-registered here):** `P(A₂₂₁ ≠ 0)` is **not basis-invariant**,
+whereas a nested-model Bayes factor is. Orthonormalizing also **changes the implicit prior**: flat over
+(A₂₂₀, A₂₂₁) is not flat over the rotated coordinates. So some of a 17-point significance jump could be a
+change in the *question* rather than a gain in *information*. It may equally be real — their model is not
+clean linear-Gaussian, and reparameterization genuinely improves conditioning and reduces degeneracy-induced
+posterior leakage. **Decisive test we are equipped for:** inject overtones of *known* amplitude into real
+noise and build **ROC curves in both bases**. Higher AUC ⇒ real information gain (and a possible rescue of the
+parked tone-count arc). Equal AUC with a higher quoted significance ⇒ the number moved, the information did
+not. Both outcomes are results.
+
+### Supporting ringdown context
+- **[S]** [arXiv:2512.08098](https://arxiv.org/pdf/2512.08098) — *High-overtone ringdown fits: start time,
+  no-hair tests, and correlations.* Same start-time systematic our **B1 sweep independently reproduced**
+  (peak-start mass biased ~+10%, decaying as the start moves later), plus the correlation theme above.
+- **[S]** [arXiv:2509.17315](https://arxiv.org/pdf/2509.17315) — inspiral-merger-informed templates and the
+  *limitations of classical spectroscopy*.
+- **[S]** [arXiv:2404.11373](https://arxiv.org/abs/2404.11373) — SBI of ringdowns in the time domain (PRD 110,
+  083010); truncated sequential NPE, per-event rather than amortized. **Our angle stays distinct:** amortized
+  with the start time marginalized *by construction*.
+- **[S]** [arXiv:2507.11192](https://ar5iv.labs.arxiv.org/html/2507.11192) — review, *Recent Advances in SBI
+  for GW Data Analysis*. Good place to re-check that our amortized-δ framing is still not standard.
+
+### GWTC-5.0 — and a headline in our exact territory
+**[S]** Released **2026-05-26** ([LIGO Caltech](https://www.ligo.caltech.edu/news/ligo20260526),
+[GWOSC](https://gwosc.org/eventapi/html/GWTC-5.0/)): **161 new events, 390 confident total**, O4b data
+(Apr 2024 – Jan 2025), all BBH, no new NS-containing events.
+
+Highlighted: **"the first measurement of three gravitational-wave tones from a black hole."** That is directly
+our tone-count / spectroscopy territory — **read before any further tone-count work.**
+
+*Bookkeeping:* our own catalog query counted **439** public entries; 390 is the *confident* count. Broader vs
+stricter counting, not a conflict — but state which one you mean.
+
+---
+
+## 3. Echoes — `echoes/`
+
+### Our null replicates; their method is a rung above ours
+**[A]** [arXiv:2512.24730](https://arxiv.org/abs/2512.24730) — *Model-agnostic search of gravitational wave
+echoes in LVK data.*
+
+- Targets long-lived QNMs from strong interior reflection, avoiding specific echo waveform models
+- **Generalized phase-marginalized likelihood coherently combining each QNM across the detector network**,
+  plus an optimized line-notching procedure
+- Events: **GW150914 (O1), GW231226 (O4a), GW250114 (O4)**
+- **No statistically significant evidence for postmerger echoes**; 90% upper limits on network SNR and average
+  initial strain amplitude
+
+**For us:** our E3 nulls (GW150914 / GW151012 / GW151226 / GW250114, both ML and comb, independent ±hour
+background) are **consistent with the field's latest, including on GW250114.** Their coherent *network*
+combination is the obvious next rung above our single-detector-ish comb on an ML-residual envelope, if echoes
+are ever reopened.
+
+- **[S]** [arXiv:2510.01001](https://arxiv.org/html/2510.01001v3) — *GW250114 reveals black hole horizon
+  signatures* (context; unverified).
+
+---
+
+## 4. ML methods — adjacent, and one paper that is our audit's twin
+
+### The robustness paper — cite this in the deep-FAR audit
+**[A]** [arXiv:2509.05283](https://arxiv.org/abs/2509.05283) — *Robustness of Sensitivity Evaluations for
+Gravitational Wave Detection Algorithms.*
+
+Running the AresGW ML pipeline across multiple **month-long real-noise datasets** produced *"notable
+performance variations, highlighting the challenges introduced by finite-duration datasets"*, specifically
+**at low false alarm rates**, and calls for *"more rigorous statistical validation"* and better GW-specific
+benchmarking standards.
+
+**This is the independent statement of what our 2026-08-09 deep-FAR audit measured** — that a deep-FAR
+threshold on a finite real-noise dataset is far less stable than its Poisson error bar implies. We quantified
+the mechanism: our 1/decade threshold moved **±33–44%** under a leave-block-out jackknife because its 8
+defining events traced to **2 distinct H1 windows in a single segment**. **Effect: our audit stops being
+internal housekeeping and becomes a concrete, mechanism-level instance of a named open problem.**
+
+### Self-supervised pretraining — independent convergence with our N4
+**[S]** [GraviBERT, arXiv:2512.21390](https://arxiv.org/html/2512.21390) (IOP, Apr 2026) — multi-scale feature
+extractor + transformer encoder, **BERT-style self-supervised pretraining then supervised fine-tuning**,
+pitched explicitly as *"a pathway towards foundation-style models for gravitational-wave science"*, supporting
+transfer to new detectors and waveform approximants.
+
+**For us:** our **N4** reached the same conclusion from the other end — a masked-spectrogram autoencoder
+pretrained on unlabeled noise gave **+0.124 val-AUC at 1000 labels**, gain scaling as 1/labels, and the AUC win
+*translated to sensitive distance*. Independent convergence on the direction; a natural benchmark if we extend
+the SSL work.
+
+### Other ML context
+- **[S]** [arXiv:2603.09386](https://arxiv.org/pdf/2603.09386) — *Deep Learning Search for GWs from Compact
+  Binary Coalescence* (2026)
+- **[S]** [arXiv:2505.08332](https://arxiv.org/html/2505.08332) — improving detection significance of GW
+  transient searches with CNNs
+- **[S]** [arXiv:2403.04350](https://arxiv.org/abs/2403.04350) — self-supervised extraction of non-Gaussian
+  features (PRD 111, 063520)
+
+### Glitches and background — supporting our audit's diagnosis
+**[S]** Blip glitches resemble the final cycles of stellar-mass CBCs and occur roughly **every 30 min at LHO**
+(~15 min at LLO) during O3. **[S]** Time-slide significance is known to be affected by *"correlations in the
+set of background triggers, non-stationary noise, residual effects due to genuine GW transients, and finite
+sample size"* (cf. [arXiv:1601.00130](https://arxiv.org/pdf/1601.00130)).
+
+**For us:** independent support for the audit's conclusion that deep FAR is limited by **independent
+loud-noise samples, not livetime** — and for why real searches use signal-consistency vetoes and DQ flags
+rather than raw time-slides alone.
+
+---
+
+## Long-horizon projects — tracked, not skipped
+
+*Standing rule for this section: **effort is not a reason to drop an item.** There is no deadline here and the
+Mac runs unattended; the only filter is whether the work is correct and worth knowing. Long-running jobs are
+normal — checkpoint them and let them run for days. An item leaves this list when it is **done** or
+**measured to be impossible**, never because it looked big.*
+
+**L1 — Cheap-template dense bank (de-chirping / ratio filter).** Follow-up A identified **bank mismatch as the
+dominant loss** (real bank 0.489, CNN 0.472, oracle 0.72) and could not push the one axis that mattered,
+because 1,619 templates was our laptop ceiling. An 8× per-core speedup ⇒ ~13,000 templates on the same
+hardware, a genuine move down the density sweep toward the oracle. *Effort:* weeks — implement the de-chirping
+filter representation, re-golden-test it against `pbh/bankmf.py`, then re-run `bank_dense.py` / `bank_vs_cnn.py`
+at the finer spacing. *Buys:* the first real answer to "does a CNN still tie a matched filter once the bank is
+adequate?" — which is the question the whole subsolar arc circled. *Prereq:* none.
+
+**L2 — Deep background to 1/century, and a jackknife-stable 1/decade.** The audit showed the binding
+constraint is **distinct loud-noise samples**, not livetime. Background = (62N−1)·N·4096 s, so:
+
+| segments N | background | 1/century events | note |
+|---|---|---|---|
+| 100 (now) | 80.5 yr | 0.8 — not measurable | 1/decade rests on 8 events, ±33–44% |
+| ~112 | 100 yr | 1 | measurable but a 1-event estimator: useless |
+| **~353** | **~1000 yr** | **10** | 1/century on the same footing 1/decade has now |
+
+353 segments ≈ 401 h of O4b H1∩L1 — ample in a 9-month run — and at the observed rate (~4 h per 100 segments,
+fetch + score) that is **roughly 14 h of unattended compute**, plus an O(N²) background pass. Distinct glitch
+samples grow ∝ N, so the jackknife spread should fall roughly as 1/√N: **±33% → ~±18%** at N=353. *Buys:* a
+deeper rung **and** a defensible error bar on the existing one. *Prereq:* none — `far_deep.py` already
+checkpoints per segment and purges strain. **This is the single best use of idle Mac time.**
+
+**L3 — Orthonormal-mode adoption across the ringdown arc.** The weekend ROC test (below) only decides
+*whether* the basis change carries information. If it does, the follow-through is larger: rebuild the QNM basis
+in `sbilib`, **retrain the NPE** in the orthonormal parameterization, re-run coverage/recalibration (v3's T=1.05
+work), and re-examine the parked **v4 tone-count negative** and the **δ wall**. *Effort:* weeks. *Buys:*
+possibly overturning our own parked negative — the highest-value outcome available in the ringdown arc.
+*Prereq:* the ROC test result.
+
+**L4 — Coherent network echo search.** [arXiv:2512.24730](https://arxiv.org/abs/2512.24730) combines each QNM
+**coherently across the detector network** with a phase-marginalized likelihood plus line-notching; our comb
+runs on an ML-residual envelope, essentially per-detector. *Effort:* weeks. *Buys:* the field-standard
+sensitivity rung for echoes, and makes our nulls directly comparable to theirs rather than merely consistent.
+*Prereq:* none, but the echoes arc is parked complete — this is what reopening it should mean.
+
+**L5 — Three-tone spectroscopy.** GWTC-5.0 reports **the first measurement of three tones from a black hole**.
+Our machinery stops at two (220 + 221). *Effort:* read first (that measurement may itself be the answer), then
+weeks if we extend `sbilib` to a third tone and re-derive the no-hair test with it. *Prereq:* read GWTC-5.0.
+
+**L6 — Larger unlabeled pool for the SSL backbone.** N4's caveat was that the unlabeled pool *was* the labeled
+set's own 20k noise spectrograms; GraviBERT-scale pretraining implies far more. *Effort:* days of fetching +
+pretraining. *Buys:* tests whether N4's data-wall win keeps growing with pool size — the obvious open thread we
+noted ourselves. *Prereq:* none.
+
+**L7 — S251112cm.** Blocked on the **O4c public release** (not out as of 2026-08-15). `o4c_release_watch.py`
+is the trigger. *Buys:* our pipeline pointed at a real subsolar candidate at 1/6.2 yr — precisely the regime
+our FAR ladder now calibrates.
+
+---
+
+## Standing implications for the roadmap
+
+Short items, in the order I would do them. The long-horizon items **L1–L7 above are part of this list, not an
+appendix to it** — they are sequenced later only because some depend on the short ones, never because of size.
+
+1. **Orthonormal-mode ROC test** *(recommended next)* — settle whether the 82.5% → 99.9% boost is information
+   or reparameterization, by injecting known-amplitude overtones into real noise and comparing ROC/AUC in both
+   bases. Machinery already in place (`sbilib.simulate_tonecount`, `.venv311` `ringdown` pinned). **Gates L3.**
+2. **Cite [arXiv:2509.05283](https://arxiv.org/abs/2509.05283)** in the deep-FAR audit section of RESULTS.md —
+   it independently names the problem our audit measured with a mechanism.
+3. **Read GWTC-5.0's three-tone measurement** before further tone-count work. **Gates L5.**
+4. **Launch L2** (deeper background) — unattended, no prerequisite, best use of idle Mac time; it can run
+   underneath any of the above.
+5. **L1, L4, L6** — independent of everything else; start whenever there is appetite.
+6. **L7** waits on the O4c release; the watcher fires it.

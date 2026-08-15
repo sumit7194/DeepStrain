@@ -11,6 +11,52 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-08-15 — literature sweep: where the field is, and what it means for our three arcs
+
+No new measurements this session — a wide read of what's been published, recorded in a new living document
+**[RELATED_WORK.md](RELATED_WORK.md)** so the context survives. Entries are marked **[A]** (abstract fetched
+and read) vs **[S]** (search snippet only, verify before load-bearing use), per the prior-art-rigor rule.
+
+**Nothing contradicts a result of ours.** Two things validate us, one hands us a citation we lacked, one
+offers a method upgrade, and one reopens a wall we had called closed.
+
+- **Subsolar.** LVK published their O4a search ([2602.12115](https://arxiv.org/abs/2602.12115), PRD): 25M
+  templates, no candidates, f_PBH < 0.5% at 0.4 M☉, >2× better than O1–O3 combined. **S251112cm** (the Nov 12
+  2025 candidate) sits at **FAR 1/6.2 yr, P(subsolar) > 99%, 93 ± 27 Mpc, still unresolved** — which means our
+  deep-FAR ladder is calibrated on exactly the scale a real candidate lives at. **O4c is not public**, so its
+  strain remains out of reach; that closes an earlier open question with a date.
+- **Ringdown — the most actionable find.** [2605.03576](https://arxiv.org/abs/2605.03576) orthonormalizes the
+  QNM basis and lifts the GW250114 first-overtone significance **82.5% → 99.9%**, on the argument that
+  non-orthogonal QNMs induce correlations that mask subdominant modes. The 220/221 modes are ~6 Hz apart —
+  near-parallel basis vectors — which is a candidate *mechanism* for our parked **v4 tone-count negative**
+  (AUC 0.61) that we had attributed to SNR. **Pre-registered concern before adopting:** `P(A₂₂₁ ≠ 0)` is not
+  basis-invariant and orthonormalizing changes the implicit amplitude prior, so part of a 17-point jump could
+  be a change of question rather than a gain of information. Decisive test we are equipped for: inject
+  known-amplitude overtones and compare **ROC/AUC in both bases**.
+- **Echoes.** [2512.24730](https://arxiv.org/abs/2512.24730) searched GW150914 / GW231226 / GW250114 with a
+  model-agnostic coherent-network method — **null, with 90% upper limits.** Our E3 nulls are consistent with
+  the field's latest, including on GW250114.
+- **Our audit has a twin.** [2509.05283](https://arxiv.org/abs/2509.05283) reports that ML-search sensitivity
+  varies notably across month-long real-noise datasets **at low FAR**, and calls for rigorous statistical
+  validation. That is precisely last session's finding, stated in the abstract; ours supplies the mechanism
+  and a number (±33–44%, traced to 2 windows in one segment). Now cited in RESULTS.md — the audit is an
+  instance of a named open problem, not housekeeping.
+- **GraviBERT** ([2512.21390](https://arxiv.org/html/2512.21390)) does BERT-style self-supervised pretraining
+  for GW, converging independently on our **N4** direction.
+- **GWTC-5.0** (2026-05-26): 161 new events, 390 confident, and **the first three-tone measurement from a
+  black hole** — directly our spectroscopy territory, to read before further tone-count work.
+
+**Process note — a stale verdict corrected.** ROADMAP had carried "template-bank density wall → intractable
+locally" as a blocker. The field's **ratio-filter de-chirping (~8× per core)** would put ~13,000 templates on
+our existing hardware, which is a real move along the one axis Follow-up A named as the dominant loss. I had
+initially recommended *skipping* it as a poor effort trade; the user corrected that — **effort is not a reason
+to drop an item here.** Reclassified from blocker to **L1** of a new tracked **L1–L7 long-horizon list**
+(RELATED_WORK.md + ROADMAP.md), with the standing rule that items leave the list only when done or measured
+impossible. L2 (deep background → ~1000 yr, ~353 segments, ~14 h unattended, should take the jackknife spread
+±33% → ~±18%) is the best use of idle Mac time and needs no prerequisite.
+
+---
+
 ## 2026-08-09 — the cleanup that became an audit: our own 1/decade result stress-tested
 
 Started as disk triage. Before deleting anything the user asked for a pass over the data
