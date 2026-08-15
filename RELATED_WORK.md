@@ -36,14 +36,16 @@ which is what made 25M templates affordable. Related: **[S]**
 *nearby* templates, aimed at long-duration low-mass signals (BNS, subsolar). **[S]** A dedicated O4 SSM
 template-bank paper exists in PRD (`10.1103/c97v-bmj8`).
 
-> **🟡 FOUNDATION VALIDATED 2026-08-15 — and the [S] number above did NOT survive contact.** Primary source
-> found and read: [arXiv:2601.18835](https://arxiv.org/abs/2601.18835) (PRD `10.1103/k21q-wp8f`, *Beyond
-> FINDCHIRP*). **The 8× does not transfer to us** — it is a CPU cache/memory-bandwidth result, and the
-> FLOP-level gain is only ~2×. What *does* transfer is bigger: measured waveform generation is **56×** the
-> correlation, and the reference-bank size depends only on separation, so a **0.01%-spacing bank (16,166
-> templates) goes 533 GB → 6.5 GB (82×) and 36× faster per segment.** Subsolar needs **4,097 taps**, not the
-> paper's ~250. See RESULTS.md "L1 ratio-filter dechirping". *A worked example of why [S] entries must be
-> verified before use.*
+> **🔴 TESTED AND CLOSED 2026-08-15 — an honest NEGATIVE.** Primary source read
+> ([arXiv:2601.18835](https://arxiv.org/abs/2601.18835), PRD `10.1103/k21q-wp8f`). The algebra is **exact** for
+> our pipeline (untruncated kernel reproduces the matched filter to **1.000000**), but **measured speedup is
+> 0.94× — marginally slower.** Mechanism: the method converts O(N log N) → O(N log K), so the gain ≈
+> log N / log K; the published 8× assumes **K≈250 taps** (BNS) while **subsolar needs K≈16,385** because of the
+> phase these inspirals accumulate. With N=16.7M that caps at **1.6×**. Memory doesn't rescue it — memory was
+> never binding (bank_dense was already template-major); **compute time** is. **Criterion for when this WOULD
+> pay: a signal class needing K ≲ 1,000 taps.** See RESULTS.md "L1 VERDICT". *An [S] number that did not
+> survive contact — and a cost model of mine that had to be superseded for measuring a primitive at the wrong
+> scale.*
 
 **For us — this is a live lever on a wall we called intractable, and the wall is now weaker.** Follow-up A
 measured it quantitatively: 1,619 templates at 0.1% Mc spacing was our laptop ceiling, real-bank MF 0.489 vs
@@ -222,13 +224,11 @@ Mac runs unattended; the only filter is whether the work is correct and worth kn
 normal — checkpoint them and let them run for days. An item leaves this list when it is **done** or
 **measured to be impossible**, never because it looked big.*
 
-**L1 — Cheap-template dense bank (de-chirping / ratio filter). 🟡 FOUNDATION VALIDATED 2026-08-15; the bank
-build itself is still to do.** Primary source verified: [arXiv:2601.18835](https://arxiv.org/abs/2601.18835)
-(PRD `10.1103/k21q-wp8f`). Algebra exact for our pipeline (untruncated kernel reproduces the matched filter to
-**1.000000**); subsolar needs **4,097 taps** bank-wide, not the paper's ~250, because of the phase these
-inspirals accumulate. **The published 8× does NOT transfer** (CPU-cache result), but the win we actually need
-does: measured generation is **56×** the correlation, so at **0.01% spacing (16,166 templates)** the bank goes
-**533 GB → 6.5 GB (82×)** and **36× faster per segment**. Gated (48). *(original scoping follows)*
+**L1 — Cheap-template dense bank (de-chirping / ratio filter). 🔴 CLOSED 2026-08-15 — NEGATIVE, measured.**
+Ratio filtering gives **0.94×** on our pipeline, not 8×: the gain scales as log N / log K and subsolar needs
+**K≈16,385** taps vs the paper's ~250. The dense-bank wall stands, but is now *understood* rather than assumed,
+with a quantitative reopening criterion (**K ≲ 1,000 taps**). The bank was deliberately not built (~162 h for no
+speed gain). *(superseded scoping follows)*
 
 *(original entry)* **L1 —** Follow-up A identified **bank mismatch as the
 dominant loss** (real bank 0.489, CNN 0.472, oracle 0.72) and could not push the one axis that mattered,

@@ -1,0 +1,14 @@
+{
+  "sep": 0.005,
+  "taps": 16385,
+  "n_trial": 30,
+  "regimes": {
+    "signal": {
+      "median_newsnr_direct": 18.752825309986882,
+      "median_rel_err": 0.0011242613195649065,
+      "median_abs_rel_err": 0.008933403978263591,
+      "p90_abs_rel_err": 0.0316053677859284,
+      "frac_positive": 0.5666666666666667
+    }
+  }
+}

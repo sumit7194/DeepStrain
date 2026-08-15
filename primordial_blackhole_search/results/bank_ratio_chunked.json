@@ -1,0 +1,39 @@
+{
+  "n_chunk": 8,
+  "chunk_len": 32768,
+  "rows": [
+    {
+      "sep": 0.001,
+      "taps_needed": null,
+      "newsnr_direct": 15.451354675793834,
+      "newsnr_ratio": 15.420412234083651,
+      "rel_err": 0.002002571448227595
+    },
+    {
+      "sep": 0.005,
+      "taps_needed": null,
+      "newsnr_direct": 5.849692367225984,
+      "newsnr_ratio": 6.076403921580706,
+      "rel_err": 0.03875614991737287
+    },
+    {
+      "sep": 0.01,
+      "taps_needed": null,
+      "newsnr_direct": 6.405351722503685,
+      "newsnr_ratio": 6.378507314549856,
+      "rel_err": 0.004190934255728241
+    }
+  ],
+  "taps_per_chunk": 8193,
+  "taps_n1_reference": 4097,
+  "total_taps_ratio_vs_n1": 15.998047351720771,
+  "repriced": {
+    "B_target": 16166,
+    "B_ref": 164,
+    "ram_gb": 22.365348864,
+    "ram_direct_gb": 533.478,
+    "ram_win": 23.852880777491634
+  },
+  "C2_statistic_ok": false,
+  "fits_in_ram": true
+}

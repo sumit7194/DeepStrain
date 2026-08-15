@@ -11,6 +11,52 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-08-15 (later still) — L1 built out and CLOSED: ratio filtering does not help subsolar (0.94×)
+
+Asked to build the dense bank "if it passes". It didn't, and the path to finding that out went through **three
+of my own errors** — which is the part worth recording.
+
+**The method is real and the algebra is exact.** Verified at the primary source
+([arXiv:2601.18835](https://arxiv.org/abs/2601.18835), PRD) rather than the search snippet: with A_t = A_r·R our
+cross-correlation gives `c_t = c_r (*) IFFT[conj(R)]`, one FIR per target. New `pbh/ratiofilter.py`, kernel by
+weighted least squares over frequency with Toeplitz normal equations. An **untruncated kernel reproduces the
+matched filter to 1.000000**, at every separation and even when built at the wrong remnant.
+
+**Error 1 — the golden test failed at 0.814 and it was mine.** I nearly recorded L1 dead. The untruncated-kernel
+control (which the golden test lacked) showed the algebra was fine; the failure was truncation. Subsolar needs
+far longer kernels than the paper's ~250 because these inspirals accumulate enormous orbital phase.
+
+**Error 2 — an automated verdict I wrote said "no memory win", on an arbitrary `L/16` cutoff that 16,385 taps
+missed by ONE tap.** Wrong figure of merit; total bank memory reversed it.
+
+**Error 3, the decisive one — I measured a primitive at the wrong scale.** The cost model timed correlation on a
+262,144-sample *chunk* (7.8 ms) and concluded generation (442 ms) was **56×** the filtering, giving a headline
+**82× RAM / 36× time** that I committed to RESULTS.md, CLAUDE.md and the gate. But `bank_dense`'s expensive step
+correlates over the **entire 16.7M-sample segment** — 64× more data. Measured properly: generation is **8%** of
+the cost, and the real speedup is **0.94× — marginally slower.**
+
+**The mechanism, which is the actual result.** Ratio filtering converts O(N log N) into O(N log K), so the gain
+is ≈ log N / log K. The published 8× assumes **K≈250** (BNS). Subsolar needs **K≈16,385** — measured, not
+guessed (8,193 taps → 2.4% statistic error; 16,385 → 0.89%, clearing the pre-registered 1% bar). With N=16.7M
+that caps at **1.6×**, and we measure 0.94×. **The benefit is inversely tied to the kernel length a signal class
+demands, and subsolar demands the longest.** Reopening criterion recorded: **K ≲ 1,000 taps**.
+
+**Memory doesn't rescue it.** Kernels are ~31× smaller than stored analytic chunks — real, but irrelevant:
+memory was never binding, since `bank_dense` had already gone template-major to work around it. **Compute time
+binds**, and this doesn't cut it (6 segments at 0.01%: 151.9 h direct vs 161.8 h ratio).
+
+**What survives.** The statistic *is* faithfully reproducible at 16,385 taps — noise-regime error is **unbiased
+jitter** (median bias +0.17%, 57% positive, so the threshold is safe), signal-regime 0.89%. And the dense-bank
+wall now stands for a **measured** reason instead of an unexamined cost assumption, which is strictly better
+than where Follow-up A left it.
+
+**The bank was deliberately not built** (~162 h for no speed gain), so *does a CNN still tie a matched filter
+once the bank is adequate?* stays open and needs a genuinely cheaper filter. The gate was **rewritten to assert
+the negative** (`not helps`, speedup < 2×, generation share < 25%) so the inflated claim cannot creep back;
+`bank_ratio_costmodel.json` is retained but marked superseded everywhere it appeared. 48 green.
+
+---
+
 ## 2026-08-15 (later) — acting on the sweep: L2 launched, and an honest negative on a published method
 
 Two tasks off the new list: launch **L2** (deep background) to run unattended, then run the **orthonormal-mode

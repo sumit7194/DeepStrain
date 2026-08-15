@@ -658,46 +658,41 @@ print(f"PASS  ringdown delta-wall re-measured ({d['n_analyzed']} events from the
       f"{d['snr_needed_for_information']:.0f} -- only GW250114 clears it)")
 PYEOFE26
 
-echo "--- pbh L1 ratio-filter foundation (exact algebra; 4097 taps bank-wide; 82x RAM via avoided regeneration)"
+echo "--- pbh L1 ratio-filter: exact algebra, but an honest NEGATIVE for subsolar (0.94x, not 8x)"
 ./primordial_blackhole_search/.venv/bin/python - << 'PYEOFRF' || FAIL=1
 import json
 R = "primordial_blackhole_search/results/"
 d = json.loads(open(R + "bank_ratio_diag.json").read())
 m = json.loads(open(R + "bank_ratio_mcscan.json").read())
-c = json.loads(open(R + "bank_ratio_costmodel.json").read())
+g = json.loads(open(R + "bank_ratio_regime.json").read())
+rc = json.loads(open(R + "bank_ratio_realcost.json").read())
 
-# (1) THE FOUNDATION: c_target = c_ref (*) IFFT[conj(R)] is an exact circular identity. If the untruncated
-#     kernel ever stops reproducing the direct matched filter, the derivation or the code is broken and every
-#     number downstream is void. This is the control the first golden test lacked.
+# (1) THE FOUNDATION, which stands: c_target = c_ref (*) IFFT[conj(R)] is an exact circular identity.
 assert d["D1_algebra_ok"], f"ratio-filter algebra broken: {[r['exact'] for r in d['rows']]}"
 for r in d["rows"]:
     assert r["exact"] > 0.9999, f"exact-kernel reconstruction degraded at sep {r['sep']}: {r['exact']}"
 
-# (2) our regime needs FAR more taps than the paper's ~250 (subsolar phase accumulation). Keep that recorded
-#     so nobody re-imports the published number.
-need = d["D2_taps_needed_for_0999"]
-assert need["0.001"] >= 1025, f"taps at 0.1% sep changed: {need}"
-assert need["0.01"] >= 4097, f"taps at 1% sep changed: {need}"
+# (2) the kernel length subsolar DEMANDS -- this is the number that kills the speedup, so pin it.
+assert d["D2_taps_needed_for_0999"]["0.001"] >= 1025, "n=1 taps changed"
+assert all(r["taps_needed"] is not None and r["taps_needed"] <= 4097 for r in m["rows"]), "Mc scan changed"
 
-# (3) it holds across the WHOLE bank, not just where we first tested (Mc 0.18 -> 0.85)
-assert all(r["taps_needed"] is not None and r["taps_needed"] <= 4097 for r in m["rows"]), \
-    f"some Mc needs more than 4097 taps: {[(r['mc'], r['taps_needed']) for r in m['rows']]}"
-assert m["cost_model_stands"], "Mc scan no longer supports the cost model"
+# (3) the statistic IS reproducible -- but only with long kernels. Noise error is unbiased jitter (threshold
+#     safe); signal error needed 16385 taps to clear 1%.
+assert g["R2_noise_unbiased"], f"noise regime became BIASED -- would shift the threshold: {g['regimes']['noise']}"
+assert rc["taps"] >= 16385, "real-cost run no longer uses the taps the accuracy test demanded"
 
-# (4) the real win, and it is NOT the published speedup: generation dominates, and RAM falls enough that a
-#     0.01%-spacing bank fits in memory.
-assert c["gen_over_corr"] > 10, f"waveform generation no longer dominates ({c['gen_over_corr']:.0f}x) -- the "\
-                                "whole L1 rationale rests on this; re-derive before building"
-tgt = c["plans"][-1]
-assert tgt["ram_ratio_gb"] < 32, f"dense bank no longer fits: {tgt['ram_ratio_gb']:.1f} GB"
-assert tgt["ram_win"] > 10 and tgt["time_win"] > 3, f"L1 saving collapsed: {tgt}"
-assert c["verdict"]["premise_holds"], "L1 premise no longer holds"
+# (4) THE VERDICT, asserted as a negative so it cannot be quietly re-inflated. The 8x does not transfer
+#     because the gain scales as log N / log K and subsolar forces K ~ 16k instead of ~250.
+assert not rc["helps"], f"ratio filtering now HELPS ({rc['speedup']:.2f}x) -- re-examine, this would reopen L1"
+assert rc["speedup"] < 2.0, f"speedup changed materially: {rc['speedup']}"
+assert rc["generation_frac_of_direct"] < 0.25, \
+    f"generation share changed ({rc['generation_frac_of_direct']:.2f}) -- the superseded cost model claimed 0.98"
+assert rc["speedup"] <= rc["theory_ceiling"] * 1.5, "measured speedup exceeds the asymptotic ceiling -- suspicious"
 
-print(f"PASS  pbh L1 ratio-filter foundation (exact kernel reproduces MF to {min(r['exact'] for r in d['rows']):.6f}; "
-      f"subsolar needs {need['0.001']}/{need['0.01']} taps at 0.1%/1% sep vs the paper's ~250, flat <=4097 "
-      f"across Mc 0.18-0.85; generation is {c['gen_over_corr']:.0f}x correlation so 0.01% spacing "
-      f"({tgt['B']} templates) goes {tgt['ram_direct_gb']:.0f}->{tgt['ram_ratio_gb']:.1f} GB "
-      f"({tgt['ram_win']:.0f}x) and {tgt['time_win']:.0f}x per segment)")
+print(f"PASS  pbh L1 ratio-filter (algebra EXACT to {min(r['exact'] for r in d['rows']):.6f}; but subsolar needs "
+      f"K={rc['taps']} taps vs the paper's ~250, so log N/log K gives only a {rc['theory_ceiling']:.1f}x ceiling "
+      f"and the measurement is {rc['speedup']:.2f}x => HONEST NEGATIVE, dense bank stays blocked; generation is "
+      f"{100*rc['generation_frac_of_direct']:.0f}% of cost, not the 98% the superseded model assumed)")
 PYEOFRF
 
 echo "--- ringdown orthonormal-QNM test (27/28: the basis carries NO detection information)"

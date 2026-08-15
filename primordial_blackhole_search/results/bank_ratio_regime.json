@@ -1,0 +1,24 @@
+{
+  "sep": 0.005,
+  "taps": 8193,
+  "n_trial": 40,
+  "regimes": {
+    "signal": {
+      "median_newsnr_direct": 18.91425005974544,
+      "median_rel_err": 9.693560341916276e-06,
+      "median_abs_rel_err": 0.020648229694011082,
+      "p90_abs_rel_err": 0.06054530451267251,
+      "frac_positive": 0.5
+    },
+    "noise": {
+      "median_newsnr_direct": 5.470985354688814,
+      "median_rel_err": 0.001680378482436393,
+      "median_abs_rel_err": 0.013213899073549164,
+      "p90_abs_rel_err": 0.03458341667925566,
+      "frac_positive": 0.575
+    }
+  },
+  "R1_signal_ok": false,
+  "R2_noise_unbiased": true,
+  "hypothesis_confirmed": false
+}

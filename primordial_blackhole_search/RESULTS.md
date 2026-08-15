@@ -1085,11 +1085,13 @@ comparing taps to an arbitrary `L/16` cutoff that 16,385 **missed by one tap**. 
 bank memory is the right one and it points the **opposite** way, because the reference bank's size depends
 only on the reference–target separation, **not on how dense the target bank is**.
 
-**Cost model, with the primitives MEASURED (`bank_ratio_costmodel.py`).** Waveform generation **441.8 ms**
-vs correlation **7.8 ms** — generation is **56×** the filtering it was supposed to accelerate. That is the
-real story: `bank_dense.py` is template-major and *regenerates every template for every segment*.
+**Cost model (`bank_ratio_costmodel.py`) — ⚠️ SUPERSEDED, WRONG, retained only as the record of the mistake.**
+It reported waveform generation **441.8 ms** vs correlation **7.8 ms** and concluded generation was **56×** the
+filtering. The correlation was timed on a single 262,144-sample *chunk*; the real pipeline correlates over the
+**16.7M-sample segment**, so generation is actually **8%** of the cost. **Every number in the table below is
+therefore wrong** — the corrected verdict is at the end of this section.
 
-| target spacing | templates | direct RAM | ratio RAM | RAM win | time/segment win |
+| ⚠️ SUPERSEDED — target spacing | templates | direct RAM | ratio RAM | RAM win | time/segment win |
 |---|---|---|---|---|---|
 | 0.1% (current) | 1,619 | 53 GB | 3.2 GB | 17× | 14× |
 | 0.05% | 3,235 | 107 GB | 3.6 GB | 30× | 23× |
@@ -1102,13 +1104,55 @@ by ×4, so this **bounds** the Mc dependence rather than disproving it — and t
 one grid step (match at 1,025 taps: 0.884 → 0.908 → 0.939 → 0.994 as Mc rises), exactly as the phase argument
 predicts. 4,097 is an upper bound at every mass tested, which is what the cost model needs.
 
-**What L1 does NOT buy us.** The paper's headline **8× does not transfer**: that is a CPU cache/memory-bandwidth
-result, and the FLOP-level gain is only ~2× (O(N log K) at ~11 FLOP vs O(N log N) at ~20). Our own first speed
-measurement of 0.98× was meaningless anyway — it applied the FIR via *full-length* FFTs, the exact cost the
-method exists to avoid. **The win here is (a) memory and (b) not regenerating minutes-long subsolar waveforms
-per segment.** Gated (48).
-Artifacts: bank_ratio_golden.json, bank_ratio_diag.json, bank_ratio_costmodel.json, bank_ratio_mcscan.json.
+**⚠️ THE COST MODEL ABOVE IS WRONG AND IS SUPERSEDED — see the verdict below.** It timed the matched filter on
+one 262,144-sample *chunk* (7.8 ms) and concluded generation (442 ms) was **56×** the filtering. But
+`bank_dense.py`'s expensive step is `so.segment_stats`, which correlates each template's 8 chunks across the
+**entire ~16.7M-sample segment** — 64× more data per correlation. The 82× RAM / 36× time figures do not survive
+that correction. Left in place, struck through, because the mistake is the instructive part: *a primitive
+measured at the wrong scale.*
 
-**Next (not yet done):** build the hierarchical bank and re-run the density sweep + `bank_vs_cnn` at 0.01%
-spacing. Only that answers the question the whole subsolar arc circled — *does a CNN still tie a matched
-filter once the bank is adequate?* Everything above is the foundation, not the answer.
+### L1 VERDICT: ratio filtering does NOT help subsolar — an honest negative with a mechanism (2026-08-15)
+Priced against the **real** pipeline (`bank_ratio_realcost.py`, on the actual 16.7M-sample segment):
+
+| | measured |
+|---|---|
+| direct: `segment_stats` 5.2 s + generation 0.45 s | **5.6 s** / template / segment |
+| ratio: 8 × `oaconvolve` at 16,385 taps | **6.0 s** |
+| **speedup** | **0.94× — marginally SLOWER** |
+| generation share of the direct cost | **8%**, not the 98% the superseded model assumed |
+
+**The mechanism, which is the real result.** Ratio filtering converts O(N log N) into O(N log K), so the gain is
+about `log N / log K`. The published **8× assumes K ≈ 250 taps** (BNS). Subsolar needs **K ≈ 16,385** — measured,
+not guessed (`bank_ratio_regime.py`: 8,193 taps → 2.4% statistic error, 16,385 → 0.89%, clearing the 1% bar).
+With N = 16.7M that gives a **1.6× theoretical ceiling**, and we measure 0.94×. **The benefit is inversely tied
+to the kernel length a signal class demands, and subsolar demands the longest kernels** — precisely because
+these inspirals accumulate enormous orbital phase. Not a defect of their method; our regime sits outside where
+it pays.
+
+**Why the memory win doesn't rescue it.** Kernels really are ~31× smaller than stored analytic chunks, and that
+part is real. But **memory was never the binding constraint**: `bank_dense.py` had already worked around it by
+going template-major (generate → score → free). The binding constraint is **compute time**, which ratio
+filtering does not reduce. Projected wall-clock for 6 segments is essentially unchanged: 0.1% spacing 15.2 h
+direct vs 16.2 h ratio; 0.01% spacing 151.9 h vs 161.8 h.
+
+**What survives, and it is not nothing.**
+- The algebra is **exact** — an untruncated kernel reproduces the matched filter to **1.000000**, at every
+  separation and even when the basis is built at the wrong remnant.
+- The statistic is faithfully reproducible at 16,385 taps: noise-regime error is **unbiased jitter**
+  (median bias +0.17%, 57% positive ⇒ the threshold is safe), signal-regime error 0.89%.
+- **The dense-bank wall stands, but is now understood** rather than assumed. Follow-up A parked it as
+  "intractable locally"; the sweep reopened it as L1; this closes it again with a measured reason and a
+  quantitative criterion for when it *would* pay: a signal class needing **K ≲ 1,000 taps**.
+
+**Three of my own errors were caught inside this one item**, which is the honest record: (1) the first golden
+test failed at 0.814 because I truncated the kernel, not because the method failed; (2) an automated verdict
+declared "no memory win" on an arbitrary `L/16` cutoff missed by one tap; (3) the cost model measured
+correlation at chunk scale instead of segment scale, inflating a 0.94× into a claimed 36×. Each was found by
+testing my own implementation before believing the result. Gated (48) — **as a negative**, so it cannot be
+quietly re-inflated.
+Artifacts: bank_ratio_{golden,diag,mcscan,chunked,regime,realcost}.json;
+bank_ratio_costmodel.json retained but **superseded**.
+
+**Not built, deliberately.** The hierarchical bank and a `bank_vs_cnn` re-run at 0.01% spacing would cost ~162 h
+for no speed advantage, so *does a CNN still tie a matched filter once the bank is adequate?* remains open —
+and reopening it needs a genuinely cheaper filter, not this one.
