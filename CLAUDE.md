@@ -350,6 +350,28 @@ significance; pre-registered per-event Δt; null results are results).
   a whitened-domain-convention artifact.** Echoes story complete: modest real
   ML edge + band-honest + family-robust + periodicity-specific + on-source
   nulls. Later: independent background blocks, per-event scorers, FAR scaling.
+- **L4 FIRST RUNG DONE (2026-08-15): coherent NETWORK combination HELPS — 1.12× at 3.2σ — and TWO injection
+  bugs found on the way.** From the sweep: arXiv:2512.24730 searches echoes with a phase-marginalized likelihood
+  that combines QNMs **coherently across the network**; our statistic is **doubly incoherent** (envelope kills
+  phase *within* a detector; scores are *summed* across detectors). `20_coherent_network.py` tests the network
+  axis only. **Geometry MEASURED not recited:** cross-correlating the whitened merger gives **−6.59 ms, sign −1**
+  vs GW150914's published ~6.9 ms + known anti-alignment (golden test; script refuses to proceed if it fails).
+  **MY PRE-REGISTERED PREDICTION WAS WRONG** — I argued the network axis buys ~nothing because coherent and
+  incoherent *power* summation give the same network SNR; measured **1.12× at 3.2σ**.
+  **TWO BUGS IN OUR OWN INJECTIONS, both found by disbelieving a plausible result:** (1) no inter-detector delay
+  or antenna response — same waveform, same GPS time, same polarity in both detectors; (2) `raw_train` draws a
+  **fresh random carrier phase per call**, so the two detectors got *different* waveforms (correlation **0.366**).
+  ⇒ the injected "echo" was never a common network signal, so any coherent statistic failed by construction.
+  **Existing results UNAFFECTED** (the incoherent envelope statistic never uses relative timing or phase — v1,
+  v5, ULs stand), but the injection set could not have tested coherent methods. **THE CONVENTION DECIDES THE
+  ANSWER:** physical injections (measured delay + polarity + shared phase) → **1.12×, 3.2σ**; the existing
+  identical-injection convention → **0.92×, significantly WORSE (2.2σ)**. **Process: 4 runs, 3 retractions** —
+  v1 "no gain (0.67×)" agreed with my prediction and was wrong (statistic cancelled the injection); v2 fixed
+  delay+sign, still lost (phase differed); v3 gave 1.21× at only **1.4σ** on a grid too coarse to resolve it;
+  v4 (finer grid, 120 trials, **significance-gated verdict**) gave 1.12× at 3.2σ — the gain shrank as statistics
+  improved, as it should. Verdict logic now refuses "helps" below 2σ. **Scope: network axis only** — the
+  within-detector envelope and the paper's full phase-marginalized likelihood remain untested. Gated (50).
+  Artifact: echoes/results/20_coherent_network.json.
 - **E3 DONE (2026-07-02): per-event ML scorers across the broadened set — all clean nulls.**
   `19_per_event_ml.py`: per-event autoencoder scorer + v2 ML network comb at each event's formula-Δt, for
   GW150914 / GW151012 / GW151226 / **GW250114** (Δt from its verified remnant M_f=68.1/χ=0.68 → 0.2952 s).

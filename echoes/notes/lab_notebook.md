@@ -451,3 +451,62 @@ echo_spacing formula on its detector-frame remnant (M_f=68.1 M☉, χ=0.68; LSC/
   on-source events simply have no echo signal to find. The value here is the broadened, per-event, independent-
   background null table (incl. the loud O4 event GW250114) + catching the own-block small-sample trap.
 Gated (all four null, n_bg≥500, GW151012 low-p does not survive). Artifact: results/19_per_event_ml.json.
+
+---
+
+## 2026-08-15 — L4: coherent network combination HELPS (1.12×, 3.2σ) — and two injection bugs found on the way
+
+**Why.** [arXiv:2512.24730](https://arxiv.org/abs/2512.24730) searches LVK data for echoes with a *"generalized
+phase-marginalized likelihood that coherently combines data for each QNM across a detector network"*, finding
+nulls on GW150914 / GW231226 / GW250114 — consistent with our E3 nulls, but by a method a rung above ours.
+
+**Our statistic is doubly incoherent**, and the two axes are worth separating rather than bundling:
+`comb_score` runs on `envelope(x)` (phase discarded *within* a detector), and `detection_statistic` *sums*
+per-detector scores (incoherent *across* the network). L4 tests only the network axis.
+
+**Pre-registered prediction — and it was WRONG.** I argued the network axis would buy little, since for a
+signal present in both detectors coherent amplitude summation and incoherent *power* summation give the same
+network SNR (√2 for two equal detectors either way), so any gain would have to come from the background side.
+Measured: **1.12× at 3.2σ.** Recording the miss because the reasoning was the load-bearing part, not the guess.
+
+**Geometry measured, not recited.** A coherent H1+L1 sum needs the arrival delay and relative polarity. Rather
+than hard-code them, `20_coherent_network.py` cross-correlates the whitened **merger** — same sky position, so
+the same delay applies — giving **−6.59 ms, sign −1**, against GW150914's published ~6.9 ms and known
+anti-alignment. That is a golden test on our own data handling; the script refuses to build a coherent
+statistic if it fails.
+
+### TWO BUGS IN OUR OWN INJECTIONS, both found by disbelieving a plausible result
+1. **No inter-detector delay or antenna response.** Every echo script adds the *same* waveform to H1 and L1 at
+   the *same* GPS time with the *same* polarity. A real source produces ~6.6 ms of delay and opposite polarity.
+2. **Independent carrier phase per detector.** `raw_train` draws `phase = rng.uniform(0, 2π)` on **every call**,
+   so calling it once per detector yields two *different* waveforms — measured correlation **0.366**.
+
+Together these mean the injected "echo" was never a common network signal, so **any** coherent statistic was
+guaranteed to fail by construction. **Existing results are unaffected** — the incoherent envelope statistic
+never uses relative timing or phase, so v1, v5 and the upper limits stand — but the injection set was
+structurally incapable of testing coherent methods.
+
+### Result (n_bg 60, n_trials 120, amplitude grid concentrated on the 50% crossing)
+
+| injection convention | incoherent | coherent | gain | significance |
+|---|---|---|---|---|
+| **physical** (measured delay + polarity + shared phase) | 0.925 ± 0.024 σ | **0.822 ± 0.022 σ** | **1.12×** | **3.2σ** |
+| **identical** (what every existing script does) | 0.930 ± 0.029 σ | 1.012 ± 0.022 σ | 0.92× | 2.2σ *against* |
+
+**The injection convention decides the answer.** Under the physical convention coherence buys 1.12×; under the
+existing convention it *significantly hurts*. That is the more important half of this result.
+
+### Four runs, three retractions — the process record
+- **v1** claimed "no gain, as predicted" (0.67×). Wrong: my statistic was cancelling identically-injected
+  signals. *It agreed with my prediction, which made me less likely to check — exactly backwards.*
+- **v2** added the physical delay+sign; coherent still lost (0.58×), because the carrier phase still differed.
+- **v3** shared the phase → 1.21×, but only **1.4σ**, on an amplitude grid so coarse (0.5→1.0→1.5) that the
+  50% point rested on one interpolation. Not claimable; the ratio looked good and the statistics did not.
+- **v4** finer grid + 120 trials + a **significance-gated verdict** → 1.12× at 3.2σ. The gain shrank as the
+  statistics improved, which is what should happen.
+
+The verdict logic now refuses to print "helps" below 2σ, so v3's over-claim cannot recur.
+
+**Scope.** This is the *network* axis only. The within-detector envelope — where phase is discarded and, by my
+(now-suspect) reasoning, the larger loss lives — remains untested, as does the paper's full phase-marginalized
+likelihood. L4's first rung is done, not L4. Gated (50). Artifact: results/20_coherent_network.json.

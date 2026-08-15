@@ -288,7 +288,15 @@ work), and re-examine the parked **v4 tone-count negative** and the **δ wall**.
 possibly overturning our own parked negative — the highest-value outcome available in the ringdown arc.
 *Prereq:* the ROC test result.
 
-**L4 — Coherent network echo search.** [arXiv:2512.24730](https://arxiv.org/abs/2512.24730) combines each QNM
+**L4 — Coherent network echo search. 🟡 FIRST RUNG DONE 2026-08-15 — coherent network combination HELPS
+(1.12×, 3.2σ).** Measured on physically-injected echoes (H1/L1 geometry derived from the merger: −6.59 ms,
+sign −1). **My prediction that the network axis would buy ~nothing was wrong.** Bigger finding: the injection
+convention decides the answer — the convention every existing echo script uses (identical waveform, no delay,
+independent carrier phase per detector) makes coherence *significantly worse*, and two such bugs were found
+here. Remaining: the within-detector envelope and the paper's full phase-marginalized likelihood.
+See echoes/notes/lab_notebook.md. *(original scoping follows)*
+
+*(original entry)* **L4 —** [arXiv:2512.24730](https://arxiv.org/abs/2512.24730) combines each QNM
 **coherently across the detector network** with a phase-marginalized likelihood plus line-notching; our comb
 runs on an ML-residual envelope, essentially per-detector. *Effort:* weeks. *Buys:* the field-standard
 sensitivity rung for echoes, and makes our nulls directly comparable to theirs rather than merely consistent.

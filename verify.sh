@@ -658,6 +658,36 @@ print(f"PASS  ringdown delta-wall re-measured ({d['n_analyzed']} events from the
       f"{d['snr_needed_for_information']:.0f} -- only GW250114 clears it)")
 PYEOFE26
 
+echo "--- echoes L4 coherent network (1.12x at 3.2 sigma) + the injection-convention finding"
+./echoes/.venv/bin/python - << 'PYEOFL4' || FAIL=1
+import json
+d = json.loads(open("echoes/results/20_coherent_network.json").read())
+
+# (1) GOLDEN TEST: the H1/L1 geometry is MEASURED from the merger, not recited. If we cannot recover the
+#     published ~6.9 ms delay from our own data, nothing coherent built on it means anything.
+assert d["golden_delay_ok"], f"H1-L1 geometry no longer recovered: {d['delay_ms']} ms"
+assert abs(abs(d["delay_ms"]) - 6.9) < 3.0, f"measured delay drifted: {d['delay_ms']}"
+assert d["sign"] < 0, "relative polarity flipped -- GW150914's detectors are anti-aligned"
+
+# (2) THE RESULT: coherent network combination genuinely helps, and only because it is SIGNIFICANT.
+#     An earlier run printed the same verdict at 1.4 sigma; the significance gate exists to stop that.
+sig = d["significance"]["physical"]
+assert d["coherent_helps"], f"coherent gain lost: {d['gain']['physical']} at {sig['n_sigma']} sigma"
+assert sig["n_sigma"] > 2.0, f"verdict must not be claimed below 2 sigma: {sig['n_sigma']}"
+assert 1.05 < d["gain"]["physical"] < 1.4, f"gain moved materially: {d['gain']['physical']}"
+
+# (3) THE METHODOLOGICAL FINDING, which is the more important half: the injection convention DECIDES the
+#     answer. Physically-injected signals (measured delay + polarity + SHARED carrier phase) let coherence
+#     work; the convention every existing echo script uses cancels it.
+assert d["injection_convention_matters"], "convention effect vanished -- re-derive before trusting either arm"
+assert d["gain"]["identical"] < 1.0, f"identical-injection arm no longer loses: {d['gain']['identical']}"
+
+print(f"PASS  echoes L4 coherent network (geometry measured from the merger: {d['delay_ms']:+.2f} ms, sign "
+      f"{d['sign']:+.0f}; coherent {d['gain']['physical']:.2f}x at {sig['n_sigma']:.1f} sigma on PHYSICAL "
+      f"injections vs {d['gain']['identical']:.2f}x on the existing identical-injection convention => the "
+      f"convention decides the answer)")
+PYEOFL4
+
 echo "--- pbh L6 SSL pool scaling (saturates by 2.5k specs; cross-detector null) -- N4's caveat answered"
 ./primordial_blackhole_search/.venv/bin/python - << 'PYEOFL6' || FAIL=1
 import json, numpy as np
