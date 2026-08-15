@@ -36,6 +36,15 @@ which is what made 25M templates affordable. Related: **[S]**
 *nearby* templates, aimed at long-duration low-mass signals (BNS, subsolar). **[S]** A dedicated O4 SSM
 template-bank paper exists in PRD (`10.1103/c97v-bmj8`).
 
+> **🟡 FOUNDATION VALIDATED 2026-08-15 — and the [S] number above did NOT survive contact.** Primary source
+> found and read: [arXiv:2601.18835](https://arxiv.org/abs/2601.18835) (PRD `10.1103/k21q-wp8f`, *Beyond
+> FINDCHIRP*). **The 8× does not transfer to us** — it is a CPU cache/memory-bandwidth result, and the
+> FLOP-level gain is only ~2×. What *does* transfer is bigger: measured waveform generation is **56×** the
+> correlation, and the reference-bank size depends only on separation, so a **0.01%-spacing bank (16,166
+> templates) goes 533 GB → 6.5 GB (82×) and 36× faster per segment.** Subsolar needs **4,097 taps**, not the
+> paper's ~250. See RESULTS.md "L1 ratio-filter dechirping". *A worked example of why [S] entries must be
+> verified before use.*
+
 **For us — this is a live lever on a wall we called intractable, and the wall is now weaker.** Follow-up A
 measured it quantitatively: 1,619 templates at 0.1% Mc spacing was our laptop ceiling, real-bank MF 0.489 vs
 CNN 0.472 (a tie), both far below the true-template oracle 0.72 ⇒ *bank mismatch dominates*. The field's answer
@@ -213,7 +222,15 @@ Mac runs unattended; the only filter is whether the work is correct and worth kn
 normal — checkpoint them and let them run for days. An item leaves this list when it is **done** or
 **measured to be impossible**, never because it looked big.*
 
-**L1 — Cheap-template dense bank (de-chirping / ratio filter).** Follow-up A identified **bank mismatch as the
+**L1 — Cheap-template dense bank (de-chirping / ratio filter). 🟡 FOUNDATION VALIDATED 2026-08-15; the bank
+build itself is still to do.** Primary source verified: [arXiv:2601.18835](https://arxiv.org/abs/2601.18835)
+(PRD `10.1103/k21q-wp8f`). Algebra exact for our pipeline (untruncated kernel reproduces the matched filter to
+**1.000000**); subsolar needs **4,097 taps** bank-wide, not the paper's ~250, because of the phase these
+inspirals accumulate. **The published 8× does NOT transfer** (CPU-cache result), but the win we actually need
+does: measured generation is **56×** the correlation, so at **0.01% spacing (16,166 templates)** the bank goes
+**533 GB → 6.5 GB (82×)** and **36× faster per segment**. Gated (48). *(original scoping follows)*
+
+*(original entry)* **L1 —** Follow-up A identified **bank mismatch as the
 dominant loss** (real bank 0.489, CNN 0.472, oracle 0.72) and could not push the one axis that mattered,
 because 1,619 templates was our laptop ceiling. An 8× per-core speedup ⇒ ~13,000 templates on the same
 hardware, a genuine move down the density sweep toward the oracle. *Effort:* weeks — implement the de-chirping

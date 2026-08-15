@@ -658,6 +658,48 @@ print(f"PASS  ringdown delta-wall re-measured ({d['n_analyzed']} events from the
       f"{d['snr_needed_for_information']:.0f} -- only GW250114 clears it)")
 PYEOFE26
 
+echo "--- pbh L1 ratio-filter foundation (exact algebra; 4097 taps bank-wide; 82x RAM via avoided regeneration)"
+./primordial_blackhole_search/.venv/bin/python - << 'PYEOFRF' || FAIL=1
+import json
+R = "primordial_blackhole_search/results/"
+d = json.loads(open(R + "bank_ratio_diag.json").read())
+m = json.loads(open(R + "bank_ratio_mcscan.json").read())
+c = json.loads(open(R + "bank_ratio_costmodel.json").read())
+
+# (1) THE FOUNDATION: c_target = c_ref (*) IFFT[conj(R)] is an exact circular identity. If the untruncated
+#     kernel ever stops reproducing the direct matched filter, the derivation or the code is broken and every
+#     number downstream is void. This is the control the first golden test lacked.
+assert d["D1_algebra_ok"], f"ratio-filter algebra broken: {[r['exact'] for r in d['rows']]}"
+for r in d["rows"]:
+    assert r["exact"] > 0.9999, f"exact-kernel reconstruction degraded at sep {r['sep']}: {r['exact']}"
+
+# (2) our regime needs FAR more taps than the paper's ~250 (subsolar phase accumulation). Keep that recorded
+#     so nobody re-imports the published number.
+need = d["D2_taps_needed_for_0999"]
+assert need["0.001"] >= 1025, f"taps at 0.1% sep changed: {need}"
+assert need["0.01"] >= 4097, f"taps at 1% sep changed: {need}"
+
+# (3) it holds across the WHOLE bank, not just where we first tested (Mc 0.18 -> 0.85)
+assert all(r["taps_needed"] is not None and r["taps_needed"] <= 4097 for r in m["rows"]), \
+    f"some Mc needs more than 4097 taps: {[(r['mc'], r['taps_needed']) for r in m['rows']]}"
+assert m["cost_model_stands"], "Mc scan no longer supports the cost model"
+
+# (4) the real win, and it is NOT the published speedup: generation dominates, and RAM falls enough that a
+#     0.01%-spacing bank fits in memory.
+assert c["gen_over_corr"] > 10, f"waveform generation no longer dominates ({c['gen_over_corr']:.0f}x) -- the "\
+                                "whole L1 rationale rests on this; re-derive before building"
+tgt = c["plans"][-1]
+assert tgt["ram_ratio_gb"] < 32, f"dense bank no longer fits: {tgt['ram_ratio_gb']:.1f} GB"
+assert tgt["ram_win"] > 10 and tgt["time_win"] > 3, f"L1 saving collapsed: {tgt}"
+assert c["verdict"]["premise_holds"], "L1 premise no longer holds"
+
+print(f"PASS  pbh L1 ratio-filter foundation (exact kernel reproduces MF to {min(r['exact'] for r in d['rows']):.6f}; "
+      f"subsolar needs {need['0.001']}/{need['0.01']} taps at 0.1%/1% sep vs the paper's ~250, flat <=4097 "
+      f"across Mc 0.18-0.85; generation is {c['gen_over_corr']:.0f}x correlation so 0.01% spacing "
+      f"({tgt['B']} templates) goes {tgt['ram_direct_gb']:.0f}->{tgt['ram_ratio_gb']:.1f} GB "
+      f"({tgt['ram_win']:.0f}x) and {tgt['time_win']:.0f}x per segment)")
+PYEOFRF
+
 echo "--- ringdown orthonormal-QNM test (27/28: the basis carries NO detection information)"
 ./ringdown_spectroscopy/.venv/bin/python - << 'PYEOFORTH' || FAIL=1
 import json

@@ -1,0 +1,59 @@
+{
+  "gen_ms": 441.7693614959717,
+  "corr_ms": 7.840991020202637,
+  "fit_ms": 450.7257143656413,
+  "fir_ms": 8.102202415466309,
+  "gen_over_corr": 56.34101102242494,
+  "plans": [
+    {
+      "spacing": 0.001,
+      "B": 1619,
+      "ram_direct_gb": 53.427,
+      "ram_ratio_gb": 3.16343704,
+      "ram_win": 16.888908906497473,
+      "t_direct_h": 0.20219976686769062,
+      "t_ratio_h": 0.01400975693596734,
+      "time_win": 14.432781938463318,
+      "best_delta": 0.01,
+      "best_taps": 16385,
+      "best_b_ref": 83,
+      "best_ram": 3163437040.0,
+      "best_t_seg": 50.43512496948242
+    },
+    {
+      "spacing": 0.0005,
+      "B": 3235,
+      "ram_direct_gb": 106.755,
+      "ram_ratio_gb": 3.5870876,
+      "ram_win": 29.760912446074638,
+      "t_direct_h": 0.40402485844161773,
+      "t_ratio_h": 0.017646745575798883,
+      "time_win": 22.89514838337704,
+      "best_delta": 0.01,
+      "best_taps": 16385,
+      "best_b_ref": 83,
+      "best_ram": 3587087600.0,
+      "best_t_seg": 63.52828407287598
+    },
+    {
+      "spacing": 0.0001,
+      "B": 16166,
+      "ram_direct_gb": 533.478,
+      "ram_ratio_gb": 6.471713632,
+      "ram_win": 82.4322629731587,
+      "t_direct_h": 2.0190002663267985,
+      "t_ratio_h": 0.05686563946141137,
+      "time_win": 35.50474918508351,
+      "best_delta": 0.005,
+      "best_taps": 4097,
+      "best_b_ref": 164,
+      "best_ram": 6471713632.0,
+      "best_t_seg": 204.71630206108094
+    }
+  ],
+  "verdict": {
+    "premise_holds": true,
+    "why": "The win is NOT the paper's FLOP/cache speedup. It is (a) memory -- the reference bank size depends only on the reference-target separation, not on target density, so the saving grows as the bank densifies -- and (b) avoided waveform REGENERATION, which measurement shows dominates everything else by orders of magnitude in this regime.",
+    "correction": "bank_ratio_diag.py's automated verdict ('no memory win') used an arbitrary taps < L/16 cutoff that 16,385 taps missed by one. Total bank memory is the correct figure of merit and gives the opposite answer."
+  }
+}

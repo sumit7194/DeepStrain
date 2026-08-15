@@ -264,6 +264,29 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   bank_oracle) … 1619→0.489 = the wall quantified; both far below the true-template oracle (0.72) ⇒ **template-bank
   MISMATCH is the dominant loss, not learned-vs-MF.** Co-injection shrank an apparent ~10% win to ~3% (prevented an
   overclaim). Gated. Artifacts: bank_{golden,semiff,dense,vs_cnn}.json.
+- **L1 RATIO-FILTER FOUNDATION DONE (2026-08-15): the dense-bank wall is NOT a wall — 82x RAM, 36x time.**
+  Follow-up A's blocker was bank density (mismatch dominates: bank 0.489 / CNN 0.472 / oracle 0.720) and 1,619
+  templates was our ceiling ("33 MB/template -> 53 GB"). Verified the method at the PRIMARY source
+  (**arXiv:2601.18835**, PRD 10.1103/k21q-wp8f — *Beyond FINDCHIRP*), not the search snippet: with A_t = A_r·R,
+  our cross-correlation gives **c_t = c_r (*) IFFT[conj(R)]** — one short FIR per target. New `pbh/ratiofilter.py`
+  (kernel by weighted LSQ over f, weight |A_r|²; normal equations are **Toeplitz** ⇒ O(n log n + taps²)).
+  **First golden test FAILED (0.814 vs pre-registered >0.999) — and the failure was OURS:** `bank_ratio_diag.py`'s
+  untruncated-kernel control gives **1.000000** ⇒ algebra+code correct, failure was purely truncation. Subsolar
+  needs **1,025 / 4,097 / 16,385 taps** at 0.1% / 0.5% / 1.0% Mc separation, **far more than the paper's ~250**,
+  because subsolar inspirals accumulate enormous phase (regime property, not a defect of theirs).
+  **SECOND self-correction:** diag's auto-verdict said "no memory win" using an arbitrary taps<L/16 cutoff that
+  16,385 missed **by one tap** — wrong figure of merit; total bank memory reverses it, because **B_ref depends
+  only on separation, NOT on target density** ⇒ the denser the bank, the bigger the win. **Cost model measured**
+  (`bank_ratio_costmodel.py`): generation **441.8 ms** vs correlation **7.8 ms** = **56×** ⇒ the real cost is
+  bank_dense regenerating every template per segment. At **0.01% spacing (16,166 templates): 533 GB → 6.5 GB
+  (82×), 2 h → 0.1 h per segment (36×)**. **Mc-scan pre-registered** (`bank_ratio_mcscan.py`): phase ∝ Mc^(−5/3)
+  predicted ~2.3× more taps at the low edge; measured **4,097 suffices at every Mc 0.18–0.85** — *honestly, the
+  taps grid steps ×4 so this BOUNDS rather than disproves the Mc dependence, and the trend IS visible below one
+  grid step* (match@1025: 0.884→0.908→0.939→0.994 with rising Mc). **NOT bought: the paper's 8×** (CPU-cache
+  result; our FLOP gain only ~2×, and our own 0.98× measurement was meaningless — it applied the FIR via
+  full-length FFTs). Gated (48). Artifacts: bank_ratio_{golden,diag,costmodel,mcscan}.json.
+  **NEXT (not done):** build the hierarchical bank, re-run the density sweep + bank_vs_cnn at 0.01% — only that
+  answers "does a CNN still tie a matched filter once the bank is adequate?"
 - **Dashboard:** `python3 dashboard.py` (repo root, stdlib only) serves a live run monitor
   over `*/results/progress/*.json` for all three sub-projects; pbh gained `pbh/progress.py`
   (same heartbeat convention as echolib/rdlib). Writes `.dashboard.pid` on start; **stop it

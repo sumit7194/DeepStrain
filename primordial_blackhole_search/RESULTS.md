@@ -1047,3 +1047,68 @@ Supporting context: blip glitches (which resemble the final cycles of a CBC) occ
 LHO, and time-slide significance is long known to be affected by correlated background triggers,
 non-stationary noise and finite sample size ([arXiv:1601.00130](https://arxiv.org/pdf/1601.00130)).
 See [RELATED_WORK.md](../RELATED_WORK.md) for the full sweep and the L1–L7 long-horizon list.
+
+### L1 ratio-filter dechirping: the FOUNDATION validated — the dense-bank wall is not a wall (2026-08-15)
+Follow-up A left the subsolar arc at a wall it had measured precisely: **template-bank mismatch is the
+dominant loss** (realizable 1,619-template bank 0.489 vs CNN 0.472 vs true-template oracle 0.720), and 1,619
+was our ceiling because `bank_dense.py` could not hold the bank — its own header says *"B=1617 cannot hold all
+analytic chunks in RAM (33 MB/template → 53 GB)"*. The 2026-08-15 literature sweep found the field's answer is
+not a smaller bank but **cheaper templates**, so ROADMAP's "intractable locally" was retired and this became L1.
+
+**Method (verified at the primary source, not from a search snippet).**
+[arXiv:2601.18835](https://arxiv.org/abs/2601.18835) (PRD `10.1103/k21q-wp8f`), *Beyond FINDCHIRP*. Write a
+target's analytic spectrum as a nearby reference's times a ratio, `A_t = A_r · R`. Our matched filter is a
+cross-correlation, so with `c_x(t) = IFFT[D conj(A_x)]`,
+
+    c_t = c_r (*) IFFT[conj(R)]        R = A_t / A_r
+
+— the target's complex correlation series is the reference's convolved with **one short FIR**. New module
+`pbh/ratiofilter.py`; the kernel is fit by **weighted least squares over frequency** (weight `|A_r|²`, so
+accuracy is demanded only where the reference has power), whose normal equations are **Toeplitz**, making the
+fit O(n log n + n_taps²) instead of O(n · n_taps²).
+
+**The first golden test FAILED — and the failure was ours, not the method's.** `bank_ratio_golden.py` returned
+match **0.814** at 1% Mc separation against a pre-registered **>0.999**. Rather than record L1 as dead,
+`bank_ratio_diag.py` ran the control the golden test lacked:
+
+| | result |
+|---|---|
+| **D1 untruncated kernel** | match **1.000000** ⇒ the algebra and the code are correct; the failure was purely truncation |
+| **D2 taps for >0.999** | **1,025** @ 0.1% sep · **4,097** @ 0.5% · **16,385** @ 1.0% |
+
+Subsolar needs **far more taps than the paper's ~250** because these inspirals accumulate enormous orbital
+phase, so the same *fractional* Mc offset shifts the phase much further than in the BNS case the method was
+tuned on. That is a property of our corner of parameter space, not a defect of theirs.
+
+**A second self-correction.** `bank_ratio_diag.py`'s automated verdict printed *"no memory win for subsolar"* —
+comparing taps to an arbitrary `L/16` cutoff that 16,385 **missed by one tap**. Wrong figure of merit. Total
+bank memory is the right one and it points the **opposite** way, because the reference bank's size depends
+only on the reference–target separation, **not on how dense the target bank is**.
+
+**Cost model, with the primitives MEASURED (`bank_ratio_costmodel.py`).** Waveform generation **441.8 ms**
+vs correlation **7.8 ms** — generation is **56×** the filtering it was supposed to accelerate. That is the
+real story: `bank_dense.py` is template-major and *regenerates every template for every segment*.
+
+| target spacing | templates | direct RAM | ratio RAM | RAM win | time/segment win |
+|---|---|---|---|---|---|
+| 0.1% (current) | 1,619 | 53 GB | 3.2 GB | 17× | 14× |
+| 0.05% | 3,235 | 107 GB | 3.6 GB | 30× | 23× |
+| **0.01%** | **16,166** | **533 GB** | **6.5 GB** | **82×** | **36×** |
+
+**Does it hold across the whole bank? (`bank_ratio_mcscan.py`, pre-registered.)** Phase ∝ Mc^(−5/3) predicts
+~2.3× more taps at the bank's low edge, which would have made the table above optimistic. Measured at fixed
+0.5% separation: **4,097 taps suffices at every Mc from 0.18 to 0.85.** *Stated honestly:* the taps grid steps
+by ×4, so this **bounds** the Mc dependence rather than disproving it — and the trend is plainly visible below
+one grid step (match at 1,025 taps: 0.884 → 0.908 → 0.939 → 0.994 as Mc rises), exactly as the phase argument
+predicts. 4,097 is an upper bound at every mass tested, which is what the cost model needs.
+
+**What L1 does NOT buy us.** The paper's headline **8× does not transfer**: that is a CPU cache/memory-bandwidth
+result, and the FLOP-level gain is only ~2× (O(N log K) at ~11 FLOP vs O(N log N) at ~20). Our own first speed
+measurement of 0.98× was meaningless anyway — it applied the FIR via *full-length* FFTs, the exact cost the
+method exists to avoid. **The win here is (a) memory and (b) not regenerating minutes-long subsolar waveforms
+per segment.** Gated (48).
+Artifacts: bank_ratio_golden.json, bank_ratio_diag.json, bank_ratio_costmodel.json, bank_ratio_mcscan.json.
+
+**Next (not yet done):** build the hierarchical bank and re-run the density sweep + `bank_vs_cnn` at 0.01%
+spacing. Only that answers the question the whole subsolar arc circled — *does a CNN still tie a matched
+filter once the bank is adequate?* Everything above is the foundation, not the answer.
