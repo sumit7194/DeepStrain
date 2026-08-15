@@ -298,7 +298,13 @@ sensitivity rung for echoes, and makes our nulls directly comparable to theirs r
 Our machinery stops at two (220 + 221). *Effort:* read first (that measurement may itself be the answer), then
 weeks if we extend `sbilib` to a third tone and re-derive the no-hair test with it. *Prereq:* read GWTC-5.0.
 
-**L6 — Larger unlabeled pool for the SSL backbone.** N4's caveat was that the unlabeled pool *was* the labeled
+**L6 — Larger unlabeled pool for the SSL backbone. 🔴 CLOSED 2026-08-15 — NOT justified, measured.** The SSL
+gain is fully achieved at **2,500** unlabeled specs (+0.108) and does not grow to 20,000 (slope −0.020 over
+5k→20k, flat within a seed sd of 0.019). Cross-detector transfer is null (+0.0009 from 6,250 L1 specs). So
+fetching a larger pool would have cost days for an effect bounded at ≲0.03 AUC. N4's caveat is answered: more
+unlabeled noise does **not** help. See RESULTS.md "L6". *(original scoping follows)*
+
+*(original entry)* **L6 —** N4's caveat was that the unlabeled pool *was* the labeled
 set's own 20k noise spectrograms; GraviBERT-scale pretraining implies far more. *Effort:* days of fetching +
 pretraining. *Buys:* tests whether N4's data-wall win keeps growing with pool size — the obvious open thread we
 noted ourselves. *Prereq:* none.

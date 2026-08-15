@@ -264,6 +264,25 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   bank_oracle) … 1619→0.489 = the wall quantified; both far below the true-template oracle (0.72) ⇒ **template-bank
   MISMATCH is the dominant loss, not learned-vs-MF.** Co-injection shrank an apparent ~10% win to ~3% (prevented an
   overclaim). Gated. Artifacts: bank_{golden,semiff,dense,vs_cnn}.json.
+- **L6 DONE (2026-08-15): the SSL win SATURATES by 2,500 specs — N4's open caveat answered, and it's a NO.**
+  N4 left "more unlabeled O3 noise would likely give more" as a hypothesis. `ssl_poolscale.py` measured it from
+  data already on disk (deliberately, rather than fetching in competition with the running L2 job): pretrain on
+  2.5k/5k/10k/20k unlabeled specs, fine-tune at 1,000 labels, 3 seeds. **Gain is FULLY achieved at 2,500 specs
+  (+0.1076) — 8× less data than N4 used — and does not grow** (5k +0.0968, 10k +0.1060, 20k +0.0768); slope
+  5k→20k **−0.020**, robustly failing the pre-registered ">+0.02 ⇒ fetch more" bar. **Honest reading: FLAT, not
+  declining** — within-pool seed sd **0.019** vs pool-to-pool spread **0.031** (~2 SE), so the 20k dip isn't
+  significant and this **bounds** the effect (excludes >~0.03 AUC from 5k→20k) rather than proving zero.
+  **Cross-detector NULL:** adding the 6,250 available **L1** specs to 20k H1 gives **+0.0009**, 20× below seed
+  scatter ⇒ the pool can't be grown across detectors either. Inventory checked not assumed: shards_w64_hl's
+  26,250 includes 20,000 that are the SAME 16 H1 segments (duplicates); only 6,250 L1 are new; 0 pool segments
+  in H1 val/test. **Comparability caveat:** our 20k gain (+0.077) < N4's (+0.124) because we re-draw the labeled
+  subset per seed where N4 fixed it (our scratch sd 0.024 vs N4's 0.006) — paired across pools so the scaling
+  comparison is fair, but not a reproduction of N4's absolutes. **Process note: an early draft REWROTE SpecMAE
+  with a different channel ladder** (1→16→32→64→128 vs 1→32→64→128→256), which would have silently produced a
+  curve incomparable to N4; now imports SpecMAE/random_mask/train_model from the N4 scripts (and reuses the
+  repo's own AUC helper instead of adding sklearn). **⇒ L6b (fetch a bigger pool) is NOT justified.** N4's
+  headline stands and is better understood: real, cheap, saturates almost immediately. Gated (49).
+  Artifact: results/ssl_poolscale.json.
 - **L1 RATIO-FILTER DONE (2026-08-15): HONEST NEGATIVE — 0.94x, not the published 8x. Dense bank stays blocked,
   now for an UNDERSTOOD reason.** Verified the method at the PRIMARY source (**arXiv:2601.18835**, PRD
   10.1103/k21q-wp8f, *Beyond FINDCHIRP*): with A_t = A_r·R our cross-correlation gives **c_t = c_r (*) IFFT[conj(R)]**,

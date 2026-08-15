@@ -11,6 +11,44 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-08-15 (evening) — L6 closed: the SSL win saturates at 2,500 specs, so don't fetch more
+
+Ran L6 alongside L2. The scheduling call mattered: fetching a bigger unlabeled pool would have fought L2 for a
+flaky GWOSC and for 15 GB of disk — and was premature anyway, because **if the gain has already saturated,
+fetching is pointless.** So the curve got measured from data already on disk first.
+
+**Result: the SSL gain is fully achieved at 2,500 unlabeled spectrograms** (+0.1076) — **8× less data than N4
+used** — and does not grow to 20,000 (5k +0.0968, 10k +0.1060, 20k +0.0768). Slope over 5k→20k is **−0.020**,
+robustly failing the pre-registered ">+0.02 ⇒ fetch more" bar.
+
+**Stated honestly, the curve is FLAT rather than declining.** Within-pool seed scatter is sd **0.019** against a
+pool-to-pool spread of **0.031** (~2 SE), so the 20k dip is not significant, and this **bounds** the scaling
+effect (excludes >~0.03 AUC between 5k and 20k) rather than proving it zero. Either way the decision is the
+same, which is what the experiment existed to settle.
+
+**Cross-detector transfer is null.** Adding the 6,250 L1 noise specs to 20,000 H1 ones moved the result
+**+0.0009**, twenty times below seed scatter. So the pool can't be grown cheaply across detectors either — a
+small counterpoint to the transfer claims foundation-model work makes.
+
+**Inventory checked, not assumed.** I first read `shards_w64_hl` as a 2.3× pool expansion. It isn't: 20,000 of
+its 26,250 specs are the *same 16 H1 segments* as `shards_w64`. Only 6,250 L1 specs are new (+31%). Leakage
+check clean — 0 pool segments in H1 val or test.
+
+**Process note.** My first draft **rewrote** the masked autoencoder with a different channel ladder
+(1→16→32→64→128 instead of 1→32→64→128→256). That wouldn't have crashed — it would have silently produced a
+scaling curve not comparable to N4's numbers. Caught it when tensor shapes didn't line up and I went to read
+`ssl_pretrain.py`; the script now imports `SpecMAE`, `random_mask` and `train_model` from the N4 scripts, and
+reuses the repo's own AUC helper rather than adding sklearn.
+
+**Also recorded:** our 20k gain (+0.077) sits below N4's (+0.124) because we re-draw the labeled subset per seed
+where N4 held it fixed (our scratch sd 0.024 vs N4's 0.006). Paired across pools, so the scaling comparison is
+fair — but these are not a reproduction of N4's absolute numbers.
+
+**⇒ L6b is not justified.** N4's headline stands and is better understood: the self-supervised win is real,
+cheap, and saturates almost immediately. 49 green.
+
+---
+
 ## 2026-08-15 (later still) — L1 built out and CLOSED: ratio filtering does not help subsolar (0.94×)
 
 Asked to build the dense bank "if it passes". It didn't, and the path to finding that out went through **three

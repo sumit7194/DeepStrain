@@ -1156,3 +1156,51 @@ bank_ratio_costmodel.json retained but **superseded**.
 **Not built, deliberately.** The hierarchical bank and a `bank_vs_cnn` re-run at 0.01% spacing would cost ~162 h
 for no speed advantage, so *does a CNN still tie a matched filter once the bank is adequate?* remains open —
 and reopening it needs a genuinely cheaper filter, not this one.
+
+### L6: the SSL win SATURATES by 2,500 unlabeled spectrograms — N4's open caveat answered (2026-08-15)
+N4 showed masked-spectrogram pretraining beats from-scratch at scarce labels (+0.124 val AUC at 1,000 labels)
+and that the win translates to sensitive distance. Its recorded caveat was that the unlabeled pool *was* the
+labeled set's own 20k noise, so *"more unlabeled O3 noise would likely give more"* — a hypothesis, never
+measured. GraviBERT ([arXiv:2512.21390](https://arxiv.org/html/2512.21390)) makes the same bet at far larger
+scale. The obvious move was to fetch a bigger pool; the cheaper move was to ask whether that would help at all.
+
+**Method (`ssl_poolscale.py`).** Pretrain on 2,500 / 5,000 / 10,000 / 20,000 unlabeled noise spectrograms,
+fine-tune each at N4's biggest-gain point (1,000 labels), 3 seeds, and read the gain against pool size.
+Pre-registered bar, fixed before running: **gain(20k) − gain(5k) > 0.02 AUC ⇒ still climbing, fetch more.**
+`SpecMAE`, `random_mask` and the fine-tune/eval loops are **imported from the N4 scripts** rather than
+reimplemented — an earlier draft rewrote the autoencoder with a different channel ladder (1→16→32→64→128
+instead of 1→32→64→128→256), which would have silently produced a curve not comparable to N4 at all.
+
+| pool | SSL AUC | gain vs scratch |
+|---|---|---|
+| scratch | 0.5498 | — |
+| **2,500** | 0.6575 | **+0.1076** |
+| 5,000 | 0.6466 | +0.0968 |
+| 10,000 | 0.6558 | +0.1060 |
+| 20,000 | 0.6266 | +0.0768 |
+
+**Result: the gain is fully achieved at 2,500 specs — 8× less unlabeled data than N4 used — and does not grow
+thereafter.** Slope over 5k→20k is **−0.020**, robustly failing the pre-registered "still climbing" bar.
+
+**Read honestly, the curve is FLAT, not declining.** Within-pool seed scatter is **sd 0.019**; the spread of
+gains across all four pools is **0.031**, i.e. about two standard errors. So the apparent drop at 20k is *not*
+significant, and this measurement **bounds** the pool-scaling effect rather than proving it is exactly zero:
+we can exclude a gain larger than ~0.03 AUC between 5k and 20k, not a smaller one. Either way, fetching more
+noise is not justified — which was the decision this existed to make.
+
+**Cross-detector transfer: null.** Adding the 6,250 available **L1** noise specs to the 20,000 H1 ones changed
+the result by **+0.0009** — twenty times smaller than the seed scatter. Unlabeled noise from a *different*
+interferometer does not help an H1-applied model here, so the pool cannot be cheaply grown across detectors
+either. (Inventory checked rather than assumed: `shards_w64_hl` looks like a 26,250-spec pool but 20,000 of
+those are the *same 16 H1 segments* as `shards_w64` — duplicates; only its 6,250 L1 specs are new. Leakage
+check: 0 pool segments in H1 val or test.)
+
+**Caveat on comparability with N4.** Our absolute gain at 20k (+0.077) is below N4's (+0.124) because we
+re-draw the labeled subset per seed where N4 held it fixed — widening error bars (our scratch sd 0.024 vs
+N4's 0.006). That is paired across pools, so the *scaling* comparison is fair, but the absolute numbers are
+not a reproduction of N4's.
+
+**Consequence.** **L6b (fetching a larger unlabeled pool) is not justified** — it would have cost days of
+GWOSC fetching and disk, in competition with the running L2 job, for an effect this bounds at ≲0.03 AUC.
+N4's headline stands and is now better understood: the win is real, cheap, and **saturates almost
+immediately**. Gated (49). Artifact: results/ssl_poolscale.json.

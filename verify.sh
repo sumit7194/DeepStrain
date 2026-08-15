@@ -658,6 +658,40 @@ print(f"PASS  ringdown delta-wall re-measured ({d['n_analyzed']} events from the
       f"{d['snr_needed_for_information']:.0f} -- only GW250114 clears it)")
 PYEOFE26
 
+echo "--- pbh L6 SSL pool scaling (saturates by 2.5k specs; cross-detector null) -- N4's caveat answered"
+./primordial_blackhole_search/.venv/bin/python - << 'PYEOFL6' || FAIL=1
+import json, numpy as np
+d = json.loads(open("primordial_blackhole_search/results/ssl_poolscale.json").read())
+
+# (1) SSL still beats from-scratch at scarce labels -- N4's headline must survive at every pool size.
+for k, v in d["pools"].items():
+    assert v["gain"] > 0.03, f"SSL stopped helping at pool {k}: gain {v['gain']:.4f}"
+
+# (2) THE L6 RESULT: the gain does NOT grow with pool size, so fetching more noise is not justified.
+assert not d["still_climbing"], f"pool scaling reappeared (slope {d['gain_slope']:+.4f}) -- L6b would be back on"
+assert d["gain_slope"] < 0.02, f"slope {d['gain_slope']} crosses the pre-registered bar"
+
+# (3) the gain is already there at the SMALLEST pool -- that is what makes it saturation rather than failure.
+small = d["pools"][min(d["pools"], key=lambda k: int(k))]
+assert small["gain"] > 0.05, f"smallest pool no longer carries the gain: {small}"
+
+# (4) honesty guard: the curve is flat WITHIN NOISE, so keep the seed scatter comparable to the spread.
+#     If scatter ever shrinks far below the spread, the 'flat' reading would need re-deriving as a real decline.
+sds = [float(np.std(v["auc"])) for v in d["pools"].values()]
+gains = [v["gain"] for v in d["pools"].values()]
+assert np.mean(sds) > 0.3 * (max(gains) - min(gains)), \
+    "seed scatter now much smaller than the pool-to-pool spread -- re-derive whether the curve is really flat"
+
+# (5) cross-detector transfer is null: L1 noise does not help an H1 model.
+cd_ = d.get("cross_detector")
+assert cd_ is not None and abs(cd_["gain_vs_h1_only"]) < 0.03, f"cross-detector result changed: {cd_}"
+
+print(f"PASS  pbh L6 SSL pool scaling (gain {small['gain']:+.4f} already at {min(d['pools'], key=lambda k: int(k))} "
+      f"specs; slope {d['gain_slope']:+.4f} over 5k->20k with seed sd {np.mean(sds):.3f} ~ spread "
+      f"{max(gains)-min(gains):.3f} => FLAT, fetching more noise not justified; +{cd_['n_l1']} L1 specs give "
+      f"{cd_['gain_vs_h1_only']:+.4f} = cross-detector null)")
+PYEOFL6
+
 echo "--- pbh L1 ratio-filter: exact algebra, but an honest NEGATIVE for subsolar (0.94x, not 8x)"
 ./primordial_blackhole_search/.venv/bin/python - << 'PYEOFRF' || FAIL=1
 import json

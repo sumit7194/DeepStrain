@@ -168,6 +168,12 @@ def main() -> None:
                       f"({time.time()-t0:.0f}s){' purged' if args.purge else ''}", flush=True)
             except Exception as e:
                 consec += 1
+                # A PARTIAL fetch orphans disk: H1 can download fine and L1 time out, and because the purge
+                # lives after the score in the try block it never runs, leaving ~128 MB stranded per failure.
+                # Harmless once, but this job retries for days across GWOSC outages, so it accumulates.
+                if args.purge:
+                    for d in DETS:
+                        segment_path(d, g).unlink(missing_ok=True)
                 print(f"  {g}: SKIP {type(e).__name__}: {str(e)[:60]} (streak {consec})", flush=True)
 
     sH, sL, segs = load_all()
