@@ -271,7 +271,13 @@ import json
 d = json.loads(open("ringdown_spectroscopy/results/25_wall_species.json").read())
 # LEG 1: sigma_Fisher(delta) ~ 1/SNR EXACTLY (analytic identity; validates the implementation)
 assert abs(d["loglog_slope"] + 1.0) < 0.02, f"Fisher scaling broke: slope {d['loglog_slope']}"
-assert d["sigma_snr_spread"] < 0.02, f"sigma*SNR not invariant: {d['sigma_snr_spread']}"
+# DECORATION, retired 2026-08-15 by the margin audit: the observed spread is 5.5e-13 against a 0.02 bar --
+# 3.6e10x from failing, because sigma(delta) ∝ 1/SNR is an ANALYTIC identity here, not an empirical claim, so
+# no run could ever violate it. Replaced by a bar ~18x above the observed round-off (5.5e-13), which still catches a genuine
+# regression (a broken Fisher inversion) with enough headroom for cross-platform BLAS variation, without
+# pretending to certify an analytic identity. NOTE such a check is inherently LOOSE -- an identity verified to
+# machine precision can never be a tight gate; the point is that the bar now tracks round-off, not fiction.
+assert d["sigma_snr_spread"] < 1e-11, f"sigma*SNR invariance broke beyond round-off: {d['sigma_snr_spread']}"
 assert d["statistical_species1"], "statistical channel no longer species-1"
 # LEG 2: the Cutler-Vallisneri systematic bias is SNR-INDEPENDENT (variation within the numerical noise floor)
 assert d["bias_is_flat"], f"systematic bias no longer flat in SNR: {d['bias_snr_spread']} vs {d['bias_numerical_spread']}"

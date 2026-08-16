@@ -11,6 +11,57 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-08-15 (overnight) — the audit round: our gates checked against themselves, and L4's second rung
+
+Two tasks, both prompted by TheBridge Round 12 rather than by our own list — and both produced corrections.
+
+**Gate margin audit (`scripts/gate_margin_audit.py`).** quantum's generalisation, after G3 produced four gates
+certifying nothing and tabula found a clause gated at an unreachable bar: *"a control that cannot fail is not
+a control — what is the observed distribution of the guarded quantity relative to its threshold?"* We run more
+gates than any sibling and had never checked. Parsing the real assertions out of `verify.sh`:
+
+    real gates (<10x from their bar): 32 | loose (10-100x): 2 | DECORATION (>100x): 1 -> now 0
+
+**The one genuine decoration:** `sigma_snr_spread < 0.02`, observed **5.5e-13** — sitting **3.6×10¹⁰** below
+its bar, because σ(δ) ∝ 1/SNR is an *analytic identity* here, not an empirical claim. It could never fail.
+Retightened to 1e-11, ~18× above observed round-off, which still catches a broken Fisher inversion with
+cross-platform headroom but no longer pretends to certify an identity. Recorded honestly: a round-off check is
+*inherently* loose; the point is that the bar now tracks round-off rather than fiction.
+
+**The tool corrected itself twice**, which is the part worth keeping. A first hand-encoded pass flagged the L4
+geometry gate as infinite-margin decoration — that was my encoding (`3.0 - dist > 0` has threshold zero, so
+the margin divided by zero). The parsed version then flagged six, of which five were the same class of
+artifact: a ratio is meaningless when either side is zero. Those are now classified as **sign-tests** (e.g.
+Build C-2's bootstrap CI lower bound at 0.0097 > 0 — the *tightest* gate we own, not the loosest) and
+**at-extreme**, not scored. *An audit that reports margins will manufacture infinities from its own encoding,
+and infinite margin is exactly the signature it is hunting — it self-camouflages.* Relayed to the siblings.
+Honest coverage: **39 of 193 assertions** are numeric comparisons; the other 154 are flags, `all()`/`any()`
+generators and compound conditions this method cannot score.
+
+**L4 rung 2 — the within-detector phase axis.** Result in three parts, only two of them numbers.
+
+*Reproduced:* the network-coherent gain, on an independent run, **1.09× at 2.4σ** against 20_'s 1.12× at 3.2σ,
+with the same geometry recovered from the merger.
+
+*The conceptual finding:* I built a "coherent comb" as |ACF of the complex analytic signal|, believing it kept
+the phase the envelope throws away. **It doesn't** — for a narrowband signal that magnitude *is* the envelope
+autocorrelation (measured correlation **0.9969**, teeth agreeing to ~1%). Taking |·| per tooth discards
+exactly the phase it was meant to keep. Keeping within-detector phase requires combining the *teeth*
+coherently, which needs the phase relation between successive echoes — reflection physics we don't have. **So
+the envelope is not a sloppy choice; it is what makes the search model-independent**, and it explains why the
+published method combines coherently across *detectors* (where geometry gives the phase relation) and not
+across echoes. Three patches had failed to rescue it because they treated symptoms of a conceptual error.
+
+*The failure, reported as a failure:* an oracle matched filter meant to bound the ceiling returned 9.62× — and
+its efficiency **falls from 1.00 to 0.67 as the signal gets louder**, which no valid detection statistic can
+do. The number is withheld. My proposed mechanism (PSD-estimation contamination via differencing) was
+**not confirmed** — measured corr(template, noise) = −0.003 — so the honest position is: demonstrably invalid,
+mechanism unknown, ceiling unmeasured.
+
+Gate 52, all green. L2 still running (~230/727) and untouched throughout.
+
+---
+
 ## 2026-08-15 (evening) — L6 closed: the SSL win saturates at 2,500 specs, so don't fetch more
 
 Ran L6 alongside L2. The scheduling call mattered: fetching a bigger unlabeled pool would have fought L2 for a

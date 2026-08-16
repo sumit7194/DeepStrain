@@ -510,3 +510,57 @@ The verdict logic now refuses to print "helps" below 2σ, so v3's over-claim can
 **Scope.** This is the *network* axis only. The within-detector envelope — where phase is discarded and, by my
 (now-suspect) reasoning, the larger loss lives — remains untested, as does the paper's full phase-marginalized
 likelihood. L4's first rung is done, not L4. Gated (50). Artifact: results/20_coherent_network.json.
+
+---
+
+## 2026-08-15 (overnight) — L4 rung 2: the within-detector phase axis cannot be tested model-independently
+
+**One solid measurement, one conceptual finding, one instrument that failed and is reported as failed.**
+
+### 1. The network axis reproduces
+`21_within_detector_phase.py`, independent run, 60 background + 120 trials/amplitude, physical injections:
+**1.09× at 2.4σ**, against 20_'s **1.12× at 3.2σ**. Same geometry recovered from the merger (−6.59 ms, sign −1).
+The verdict flag reads False only because 1.09 sits under the 1.10 bar — the honest statement is that the
+network-coherent gain **reproduces at ~1.1×, significantly**, on an independent run.
+
+### 2. The within-detector phase axis is not testable model-independently — the conceptual result
+I built `coh` = |ACF of the complex analytic signal|, believing it preserved phase where the envelope
+discards it. **It does not.** For a narrowband analytic signal, |∫a(t)conj(a(t+τ))dt| *is* the envelope
+autocorrelation — the carrier phase factors straight out of the magnitude. Measured on a loud injection:
+
+| | tooth 1 | tooth 2 | tooth 3 | corr over 0–0.5 s of lag |
+|---|---|---|---|---|
+| envelope ACF | 0.6893 | 0.4578 | 0.2849 | — |
+| \|complex ACF\| | 0.6960 | 0.4726 | 0.3093 | **0.9969** |
+
+Taking |·| per tooth discards exactly the phase it was meant to keep. To actually preserve within-detector
+phase you must combine the **teeth** coherently, and that requires the phase relation *between successive
+echoes* — reflection physics we do not have. **So the envelope is not a sloppy choice; it is what makes the
+search model-independent.** It also explains the published method (arXiv:2512.24730): they combine coherently
+**across detectors**, where geometry hands you the phase relation for free, and *not* across echoes.
+
+Three patches (lag resolution, matched smoothing, then a proper null) each failed to rescue it, because they
+were treating symptoms of a conceptual error.
+
+### 3. The oracle ceiling — attempted, INVALID, not reported
+To bound what any phase-aware method could buy, I ran a matched filter handed the exact injected waveform.
+It returned 9.62× — **and that number is not reportable**, because its efficiency curve is impossible:
+
+| amp (σ) | 0.10 | 0.30 | 0.50 | 0.85 | 1.00 | 1.50 |
+|---|---|---|---|---|---|---|
+| oracle efficiency | 1.00 | 1.00 | 0.91 | 0.68 | **0.67** | 0.91 |
+
+**Detection efficiency falls as the signal gets louder**, which no valid detection statistic can do. The 9.62×
+is an artifact of the statistic being pinned at the lowest grid point, not a ceiling.
+
+*Mechanism: unconfirmed.* I hypothesised that differencing two whitened segments contaminates the template
+with a PSD-estimation term proportional to the noise, which would self-correlate — but measured
+corr(template, noise) = **−0.003** at every amplitude, which does not support it. So the honest position is:
+the statistic is demonstrably invalid, the mechanism is unknown, and the number is withheld. A correct version
+would build the template without differencing whitened segments (whiten the injection alone through a PSD
+estimated from un-injected data).
+
+**Net for L4.** The network axis is real and reproduced (~1.1×). The within-detector axis is not a
+sensitivity question but a **model-dependence** question, which is a more useful answer than a number would
+have been. The ceiling remains unmeasured. Gated (52) on what is solid — the geometry golden test and the
+network reproduction. Artifact: results/21_within_detector_phase.json.
