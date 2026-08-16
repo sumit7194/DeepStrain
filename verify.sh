@@ -94,7 +94,12 @@ import json
 d = json.loads(open("ringdown_spectroscopy/results/16_gw250114_starttime.json").read())
 peak = d["delta_vs_start"]["0.0"]["median"]
 assert abs(peak - (-0.16)) < 0.06, f"peak-cropped δ no longer reproduces 09's -0.16: {peak}"   # validation
-assert d["all_kerr_consistent"], "a start offset is no longer Kerr-consistent"                 # headline holds
+# BACKED (2026-08-16 flag audit): a bare boolean written by the script it guards is self-certification.
+# The flag says every start offset brackets Kerr; these are the CI edges that make it true.
+assert d["all_kerr_consistent"], "a start offset is no longer Kerr-consistent"
+assert d["delta_vs_start"]["0.0"]["lo"] < -0.05, f"peak-start CI no longer brackets Kerr from below: {d['delta_vs_start']['0.0']['lo']}"
+assert d["delta_vs_start"]["0.0"]["hi"] > 0.05, f"peak-start CI no longer brackets Kerr from above: {d['delta_vs_start']['0.0']['hi']}"
+assert d["peak_to_late_drift"] < 0.40, f"delta drift across start times grew: {d['peak_to_late_drift']}"
 # the late-start (systematic-mitigated) δ sits closer to Kerr than the peak value
 late = d["delta_vs_start"][str(d["offsets_ms"][-1])]["median"]
 assert abs(late) <= abs(peak) + 0.05, f"late-start δ not closer-or-equal to Kerr: late={late} peak={peak}"
@@ -105,7 +110,11 @@ echo "--- echoes N2 H1xL1 consistency statistic (17: pre-chosen lambda, bootstra
 ./echoes/.venv/bin/python - << 'PYEOFN2' || FAIL=1
 import json
 d = json.loads(open("echoes/results/17_echo_consistency.json").read())
+# BACKED (2026-08-16 flag audit): a bare boolean written by the script it guards is self-certification.
+# "does not universally help" is a claim about a90 barely moving with lambda -- assert that number.
 assert not d["consistency_helps"], "N2 now claims a UNIVERSAL win -- recheck (was honest mixed/modest)"
+assert d["events"]["GW150914"]["a90_vs_lambda"]["0.5"] > 1.85, \
+    f"GW150914 a90 at lambda=0.5 improved more than N2 claimed: {d['events']['GW150914']['a90_vs_lambda']['0.5']}"
 for ev, o in d["events"].items():
     assert "dA90_ci90" in o, f"{ev} bootstrap CI missing (significance not assessed)"
     assert abs(o["pre_a90"] - o["sum_a90"]) < 0.25, f"{ev} consistency effect implausibly large: {o['pre_a90']} vs {o['sum_a90']}"
@@ -144,7 +153,11 @@ echo "--- echoes Abedi cross-check export for TheBridge leg 8 (18: per-event Δt
 ./echoes/.venv/bin/python - << 'PYEOFAB' || FAIL=1
 import json
 d = json.loads(open("echoes/results/18_abedi_crosscheck.json").read())
+# BACKED (2026-08-16 flag audit): a bare boolean written by the script it guards is self-certification;
+# these assert the NUMBER the flag summarises, so the gate fails if the number moves.
 assert "expression" in d["formula"] and d["formula"]["no_free_parameter_tuned_to_dt"], "formula string/flag missing"
+assert d["validation_summary"]["min_percent_agreement"] > 98.0, \
+    f"Abedi agreement fell below 98%: {d['validation_summary']['min_percent_agreement']}"
 abedi = [e for e in d["events"] if e["abedi_table_I"]]
 assert len(abedi) >= 3, "fewer than 3 Abedi-Table-I cross-check events"
 assert all(e["percent_agreement"] >= 98.0 for e in abedi), "Abedi agreement dropped below 98% (>2% error)"
@@ -156,7 +169,11 @@ echo "--- ringdown recalibration artifacts (10)"
 ./ringdown_spectroscopy/.venv/bin/python - << 'PYEOF3' || FAIL=1
 import json
 r = json.loads(open("ringdown_spectroscopy/results/10_recalibration.json").read())
+# BACKED (2026-08-16 flag audit): a bare boolean written by the script it guards is self-certification;
+# these assert the NUMBER the flag summarises, so the gate fails if the number moves.
 assert r["kerr_inside_90"] and all(0.85 <= c <= 0.95 for c in r["coverage_heldout"]), r
+assert r["gw250114_delta"][1] < -0.05, f"delta CI no longer brackets Kerr from below: {r['gw250114_delta'][1]}"
+assert r["gw250114_delta"][2] > 0.05, f"delta CI no longer brackets Kerr from above: {r['gw250114_delta'][2]}"
 print("PASS  ringdown recalibration artifacts")
 PYEOF3
 
@@ -310,10 +327,15 @@ echo "--- ringdown R1 per-parameter recalibration (17: each param in band, but d
 import json
 r = json.loads(open("ringdown_spectroscopy/results/17_recalibrate_perparam.json").read())
 # PLAN criterion: each per-param held-out coverage in [0.85,0.95]
+# BACKED (2026-08-16 flag audit): a bare boolean written by the script it guards is self-certification;
+# these assert the NUMBER the flag summarises, so the gate fails if the number moves.
 assert r["each_in_band"] and all(0.85 <= c <= 0.95 for c in r["coverage_heldout_perparam"]), r
+assert r["mad_perparam"] < 0.05, f"per-parameter coverage drifted from nominal: MAD {r['mad_perparam']}"
 # honest finding: per-param does NOT beat v3's global T (it overfits the calibration-set noise)
 assert r["mad_global"] <= r["mad_perparam"] + 1e-9, f"per-param unexpectedly beat global: {r['mad_perparam']} < {r['mad_global']}"
 assert r["kerr_inside_90"], "GW250114 no longer Kerr-consistent under per-param recalibration"
+assert r["gw250114_delta"][1] < -0.05 and r["gw250114_delta"][2] > 0.05, \
+    f"per-param delta CI no longer brackets Kerr: {r['gw250114_delta'][1:]}"
 print(f"PASS  ringdown R1 (per-param coverage {'/'.join(f'{c:.2f}' for c in r['coverage_heldout_perparam'])} all in-band; "
       f"global T better: mad {r['mad_global']:.3f} <= per-param {r['mad_perparam']:.3f}; GW250114 δ Kerr-consistent)")
 PYEOFR1
@@ -334,7 +356,15 @@ d = json.loads(open("ringdown_spectroscopy/results/12_stacking.json").read())
 big = d["injection"][-1]  # N=8
 assert big["N"] == 8 and abs(big["sigma_stack"] - big["expect"]) / big["expect"] < 0.15, \
     f"stacking method no longer ~sqrt(N): {big['sigma_stack']} vs {big['expect']}"
+# BACKED (2026-08-16 flag audit): a bare boolean written by the script it guards is self-certification;
+# these assert the NUMBER the flag summarises, so the gate fails if the number moves.
+# NOTE a real gap: S3 (coverage) has NO numeric companion in this artifact -- 12_stacking.py does not
+# emit the coverage value it gates on, so S3 remains self-certified. Backing S1 and the sqrt(N) claim here;
+# emitting coverage from 12_stacking.py is the outstanding fix.
 assert d["gates"]["S1_unbiased"] and d["gates"]["S3_coverage"], "stacking S1/S3 regressed"
+assert abs(d["stacked"]["mu"]) < 0.20, f"stacked delta no longer unbiased: {d['stacked']['mu']}"
+assert d["stacked"]["sigma"] < d["sigma_single"], \
+    f"stacking no longer tightens: {d['stacked']['sigma']} vs single {d['sigma_single']}"
 # NOTE: NO real-event "stack < singles" assertion -- 13_more_events.py stress-test showed only
 # GW250114 is informative; the 2-event tightening was a Gaussian-approx-of-prior artifact (corrected).
 print("PASS  ringdown v5 stacking METHOD (sigma(delta)~sqrt(N) on informative injections; real stack parked)")
@@ -370,7 +400,11 @@ echo "--- pbh N4 self-supervised backbone (ssl_finetune: SSL-pretrained beats fr
 ./primordial_blackhole_search/.venv/bin/python - << 'PYEOFN4' || FAIL=1
 import json, numpy as np
 d = json.loads(open("primordial_blackhole_search/results/ssl_finetune.json").read())
+# BACKED (2026-08-16 flag audit): a bare boolean written by the script it guards is self-certification;
+# these assert the NUMBER the flag summarises, so the gate fails if the number moves.
 assert d["ssl_helps"], "SSL no longer beats from-scratch at all budgets"
+assert d["results"]["1000"]["delta_mean"] > 0.05, \
+    f"SSL gain at 1000 labels collapsed: {d['results']['1000']['delta_mean']}"
 r = d["results"]
 small = r[min(r, key=int)]                       # smallest labeled budget
 assert small["delta_mean"] > 0.05, f"SSL gain at scarce labels shrank: {small['delta_mean']}"   # data-wall signature
@@ -392,7 +426,11 @@ r = d["results"]; small, big = r[min(r, key=int)], r[max(r, key=int)]
 assert all(v["zeroFA"]["ssl_mean"] == 0 and v["zeroFA"]["scratch_mean"] == 0 for v in r.values()), \
     "zero-FA distance no longer 0 for reduced budgets (recheck the model-strength floor claim)"
 # but at a softer (1%) FAR the SSL win translates to a real sensitive-distance gain, biggest when labels are scarce
+# BACKED (2026-08-16 flag audit): a bare boolean written by the script it guards is self-certification;
+# these assert the NUMBER the flag summarises, so the gate fails if the number moves.
 assert d["ssl_helps_at_softFAR"], "SSL no longer helps sensitive distance at the softer FAR"
+assert d["results"]["2000"]["FAR1pct"]["delta_mean"] > 0.10, \
+    f"SSL sensitive-distance gain collapsed: {d['results']['2000']['FAR1pct']['delta_mean']}"
 assert small["FAR1pct"]["delta_mean"] > 0.10, f"SSL distance gain at scarce labels shrank: {small['FAR1pct']['delta_mean']}"
 assert small["FAR1pct"]["delta_mean"] > big["FAR1pct"]["delta_mean"], "no data-wall trend (gain not larger at scarcer budget)"
 print(f"PASS  pbh N4 sens-dist (SSL distance gain @1%FAR: +{small['FAR1pct']['delta_mean']:.2f}@{min(r,key=int)} -> +{big['FAR1pct']['delta_mean']:.2f}@{max(r,key=int)}; zero-FA needs full-data strength)")

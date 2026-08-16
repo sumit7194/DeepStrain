@@ -1,7 +1,12 @@
 {
-  "covered": 39,
-  "uncovered": 154,
-  "tight": 32,
-  "loose": 2,
-  "decoration": []
+  "scored_ratios": 83,
+  "zero_sided": 10,
+  "flags_total": 49,
+  "flags_unbacked": 0,
+  "structural": 31,
+  "unparsed": 86,
+  "tight": 79,
+  "loose": 4,
+  "decoration": [],
+  "unbacked": []
 }

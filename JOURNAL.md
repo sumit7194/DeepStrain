@@ -11,6 +11,48 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-08-16 — the 154 "unscoreable" assertions: mostly a parser problem, and 11 real self-certified flags
+
+Follow-up to the gate audit. I had told quantum that 154 of our 193 assertions were unscoreable and that this
+was "exactly where decoration can hide". **Both halves of that were partly wrong, and in opposite directions.**
+
+**Most of the 154 was my parser, not the suite.** Rewriting it to handle what it had been skipping —
+`open(R + "name.json")` (a form *its own gates* use), `all(...)` generators, range checks, abs-difference
+checks, comparisons whose right-hand side is another artifact value, and — the big one — **variable bindings**
+(`rd, npe, ec = st["ringdown"], st["npe"], st["echo"]`, which a whole-artifact resolver can never follow):
+
+    scored ratios   39 -> 83
+    real gates      32 -> 79
+    decoration       1 ->  0
+    unbacked flags  16 -> 11 -> 0
+
+Reporting 20% coverage as a property of the SUITE when it was a property of the PARSER was itself a small
+instance of the failure being hunted.
+
+**But there were 11 genuinely self-certified flags**, where a gate rested on a boolean the script had computed
+for itself with no number behind it anywhere — `assert d["ssl_helps"]`, `assert r["kerr_inside_90"]`,
+`assert d["gates"]["S1_unbiased"]`. Each now carries a numeric companion asserting the quantity the flag
+summarises, so the gate fails if the number moves even when the script still sets its flag True. Examples: SSL
+now asserts `delta_mean > 0.05` (measured 0.124); Kerr-consistency asserts the δ CI actually brackets zero
+(−0.46, +0.33); stacking asserts `|stacked mu| < 0.20` and that σ genuinely tightens against the single-event σ.
+
+**One real gap left open rather than papered over:** `S3_coverage` in the stacking gate has **no numeric
+companion available** — `12_stacking.py` doesn't emit the coverage value it gates on. Recorded in the gate
+itself as an outstanding fix rather than backed with a substitute number.
+
+**The tool failed on itself three more times**, which is now its most reliable feature. It (1) could not see
+variable bindings, so it declared gates unbacked whose numbers sat right beside them; (2) could not parse
+line-continued assertions — a trailing comma survived message-stripping and silently broke every pattern
+match, including **the backing assertions this very audit had just added**; and (3) counted `assert g["M_inv"]
+and 60 < g["M_inv"] < 100` as unbacked, when that is a null-guard plus a range check on the same quantity
+(M_inv can be `None`, which would raise on comparison). All three produced false positives that looked exactly
+like real findings.
+
+52 gates green throughout. L2 untouched — still running, though GWOSC degraded badly overnight and the rate
+has collapsed from ~6.6 to ~0.3 segments/hour.
+
+---
+
 ## 2026-08-15 (overnight) — the audit round: our gates checked against themselves, and L4's second rung
 
 Two tasks, both prompted by TheBridge Round 12 rather than by our own list — and both produced corrections.
