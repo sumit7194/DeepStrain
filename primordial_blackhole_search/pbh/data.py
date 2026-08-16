@@ -54,6 +54,14 @@ def segment_path(ifo: str, gps_start: int):
     return C.NOISE_DIR / f"{ifo}_{gps_start}_{C.SEGMENT_LEN}.hdf5"
 
 
+# MEASURED 2026-08-16, not guessed. A 4096-s segment is ~128 MB. During the degradation GWOSC delivered at
+# under 95 KB/s (a read timed out after 1350 s mid-transfer), ~9x slower than its healthy rate. A 1200-s
+# timeout therefore ABANDONS transfers that would have completed, turning a slow service into a failing one.
+# 3600 s fits the measured throughput with margin; it costs nothing when the service is healthy, because a
+# healthy fetch finishes in ~150 s and returns immediately.
+FETCH_TIMEOUT_S = 3600
+
+
 def fetch_segment(ifo: str, gps_start: int, force: bool = False):
     """Download one segment from GWOSC and cache; returns the file path."""
     from gwpy.timeseries import TimeSeries
@@ -62,8 +70,14 @@ def fetch_segment(ifo: str, gps_start: int, force: bool = False):
     if path.exists() and not force:
         return path
     C.NOISE_DIR.mkdir(parents=True, exist_ok=True)
+    # GWOSC degrades for hours at a time without going down: it keeps serving, just slowly. With no explicit
+    # timeout a slow-but-successful transfer gets abandoned, so the job records a failure for data that WAS
+    # reachable -- observed 2026-08-16, when the rate collapsed from ~6.6 to ~0.3 segments/hour while a manual
+    # probe still returned 262k samples (in 83 s). A generous timeout converts those failures into slow
+    # successes; it costs nothing when the service is healthy.
     strain = TimeSeries.fetch_open_data(
-        ifo, gps_start, gps_start + C.SEGMENT_LEN, sample_rate=C.SAMPLE_RATE
+        ifo, gps_start, gps_start + C.SEGMENT_LEN, sample_rate=C.SAMPLE_RATE,
+        timeout=FETCH_TIMEOUT_S
     )
     tmp = path.with_suffix(".tmp.hdf5")
     strain.write(tmp, path="strain", format="hdf5")
