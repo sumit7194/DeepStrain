@@ -1204,3 +1204,51 @@ not a reproduction of N4's.
 GWOSC fetching and disk, in competition with the running L2 job, for an effect this bounds at ≲0.03 AUC.
 N4's headline stands and is now better understood: the win is real, cheap, and **saturates almost
 immediately**. Gated (49). Artifact: results/ssl_poolscale.json.
+
+### Confound check: is the learned coincidence gain a per-segment constant? — no, and the control that couldn't have told us (2026-08-15)
+**Where the warning came from.** The `tabula` sibling planted a per-realization nuisance channel — a
+calibration-offset stand-in with **zero dynamical meaning** — and their invariant engine ranked it *more
+conserved than the genuine invariant*, passing out-of-sample validation **completely**. The generalisable
+mechanism: **held-out validation catches overfitting, not confounding**, because a nuisance constant
+generalises flawlessly precisely by being constant.
+
+**Why that pointed straight at Build C-2.** Our learned coincidence head trains on `[eH, eL, |eH−eL|, eH·eL]`
+to separate real coincident injections from time-slid noise pairs, and we called `--holdout-segments`
+(train 16 segments, evaluate on 8 unseen) the **gold-standard** leakage control. But the two classes are built
+differently by construction:
+
+```python
+Xpos = pair_feats(iH[tr], iL[tr])                    # positives: an injection's H1 & L1 -> SAME segment
+a = noise_tr[rng.integers(0, len(noise_tr), ...)]    # H1 noise, uniform over the pool
+b = noise_tr[rng.integers(0, len(noise_tr), ...)]    # L1 noise, INDEPENDENT -> usually a DIFFERENT segment
+```
+
+Positives are same-segment pairs; negatives are overwhelmingly cross-segment. **Any** per-segment constant in
+the embeddings — a PSD residual, a calibration-like offset — separates those classes with no gravitational-wave
+content at all, and `--holdout-segments` **cannot detect it**, because the same-segment-vs-cross structure
+persists in the held-out segments. Our strongest leakage control is blind to this entire class of confound.
+
+**The cheap decisive test (`coinc_confound.py`), run before any expensive re-run.** Ask whether the cheating
+channel *exists*, using pure noise and no injections: label a pair 1 if its H1 and L1 windows come from the
+same segment, 0 otherwise, and train the identical `CoincHead` on the identical features. There is no signal
+anywhere in that data, so any separation is a per-segment constant and nothing else.
+
+| test | result |
+|---|---|
+| **C1** same-segment vs cross-segment, pure noise, 3 seeds | **AUC 0.530** (0.519 / 0.529 / 0.542) |
+| **C2** between/within-segment embedding variance, H1 | median **0.025**, p90 0.050, max 0.082 |
+| **C2** between/within-segment embedding variance, L1 | median **0.097**, p90 0.146, max 0.172 |
+| dims with between > within variance | **0 of 256**, both detectors |
+
+**Verdict: no usable channel.** A head cannot identify same-segment pairs from noise embeddings, and not one
+of 256 dimensions carries more between-segment than within-segment variance. **Build C-2's +0.02–0.05
+sensitive-distance gain is not explained by a per-segment constant**, and the `--holdout-segments` control —
+though blind to this class of confound *in principle* — was not hiding one *in fact*.
+
+**Scope, stated honestly.** This bounds the concern rather than eliminating it. The test ran on the **5 O3a
+segments** in `shards_w64_hl` that carry both detectors, not on Build C's own 24 segments (whose embedding
+cache lived on the retired L4 VM). AUC 0.530 is *slightly* above chance, so a weak channel exists; it is far
+too weak to manufacture the observed gain, but the complete answer would re-run `coinc_learned.py` with
+**same-segment negatives** on Build C's segments — which needs 24 fetches and is deferred while the L2
+deep-background job has GWOSC. Gated (52) as an assertion that the channel stays absent.
+Artifact: results/coinc_confound.json. Credit: mechanism from `tabula` via TheBridge Round 12.

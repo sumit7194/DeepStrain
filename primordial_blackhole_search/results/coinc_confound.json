@@ -1,0 +1,29 @@
+{
+  "n_segments": 5,
+  "embed_dim": 256,
+  "n_pair": 4000,
+  "seeds": 3,
+  "between_within": {
+    "H1": {
+      "median": 0.0247926227748394,
+      "p90": 0.04968103766441345,
+      "max": 0.08169525116682053,
+      "frac_gt_1": 0.0
+    },
+    "L1": {
+      "median": 0.09659279137849808,
+      "p90": 0.14587610960006714,
+      "max": 0.17205019295215607,
+      "frac_gt_1": 0.0
+    }
+  },
+  "c1_auc": [
+    0.5185949150470602,
+    0.529134066086715,
+    0.5416076329855207
+  ],
+  "c1_auc_mean": 0.5297788713730988,
+  "channel_exists": false,
+  "holdout_segments_would_catch_it": false,
+  "verdict": "no channel -- Build C-2 gain is not explained by a per-segment constant"
+}

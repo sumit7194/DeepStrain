@@ -264,6 +264,22 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   bank_oracle) … 1619→0.489 = the wall quantified; both far below the true-template oracle (0.72) ⇒ **template-bank
   MISMATCH is the dominant loss, not learned-vs-MF.** Co-injection shrank an apparent ~10% win to ~3% (prevented an
   overclaim). Gated. Artifacts: bank_{golden,semiff,dense,vs_cnn}.json.
+- **CONFOUND CHECK DONE (2026-08-15): the learned-coincidence gain is NOT a per-segment constant — and our
+  "gold-standard" control could never have told us.** From TheBridge Round 12: `tabula` planted a per-realization
+  nuisance channel (calibration-offset stand-in, zero dynamical meaning) and their engine ranked it **more
+  conserved than the genuine invariant**, passing out-of-sample validation completely ⇒ **held-out validation
+  catches OVERFITTING, not CONFOUNDING**, because a nuisance constant generalises flawlessly by being constant.
+  **This points at Build C-2:** its positives are an injection's H1+L1 (**same segment**) while its negatives are
+  two independent draws from the noise pool (**usually different segments**) — so any per-segment constant in the
+  256-d embeddings separates the classes with zero GW content, and `--holdout-segments` **cannot see it** (the
+  structure persists in held-out segments). `coinc_confound.py` asks the cheap decisive question first — does the
+  channel EXIST? — on **pure noise, no injections**: label pairs same-segment vs cross-segment, train the identical
+  CoincHead on identical features. **Result: AUC 0.530** (0.519/0.529/0.542, 3 seeds) = **no usable channel**;
+  between/within-segment embedding variance median **0.025 H1 / 0.097 L1**, **0 of 256 dims** with between >
+  within. ⇒ **Build C-2's +0.02–0.05 stands.** **Scope:** bounds rather than eliminates — ran on the 5 O3a segments
+  in shards_w64_hl carrying both detectors, not Build C's 24 (embedding cache died with the L4 VM); a complete
+  answer re-runs coinc_learned with **same-segment negatives**, deferred while L2 has GWOSC. Gated (52).
+  Artifact: results/coinc_confound.json.
 - **L6 DONE (2026-08-15): the SSL win SATURATES by 2,500 specs — N4's open caveat answered, and it's a NO.**
   N4 left "more unlabeled O3 noise would likely give more" as a hypothesis. `ssl_poolscale.py` measured it from
   data already on disk (deliberately, rather than fetching in competition with the running L2 job): pretrain on

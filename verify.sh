@@ -688,6 +688,31 @@ print(f"PASS  echoes L4 coherent network (geometry measured from the merger: {d[
       f"convention decides the answer)")
 PYEOFL4
 
+echo "--- pbh confound check (tabula mechanism): no per-segment channel behind the learned coincidence gain"
+./primordial_blackhole_search/.venv/bin/python - << 'PYEOFCF' || FAIL=1
+import json, numpy as np
+d = json.loads(open("primordial_blackhole_search/results/coinc_confound.json").read())
+
+# WHY THIS GATE EXISTS. Build C-2 trains its head with SAME-segment positives and CROSS-segment negatives.
+# Any per-segment constant in the embeddings would separate those classes with zero GW content -- and
+# --holdout-segments cannot catch it, because a constant generalises perfectly to unseen segments (tabula's
+# planted nuisance channel ranked MORE conserved than the real invariant and passed out-of-sample validation
+# completely). So the channel's ABSENCE has to be asserted, not assumed.
+assert not d["channel_exists"], f"a per-segment channel appeared (AUC {d['c1_auc_mean']:.3f}) -- Build C-2's "\
+                                "learned gain must be re-derived with same-segment negatives before it stands"
+assert d["c1_auc_mean"] < 0.60, f"same-segment detectability rose to {d['c1_auc_mean']:.3f}"
+
+# the embeddings must stay dominated by within-segment variation, which is what makes the channel weak
+for ifo, r in d["between_within"].items():
+    assert r["frac_gt_1"] < 0.05, f"{ifo}: {100*r['frac_gt_1']:.0f}% of dims now have between > within variance"
+    assert r["median"] < 0.5, f"{ifo} per-segment structure grew: median between/within {r['median']:.3f}"
+
+print(f"PASS  pbh confound check (same-segment vs cross-segment on PURE NOISE: AUC {d['c1_auc_mean']:.3f} over "
+      f"{d['seeds']} seeds = no usable channel; between/within variance median "
+      f"{d['between_within']['H1']['median']:.3f} H1 / {d['between_within']['L1']['median']:.3f} L1, 0% of "
+      f"{d['embed_dim']} dims between>within => the Build C-2 gain is not a per-segment constant)")
+PYEOFCF
+
 echo "--- pbh L6 SSL pool scaling (saturates by 2.5k specs; cross-detector null) -- N4's caveat answered"
 ./primordial_blackhole_search/.venv/bin/python - << 'PYEOFL6' || FAIL=1
 import json, numpy as np
