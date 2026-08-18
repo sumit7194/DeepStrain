@@ -1,14 +1,15 @@
 {
-  "n_segments": 100,
-  "n_windows": 6200,
-  "real_livetime_h": 113.77777777777777,
-  "n_distinct_lags": 6199,
-  "background_years": 80.45343472750316,
+  "n_segments": 727,
+  "n_windows": 45074,
+  "real_livetime_h": 801.3155555555555,
+  "n_distinct_lags": 45073,
+  "background_years": 4119.889281622307,
   "zero_lag_max": 11.295368194580078,
   "far_ladder": {
-    "1/month": 12.339570999145508,
-    "1/year": 14.11172866821289,
-    "1/decade": 16.12076759338379
+    "1/month": 11.246077537536621,
+    "1/year": 12.798720359802246,
+    "1/decade": 14.531622886657715,
+    "1/century": 16.394289016723633
   },
-  "reach_far": "1/decade"
+  "reach_far": "1/century"
 }

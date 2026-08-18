@@ -41,9 +41,13 @@ from pbh import config as C
 
 CACHE = C.RESULTS_DIR / "far_scores"
 YEAR_S = 3.156e7
-KEEP = 20_000
+WIN_SEC = 64.0                # analyzed seconds per scored window
+# Sized like far_background_validation's: the shallowest rung's event count grows as N_windows^2, so a cap
+# set at the 80.5-yr scale silently drops 1/month at the 4,000-yr scale. See the RAISE-keep guard below.
+KEEP = 400_000
+SUB_KEEP = 200_000
 ONE_SIDED = 0.15
-FARS = (("1/month", 12.0), ("1/year", 1.0), ("1/decade", 0.1))
+FARS = (("1/month", 12.0), ("1/year", 1.0), ("1/decade", 0.1), ("1/century", 0.01))
 INJ = ["o4_sensitive_distance_rows_matched.parquet", "coinc_triple_rows_o4b.parquet"]
 
 
@@ -73,7 +77,11 @@ def ladder(top, n_lags, live_s):
     out = {}
     for label, per_year in FARS:
         k = int(round(per_year * bg_yr))
-        if 1 <= k <= len(top) and np.isfinite(top[-k]):
+        if k > len(top):
+            print(f"    !! {label} needs rank {k} but only {len(top)} kept -- RAISE keep, not a data limit",
+                  flush=True)
+            continue
+        if 1 <= k and np.isfinite(top[-k]):
             out[label] = {"threshold": float(top[-k]), "k": k}
     return out, bg_yr
 
@@ -101,7 +109,9 @@ def main() -> None:
     per = [np.load(CACHE / f"seg_{g}.npz") for g in segs]
     Hs = [d["h"].astype(np.float32) for d in per]; Ls = [d["l"].astype(np.float32) for d in per]
     H, L = np.concatenate(Hs), np.concatenate(Ls)
-    live = len(segs) * C.SEGMENT_LEN
+    # Analyzed livetime = windows searched x 64 s, NOT segments x 4096 s: the whitening crop leaves 62 of 64
+    # windows, so the per-segment form counts 3.2% of time never searched (same fix as far_deep.py).
+    live = len(H) * WIN_SEC
     res = {"n_segments": len(segs), "n_windows": int(len(H))}
 
     print(f"background from {len(segs)} O4b segments, {len(H)} windows", flush=True)
@@ -124,8 +134,8 @@ def main() -> None:
     halves = {}
     for nm, sl in (("first", slice(0, half)), ("second", slice(half, len(segs)))):
         h = np.concatenate(Hs[sl]); l = np.concatenate(Ls[sl])
-        t, nl_ = background(h, l, keep=5000)
-        halves[nm] = {k: ladder(v, nl_, (sl.stop - sl.start) * C.SEGMENT_LEN)[0] for k, v in t.items()}
+        t, nl_ = background(h, l, keep=SUB_KEEP)
+        halves[nm] = {k: ladder(v, nl_, len(np.concatenate(Hs[sl])) * WIN_SEC)[0] for k, v in t.items()}
     for name in tops:
         spreads = []
         for label, _ in FARS:

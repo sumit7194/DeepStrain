@@ -179,7 +179,11 @@ def main() -> None:
     sH, sL, segs = load_all()
     if len(sH) < 100:
         print(f"only {len(sH)} windows cached — need more segments before a background is meaningful"); return
-    live_s = len(segs) * C.SEGMENT_LEN
+    # ANALYZED livetime, not wall-clock segment length. The 8-s whitening crop at each edge leaves 62 of a
+    # segment's 64 windows, so len(segs)*SEGMENT_LEN overstates the searched time by 3.2% -- which inflates
+    # background-years and pushes every threshold slightly ANTI-conservative. Same species as the honest-slides
+    # lag overcount: a livetime that counts time we never actually searched.
+    live_s = len(sH) * WIN / C.SAMPLE_RATE
     print(f"\ncomputing background from {len(segs)} segments, {len(sH)} windows "
           f"({live_s/3600:.1f} h real livetime)", flush=True)
     top, n_lags = background_topk(sH, sL)

@@ -11,6 +11,43 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-08-19 — L2 deep FAR lands: 4,120 years, 1/century, and the audit answered
+
+**Ran to completion.** `far_deep.py --target 727 --purge` finished all 727 O4b segments after **three power
+losses**; each restart verified the cache (**0 corrupt of 399 / 641 / 727**) before relaunching. Per-segment
+atomic checkpointing meant every loss cost only the in-flight fetch. Disk stayed flat — the astropy-cache
+purge fix from the original run held throughout.
+
+**Result.** 45,074 windows, 801.3 h, 45,073 distinct lags → **4,119.9 yr** (51× the published 80.5). Reached
+**1/century** for the first time. Ladder 11.246 / 12.799 / 14.532 / 16.394.
+
+**The point of the exercise: jackknife spread 33–44% → 10–12%.** The 08-09 audit said the ladder was an order
+of magnitude over-precise and the fix was more independent loud-noise samples. It was right, and the old
+16.1 ± ~5 contains the new 14.532.
+
+**Zero-lag unchanged at 11.295**, verified against the score cache rather than the artifact — an unchanged
+value across a 7× data increase is the shape of a stale read, and this one is real. Its measured FAR is
+11.5/yr against 1.05 expected: a textbook null. I pre-registered *before* the numbers landed that 1/month
+cannot support a claim here (1.1 expected events in 0.0914 yr of zero-lag), which is what stopped
+`11.295 > 11.246` from being read as a near-miss. Null holds **4/4**.
+
+**What didn't improve, stated plainly.** 1/decade's 425 events still come from **8 distinct H1 windows** and
+1/century's 43 from **3** — the same count the published 1/decade had. 51× the background barely moved the
+number of independent Hanford glitches setting the deep tail. The ladder is also **not converged** (1/decade
+17.06 → 16.78 → 14.53 across n=60/80/727). Effective sample size, not livetime, remains the wall.
+
+**Three tooling bugs, one species.** Pre-flighting the analysis at the new scale — rather than waiting for the
+run to end — found that a `keep` cap sized for an 80-yr background silently drops the 1/month rung at 4,120 yr,
+in **two** scripts, including from the jackknife that decides this item; `ladder()` dropped it with no message.
+Separately, background livetime counted `n_segments × 4096 s` when the whitening crop leaves 62 of 64 windows,
+overstating searched time by 3.23% in **three** scripts. All fixed, with a loud `!! RAISE keep` guard so a
+truncated report can never again look like a complete one. Re-ran the whole chain for consistency.
+
+The lesson worth keeping: **a constant sized against yesterday's data volume becomes a silent truncation when
+the data grows**, and a check that silently omits its hardest case is indistinguishable from a check that
+passed. That is the same failure mode the gate-margin audit was built to hunt — found this time in our own
+audit tooling.
+
 ## 2026-08-16 — the 154 "unscoreable" assertions: mostly a parser problem, and 11 real self-certified flags
 
 Follow-up to the gate audit. I had told quantum that 154 of our 193 assertions were unscoreable and that this

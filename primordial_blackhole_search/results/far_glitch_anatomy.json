@@ -1,63 +1,67 @@
 {
-  "n_windows": 6200,
-  "n_segments": 100,
+  "n_windows": 45074,
+  "n_segments": 727,
   "max_H1": 12.532333374023438,
-  "max_L1": 6.2563581466674805,
+  "max_L1": 6.369736194610596,
   "one_sided_ceiling": 12.532333374023438,
   "zero_lag_sum": 11.295368194580078,
   "zero_lag_H1": 12.532333374023438,
   "zero_lag_L1": -1.2369648218154907,
   "zero_lag_two_sided": false,
   "zero_lag_is_worst_H1_window": true,
-  "zero_lag_min_stat": 1.634705901145935,
+  "zero_lag_min_stat": 2.5916223526000977,
   "bands": [
     {
       "lo": 0,
       "hi": 25,
-      "sum_hi": 18.788692474365234,
-      "sum_lo": 15.093751907348633,
+      "sum_hi": 18.902069091796875,
+      "sum_lo": 16.778888702392578,
       "frac_one_sided": 0.0
     },
     {
       "lo": 25,
       "hi": 100,
-      "sum_hi": 15.048041343688965,
-      "sum_lo": 13.852063179016113,
-      "frac_one_sided": 0.5066666666666667
+      "sum_hi": 16.736156463623047,
+      "sum_lo": 15.525947570800781,
+      "frac_one_sided": 0.0
     },
     {
       "lo": 100,
       "hi": 500,
-      "sum_hi": 13.848321914672852,
-      "sum_lo": 12.71611499786377,
-      "frac_one_sided": 0.9025
+      "sum_hi": 15.514156341552734,
+      "sum_lo": 14.354501724243164,
+      "frac_one_sided": 0.055
     },
     {
       "lo": 500,
       "hi": 2000,
-      "sum_hi": 12.71517562866211,
-      "sum_lo": 11.931394577026367,
-      "frac_one_sided": 0.9886666666666667
+      "sum_hi": 14.353750228881836,
+      "sum_lo": 13.294624328613281,
+      "frac_one_sided": 0.7246666666666667
     },
     {
       "lo": 2000,
-      "hi": 6199,
-      "sum_hi": 11.931360244750977,
+      "hi": 45073,
+      "sum_hi": 13.294478416442871,
       "sum_lo": 10.481889724731445,
-      "frac_one_sided": 0.9990473922362467
+      "frac_one_sided": 0.9742762287279735
     }
   ],
   "threshold_regimes": {
     "1/month": {
-      "threshold": 12.339570999145508,
+      "threshold": 11.246077537536621,
       "above_single_det_ceiling": false
     },
     "1/year": {
-      "threshold": 14.11172866821289,
+      "threshold": 12.798720359802246,
       "above_single_det_ceiling": true
     },
     "1/decade": {
-      "threshold": 16.12076759338379,
+      "threshold": 14.531622886657715,
+      "above_single_det_ceiling": true
+    },
+    "1/century": {
+      "threshold": 16.394289016723633,
       "above_single_det_ceiling": true
     }
   },

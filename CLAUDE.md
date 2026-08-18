@@ -218,6 +218,38 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   checkpoints (never re-fetch a done segment), raw strain purged — **and the purge must clear astropy's download
   cache too** (`gwpy` keeps a 2nd copy, ~0.25 GB/segment, 5.3 GB accumulated; would have exhausted disk ~segment
   80 — caught mid-run, fixed, disk then flat at 19 GB). Gated (45). Artifacts: far_deep.json, results/far_scores/.
+- **L2 DEEP FAR DONE (2026-08-19): 4,120-yr background — 1/century reached, precision FIXED, null 4/4.**
+  The 08-09 audit's prescription was "more independent loud-noise samples"; background grows as N_segments², so
+  `far_deep.py` was run out to **727 O4b segments** (from 100) — **45,074 windows, 801.3 h, 45,073 lags →
+  4,119.9 yr (51×)**. Survived **THREE power losses**, every recovery verified **0 corrupt of N** (per-segment
+  atomic checkpoints). **HEADLINE: jackknife spread 33–44% → 10–12%** (sd ≈0.41 all rungs) = the audit's central
+  complaint answered by data, and the old 16.1±~5 CONTAINS the new 14.532 ⇒ our error bar was honest.
+  Ladder: 1/month **11.246**, 1/year **12.799**, 1/decade **14.532**, 1/century **16.394** (new rung).
+  **Thresholds FELL 1.1–1.6 and that's a finding:** at fixed FAR the threshold is a fixed QUANTILE (bg-yr and
+  pair-count both ∝N², fraction invariant), so the drop proves the 100-segment tail was glitch-inflated —
+  exactly the audit's diagnosis. **Zero-lag max 11.295 VERIFIED UNCHANGED** at 7.3× data (same seg 1397232640,
+  H1 +12.53 / L1 −1.24) — checked against the cache, not the artifact, because an unchanged value across a 7×
+  increase is the shape of a stale read. **Pre-registered before the numbers landed:** 0.0914 yr of zero-lag ⇒
+  1/month expects **1.1** background events, so exceeding it is the MEDIAN noise outcome; measured FAR of the
+  loudest zero-lag = **11.5/yr (1.05 expected)** ⇒ textbook null, and **claim-capable rungs are 1/year+**.
+  Single-det ceilings (maxH1 12.53 / maxL1 6.37) now put **3 of 4 rungs beyond glitch reach**; one-sidedness vs
+  loudness reproduces the audit (0% top-25 → 97% beyond rank 2000); **null 4/4**. **`sum` still wins** (min
+  0.96–0.98×, halves bg instability 15% vs 34%; veto 0.99–1.00×) ⇒ extends G2a into the 4,000-yr regime.
+  **WHAT DIDN'T IMPROVE (the honest half): effective-N is STILL binding** — 1/decade's 425 events come from **8
+  distinct H1 windows**, 1/century's 43 from **3**; that "8" is the SAME count the published 1/decade had ⇒ 51×
+  the background barely moved the independent-glitch count. **Not converged** (1/decade 17.06@n=60 → 16.78@n=80
+  → 14.53@n=727, still drifting). Halves still 25–34% apart. Poisson still 10× too narrow (±0.04 vs ±0.41).
+  **THREE TOOLING BUGS caught by pre-flighting at the new scale, all one species — a cap sized for yesterday's
+  data volume becomes a SILENT TRUNCATION when data grows:** (1)+(2) **silent rung-drop in TWO scripts** —
+  `keep` caps (20k/5k) are exceeded by 1/month's 49,440 events at 4,120 yr, so far_background_validation.py AND
+  far_min_vs_sum.py would have returned reports **missing 1/month including from the jackknife**, and `ladder()`
+  dropped it with **no message**; fixed (400k/200k, +1/century, loud `!! RAISE keep, not a data limit`).
+  (3) **livetime overcount in THREE scripts** — used `n_segments×4096 s` but the 8-s whiten crop leaves **62 of
+  64** windows ⇒ 3.23% of quoted time never searched, inflating bg-yr and nudging thresholds ANTI-conservative
+  (same species as the honest-slides lag overcount); fixed to `n_windows×64 s`, all numbers use 801.3 h.
+  **Net: one rung deeper, 3–4× tighter and honestly quoted (14.5±1.5 not 16.1±5), null 4/4 — and the remaining
+  limit is NAMED: independent loud-noise samples, not livetime.** Artifacts: far_deep.json,
+  far_background_validation.json, far_glitch_anatomy.json, far_min_vs_sum.json.
 - **Deep-FAR AUDIT DONE (2026-08-09): thresholds are ±33–44%, NOT ±0.3 — but the null is 4/4 and WIDER than reported.**
   A "did we miss anything?" pass over the retained score cache (user declined deletion — correct call) became a full
   stress-test of our own headline. **Assumptions HOLD:** H1⊥L1 independence z=−0.38 **p=0.69** (if this failed the whole

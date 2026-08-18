@@ -42,8 +42,13 @@ from pbh import config as C
 
 CACHE = C.RESULTS_DIR / "far_scores"
 YEAR_S = 3.156e7
-KEEP = 20_000                 # >> the ~966 events that set the shallowest rung (1/month)
-FARS = (("1/month", 12.0), ("1/year", 1.0), ("1/decade", 0.1))
+WIN_SEC = 64.0            # analyzed seconds per scored window
+# `keep` must EXCEED the event count of the SHALLOWEST rung, and that count grows as N_windows^2. At the
+# 80.5-yr scale 1/month was ~966 events so 20k was ample; at the 4,000-yr scale it is ~49k, and a too-small
+# cap does not error -- `ladder` just stops returning the rung. Sized for >10,000 yr of background.
+KEEP = 400_000
+SUB_KEEP = 200_000            # V4/V5/V7 run on subsets (smaller background), but 1/month still needs ~40k
+FARS = (("1/month", 12.0), ("1/year", 1.0), ("1/decade", 0.1), ("1/century", 0.01))
 
 
 def bg_top(sH, sL, keep=KEEP):
@@ -63,8 +68,15 @@ def ladder(top, n_lags, live_s):
     out = {}
     for label, per_year in FARS:
         k = int(round(per_year * bg_yr))
-        if 1 <= k <= len(top):
-            out[label] = {"threshold": float(top[-k]), "n_bg_events": k}
+        if k < 1:
+            continue                                    # genuinely unmeasurable: <1 expected event
+        if k > len(top):
+            # A rung dropped for want of RETAINED events is a tooling limit masquerading as a data limit --
+            # exactly the silent-omission failure this suite exists to catch. Never let it pass quietly.
+            print(f"    !! {label} needs rank {k} but only {len(top)} kept -- RAISE keep, not a data limit",
+                  flush=True)
+            continue
+        out[label] = {"threshold": float(top[-k]), "n_bg_events": k}
     return out, bg_yr
 
 
@@ -75,7 +87,10 @@ def main() -> None:
     Ls = [d["l"].astype(np.float32) for d in per]
     H, L = np.concatenate(Hs), np.concatenate(Ls)
     N = len(H)
-    live_1 = C.SEGMENT_LEN
+    # Analyzed livetime per WINDOW (64 s), not wall-clock per SEGMENT (4096 s): the whitening crop leaves 62
+    # of 64 windows, so a per-segment livetime counts 3.2% of time never searched. Every ladder() call below
+    # therefore scales by the number of windows in that subset, not the number of segments.
+    live_1 = WIN_SEC
     res = {"n_segments": len(segs), "n_windows": N}
     print(f"{N} windows, {len(segs)} segments\n")
 
@@ -106,10 +121,10 @@ def main() -> None:
 
     # ---- main background + V2 effective sample size ----------------------------------------------------
     top, n_lags = bg_top(H, L)
-    lad, bg_yr = ladder(top, n_lags, len(segs) * live_1)
+    lad, bg_yr = ladder(top, n_lags, N * live_1)
     res["background_years"] = bg_yr
     res["ladder"] = lad
-    print(f"\nbackground: {n_lags} lags x {len(segs)*live_1/3600:.1f} h = {bg_yr:.1f} yr")
+    print(f"\nbackground: {n_lags} lags x {N*live_1/3600:.1f} h = {bg_yr:.1f} yr")
 
     print("\nV2 EFFECTIVE SAMPLE SIZE (how many DISTINCT windows underpin each rung?)")
     deep_thr = min(v["threshold"] for v in lad.values())
@@ -151,8 +166,8 @@ def main() -> None:
         if n > len(segs):
             continue
         h = np.concatenate(Hs[:n]); l = np.concatenate(Ls[:n])
-        t, nl_ = bg_top(h, l, keep=min(KEEP, 5000))
-        la, yr = ladder(t, nl_, n * live_1)
+        t, nl_ = bg_top(h, l, keep=SUB_KEEP)
+        la, yr = ladder(t, nl_, len(h) * live_1)
         row = {"n_segments": n, "bg_years": yr, **{k: v["threshold"] for k, v in la.items()}}
         res["V4_convergence"].append(row)
         print(f"  n={n:>3} ({yr:6.1f} yr): " + "  ".join(f"{k} {v['threshold']:6.3f}" for k, v in la.items()))
@@ -164,8 +179,8 @@ def main() -> None:
     res["V5_stationarity"] = {}
     for name, sl in (("first_half", slice(0, half)), ("second_half", slice(half, len(segs)))):
         h = np.concatenate(Hs[sl]); l = np.concatenate(Ls[sl])
-        t, nl_ = bg_top(h, l, keep=min(KEEP, 5000))
-        la, yr = ladder(t, nl_, (sl.stop - sl.start) * live_1)
+        t, nl_ = bg_top(h, l, keep=SUB_KEEP)
+        la, yr = ladder(t, nl_, len(h) * live_1)
         res["V5_stationarity"][name] = {"bg_years": yr, **{k: v["threshold"] for k, v in la.items()}}
         print(f"  {name:>12} ({yr:5.1f} yr): " + "  ".join(f"{k} {v['threshold']:6.3f}" for k, v in la.items()))
     common = set(res["V5_stationarity"]["first_half"]) & set(res["V5_stationarity"]["second_half"]) - {"bg_years"}
@@ -184,8 +199,8 @@ def main() -> None:
     for b in range(nb):
         keepi = [i for i in range(len(segs)) if not (b * bs <= i < (b + 1) * bs)]
         h = np.concatenate([Hs[i] for i in keepi]); l = np.concatenate([Ls[i] for i in keepi])
-        t, nl_ = bg_top(h, l, keep=min(KEEP, 5000))
-        la, _ = ladder(t, nl_, len(keepi) * live_1)
+        t, nl_ = bg_top(h, l, keep=SUB_KEEP)
+        la, _ = ladder(t, nl_, len(h) * live_1)
         for lbl, v in la.items():
             jk[lbl].append(v["threshold"])
     for lbl, _ in FARS:
@@ -202,8 +217,8 @@ def main() -> None:
     worst = int(np.argmax([h.max() for h in Hs]))
     keepi = [i for i in range(len(segs)) if i != worst]
     h = np.concatenate([Hs[i] for i in keepi]); l = np.concatenate([Ls[i] for i in keepi])
-    t, nl_ = bg_top(h, l, keep=min(KEEP, 5000))
-    la, _ = ladder(t, nl_, len(keepi) * live_1)
+    t, nl_ = bg_top(h, l, keep=SUB_KEEP)
+    la, _ = ladder(t, nl_, len(h) * live_1)
     res["V7_drop_worst_segment"] = {"segment_index": worst, "gps": segs[worst],
                                     **{k: v["threshold"] for k, v in la.items()}}
     print(f"  diagnostic — drop the single glitchiest segment (idx {worst}, gps {segs[worst]}): "
@@ -221,7 +236,7 @@ def main() -> None:
                (f"drop glitchiest seg {worst_i}", [i for i in range(len(segs)) if i != worst_i])]
     for cname, keepi in configs:
         h = np.concatenate([Hs[i] for i in keepi]); l = np.concatenate([Ls[i] for i in keepi])
-        n = len(h); bg_yr_c = (n - 1) * len(keepi) * live_1 / YEAR_S
+        n = len(h); bg_yr_c = (n - 1) * n * live_1 / YEAR_S
         for sname, fn in (("sum", lambda a, b: a + b), ("min", np.minimum)):
             top = np.full(5000, -np.inf, dtype=np.float32)
             for k in range(1, n):

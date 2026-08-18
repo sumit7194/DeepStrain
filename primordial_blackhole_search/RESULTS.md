@@ -1252,3 +1252,92 @@ too weak to manufacture the observed gain, but the complete answer would re-run 
 **same-segment negatives** on Build C's segments — which needs 24 fetches and is deferred while the L2
 deep-background job has GWOSC. Gated (52) as an assertion that the channel stays absent.
 Artifact: results/coinc_confound.json. Credit: mechanism from `tabula` via TheBridge Round 12.
+
+### L2 DEEP FAR: 4,120 years of background — 1/century reached, null 4/4, precision fixed (2026-08-19)
+
+**The audit's central complaint, answered by data.** The 2026-08-09 audit found the 80.5-yr ladder was
+**±33–44%** and that 1/decade rested on **8 background events tracing to just 2 distinct H1 windows**. The
+prescribed fix was more independent loud-noise samples, and background grows as **N_segments²**, so this ran
+the same pipeline out to **727 O4b segments** (from 100). It survived **three power losses** — every recovery
+verified **0 corrupt of N** thanks to per-segment atomic checkpointing.
+
+| | published (2026-08-08) | **now** |
+|---|---|---|
+| segments | 100 | **727** |
+| windows | 6,200 | **45,074** |
+| analyzed livetime | 113.8 h | **801.3 h** |
+| distinct lags | 6,199 | **45,073** |
+| background | 80.5 yr | **4,119.9 yr** (51×) |
+| deepest rung | 1/decade | **1/century** |
+
+| FAR | published thr | **new thr** | jackknife spread |
+|---|---|---|---|
+| 1/month | 12.340 | **11.246** | 12% |
+| 1/year | 14.112 | **12.799** | 11% |
+| 1/decade | 16.121 | **14.532** | 10% |
+| 1/century | not measurable | **16.394** | 10% |
+
+**PRECISION FIXED — the headline result.** Leave-block-out jackknife spread fell from **33–44% → 10–12%**
+(sd ≈ 0.41 at every rung), a 3–4× tightening. The old 1/decade value (16.1 ± ~5) contains the new one
+(14.532), so **the audit's error bar was honest and the extra data resolved it**. Assumptions re-verified at
+scale: H1⊥L1 independence **p=0.647**, shared per-segment data quality **p=0.836**.
+
+**THRESHOLDS FELL, and that is a finding, not a bug.** At fixed FAR the threshold is a fixed *quantile* of the
+coincidence distribution (background-years and pair-count both scale as N², so the fraction is invariant).
+The drop of 1.1–1.6 therefore means the 100-segment tail was **glitch-inflated** — precisely what the audit
+diagnosed when it traced 6 of the 8 loudest H1 windows to one segment.
+
+**THE NULL IS STRONGER AND BETTER UNDERSTOOD.** Zero-lag max is **11.295, verified unchanged** at 7.3× the
+data — same segment (1397232640), same window, H1 **+12.53** with L1 at **−1.24**. Checked directly against
+the cache rather than trusting the artifact, because an unchanged value across a 7× data increase is exactly
+the shape of a stale read. It is not one: nothing louder exists in 801 h.
+
+*Pre-registered before the numbers landed:* our zero-lag search covers 0.0914 yr, so at 1/month we **expect
+1.1 background events** — an event above the 1/month threshold is the *median* noise outcome, not a
+detection. Measured: the loudest zero-lag event has **FAR = 11.5/yr**, i.e. **1.05 expected**. Textbook null.
+It exceeds the 1/month threshold (11.295 > 11.246) and this is meaningless; **the claim-capable rungs are
+1/year and deeper**, where zero-lag sits far below.
+
+**Single-detector ceilings now put 3 of 4 rungs beyond glitch reach** (max H1 **12.53**, max L1 **6.37**):
+1/month 11.25 is glitch-reachable; **1/year, 1/decade and 1/century all require genuine two-sided
+coincidences.** One-sidedness vs loudness reproduces the audit's pattern at 7× the data: **0%** one-sided in
+the top 25, 6% in the top 100–500, **97%** beyond rank 2000. The loudest zero-lag event is explicitly
+one-sided and dies under `min` (2.59 vs a 4.95 threshold). **Null holds in 4/4 configurations**
+(all-segs/drop-59 × sum/min), each against its own matched threshold.
+
+**`sum` still wins, four rungs deeper.** `min` costs 3–4% of sensitive distance at every FAR (0.96–0.98×)
+while halving background instability (worst half-to-half 15% vs sum's 34%); `veto` is 0.99–1.00×. Extends
+G2a and the 80-yr audit's verdict into the 4,000-yr regime. **Keep `sum`.**
+
+**WHAT DID *NOT* IMPROVE — the honest half.**
+1. **Effective sample size is still the binding limit.** 1/decade's 425 background events come from **8
+   distinct H1 windows**; 1/century's 43 events from **3**. That "8" is the *same count* the published
+   1/decade had. We multiplied background-years by 51 and barely moved the number of independent loud
+   Hanford glitches that set the deep tail. **The audit's diagnosis survives its own fix.**
+2. **Convergence is not demonstrated.** 1/decade reads 17.058 (n=60), 16.779 (n=80), **14.532 (n=727)** —
+   still drifting down at 9× more data, because the tail is set by rare glitches whose density is still
+   being sampled.
+3. **Non-stationarity persists**: first half 1/decade 14.999 vs second half 11.243 (**25% apart**, 34% at
+   1/month) — the glitch cluster's placement, not bulk noise drift.
+4. **Poisson bands remain an order of magnitude too narrow** (1/decade ±0.04 vs jackknife ±0.41). Never quote √k.
+
+**THREE TOOLING BUGS FOUND WHILE THE RUN WAS IN FLIGHT** — all found by pre-flighting the analysis at the new
+scale rather than waiting for the end, and all of the same species: *a constant sized against yesterday's data
+volume becomes a silent truncation when the data grows.*
+- **Silent rung-drop (×2 scripts).** The background keeps only the loudest `keep` lag values, but a rung's
+  event count grows as N². At 80.5 yr, 1/month needed ~966 events (cap 20,000 = ample); at 4,120 yr it needs
+  **49,440** — so `far_background_validation.py` **and** `far_min_vs_sum.py` would have silently returned a
+  report *missing 1/month*, including from the jackknife, the very test that decides this item. `ladder()`
+  dropped it with **no message at all**. Fixed: caps 20,000→400,000 / 5,000→200,000, 1/century added, and an
+  unresolvable rung now prints `!! RAISE keep, not a data limit` instead of vanishing.
+- **Livetime overcount (×3 scripts).** Background time used `n_segments × 4096 s`, but the 8-s whitening crop
+  leaves **62 of 64 windows**, so 3.23% of the quoted time was never searched — inflating background-years and
+  nudging thresholds *anti*-conservative. Same species as the earlier honest-slides lag overcount. Fixed to
+  `n_windows × 64 s` in `far_deep.py`, `far_background_validation.py`, `far_min_vs_sum.py`; all numbers above
+  use the corrected **801.3 h / 4,119.9 yr**.
+
+**Net.** Reach is one rung deeper (**1/century**), precision is **3–4× tighter and now honestly quoted**
+(14.5 ± 1.5 rather than 16.1 ± 5), the **null is 4/4** with 3 of 4 rungs above the single-detector ceiling,
+and the remaining limit is named and measured: **independent loud-noise samples, not livetime** — which is why
+real LVK searches lean on signal-consistency vetoes and DQ flags rather than raw time-slides.
+Artifacts: far_deep.json, far_background_validation.json, far_glitch_anatomy.json, far_min_vs_sum.json.
