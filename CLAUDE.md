@@ -239,11 +239,40 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   substitutes for observing time. General to time-slide searches, not our pipeline. Scope: constraining rungs
   are the populated ones (±1% @10k, ±3.2% @1k); @10-expected is ±35% and the 99.9th dependence test is
   uninformative (expected 0.0). Gated. Artifact: far_zerolag_population.json.
+- **ESTIMATOR AUDIT DONE (2026-08-20): our jackknife understates error bars 4.2× — and effective-N does NOT
+  control them.** Measuring the scaling law meant to quantify L2's effective-N story instead audited the
+  estimator behind L2's headline. **(1) BIAS 4.2×** (`far_estimator_bias.py`, both estimators on the SAME
+  subsets at the SAME n, L2's jackknife reproduced exactly — contiguous 10% blocks, ddof=0): between-subset σ
+  2.03/2.44 vs jackknife 0.485/0.570 at n=100/320 ⇒ **4.18×/4.28×**. Mechanism: the jackknife drops 10% of
+  segments, but with 727 in play that almost never removes THE dominant glitch, so it looks calm regardless of
+  the truth. **Bias is STABLE in n (growth 1.02×) ⇒ L2's RATIO stands** (both endpoints equally understated),
+  **but every absolute spread is ~4× too small: quote 1/decade 14.53 ± ~1.7, NOT ± 0.41.** (The committed
+  "±1.5" is coincidentally close but was a jackknife RANGE treated as an error bar; bias factor measured at
+  n=100/320 and extrapolated to 727.) **(2) COLLAPSE TEST REFUTES THE MECHANISM** (`far_effective_n.py`, 40
+  subsets/size, FPC-corrected): pre-registered that σ·√N_eff must be constant across sizes AND rungs if N_eff
+  is the controlling variable — a power-law fit can't separate "N_eff controls it" from "n controls it", the
+  collapse can. **β = 0.927 ⇒ N_eff grows linearly EXACTLY as L2 said**, but **α = 0.10** (per-rung −0.016
+  [−0.114,+0.070] / 0.052 [−0.030,+0.120] / 0.267 [0.173,0.347], all far below the naive 0.5, two consistent
+  with ZERO) and **σ·√N_eff scatters 62%, rising 5.7→16.7** ⇒ **more independent loud windows do NOT buy
+  precision; N_eff and σ are decoupled.** L2's relative improvement is substantially the threshold MEAN rising
+  (1/month 7.07→10.87 over n=20→320 = the known non-convergence), not the error shrinking. **(3) MY
+  HEAVY-TAIL HYPOTHESIS REFUTED** (`far_sigma_convergence.py`, 200 draws): three signs suggested infinite
+  variance (two runs disagreeing 1.5×, σ rising with rep count), which would have made **no ± quotable at
+  all**; direct test says NO — **Hill index 19.7–195** (needs <2), σ flat from m=80 (late slope +0.03),
+  σ≈1.85 at n=160. The 1.5× was ordinary small-sample SD noise. **±σ is legitimate.** **TWO OF MY OWN
+  INSTRUMENTS RETURNED FALSE VERDICTS, both caught by reading numbers not verdict lines:** the planning number
+  computed 2^(1/α) at α≈0 → **10⁵⁵×** (now suppressed unless α>0.15, with reason); the heavy-tail rule
+  compared σ's growth over the WHOLE range (ordinary small-m SD bias, present for any distribution) against
+  the quantile range's LATE-half drift — apples to oranges, false-positive on all 3 rungs (like-for-like, σ's
+  late slope +0.03 is FLATTER than IQ's +0.06). Rule rewritten around the Hill index, failure kept in the
+  docstring. **Untouched: 4,120-yr background, 1/century reach, null 4/4** — this is the error bar, not the
+  threshold or the search result. Gated. Artifacts: far_estimator_bias.json, far_effective_n.json,
+  far_sigma_convergence.json.
 - **L2 DEEP FAR DONE (2026-08-19): 4,120-yr background — 1/century reached, precision FIXED, null 4/4.**
   The 08-09 audit's prescription was "more independent loud-noise samples"; background grows as N_segments², so
   `far_deep.py` was run out to **727 O4b segments** (from 100) — **45,074 windows, 801.3 h, 45,073 lags →
   4,119.9 yr (51×)**. Survived **THREE power losses**, every recovery verified **0 corrupt of N** (per-segment
-  atomic checkpoints). **HEADLINE: jackknife spread 33–44% → 10–12%** (sd ≈0.41 all rungs) = the audit's central
+  atomic checkpoints). **HEADLINE (⚠️ CORRECTED 2026-08-20, see next entry): jackknife spread 33–44% → 10–12%** (sd ≈0.41 all rungs) = the audit's central
   complaint answered by data, and the old 16.1±~5 CONTAINS the new 14.532 ⇒ our error bar was honest.
   Ladder: 1/month **11.246**, 1/year **12.799**, 1/decade **14.532**, 1/century **16.394** (new rung).
   **Thresholds FELL 1.1–1.6 and that's a finding:** at fixed FAR the threshold is a fixed QUANTILE (bg-yr and

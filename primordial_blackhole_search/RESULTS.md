@@ -1277,7 +1277,7 @@ verified **0 corrupt of N** thanks to per-segment atomic checkpointing.
 | 1/decade | 16.121 | **14.532** | 10% |
 | 1/century | not measurable | **16.394** | 10% |
 
-**PRECISION FIXED — the headline result.** Leave-block-out jackknife spread fell from **33–44% → 10–12%**
+**PRECISION FIXED — the headline result.** ⚠️ **PARTIALLY CORRECTED 2026-08-20 — see "the jackknife understates by 4.2×" below: the RATIO here stands, but every absolute spread on this page is ~4× too small, and the *mechanism* claim (effective-N controls the error) is refuted.** Leave-block-out jackknife spread fell from **33–44% → 10–12%**
 (sd ≈ 0.41 at every rung), a 3–4× tightening. The old 1/decade value (16.1 ± ~5) contains the new one
 (14.532), so **the audit's error bar was honest and the extra data resolved it**. Assumptions re-verified at
 scale: H1⊥L1 independence **p=0.647**, shared per-segment data quality **p=0.836**.
@@ -1405,3 +1405,71 @@ and that assumption is **untestable with this much observing time** by construct
 was guarded after the fact — `min < 0.15·max` inverts meaning once the louder detector is itself negative,
 which it is at the shallow rungs, so it is now computed only where max > 0 and reports its sub-sample size.
 Artifact: far_zerolag_population.json.
+
+### The jackknife understates our error bars by 4.2× — and effective-N does NOT control them (2026-08-20)
+
+**Why this exists.** L2 reported threshold precision improving from ±33–44% (100 segments) to ±10–12% (727)
+and I wrote it up as *"the audit's central complaint answered by data"*. Both numbers came from one
+estimator — a leave-10%-block-out jackknife — and neither had ever been checked against the actual sampling
+distribution. Measuring the scaling law meant to quantify L2's effective-N story instead exposed the
+estimator.
+
+**(1) THE JACKKNIFE UNDERSTATES THE TRUE SAMPLING SPREAD BY 4.2×** (`far_estimator_bias.py`; both estimators
+run on the *same* subsets at the *same* n, so no sample-size difference can explain the gap; L2's jackknife
+reproduced exactly — contiguous 10% blocks, `np.std` ddof=0):
+
+| n | between-subset σ | jackknife σ | bias |
+|---|---|---|---|
+| 100 | 2.03 / 1.97 / 2.02 | 0.485 / 0.503 / 0.484 | 4.18 / 3.91 / 4.17× |
+| 320 | 2.44 / 2.25 / 2.27 | 0.570 / 0.540 / 0.561 | 4.28 / 4.16 / 4.05× |
+
+**The mechanism is specific**: the jackknife drops 10% of segments, but the deep tail is set by a handful of
+glitchy segments — with 727 in play, dropping 72 almost never removes *the* dominant glitch, so the estimator
+looks calm regardless of the true uncertainty.
+
+**The bias is STABLE in n (growth 1.02×), which is what saves the L2 ratio.** Both endpoints are understated
+by the same factor, so 33–44% → 10–12% is a real *relative* improvement. **What must change is every absolute
+number: quote 1/decade as 14.53 ± ~1.7, not ± 0.41.** (The committed "±1.5" is coincidentally close but was
+derived by treating a jackknife *range* as an error bar; the corrected derivation is jackknife σ × 4.16.
+Caveat: the bias factor is measured at n=100 and n=320 and extrapolated to 727.)
+
+**(2) EFFECTIVE-N GROWS AS L2 SAID — BUT DOES NOT CONTROL THE ERROR** (`far_effective_n.py`, 40 subsets per
+size, finite-population corrected). The pre-registered test was a *collapse*: if the loud windows are the
+effective independent draws, σ·√N_eff must be constant across every size **and every rung**. A power-law fit
+cannot distinguish "N_eff controls it" from "n controls it"; the collapse can.
+
+| quantity | predicted | measured |
+|---|---|---|
+| N_eff ~ n^β | β ≈ 1.0 | **β = 0.927** ✓ |
+| σ ~ n^−α | α ≈ 0.5 | **α = 0.10**; per-rung −0.016 [−0.114,+0.070] / 0.052 [−0.030,+0.120] / 0.267 [0.173,0.347] ✗ |
+| σ·√N_eff | constant | **62% scatter, rising 5.7 → 16.7** ✗ |
+
+⇒ **more independent loud windows do not buy threshold precision.** L2's "effective sample size is the
+binding limit" is right that something binds and **wrong about what**: N_eff and σ are decoupled. α is firmly
+below the naive 0.5 at every rung and consistent with zero at two of three — so **more data barely improves
+the absolute precision of a fixed-FAR threshold**, and the relative improvement seen in L2 is substantially
+the threshold *mean* rising (1/month 7.07 → 10.87 across n=20→320), i.e. the known non-convergence, rather
+than the error shrinking.
+
+**(3) A HEAVY-TAIL HYPOTHESIS OF MINE, RAISED AND REFUTED** (`far_sigma_convergence.py`, 200 independent
+draws). Three signs suggested the sampling distribution might have infinite variance — two runs disagreeing
+1.5×, σ rising systematically with rep count, and the threshold being an extreme of a glitch-dominated
+distribution. Had it been true, **no ± would have been quotable at all** — not the original ±33–44%, not
+L2's ±10–12%, not the ±1.7 above. Direct test says **no**: Hill tail index **19.7–195** (infinite variance
+needs < 2), σ flat from m=80 (late-half slope +0.03). σ ≈ 1.85 at n=160, near-identical across rungs. The
+1.5× disagreement was ordinary small-sample SD noise at 10–20 reps. **A ±σ is a legitimate summary.**
+
+**TWO OF MY OWN INSTRUMENTS RETURNED FALSE VERDICTS TONIGHT, both caught by reading the numbers rather than
+the verdict line.** (a) The effective-N "planning number" computed 2^(1/α) with α≈0, printing 10⁵⁵× — now
+suppressed unless α is resolvably > 0.15, with the reason stated. (b) The heavy-tail rule compared σ's growth
+over the *whole* range (dominated by ordinary small-m SD bias, present for any distribution) against the
+quantile range's drift over the *late half* — apples to oranges, and it declared "heavy-tailed" for all three
+rungs. Compared like-for-like, σ's late slope (+0.03) is *flatter* than the IQ range's (+0.06), the opposite
+of the signature. Rule rewritten to use the Hill index as the primary discriminator, with the failure kept in
+the docstring as a warning. Same species as the silent rung-drops: **a confident automated verdict is the
+easiest thing to not check.**
+
+**Net.** The 4,120-yr background, the 1/century reach and the null 4/4 are untouched — this concerns the
+error bar, not the threshold or the search result. What changes: absolute spreads ×4.2, the mechanism claim
+retracted, and "more data fixes the precision" replaced by **more data barely moves it**.
+Artifacts: far_estimator_bias.json, far_effective_n.json, far_sigma_convergence.json.

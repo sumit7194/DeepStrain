@@ -1018,6 +1018,41 @@ print(f"PASS  pbh zero-lag population (KS {z['ks']['stat']:.5f} < crit {z['ks'][
       f"=> assumed there, and unslideable)")
 PYEOFZLP
 
+echo "--- pbh estimator audit (jackknife understates 4.2x, stable in n; N_eff does NOT control the error)"
+./primordial_blackhole_search/.venv/bin/python - << 'PYEOFEST' || FAIL=1
+import json
+R = "primordial_blackhole_search/results/"
+b = json.loads(open(R + "far_estimator_bias.json").read())
+e = json.loads(open(R + "far_effective_n.json").read())
+c = json.loads(open(R + "far_sigma_convergence.json").read())
+
+# (1) the published jackknife is BIASED LOW -- assert we keep saying so, and by how much. If this ever drops
+#     near 1 the estimator changed and every absolute spread in RESULTS.md must be re-derived.
+assert b["mean_bias_at_largest_n"] > 2.0, f"jackknife bias vanished: {b['mean_bias_at_largest_n']}"
+# (2) ...but STABLE in n, which is the only reason L2's 33-44% -> 10-12% RATIO survives. If the bias starts
+#     growing with n, that ratio is inflated by the estimator and the L2 headline needs retracting, not footnoting.
+assert b["mean_bias_growth"] < 1.3, f"bias now GROWS with n ({b['mean_bias_growth']:.2f}x) -- L2 ratio is inflated"
+
+# (3) the mechanism claim, gated as REFUTED so it cannot creep back: N_eff grows ~linearly but the collapse
+#     sigma*sqrt(N_eff) does NOT hold, so N_eff is not what sets the error.
+assert e["beta_mean"] > 0.7, f"N_eff no longer grows ~linearly ({e['beta_mean']:.2f}) -- recheck the L2 story"
+assert not e["collapse_holds"], "collapse now HOLDS -- N_eff would control the error, revisit the retraction"
+assert e["alpha_mean"] < 0.35, f"sigma now falls near the naive 1/sqrt(n) ({e['alpha_mean']:.2f}) -- re-derive"
+assert e["cost_to_halve_sigma"]["segments_factor"] is None, "planning number resurrected from alpha~0"
+
+# (4) a +-sigma is only a legitimate summary because the tail is LIGHT. Hill < 2 would mean infinite variance
+#     and NO error bar would be quotable anywhere in this arc -- including the +-1.7 we now publish.
+assert not c["heavy_tailed_rungs"], f"heavy tail detected -- +-sigma is not quotable: {c['heavy_tailed_rungs']}"
+worst = min(v["hill"] for v in c["by_far"].values())
+assert worst > 2.0, f"Hill index {worst:.1f} <= 2 => infinite variance"
+
+hi = max(v["hill"] for v in c["by_far"].values())
+print(f"PASS  pbh estimator audit (jackknife understates by {b['mean_bias_at_largest_n']:.1f}x but stable in n "
+      f"({b['mean_bias_growth']:.2f}x) => L2's RATIO stands, absolute spreads x4 => 1/decade 14.53 +- ~1.7 not "
+      f"+-0.41; N_eff ~ n^{e['beta_mean']:.2f} yet sigma ~ n^-{e['alpha_mean']:.2f} and the collapse FAILS "
+      f"=> effective-N does NOT control the error; Hill {worst:.0f}-{hi:.0f} >> 2 => sigma converges, +-sigma legitimate)")
+PYEOFEST
+
 echo "========================================"
 [ $FAIL -eq 0 ] && echo "BLACKHOLE GATE: ALL GREEN" || echo "BLACKHOLE GATE: FAILURES"
 exit $FAIL

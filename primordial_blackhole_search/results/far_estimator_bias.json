@@ -1,0 +1,61 @@
+{
+  "pool": 727,
+  "reps": 10,
+  "n_blocks": 10,
+  "by_size": {
+    "100": {
+      "1/month": {
+        "between_subset_sd": 2.0297685893931283,
+        "jackknife_sd": 0.48504455173586464,
+        "bias_ratio": 4.184705471134654,
+        "threshold_mean": 9.314733600616455,
+        "fpc": 0.9286810099042667
+      },
+      "1/year": {
+        "between_subset_sd": 1.9700016275025398,
+        "jackknife_sd": 0.5032448197915045,
+        "bias_ratio": 3.9145989189093218,
+        "threshold_mean": 11.131618785858155,
+        "fpc": 0.9286810099042667
+      },
+      "1/decade": {
+        "between_subset_sd": 2.017977088237784,
+        "jackknife_sd": 0.4841620311540673,
+        "bias_ratio": 4.167978813678668,
+        "threshold_mean": 12.859090042114257,
+        "fpc": 0.9286810099042667
+      }
+    },
+    "320": {
+      "1/month": {
+        "between_subset_sd": 2.439811431098114,
+        "jackknife_sd": 0.5703620946190238,
+        "bias_ratio": 4.2776535364395105,
+        "threshold_mean": 9.847074127197265,
+        "fpc": 0.7482211826069803
+      },
+      "1/year": {
+        "between_subset_sd": 2.2450294784390232,
+        "jackknife_sd": 0.5402998300324838,
+        "bias_ratio": 4.1551548855827845,
+        "threshold_mean": 11.480369186401367,
+        "fpc": 0.7482211826069803
+      },
+      "1/decade": {
+        "between_subset_sd": 2.2731126411386477,
+        "jackknife_sd": 0.5610383212262451,
+        "bias_ratio": 4.051617429929514,
+        "threshold_mean": 13.250109481811524,
+        "fpc": 0.7482211826069803
+      }
+    }
+  },
+  "bias_growth": {
+    "1/decade": 0.9720820596862743,
+    "1/year": 1.061450986846051,
+    "1/month": 1.0222113756741056
+  },
+  "mean_bias_at_largest_n": 4.161475283983936,
+  "mean_bias_growth": 1.0185814740688104,
+  "verdict": "jackknife understates the error, but the bias is stable in n => the published RATIO stands"
+}

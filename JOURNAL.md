@@ -11,6 +11,35 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-08-20 — auditing our own error bars: the jackknife is 4.2× too small
+
+Set out to measure the effective-N scaling law and ended up auditing the estimator behind yesterday's
+headline. Three findings, in the order they forced themselves.
+
+**The jackknife understates the true sampling spread by 4.2×.** Running both estimators on the same subsets
+at the same n removes any sample-size excuse. The mechanism is specific: it drops 10% of segments, and with
+727 in play that almost never removes the one glitchy segment that sets the tail — so it looks calm whatever
+the truth is. The bias is stable in n, which is what saves yesterday's ratio: both endpoints are wrong by the
+same factor, so 33–44% → 10–12% is a real relative improvement. Every absolute number needs ×4.2.
+
+**Effective-N grows linearly, but does not control the error.** I pre-registered a collapse test — σ·√N_eff
+constant across sizes and rungs — precisely because a power-law fit can't tell "N_eff controls it" from "n
+controls it". β = 0.93 confirms L2's growth claim; α = 0.10 and 62% collapse scatter refute the causal one.
+More independent loud windows simply don't buy precision, and most of the relative improvement L2 reported is
+the threshold mean drifting upward, which is the non-convergence we already knew about.
+
+**I proposed a heavy tail and it was wrong.** Two runs disagreeing 1.5× and σ rising with rep count looked
+like infinite variance, which would have meant no ± was quotable anywhere in this arc. Hill index came back
+19.7–195. σ converges; the disagreement was ordinary small-sample SD noise.
+
+Two of my own scripts printed confident false verdicts tonight — a planning number of 10⁵⁵× from dividing by
+α≈0, and a heavy-tail rule that compared growth over one window against drift over another. Both were caught
+by reading the numbers instead of the verdict line, which is the same lesson as the silent rung-drops: the
+conclusion line is the easiest part of your own output to stop checking.
+
+Yesterday's background, reach and null are untouched. What changed is the error bar and the story about what
+limits it.
+
 ## 2026-08-19 (later) — using the 45,073 zero-lag measurements we had been throwing away
 
 Asked what we could do that isn't reimplementing LVK on a laptop. The honest answer: a signal-consistency
