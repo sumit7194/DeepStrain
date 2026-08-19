@@ -983,6 +983,41 @@ print(f"PASS  pbh deep-FAR audit (independence p={v['V1_independence']['p_two_si
       f"L1 {a['zero_lag_L1']:+.1f}; min buys {m['verdict']['1/decade']['min']:.2f}x = no gain; null 4/4)")
 PYEOFAUD
 
+echo "--- pbh zero-lag population (independence verified to 99.98th pctile; 3 of 4 rungs beyond testable data)"
+./primordial_blackhole_search/.venv/bin/python - << 'PYEOFZLP' || FAIL=1
+import json
+R = "primordial_blackhole_search/results/"
+z = json.loads(open(R + "far_zerolag_population.json").read())
+d = json.loads(open(R + "far_deep.json").read())
+
+# (1) THE ASSUMPTION THE 4,120-yr LADDER RESTS ON, tested with the 45,073 zero-lag measurements the deep-FAR
+#     result discards. Time-slides ARE the independence null, so agreement here is a real check, not a tautology.
+assert not z["ks"]["exceeds"], f"zero-lag CDF now differs from background: KS {z['ks']}"
+assert z["max_abs_z"] < 3.0, f"an excess ladder rung exceeds |z|=3 -- INVESTIGATE: {z['excess_ladder']}"
+for t in z["tail_dependence"]:
+    if t["expected"] >= 5:                      # only rungs with usable statistics can constrain anything
+        assert t["p_perm"] > 0.05 / 3, f"tail dependence at pctile {t['pctile']}: {t}"
+
+# (2) the well-populated rungs are the ones that constrain; assert they stay populated, else the precision
+#     quoted in RESULTS.md (+-1% at 10k expected) is no longer supported by the artifact.
+top = max(z["excess_ladder"], key=lambda r: r["expected"])
+assert top["expected"] > 1000 and top["observed"] > 1000, f"shallowest rung lost its statistics: {top}"
+
+# (3) THE STRUCTURAL FINDING, gated so it cannot quietly erode: the claim-capable rungs sit BEYOND every
+#     zero-lag sample we have, so independence there is ASSUMED, not verified -- and sliding cannot fix it
+#     (slides make more pairs, never new zero-lag samples). If this ever becomes false we have enough real
+#     observing time to test the assumption directly, which would be a genuine change in what we can claim.
+assert d["zero_lag_max"] < d["far_ladder"]["1/year"], "1/year is now within zero-lag reach -- re-derive scope"
+assert d["far_ladder"]["1/century"] > d["zero_lag_max"], "1/century now testable -- update the structural claim"
+
+print(f"PASS  pbh zero-lag population (KS {z['ks']['stat']:.5f} < crit {z['ks']['crit95']:.5f} => CDFs agree to "
+      f"~0.2% everywhere; max |z| {z['max_abs_z']:.2f} over {len(z['excess_ladder'])} rungs; 90th-pctile joint "
+      f"exceedances {z['tail_dependence'][0]['observed']} vs {z['tail_dependence'][0]['expected']:.1f} expected "
+      f"=> no correlated noise, no sub-threshold population; independence verified to the 99.98th pctile but "
+      f"1/year+ sit beyond ALL zero-lag data (max {d['zero_lag_max']:.2f} < {d['far_ladder']['1/year']:.2f}) "
+      f"=> assumed there, and unslideable)")
+PYEOFZLP
+
 echo "========================================"
 [ $FAIL -eq 0 ] && echo "BLACKHOLE GATE: ALL GREEN" || echo "BLACKHOLE GATE: FAILURES"
 exit $FAIL

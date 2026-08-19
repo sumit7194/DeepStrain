@@ -218,6 +218,27 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   checkpoints (never re-fetch a done segment), raw strain purged — **and the purge must clear astropy's download
   cache too** (`gwpy` keeps a 2nd copy, ~0.25 GB/segment, 5.3 GB accumulated; would have exhausted disk ~segment
   80 — caught mid-run, fixed, disk then flat at 19 GB). Gated (45). Artifacts: far_deep.json, results/far_scores/.
+- **ZERO-LAG POPULATION TEST DONE (2026-08-19): independence verified to the 99.98th pctile — and a
+  STRUCTURAL limit of time-slides found.** Every deep-FAR result had compared ONE number (the loudest zero-lag
+  coincidence) and discarded the other **45,073 zero-lag measurements** in the cache. `far_zerolag_population.py`
+  uses them: under H1⊥L1 the zero-lag sum and the slid sum are the SAME distribution, so **the time-slide
+  background IS the independence null** — assumption-free, same windows, same noise. **Golden test first:**
+  silent under true independence (|z|≤0.66), detects a planted 1% shared-noise component at **z=+6.35**, and
+  only at the DEEPEST rung ⇒ correlated noise in a small fraction of windows is invisible in the bulk.
+  **RESULT CLEAN:** excess ladder ratios 1.00/1.00/1.03/0.80 (max |z| 1.00 vs bar 3), tail dependence 451 obs
+  vs 450.7 exp at the 90th pctile (p=1.000), **KS 0.00214 vs crit 0.00640** ⇒ the zero-lag and background CDFs
+  agree to ~0.2% EVERYWHERE. No correlated noise, **no sub-threshold population**. Independence now verified to
+  the **99.98th pctile** (±3.2% at the 97.8th) vs "the bulk" before — the assumption the committed 4,120-yr
+  ladder depends on, tested near where it is used. **THE STRUCTURAL FINDING: 3 of 4 rungs sit BEYOND ALL
+  zero-lag data** (1/year 12.799, 1/decade 14.532, 1/century 16.394 all have **0** zero-lag events at/above;
+  zero-lag max is 11.295, verification reaches ~7.5). **The gap CANNOT be closed by sliding** — slides make
+  more PAIRS but zero new zero-lag samples; testing independence at 14.5 needs ~a decade of real observing at
+  that FAR and we have 0.0914 yr. ⇒ **every factor of depth gained in a time-slide background moves the
+  threshold further past the regime where the independence it assumes can be verified.** L2 showed livetime
+  doesn't buy independent SAMPLES; this shows it doesn't buy VERIFICATION REACH either, and no computation
+  substitutes for observing time. General to time-slide searches, not our pipeline. Scope: constraining rungs
+  are the populated ones (±1% @10k, ±3.2% @1k); @10-expected is ±35% and the 99.9th dependence test is
+  uninformative (expected 0.0). Gated. Artifact: far_zerolag_population.json.
 - **L2 DEEP FAR DONE (2026-08-19): 4,120-yr background — 1/century reached, precision FIXED, null 4/4.**
   The 08-09 audit's prescription was "more independent loud-noise samples"; background grows as N_segments², so
   `far_deep.py` was run out to **727 O4b segments** (from 100) — **45,074 windows, 801.3 h, 45,073 lags →

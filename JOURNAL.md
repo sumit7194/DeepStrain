@@ -11,6 +11,33 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-08-19 (later) — using the 45,073 zero-lag measurements we had been throwing away
+
+Asked what we could do that isn't reimplementing LVK on a laptop. The honest answer: a signal-consistency
+veto — my first suggestion — is the most standard tool in the field and would have taught us nothing. Dropped
+it. What *is* ours: we had 45,074 zero-lag coincidence measurements and had only ever looked at the maximum.
+
+`far_zerolag_population.py` uses the whole distribution. The trick is that the time-slide background is
+itself the independence null (same windows, same noise, no model), so comparing the two distributions tests
+H1⊥L1 and searches for a diffuse sub-threshold population at the same time. Golden-tested before running:
+silent under true independence, catches a planted 1% shared-noise component at z=+6.35 — and only in the deep
+tail, which says correlated noise in a few percent of windows is invisible in the bulk.
+
+**Clean.** CDFs agree to 0.2% everywhere (KS 0.00214 vs crit 0.00640), joint exceedances 451 vs 450.7
+expected, no excess at any rung. Independence is now verified to the **99.98th percentile** rather than just
+the bulk — which matters, because the 4,120-yr ladder committed this morning rests on it.
+
+**The better result is structural.** Three of four rungs sit beyond *all* zero-lag data — 1/year, 1/decade
+and 1/century have zero zero-lag events at or above them, and the 1/century threshold is above the zero-lag
+maximum entirely. That gap cannot be closed by sliding, because slides make more pairs and no new zero-lag
+samples. So: **every factor of depth gained in a time-slide background pushes the threshold further beyond
+the regime where the independence it assumes can be verified.** L2 showed livetime doesn't buy independent
+samples; this shows it doesn't buy verification reach either, and unlike the first, no amount of compute
+substitutes for real observing time.
+
+Also guarded a one-sidedness column that silently inverted meaning when the louder detector's score is
+negative — true at the shallow rungs, where it would have read as "95% one-sided" for no physical reason.
+
 ## 2026-08-19 — L2 deep FAR lands: 4,120 years, 1/century, and the audit answered
 
 **Ran to completion.** `far_deep.py --target 727 --purge` finished all 727 O4b segments after **three power

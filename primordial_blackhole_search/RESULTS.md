@@ -1341,3 +1341,67 @@ volume becomes a silent truncation when the data grows.*
 and the remaining limit is named and measured: **independent loud-noise samples, not livetime** — which is why
 real LVK searches lean on signal-consistency vetoes and DQ flags rather than raw time-slides.
 Artifacts: far_deep.json, far_background_validation.json, far_glitch_anatomy.json, far_min_vs_sum.json.
+
+### The 45,073 zero-lag measurements we had been discarding — independence verified to the 99.98th percentile, and a structural limit found (2026-08-19)
+
+**The gap this fills.** Every deep-FAR result so far compared exactly *one* number — the loudest zero-lag
+coincidence — against a threshold, discarding the other 45,073 zero-lag measurements sitting in the cache.
+Two questions live in the discarded part, neither answerable from a maximum: **(Q1)** is H1⊥L1, the
+assumption the entire 4,120-yr ladder rests on, true *where the ladder uses it*? We had verified it only via
+the **bulk** correlation (r = −0.0022, p = 0.65) — the one place it is easiest to satisfy. **(Q2)** is there
+a **sub-threshold population**? A real subsolar population too faint to produce any loud event would appear
+only as a diffuse statistical excess across the whole distribution.
+
+**The null is assumption-free.** Under H1⊥L1, the zero-lag sum `H_i + L_i` and the slid sum `H_i + L_j` are
+draws from the same distribution — so the time-slide background *is* the independence null, built from the
+same windows and the same noise. No model of either detector's score distribution is required.
+
+**GOLDEN TEST FIRST.** On synthetic data the instrument is silent under true independence (|z| ≤ 0.66) and
+detects a planted 1% shared-noise component at **z = +6.35** — and, informatively, *only at the deepest
+rung*: correlated noise affecting a small fraction of windows is invisible in the bulk. Exactly the regime
+we had never examined.
+
+**RESULT — CLEAN, in bulk and tail.**
+
+| expected | threshold | observed | ratio | z |
+|---|---|---|---|---|
+| 9,998.6 | −0.900 | 10,010 | 1.00 | +0.11 |
+| 999.5 | 1.095 | 997 | 1.00 | −0.08 |
+| 100.0 | 3.734 | 103 | 1.03 | +0.30 |
+| 10.0 | 7.456 | 8 | 0.80 | −0.63 |
+
+**KS(zero-lag, background) = 0.00214** against a 0.00640 critical value — the two CDFs agree to ~0.2%
+*everywhere*, not merely above some threshold. Joint exceedances at the 90th percentile: **451 observed vs
+450.7 expected** (perm p = 1.000); 99th: 4 vs 4.5. Median shift +0.0018. **No correlated noise, no
+sub-threshold population.**
+
+**Independence is now verified to the 99.98th percentile** (score 7.456), with ±3.2% precision at the 97.8th
+and ±9.9% at the 99.77th — versus "the bulk" previously.
+
+**THE STRUCTURAL FINDING (the part worth keeping).** Three of our four rungs sit **beyond all zero-lag data**:
+
+| rung | threshold | zero-lag events at/above |
+|---|---|---|
+| 1/month | 11.246 | 1 |
+| 1/year | 12.799 | **0 — beyond all data** |
+| 1/decade | 14.532 | **0** |
+| 1/century | 16.394 | **0** |
+
+Verification reaches score ~7.5; the 1/century threshold is 16.4, itself above the zero-lag maximum of
+11.295. **And this gap cannot be closed by sliding**: time-slides manufacture more *pairs* but zero new
+zero-lag samples. Testing independence at amplitude 14.5 requires observing until a real event of that
+amplitude occurs — about a decade at 1/decade FAR. We have 0.0914 yr.
+
+⇒ **Every factor of depth gained in a time-slide background moves the threshold further past the regime
+where the independence it assumes can be empirically verified.** L2 showed livetime does not buy independent
+*samples*; this shows it does not buy *verification reach* either — and unlike the first limit, no amount of
+computation substitutes for real observing time. This is a general property of time-slide backgrounds, not
+of our pipeline.
+
+**Honest scope.** The constraining rungs are the well-populated ones (±1% at 10,000 expected, ±3.2% at
+1,000); the 10-expected rung carries ±35% and the 99.9th-percentile dependence test has expected 0.0 and is
+uninformative. So: independence is **verified** to ~99.98th percentile, **assumed** where the claims live,
+and that assumption is **untestable with this much observing time** by construction. A one-sidedness column
+was guarded after the fact — `min < 0.15·max` inverts meaning once the louder detector is itself negative,
+which it is at the shallow rungs, so it is now computed only where max > 0 and reports its sub-sample size.
+Artifact: far_zerolag_population.json.

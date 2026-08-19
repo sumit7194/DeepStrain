@@ -1,0 +1,85 @@
+{
+  "n_windows": 45074,
+  "n_bg_pairs": 2031620402,
+  "livetime_h": 801.3155555555555,
+  "background_years": 4119.889281622307,
+  "excess_ladder": [
+    {
+      "expected": 9998.598673263372,
+      "threshold": -0.8995481172343114,
+      "observed": 10010,
+      "ratio": 1.0011402924658948,
+      "z": 0.11402125669796022,
+      "one_sided_frac": 0.9549653579676675,
+      "one_sided_n": 7794
+    },
+    {
+      "expected": 999.4510017083397,
+      "threshold": 1.094586493869775,
+      "observed": 997,
+      "ratio": 0.997547651956774,
+      "z": -0.07752876397435064,
+      "one_sided_frac": 0.8134403209628887,
+      "one_sided_n": 997
+    },
+    {
+      "expected": 99.99968939276285,
+      "threshold": 3.7344573126641407,
+      "observed": 103,
+      "ratio": 1.0300031992644798,
+      "z": 0.300031526683895,
+      "one_sided_frac": 0.8446601941747572,
+      "one_sided_n": 103
+    },
+    {
+      "expected": 9.998846315976305,
+      "threshold": 7.456496914070356,
+      "observed": 8,
+      "ratio": 0.8000923053710188,
+      "z": -0.632127169914769,
+      "one_sided_frac": 1.0,
+      "one_sided_n": 8
+    },
+    {
+      "expected": 0.999778137687751,
+      "threshold": 11.351039509516717,
+      "observed": 0,
+      "ratio": 0.0,
+      "z": -0.9998890626903322,
+      "one_sided_frac": NaN,
+      "one_sided_n": 0
+    }
+  ],
+  "max_abs_z": 0.9998890626903322,
+  "bonferroni_bar": 3.0,
+  "tail_dependence": [
+    {
+      "pctile": 90.0,
+      "observed": 451,
+      "expected": 450.7399999999998,
+      "ratio": 1.0005768292141817,
+      "p_perm": 1.0
+    },
+    {
+      "pctile": 99.0,
+      "observed": 4,
+      "expected": 4.5074000000000085,
+      "ratio": 0.8874295602786512,
+      "p_perm": 0.829
+    },
+    {
+      "pctile": 99.9,
+      "observed": 0,
+      "expected": 0.04507399999999007,
+      "ratio": 0.0,
+      "p_perm": 1.0
+    }
+  ],
+  "ks": {
+    "stat": 0.002142459780239969,
+    "crit95": 0.006396416277107287,
+    "exceeds": false
+  },
+  "median_shift": 0.0018082797680474272,
+  "verdict": "CLEAN \u2014 zero-lag matches the independence null in bulk and tail"
+}
