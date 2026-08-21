@@ -1535,3 +1535,54 @@ identified. Recorded, not rationalised.
 — the known non-convergence — so relative precision improves faster than absolute. Same data, two different
 quantities; do not quote one as the other.
 Artifacts: far_null_precision.json, far_jacobian_check.json.
+
+### `sum` survives a real objection: equalising the 2× noise-tail asymmetry HURTS (2026-08-22)
+
+**Where the objection came from.** `bridge` (TheBridge/G3) reported a statistic whose *gain* varied 2.1× along
+a comparison axis — manufacturing structure with no physics in it — and, the part that transfers, **16× more
+data bought essentially nothing**, because a systematic gain variation does not average down at any N.
+Checking our own exposure found the reassuring answer on their axis and an unexamined one next to it:
+
+| | H1 | L1 | ratio |
+|---|---|---|---|
+| gain (planted SNR → score), O4b | 0.4735 | 0.4613 | **0.97×** |
+| noise q99.9 | 5.402 | 3.417 | 1.58× |
+| noise max | 12.532 | 6.370 | **1.97×** |
+| Hill index (top 1%) | 3.84 | 5.57 | H1 genuinely heavier |
+
+For an unweighted `sum`, **the detector with the heavier noise tail dominates the false-alarm rate regardless
+of its gain.** G2a and the L2 audit both tested `sum` against `min`/`veto` and kept `sum`, but neither tested
+a statistic that *equalises the tails* — so the ~2× asymmetry had never actually been challenged.
+
+**The candidate.** `coinc_tailnorm.py`: map each detector's score to its own noise tail-probability
+`u_d(s) = −log₁₀ P(S_d ≥ s)` before summing, so each contributes at equal **rarity** rather than equal
+**score**. In-sample it looked like a win: **+5.2% / +5.1% / 0.0%** sensitive distance at 1/month / 1/year /
+1/decade.
+
+**IT DOES NOT SURVIVE (`coinc_tailnorm_stress.py`).** Fitting the map on a random half of *segments* and
+building the background on the other half — segment-level so within-segment correlation cannot leak:
+
+| FAR | in-sample | held-out | bootstrap 90% CI | P(>1) |
+|---|---|---|---|---|
+| 1/month | 1.052× | **0.983×** | [0.962, 0.997] | 0.02 |
+| 1/year | 1.051× | **0.962×** | [0.932, 0.981] | 0.00 |
+| 1/decade | 1.000× | **0.946×** | [0.903, 0.972] | 0.00 |
+
+The gain was **entirely in-sample**: the map was flattening the specific noise realisation whose own
+time-slides then formed the background, lowering the matched-FAR threshold without buying discrimination.
+Held out it is *significantly worse* than `sum` — every CI excludes 1 on the low side. Note this is the
+**confounding** direction, not overfitting: a map fitted to a realisation generalises badly to a fresh one
+precisely because it encoded that realisation. Same species as the tabula warning.
+
+**A MECHANISM I PROPOSED AND REFUTED IN THE SAME RUN.** I predicted the 1/decade zero came from *censoring* —
+the empirical map floors at `u_max = log₁₀(N) = 4.65` past the loudest observed noise window, so deep rungs
+would degenerate to a constant, which would have tied neatly to the zero-lag population finding that our deep
+rungs sit beyond all observed data. Measured: **0.0% of the background sits at the ceiling at any rung**
+(thresholds 5.26 / 6.10 / 6.80 against a ceiling of 8.71). The zero was just the artefact fading where the
+background thins. A tidy mechanism, and fiction.
+
+**Net: `sum` stands — and is now vindicated *against the specific objection* rather than merely untested.**
+The honest reading is stronger than "no change": equalising the tails actively **costs** 2–5% of reach, so
+the tail asymmetry is carrying real information that a rarity transform discards. Artifacts:
+coinc_tailnorm.json, coinc_tailnorm_stress.json. Objection and the gain-axis framing: `bridge` via the
+cross-session channel.

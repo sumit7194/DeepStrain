@@ -218,6 +218,23 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   checkpoints (never re-fetch a done segment), raw strain purged — **and the purge must clear astropy's download
   cache too** (`gwpy` keeps a 2nd copy, ~0.25 GB/segment, 5.3 GB accumulated; would have exhausted disk ~segment
   80 — caught mid-run, fixed, disk then flat at 19 GB). Gated (45). Artifacts: far_deep.json, results/far_scores/.
+- **TAIL-NORM TEST DONE (2026-08-22): `sum` survives a REAL objection — equalising the 2x noise-tail
+  asymmetry HURTS.** From `bridge` (TheBridge/G3): a statistic whose GAIN varies along a comparison axis
+  manufactures structure, and 16x more data bought them ~nothing (systematic variation doesn't average down).
+  Our gain axis is fine (**L1/H1 0.97x O4b, 1.10x O3a**) — but measuring the NOISE distributions found a
+  bigger, unexamined asymmetry: **q99.9 ratio 1.58x, max ratio 1.97x (H1 12.53 vs L1 6.37), Hill 3.84 vs
+  5.57 ⇒ H1's tail is genuinely HEAVIER.** For unweighted `sum` the heavier-tailed detector sets the FAR
+  regardless of gain, and G2a/L2 had only ever tested `sum` vs `min`/`veto`, never vs a tail-EQUALISING
+  statistic ⇒ the objection was live. `coinc_tailnorm.py` (u_d = −log10 P(S_d ≥ s), sum of rarities) looked
+  like **+5.2%/+5.1%/0.0%** in-sample. **`coinc_tailnorm_stress.py` KILLS IT:** fit the map on half the
+  SEGMENTS, background on the other half ⇒ **0.983/0.962/0.946x, every bootstrap 90% CI excluding 1 on the
+  LOW side (P(>1)=0.02/0.00/0.00)** ⇒ the gain was the map flattening the very realisation whose slides made
+  the background — **confounding, not overfitting** (tabula species). **MY OWN MECHANISM FOR THE 1/decade
+  ZERO WAS ALSO REFUTED:** I predicted censoring at the map's ceiling u_max=log10(N)=4.65, tying it to the
+  zero-lag "deep rungs sit beyond all data" finding; measured **0.0% censored at every rung** (thr 5.26/6.10/
+  6.80 vs ceiling 8.71) — the zero was just the artefact fading. **Net: keep `sum`, now vindicated against
+  the specific objection rather than untested — and equalising tails COSTS 2–5% reach, so the asymmetry
+  carries real information a rarity transform discards.** Gated. Artifacts: coinc_tailnorm{,_stress}.json.
 - **ZERO-LAG POPULATION TEST DONE (2026-08-19): independence verified to the 99.98th pctile — and a
   STRUCTURAL limit of time-slides found.** Every deep-FAR result had compared ONE number (the loudest zero-lag
   coincidence) and discarded the other **45,073 zero-lag measurements** in the cache. `far_zerolag_population.py`

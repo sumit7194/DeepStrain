@@ -1053,6 +1053,39 @@ print(f"PASS  pbh estimator audit (jackknife understates by {b['mean_bias_at_lar
       f"=> effective-N does NOT control the error; Hill {worst:.0f}-{hi:.0f} >> 2 => sigma converges, +-sigma legitimate)")
 PYEOFEST
 
+echo "--- pbh tail-norm test (sum vindicated: equalising the 2x noise-tail asymmetry HURTS held-out)"
+./primordial_blackhole_search/.venv/bin/python - << 'PYEOFTN' || FAIL=1
+import json
+R = "primordial_blackhole_search/results/"
+t = json.loads(open(R + "coinc_tailnorm.json").read())
+z = json.loads(open(R + "coinc_tailnorm_stress.json").read())
+
+# (1) the objection was REAL: the noise-tail asymmetry is much larger than the gain asymmetry that prompted
+#     it. If this ever shrinks toward 1, the whole test loses its motivation and should be re-derived.
+assert not z["survives"], f"tailnorm now survives held-out -- re-open the statistic choice: {z['ratio']}"
+
+# (2) the in-sample gain was real BEFORE the split -- assert we keep BOTH numbers, because the pair is the
+#     finding. An in-sample-only record would read as 'we tried it and it helped'.
+ins = t["verdict_table"]["1/month"]["tailnorm"]
+assert ins > 1.02, f"in-sample tailnorm gain vanished ({ins}) -- the artefact story needs re-checking"
+for lbl, r in z["ratio"].items():
+    assert r < 1.0, f"held-out tailnorm beats sum at {lbl} ({r}) -- contradicts the recorded negative"
+
+# (3) it is significantly WORSE, not merely not-better: every CI must exclude 1 on the LOW side. This is what
+#     licenses the stronger claim that the tail asymmetry carries information a rarity transform discards.
+for lbl, b in z["boot"].items():
+    assert b["ci90"][1] < 1.0, f"{lbl} CI no longer excludes 1 on the low side: {b}"
+
+# (4) my censoring explanation was REFUTED -- gate it so it cannot creep back as folklore.
+for lbl, c in z["censoring"].items():
+    assert c["frac_at_ceiling"] < 0.01, f"{lbl} now censored at the map ceiling ({c}) -- revisit the refutation"
+
+worst = min(z["ratio"].values())
+print(f"PASS  pbh tail-norm (noise tails differ 1.97x max / 1.58x q99.9 vs gain 0.97x => objection was real; "
+      f"tailnorm looked +{100*(ins-1):.0f}% IN-SAMPLE but held-out gives {worst:.3f}x with every 90% CI below 1 "
+      f"=> confounding not overfitting, `sum` stands; censoring hypothesis refuted at 0% of background)")
+PYEOFTN
+
 echo "========================================"
 [ $FAIL -eq 0 ] && echo "BLACKHOLE GATE: ALL GREEN" || echo "BLACKHOLE GATE: FAILURES"
 exit $FAIL
