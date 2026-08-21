@@ -1,0 +1,59 @@
+{
+  "rows": [
+    {
+      "n": 40,
+      "dlnC_dS": 1.0242168466901431,
+      "sd_threshold": 2.9530544191874384,
+      "pred_sd_dex": 1.3135532295971357,
+      "meas_sd_dex": 1.4167689416801,
+      "ratio_meas_over_pred": 1.0785774871983074,
+      "mean_count_at_S0": 293.475
+    },
+    {
+      "n": 80,
+      "dlnC_dS": 1.154095189474999,
+      "sd_threshold": 2.172683636261421,
+      "pred_sd_dex": 1.0889863486434195,
+      "meas_sd_dex": 1.20554180546606,
+      "ratio_meas_over_pred": 1.107031145953149,
+      "mean_count_at_S0": 551.2
+    },
+    {
+      "n": 160,
+      "dlnC_dS": 1.1237210643324027,
+      "sd_threshold": 2.0277641538331412,
+      "pred_sd_dex": 0.9896013398564826,
+      "meas_sd_dex": 1.1072343709201886,
+      "ratio_meas_over_pred": 1.1188691105458344,
+      "mean_count_at_S0": 2144.725
+    },
+    {
+      "n": 240,
+      "dlnC_dS": 1.1056544080731305,
+      "sd_threshold": 1.9609869187606466,
+      "pred_sd_dex": 0.9416259305675359,
+      "meas_sd_dex": 1.240125813617712,
+      "ratio_meas_over_pred": 1.3170047397380662,
+      "mean_count_at_S0": 4303.375
+    },
+    {
+      "n": 320,
+      "dlnC_dS": 1.0800521101024991,
+      "sd_threshold": 2.275781243183345,
+      "pred_sd_dex": 1.0674794783092154,
+      "meas_sd_dex": 1.46005816694687,
+      "ratio_meas_over_pred": 1.367762281725042,
+      "mean_count_at_S0": 11049.55
+    }
+  ],
+  "ratio_mean": 1.19784895303208,
+  "ratio_range": [
+    1.0785774871983074,
+    1.367762281725042
+  ],
+  "tracks_within_2x": true,
+  "ratio_trend_large_over_small_n": 1.2681168464566377,
+  "reference_far": "1/decade",
+  "s_obs": 11.295368194580078,
+  "verdict": "TRACKS \u2014 the FAR spread is the threshold spread pushed through a steep tail, so the two summaries carry the same information and neither escapes the glitch limit"
+}

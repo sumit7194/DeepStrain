@@ -1473,3 +1473,65 @@ easiest thing to not check.**
 error bar, not the threshold or the search result. What changes: absolute spreads ×4.2, the mechanism claim
 retracted, and "more data fixes the precision" replaced by **more data barely moves it**.
 Artifacts: far_estimator_bias.json, far_effective_n.json, far_sigma_convergence.json.
+
+### Are we quoting the wrong number? Threshold-at-fixed-FAR vs FAR-of-the-observed-event — a pre-registered refutation (2026-08-21)
+
+**The idea, and why it looked promising.** Two results said the deep-FAR ladder saturates: the threshold at a
+fixed FAR barely improves with data (σ ~ n^−0.10 absolute), and 3 of 4 rungs sit beyond any zero-lag sample.
+Both concern an *extreme quantile* estimated by extrapolating into a sparse, glitch-dominated tail. But a
+null result is a statement about the event we **observed**, and the natural statistic — the FAR of the
+loudest zero-lag event — is a **count** in a region holding ~47,500 background events. Interpolation where
+the data is thick, rather than extrapolation where it is thin.
+
+**REFUTED, as pre-registered.** `far_null_precision.py`, 40 subsets per size, FPC-corrected, both summaries
+computed on the *same* subsets so no seed or sample-size difference can explain a gap:
+
+| summary | relative spread ~ n^−α |
+|---|---|
+| threshold 1/month / 1/year / 1/decade | 0.214 / 0.252 / 0.308 (mean **0.258**) |
+| **FAR at the observed 11.295** | **0.283** |
+
+The FAR of our loudest event converges at essentially the **same rate** as the threshold. ⇒ **no choice of
+summary statistic escapes the glitch limit; the uncertainty is a property of the deep tail, not of how we
+describe it.**
+
+**THE STRUCTURE OF THE REFUTATION IS THE USEFUL PART.** Sweeping the probe value S₀ shows convergence is
+governed by how densely the background populates that amplitude:
+
+| S₀ | mean background count | α |
+|---|---|---|
+| 7.5 | 22,634 | **0.969** |
+| 9.5 | 7,036 | 0.389 |
+| 11.295 (observed) | 2,145 | 0.283 |
+| 13.0 | 138 | **0.019** |
+
+The interpolation/extrapolation intuition was right about the **mechanism** and wrong about **where our event
+sits**: 11.295 is already in the sparse regime. A FAR *is* well determined — but only at amplitudes where
+background events are plentiful, which is precisely not where a loudest-event claim lives. The caveat
+pre-registered in the docstring turned out to be the entire result.
+
+**MECHANISM CONFIRMED BY AN INVARIANT THAT CANNOT BE VIOLATED** (`far_jacobian_check.py`; the check, and the
+principle of seeking a quantity the machinery cannot violate even when wrong, came from `ansatz` via the
+cross-session coordination channel). If S → FAR is a deterministic monotone map then the FAR spread is
+*forced*: σ(ln FAR) = |d(ln FAR)/dS| · σ(S). Predicting the FAR spread from the **measured** threshold spread,
+with the derivative measured from our own probe counts at each n:
+
+| n | d(lnC)/dS | σ(thr) | predicted (dex) | measured (dex) | ratio |
+|---|---|---|---|---|---|
+| 40 | 1.024 | 2.953 | 1.314 | 1.417 | 1.08 |
+| 160 | 1.124 | 2.028 | 0.990 | 1.107 | 1.12 |
+| 320 | 1.080 | 2.276 | 1.067 | 1.460 | 1.37 |
+
+**Tracks within 8–37% across an 8× range in n** ⇒ the two summaries carry the same information, established
+by a relation that must hold rather than by argument. Our ±1.7 on the threshold simply **is** a ×/÷17 on the
+rate, because the count falls 293 → 17 between 11.3 and 13.0.
+
+**An unexplained residual, kept as such.** Measured runs ~20% above predicted and the excess *grows* with n
+(1.08 → 1.37). A pure counting-noise explanation predicts the opposite trend, so the extra term is not
+identified. Recorded, not rationalised.
+
+**Note on comparing α's across our own scripts.** `far_effective_n` measured α on the **absolute** spread
+(0.10); this measures the **relative** spread (0.258). They differ because the threshold *mean* rises with n
+— the known non-convergence — so relative precision improves faster than absolute. Same data, two different
+quantities; do not quote one as the other.
+Artifacts: far_null_precision.json, far_jacobian_check.json.
