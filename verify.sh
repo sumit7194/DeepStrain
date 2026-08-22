@@ -702,34 +702,40 @@ print(f"PASS  ringdown delta-wall re-measured ({d['n_analyzed']} events from the
       f"{d['snr_needed_for_information']:.0f} -- only GW250114 clears it)")
 PYEOFE26
 
-echo "--- echoes L4 coherent network (1.12x at 3.2 sigma) + the injection-convention finding"
+echo "--- echoes L4 (RETRACTED: the 3.2 sigma was an analytic artefact; 0.96 sigma on a paired bootstrap)"
 ./echoes/.venv/bin/python - << 'PYEOFL4' || FAIL=1
 import json
 d = json.loads(open("echoes/results/20_coherent_network.json").read())
+z = json.loads(open("echoes/results/24_l4_significance_stress.json").read())
 
-# (1) GOLDEN TEST: the H1/L1 geometry is MEASURED from the merger, not recited. If we cannot recover the
-#     published ~6.9 ms delay from our own data, nothing coherent built on it means anything.
+# (1) GOLDEN TEST, unaffected by the retraction: the H1/L1 geometry is MEASURED from the merger, not recited.
 assert d["golden_delay_ok"], f"H1-L1 geometry no longer recovered: {d['delay_ms']} ms"
 assert abs(abs(d["delay_ms"]) - 6.9) < 3.0, f"measured delay drifted: {d['delay_ms']}"
 assert d["sign"] < 0, "relative polarity flipped -- GW150914's detectors are anti-aligned"
 
-# (2) THE RESULT: coherent network combination genuinely helps, and only because it is SIGNIFICANT.
-#     An earlier run printed the same verdict at 1.4 sigma; the significance gate exists to stop that.
-sig = d["significance"]["physical"]
-assert d["coherent_helps"], f"coherent gain lost: {d['gain']['physical']} at {sig['n_sigma']} sigma"
-assert sig["n_sigma"] > 2.0, f"verdict must not be claimed below 2 sigma: {sig['n_sigma']}"
-assert 1.05 < d["gain"]["physical"] < 1.4, f"gain moved materially: {d['gain']['physical']}"
+# (2) THE RETRACTION (2026-08-22), gated so it cannot be quietly re-asserted. 20_'s 3.17 sigma came from an
+#     analytic binomial bar missing three terms: the slope denominator came from two adjacent grid points;
+#     the two statistics are PAIRED but were combined with hypot() as if independent; and the 95th-percentile
+#     threshold from n_bg=60 carried no uncertainty at all. A paired bootstrap resampling trials AND
+#     background gives sd 4.00x larger -> 0.96 sigma, gain CI spanning 1.
+assert not z["survives"], f"L4 now survives the bootstrap -- re-open the retraction deliberately: {z['bootstrap']}"
+assert z["bootstrap"]["n_sigma"] < 2.0, f"bootstrap significance now above 2: {z['bootstrap']['n_sigma']}"
+lo, hi = z["bootstrap"]["gain_ci90"]
+assert lo < 1.0 < hi, f"gain CI no longer spans 1 -- the claim may be recoverable, re-derive: {[lo, hi]}"
+assert z["sd_ratio_boot_over_analytic"] > 2.0, \
+    f"analytic bar no longer understates ({z['sd_ratio_boot_over_analytic']:.2f}x) -- recheck the retraction"
 
-# (3) THE METHODOLOGICAL FINDING, which is the more important half: the injection convention DECIDES the
-#     answer. Physically-injected signals (measured delay + polarity + SHARED carrier phase) let coherence
-#     work; the convention every existing echo script uses cancels it.
+# (3) THE FINDING THAT SURVIVES, and was always the more important half: the injection CONVENTION decides the
+#     answer. Physical injections (measured delay + polarity + shared carrier phase) vs the convention every
+#     existing echo script uses. This is a large effect, unaffected by the significance retraction.
 assert d["injection_convention_matters"], "convention effect vanished -- re-derive before trusting either arm"
 assert d["gain"]["identical"] < 1.0, f"identical-injection arm no longer loses: {d['gain']['identical']}"
 
-print(f"PASS  echoes L4 coherent network (geometry measured from the merger: {d['delay_ms']:+.2f} ms, sign "
-      f"{d['sign']:+.0f}; coherent {d['gain']['physical']:.2f}x at {sig['n_sigma']:.1f} sigma on PHYSICAL "
-      f"injections vs {d['gain']['identical']:.2f}x on the existing identical-injection convention => the "
-      f"convention decides the answer)")
+print(f"PASS  echoes L4 RETRACTED (geometry still measured: {d['delay_ms']:+.2f} ms, sign {d['sign']:+.0f}; "
+      f"the 3.17-sigma 'coherent helps' verdict was an ANALYTIC artefact -- paired bootstrap gives sd "
+      f"{z['sd_ratio_boot_over_analytic']:.2f}x larger, {z['bootstrap']['n_sigma']:.2f} sigma, gain CI "
+      f"[{lo:.2f}, {hi:.2f}] spanning 1 => UNDERPOWERED not a result; the injection-convention finding "
+      f"STANDS: physical {d['gain']['physical']:.2f}x vs identical {d['gain']['identical']:.2f}x)")
 PYEOFL4
 
 echo "--- pbh confound check (tabula mechanism): no per-segment channel behind the learned coincidence gain"

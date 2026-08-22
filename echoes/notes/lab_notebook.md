@@ -564,3 +564,56 @@ estimated from un-injected data).
 sensitivity question but a **model-dependence** question, which is a more useful answer than a number would
 have been. The ceiling remains unmeasured. Gated (52) on what is solid — the geometry golden test and the
 network reproduction. Artifact: results/21_within_detector_phase.json.
+
+## L4 RETRACTED (2026-08-22): the 3.2 sigma was an analytic artefact — 0.96 sigma on a paired bootstrap
+
+**What is withdrawn.** `20_coherent_network.py` concluded *"coherent network combination helps, 1.12x at
+3.17 sigma"*, and `verify.sh` gated it at gain > 1.10 and sigma > 2.0. Both criteria were marginal (1.1248
+and 3.17), so the claim only ever stood if the error bar was right. It was not.
+
+**Why it was suspect before it was tested.** Three terms the analytic bar omits:
+1. **The slope denominator is two adjacent grid points.** `err = sqrt(0.25/n_trials) / slope`, with
+   `slope = (y[i]-y[i-1])/(a[i]-a[i-1])` on a 6-point amplitude grid — a noisy denominator makes the error
+   bar itself noisy, in an uncontrolled direction.
+2. **The two statistics are PAIRED but combined as independent.** `a, b = scores(...)` returns both from the
+   same trial — same noise, same injection, same sky position — yet the difference used `hypot()`. This term
+   could have pushed significance UP; the sign was not knowable in advance.
+3. **Threshold uncertainty is entirely absent.** `th` is the 95th percentile of only **60** background draws;
+   that quantile has real sampling error and it shifts every efficiency point coherently.
+
+**The test** (`24_l4_significance_stress.py`): re-run the identical protocol retaining per-trial outcomes
+(20_ keeps only counts, which is precisely why it could not bootstrap), then resample trials **and**
+background together, with the *same* trial indices for both statistics so the pairing is preserved.
+
+| | analytic | paired bootstrap |
+|---|---|---|
+| diff sd | 0.0324 | **0.1296** |
+| significance | **3.17σ** | **0.96σ** |
+| gain | 1.1248 | median 1.155, **90% CI [0.928, 1.475]** |
+| P(gain > 1.10) | — | 0.59 |
+
+**sd ratio = 4.00×.** The gain CI spans 1. ⇒ **"coherent network combination helps" is UNDERPOWERED, not a
+result.** Retracted, and the gate now asserts the retraction so it cannot be quietly re-asserted.
+
+**MY ORIGINAL PREDICTION WAS RIGHT AFTER ALL, AND ITS "REFUTATION" WAS THE ARTEFACT.** I had pre-registered
+that the network axis buys ~nothing (coherent and incoherent *power* summation give the same network SNR),
+recorded that as refuted by the 1.12x/3.2σ result, and wrote the lesson as *"agreement with my prediction
+made me less likely to check"*. The correct lesson is the reverse of what I recorded: **the run that
+DISAGREED with me was the one that needed checking, and its disagreement is what made it feel like a
+finding.** Both directions need the same scrutiny.
+
+**Also consistent with the history, which was already telling us**: v3 gave 1.21x at 1.4σ, v4 gave 1.12x at
+3.2σ — the gain *shrank* as statistics improved, the signature of an understated error bar rather than a
+converging measurement.
+
+**WHAT SURVIVES, and it is the larger half.** The **injection-convention finding stands untouched**:
+physically-injected echoes (measured delay + polarity + shared carrier phase) give 1.12x while the convention
+every existing echo script uses gives 0.92x. That is a large effect, it is what exposed two real bugs in our
+injections, and it does not depend on the significance of the coherent gain. Also untouched: the measured
+H1/L1 geometry (−6.59 ms, sign −1, gated against the published ~6.9 ms).
+
+**Cross-project note.** The analytic bar understated by **4.00×** here; the pbh jackknife understated by
+**4.2×** on a different estimator in a different sub-project. Two independent instances of an analytic or
+shortcut error estimate being ~4× too narrow on a heavy-tailed / small-sample quantity. Not claimed as a
+common mechanism — recorded because the coincidence is worth noticing.
+Artifact: results/24_l4_significance_stress.json.

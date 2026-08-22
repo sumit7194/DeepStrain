@@ -1,0 +1,32 @@
+{
+  "conv": "physical",
+  "n_trials": 120,
+  "n_bg": 60,
+  "boot_used": 2000,
+  "boot_requested": 2000,
+  "point": {
+    "amp50_incoherent": 0.9249999999999999,
+    "amp50_coherent": 0.8724999999999999,
+    "gain": 1.0601719197707737
+  },
+  "analytic": {
+    "diff_sd": 0.03242470598398361,
+    "n_sigma": 3.165227743254293
+  },
+  "bootstrap": {
+    "diff_mean": 0.12420615372129205,
+    "diff_sd": 0.12963842227219607,
+    "n_sigma": 0.9580967705739419,
+    "gain_median": 1.1547279296376045,
+    "gain_ci90": [
+      0.9277697923796486,
+      1.4753763168353915
+    ],
+    "p_gain_gt_1.10": 0.595,
+    "p_gain_gt_1": 0.7875,
+    "nan_fraction": 0.0
+  },
+  "sd_ratio_boot_over_analytic": 3.9981371715824285,
+  "survives": false,
+  "verdict": "L4 DOES NOT SURVIVE a paired bootstrap \u2014 the analytic bar understated the spread; the 'coherent helps' verdict must be re-quoted (injection-convention finding unaffected)"
+}

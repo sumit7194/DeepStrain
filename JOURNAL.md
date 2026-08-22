@@ -11,6 +11,36 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-08-22 (later) — retracting L4: the 3.2 sigma was an analytic artefact
+
+Asked what was next and picked the one thing this week's audits hadn't touched: a live POSITIVE claim, in the
+sub-project nobody had swept. Everything else lately has been auditing negatives and nulls, where being wrong
+is cheap. L4 said "coherent network combination helps, 1.12x at 3.2 sigma" and verify.sh gated it at 1.10x
+and 2 sigma — both bars marginal, so the claim only stood if the error bar was right.
+
+It wasn't. The analytic bar omitted three terms: the slope denominator came from two adjacent points of a
+6-point grid; the two statistics come from the same trial but were combined with hypot() as if independent;
+and the 95th-percentile threshold from 60 background draws carried no uncertainty at all. A paired bootstrap
+resampling trials and background together gives **sd 4.00x larger — 3.17 sigma becomes 0.96**, with the gain
+CI [0.93, 1.48] spanning 1. Underpowered, not a result. Retracted, and the gate now asserts the retraction.
+
+**The part worth keeping is what it does to an earlier lesson.** I had pre-registered that the network axis
+buys ~nothing, recorded that prediction as refuted by the 1.12x/3.2σ, and wrote down "agreement with my
+prediction made me less likely to check". That lesson was backwards. The run that *disagreed* with me was the
+one that needed checking — its disagreement is exactly what made it feel like a finding worth keeping. Both
+directions need the same scrutiny, and I had drawn the opposite conclusion from the same episode.
+
+The history had also been signalling it: v3 gave 1.21x at 1.4 sigma, v4 gave 1.12x at 3.2 sigma. A gain that
+shrinks as statistics improve is the signature of an understated error bar, not a converging measurement.
+
+Survives untouched: the injection-convention finding (physical 1.12x vs identical 0.92x), which is the larger
+effect, exposed two real bugs in our injections, and does not depend on the coherent gain's significance. So
+does the measured H1/L1 geometry.
+
+Noted without claiming a mechanism: the analytic bar understated by 4.00x here, and the pbh jackknife by 4.2x
+on a different estimator in a different sub-project. Two independent instances of a shortcut error estimate
+landing ~4x too narrow.
+
 ## 2026-08-20 — auditing our own error bars: the jackknife is 4.2× too small
 
 Set out to measure the effective-N scaling law and ended up auditing the estimator behind yesterday's

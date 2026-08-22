@@ -465,7 +465,7 @@ significance; pre-registered per-event Δt; null results are results).
   a whitened-domain-convention artifact.** Echoes story complete: modest real
   ML edge + band-honest + family-robust + periodicity-specific + on-source
   nulls. Later: independent background blocks, per-event scorers, FAR scaling.
-- **L4 FIRST RUNG DONE (2026-08-15): coherent NETWORK combination HELPS — 1.12× at 3.2σ — and TWO injection
+- **L4 FIRST RUNG ⚠️ RETRACTED 2026-08-22 (was: "coherent NETWORK combination HELPS — 1.12× at 3.2σ"; a paired bootstrap resampling trials AND background gives sd 4.00× larger ⇒ **0.96σ**, gain CI [0.93, 1.48] spanning 1 ⇒ UNDERPOWERED. The analytic bar omitted three terms: a slope denominator from two adjacent grid points, `hypot()` on two PAIRED statistics, and zero uncertainty on a 95th percentile from n_bg=60. **My original "network axis buys ~nothing" prediction was right after all** — the run that disagreed with me was the one needing scrutiny, inverting the lesson I recorded. **The injection-convention finding STANDS** (physical 1.12× vs identical 0.92×), as does the measured geometry. Gated as a retraction. Artifact: 24_l4_significance_stress.json.) — original entry follows — and TWO injection
   bugs found on the way.** From the sweep: arXiv:2512.24730 searches echoes with a phase-marginalized likelihood
   that combines QNMs **coherently across the network**; our statistic is **doubly incoherent** (envelope kills
   phase *within* a detector; scores are *summed* across detectors). `20_coherent_network.py` tests the network
