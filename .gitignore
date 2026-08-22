@@ -19,7 +19,15 @@ sbi-logs/
 
 # --- bulky result arrays: the small result JSONs + PNGs ARE committed as the
 #     scientific record; verify.sh's one tiny scorer .npy is whitelisted ---
+# *.parquet was a rule aimed at "parquet means bulk data". It silently became a judgement about
+# EVIDENTIARY VALUE and swept 1.3 MB of per-detector injection scores out of every clone -- the exact
+# tables our own standing note tells us to check before recording an experiment as blocked on missing
+# data, and which cannot be regenerated because the strain they came from was purged after scoring.
+# (Species named by ansatz via the coordination channel: "an ignore rule chosen for size is not a
+# judgement about evidentiary value, and it silently becomes one.")  Bulk parquet stays ignored;
+# the retained score tables are evidence and are tracked.
 *.parquet
+!primordial_blackhole_search/results/*.parquet
 *.npy
 !echoes/results/07_ml_scorer.npy
 
