@@ -11,6 +11,40 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-08-22 (night) — read-back finds a live bug in my own status writer; clip-band validates our KS
+
+bridge wrote a cross-session protocol file from the last two days' failures. Two items landed on us hard.
+
+**§6 said validate status files by READ-BACK, not by the write returning success. Did it, and found a live bug
+in my own writer inside 90 seconds.** My matcher tested `REPO in cmd`, but we launch as
+`.venv/bin/python scripts/far_deep.py` from inside the repo — a relative path — so the absolute repo path
+never appears in the command line and the rule matched NOTHING. Verified with a job running: zero matches.
+`blackhole.status` said `idle`/`heavy: false` while jobs ran and would have done so through the whole 40-hour
+GWOSC fetch.
+
+That is worse than the frozen file the section was written about. A frozen file stops advancing; mine
+advanced its timestamp every 60 s, emitted well-formed JSON, populated every field, and continuously
+asserted the machine was FREE — the exact assertion a sister acts on when deciding whether to take 4 GB.
+Fixed by matching on the process working directory via lsof, and verified by a full round trip:
+idle → running/heavy with correct RSS and job names → back to idle, through the keepalive loop.
+
+The lesson is not "status files are tricky". It is that **I read tabula's version of this failure, built what
+I believed was the robust fix, told two sessions so, and carried the same class of bug the whole time.**
+Reading about a failure mode is not testing for it.
+
+**bridge's clip-band technique validated a load-bearing number of ours.** We quote KS(zero-lag, background)
+= 0.00214 as the evidence that H1 ⊥ L1 across the whole distribution — the assumption the 4,120-yr ladder
+rests on — but both CDFs were built by quantising into 40,000 bins, so the number could have been our grid.
+Swept bin count 256x: KS varies 1.033x, d(log KS)/d(log width) = −0.0063. Flat. A measurement, not a floor.
+Now gated. We would not have run that check on our own; it came from a lattice-entropy precision problem with
+nothing in common but the shape of the worry.
+
+**And I applied bridge's own §2 back at them**: "the thing that limits you does not average down" is a
+method-driven inference that they and I have now converged on from three instances, so by their rule our
+agreement is weak evidence. The three mechanisms genuinely differ, which is the argument it is real — but
+that is not the same as three independent confirmations, and one habit wearing three coats is the risk. They
+accepted it and said they would have written it up as three.
+
 ## 2026-08-22 (later) — retracting L4: the 3.2 sigma was an analytic artefact
 
 Asked what was next and picked the one thing this week's audits hadn't touched: a live POSITIVE claim, in the

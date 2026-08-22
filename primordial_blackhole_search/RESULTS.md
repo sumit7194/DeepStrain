@@ -1370,7 +1370,7 @@ we had never examined.
 | 100.0 | 3.734 | 103 | 1.03 | +0.30 |
 | 10.0 | 7.456 | 8 | 0.80 | −0.63 |
 
-**KS(zero-lag, background) = 0.00214** against a 0.00640 critical value — the two CDFs agree to ~0.2%
+**KS(zero-lag, background) = 0.00214** against a 0.00640 critical value (**verified 2026-08-22 to be a measurement, not our own grid resolution** — see the clip-band check below) — the two CDFs agree to ~0.2%
 *everywhere*, not merely above some threshold. Joint exceedances at the 90th percentile: **451 observed vs
 450.7 expected** (perm p = 1.000); 99th: 4 vs 4.5. Median shift +0.0018. **No correlated noise, no
 sub-threshold population.**
@@ -1586,3 +1586,35 @@ The honest reading is stronger than "no change": equalising the tails actively *
 the tail asymmetry is carrying real information that a rarity transform discards. Artifacts:
 coinc_tailnorm.json, coinc_tailnorm_stress.json. Objection and the gain-axis framing: `bridge` via the
 cross-session channel.
+
+### Clip-band check: the KS = 0.00214 is physical, not our binning floor (2026-08-22)
+
+**Technique borrowed from `bridge`** via the cross-session channel: *before quoting a small residual, sweep
+the numerical floor that could be producing it and check the residual does not track it.* They swept a clip
+floor five decades and obtained a band 2254× smaller than the spread they were reporting, which is what
+licensed calling it physical rather than a precision limit.
+
+**Why ours needed it.** `far_zerolag_population` reports KS(zero-lag, background) = 0.00214 vs a 0.00640
+critical value, and we wrote that the two CDFs "agree to ~0.2% EVERYWHERE". That number is load-bearing: it
+is the evidence for H1⊥L1 across the whole distribution, and the 4,120-yr ladder rests on that independence.
+But both CDFs were built by **quantising scores into 40,000 bins**, and a KS computed between two binned CDFs
+cannot resolve differences finer than the grid. The published claim did not distinguish "the CDFs agree" from
+"our grid cannot tell them apart".
+
+**Method** (`far_ks_clipband.py`): accumulate the background once at the finest grid — the expensive part is
+the 45,073-lag sweep, not the histogram — then coarsen by summing adjacent bins to obtain every coarser grid
+for free, and recompute KS at each.
+
+| bins | 2,500 → 640,000 |
+|---|---|
+| KS variation across the sweep | **1.033×** |
+| d(log KS) / d(log bin width) | **−0.0063** |
+
+**Flat across a 256× range of bin counts** ⇒ **PHYSICAL**. The 0.00214 is a measurement; the claim stands as
+written. Had KS tracked the bin width we would have had to re-quote it as an upper bound.
+Artifact: far_ks_clipband.json.
+
+**Process note, recorded because it is the actual lesson.** We would not have run this check on our own — it
+came from another project's methodology, applied to a number we had already published and were relying on.
+The cost was minutes. The general form: **any small residual quoted from a discretised computation needs its
+discretisation swept before it counts as a measurement.**

@@ -999,6 +999,14 @@ d = json.loads(open(R + "far_deep.json").read())
 # (1) THE ASSUMPTION THE 4,120-yr LADDER RESTS ON, tested with the 45,073 zero-lag measurements the deep-FAR
 #     result discards. Time-slides ARE the independence null, so agreement here is a real check, not a tautology.
 assert not z["ks"]["exceeds"], f"zero-lag CDF now differs from background: KS {z['ks']}"
+# (1b) ...and that KS is a MEASUREMENT, not our own grid resolution. Both CDFs are built by quantising into
+#      bins, so a small KS could be the binning rather than agreement. Swept 256x in bin count: flat.
+#      (Clip-band technique from `bridge` via the coordination channel.) Without this, "the CDFs agree to
+#      ~0.2% everywhere" is indistinguishable from "our grid cannot resolve 0.2%".
+c = json.loads(open(R + "far_ks_clipband.json").read())
+assert c["physical"], f"KS now tracks the binning -- re-quote it as an upper bound: {c['verdict']}"
+assert c["ks_span_ratio"] < 1.20, f"KS varies {c['ks_span_ratio']:.2f}x across the grid sweep"
+assert abs(c["d_logKS_d_logWidth"]) < 0.10, f"KS trends with bin width: {c['d_logKS_d_logWidth']}"
 assert z["max_abs_z"] < 3.0, f"an excess ladder rung exceeds |z|=3 -- INVESTIGATE: {z['excess_ladder']}"
 for t in z["tail_dependence"]:
     if t["expected"] >= 5:                      # only rungs with usable statistics can constrain anything
@@ -1021,7 +1029,8 @@ print(f"PASS  pbh zero-lag population (KS {z['ks']['stat']:.5f} < crit {z['ks'][
       f"exceedances {z['tail_dependence'][0]['observed']} vs {z['tail_dependence'][0]['expected']:.1f} expected "
       f"=> no correlated noise, no sub-threshold population; independence verified to the 99.98th pctile but "
       f"1/year+ sit beyond ALL zero-lag data (max {d['zero_lag_max']:.2f} < {d['far_ladder']['1/year']:.2f}) "
-      f"=> assumed there, and unslideable)")
+      f"=> assumed there, and unslideable; KS verified grid-independent over {c['bin_count_span']:.0f}x "
+      f"in bin count, span {c['ks_span_ratio']:.3f}x => a measurement, not a binning floor)")
 PYEOFZLP
 
 echo "--- pbh estimator audit (jackknife understates 4.2x, stable in n; N_eff does NOT control the error)"
