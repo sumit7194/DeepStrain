@@ -539,6 +539,19 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
   from 09's __main__ needs the class redefined in the loading script).
 - v4 shelf: per-param/flow recalibration; simulator realism (+10% mass pull);
   tone-count selection; stacking; SXS injections.
+- **v5 δ STACKING ⚠️ RE-SCOPED 2026-08-22: the ARITHMETIC is right, the VALIDATION was prior-dominated.**
+  `30_stacking_audit.py`: S2 compares `1/√(Σ1/σᵢ²)` against `σ_single/√N` — the SAME formula, so it tests
+  inverse-variance arithmetic, not the method. S3's coverage 1.00 at every N was trivial: the δ prior is
+  BoxUniform(−0.5,+0.5), centred EXACTLY on the injected δ_true=0, so returning the prior scores a perfect
+  interval — and the gate bar 0.80≤cov≤1.0 ADMITS maximum over-coverage. The validation injections are
+  **prior-dominated: σ_single/prior = 0.919**, while the project's own faint-event gate calls a REAL event
+  uninformative at >0.88. **Off-centre, stacking makes it WORSE:** at δ_true=0.3 coverage collapses
+  **0.95 (N=1) → 0.00 (N=8)** because the interval shrinks by √8 while the 82% shrinkage persists ⇒ √N
+  tightening is NOT √N improvement. Intervals 2.5× wider than the estimate's actual scatter. **Scope: the
+  VALIDATION protocol, not the NPE at all loudnesses** (09/R2a σ(δ)≈0.14 at GW250114 loudness is real); the
+  v5 stress-test conclusion is UNTOUCHED and reinforced. Same artefact v5 caught in real events, sitting
+  undetected in the injection validation — **a check evaluated at the prior's centre cannot detect a
+  prior-returning estimator.** Gated. Artifact: 30_stacking_audit.json.) — original entry follows —
 - **v5 δ STACKING (2026-06-20): METHOD validated ✓, but real multi-event stack NOT achievable (stress-test
   correction).** 12_stacking.py validated the common-δ stacking METHOD: σ(δ) tightens as **√N** on
   informative injections (N=8 → 0.095 vs ideal 0.097, unbiased, calibrated) — solid. BUT the

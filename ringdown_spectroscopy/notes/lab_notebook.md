@@ -858,3 +858,52 @@ on mass ratio and spins and are deliberately **not** recited here; the result is
 **L5 closes as information-limited**, consistent with the v4 tone-count negative (AUC ~0.61) and with 27/28's
 finding that that wall is an information limit rather than a basis artifact — now with a quantitative
 reopening criterion instead of a shrug. Gated (51). Artifact: results/29_third_tone_floor.json.
+
+## v5 STACKING RE-SCOPED (2026-08-22): the arithmetic is right; the validation was prior-dominated
+
+**What is re-scoped.** `12_stacking.py` was recorded as *"METHOD validated ✓ — σ(δ) tightens as √N on
+informative injections (N=8 → 0.095 vs ideal 0.097, unbiased, calibrated)"*. The √N number is correct and
+reproduces. What it does not do is validate the method.
+
+**Three structural problems, none detectable by the existing checks:**
+
+1. **S2 is near-tautological.** `stack()` returns `σ = 1/√(Σ 1/σᵢ²)` and S2 compares it against
+   `σ_single/√N`. When the per-event σᵢ are similar those are *the same formula* — inverse-variance
+   weighting gives σ/√N by construction. Agreement is ~1% at every N, which is what an identity looks like.
+2. **S3 cannot fail at δ_true = 0.** The prior is `BoxUniform(−0.5, +0.5)`, centred **exactly** on the
+   injected truth, so a posterior that learned nothing and returned the prior scores μ ≈ 0 and covers every
+   time. Observed coverage was **1.00 at all five N**, and the gate bar `0.80 ≤ coverage ≤ 1.0` *admits* the
+   maximum possible over-coverage.
+3. **The injections are not informative.** Prior SD = 0.2887; measured σ_single = **0.2654**, ratio **0.919**
+   — while the project's own faint-event gate declares a *real* event uninformative at σ/prior > 0.88.
+   **The set used to validate the method fails the project's own test for carrying information.**
+
+**Measured off-centre** (`30_stacking_audit.py`, 40 realizations per cell):
+
+| δ_true | N | coverage | mean(μ) | truth recovered |
+|---|---|---|---|---|
+| 0.00 | 1 | 0.97 | −0.017 | — |
+| 0.00 | 8 | **1.00** | +0.006 | — |
+| 0.15 | 8 | 0.93 | +0.032 | 21% |
+| 0.30 | 1 | 0.95 | +0.033 | 11% |
+| 0.30 | 8 | **0.00** | +0.044 | 15% |
+
+**Mean shrinkage −0.82 of truth**; intervals **2.5× wider** than the actual scatter of the estimate.
+
+**THE CONSEQUENCE, which is the real finding: STACKING MAKES IT WORSE OFF-CENTRE.** At N=1 the wide interval
+covers despite the bias; at N=8 the interval shrinks by √8 while the 82% shrinkage persists, so **coverage
+collapses from 0.95 to 0.00**. √N *tightening* is not √N *improvement* — the arithmetic narrows the interval
+around a biased point, and the narrower it gets the more certainly it excludes the truth.
+
+**Scope, stated precisely.** This concerns the **validation protocol**, not the NPE at all loudnesses: 09/R2a
+reports σ(δ) ≈ 0.14 at GW250114 loudness, genuinely informative. The injections here (m ∈ 55–105,
+χ ∈ 0.2–0.9) were *labelled* the "informative-loudness range" in the code and are not. **v5's stress-test
+conclusion is untouched and in fact reinforced** — only GW250114 measures δ, real multi-event sharpening
+stays parked.
+
+**Same species as the artefact v5 already caught in real events.** The stress-test found "all 7 fainter
+events return ≈ the prior" and corrected the 2-event tightening as a Gaussian-approx-of-prior artefact. The
+identical artefact was sitting inside the *injection validation* that was supposed to certify the method —
+invisible because the test was run at δ_true = 0, where returning the prior is indistinguishable from
+success. **A check evaluated at the prior's centre cannot detect a prior-returning estimator.**
+Gated. Artifact: results/30_stacking_audit.json.

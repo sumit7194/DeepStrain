@@ -349,25 +349,43 @@ assert 0.80 <= d["coverage"]["delta"] <= 0.96, f"delta coverage: {d['coverage']}
 print("PASS  ringdown v2 headline artifacts")
 PYEOF
 
-echo "--- ringdown v5 delta-stacking METHOD (12: sigma tightens as sqrt(N) on informative injections)"
+echo "--- ringdown v5 delta-stacking (12) — RE-SCOPED 2026-08-22: the arithmetic is right, the VALIDATION was prior-dominated"
 ./ringdown_spectroscopy/.venv/bin/python - << 'PYEOFS' || FAIL=1
 import json
 d = json.loads(open("ringdown_spectroscopy/results/12_stacking.json").read())
+a = json.loads(open("ringdown_spectroscopy/results/30_stacking_audit.json").read())
 big = d["injection"][-1]  # N=8
+
+# (1) The sqrt(N) relation still holds -- but it is ARITHMETIC, not evidence the method works. stack() returns
+#     1/sqrt(sum 1/sigma_i^2), and S2 compares that to sigma_single/sqrt(N): the same formula when the
+#     per-event sigmas are similar. Kept as a regression check on the implementation, no longer as a claim.
 assert big["N"] == 8 and abs(big["sigma_stack"] - big["expect"]) / big["expect"] < 0.15, \
-    f"stacking method no longer ~sqrt(N): {big['sigma_stack']} vs {big['expect']}"
-# BACKED (2026-08-16 flag audit): a bare boolean written by the script it guards is self-certification;
-# these assert the NUMBER the flag summarises, so the gate fails if the number moves.
-# NOTE a real gap: S3 (coverage) has NO numeric companion in this artifact -- 12_stacking.py does not
-# emit the coverage value it gates on, so S3 remains self-certified. Backing S1 and the sqrt(N) claim here;
-# emitting coverage from 12_stacking.py is the outstanding fix.
-assert d["gates"]["S1_unbiased"] and d["gates"]["S3_coverage"], "stacking S1/S3 regressed"
-assert abs(d["stacked"]["mu"]) < 0.20, f"stacked delta no longer unbiased: {d['stacked']['mu']}"
-assert d["stacked"]["sigma"] < d["sigma_single"], \
-    f"stacking no longer tightens: {d['stacked']['sigma']} vs single {d['sigma_single']}"
-# NOTE: NO real-event "stack < singles" assertion -- 13_more_events.py stress-test showed only
-# GW250114 is informative; the 2-event tightening was a Gaussian-approx-of-prior artifact (corrected).
-print("PASS  ringdown v5 stacking METHOD (sigma(delta)~sqrt(N) on informative injections; real stack parked)")
+    f"inverse-variance arithmetic broke: {big['sigma_stack']} vs {big['expect']}"
+assert d["gates"]["S1_unbiased"], "stacking S1 regressed"
+
+# (2) THE RE-SCOPING (30_stacking_audit). The validation injections are PRIOR-DOMINATED by the project's own
+#     criterion -- the faint-event gate below calls a real event uninformative at sigma/prior > 0.88, and
+#     these injections sit at 0.919. So S3's coverage of 1.00 at delta_true=0 was trivial: the prior is
+#     BoxUniform(-0.5, +0.5), centred exactly on the injected truth, so returning the prior scores a perfect
+#     interval. Gate the re-scoping so "method validated" cannot be re-asserted from S2 alone.
+assert a["A_information"]["ratio_to_prior"] > 0.85, \
+    f"validation injections became informative ({a['A_information']['ratio_to_prior']:.3f}) -- re-open the re-scoping"
+assert a["prior_dominated"], "audit no longer finds prior domination -- re-derive"
+
+# (3) And the consequence that matters: off-centre, STACKING MAKES IT WORSE. The bias survives while the
+#     interval shrinks as sqrt(N), so coverage collapses. This is the number that shows sqrt(N) tightening is
+#     not the same as sqrt(N) improvement.
+cov1 = a["by_delta"]["0.3"]["1"]["coverage"]; cov8 = a["by_delta"]["0.3"]["8"]["coverage"]
+assert cov8 < 0.5 < cov1, f"coverage no longer collapses with N at delta=0.3: N=1 {cov1}, N=8 {cov8}"
+assert a["C_mean_scatter_over_claim"] < 0.7, \
+    f"intervals no longer conservative ({a['C_mean_scatter_over_claim']:.2f}) -- re-derive the audit"
+
+print(f"PASS  ringdown v5 stacking RE-SCOPED (sqrt(N) holds as ARITHMETIC: {big['sigma_stack']:.3f} vs "
+      f"{big['expect']:.3f}; but validation injections are prior-dominated at sigma/prior "
+      f"{a['A_information']['ratio_to_prior']:.3f} > the 0.88 the project itself calls uninformative, so "
+      f"coverage 1.00 at delta=0 was trivial -- off-centre at delta=0.3 coverage collapses {cov1:.2f} (N=1) "
+      f"-> {cov8:.2f} (N=8) as the interval shrinks around an 82%-shrunk estimate; intervals "
+      f"{1/a['C_mean_scatter_over_claim']:.1f}x too wide)")
 PYEOFS
 
 echo "--- ringdown v5 stress-test (13: only GW250114 informative, rest ~prior)"

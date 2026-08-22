@@ -1,0 +1,72 @@
+{
+  "prior_sd": 0.2886751345948129,
+  "T": 1.05,
+  "reps": 40,
+  "by_delta": {
+    "0.0": {
+      "1": {
+        "coverage": 0.975,
+        "mean_mu": -0.01669749494176358,
+        "std_mu": 0.10845045340597707,
+        "mean_sigma": 0.2701377909630537,
+        "scatter_over_claim": 0.40146346432813496,
+        "bias": -0.01669749494176358
+      },
+      "8": {
+        "coverage": 1.0,
+        "mean_mu": 0.005997566444367571,
+        "std_mu": 0.0392586669512345,
+        "mean_sigma": 0.09578567322997496,
+        "scatter_over_claim": 0.40985948761854063,
+        "bias": 0.005997566444367571
+      }
+    },
+    "0.15": {
+      "1": {
+        "coverage": 0.975,
+        "mean_mu": 0.03269362014252693,
+        "std_mu": 0.11286005849550897,
+        "mean_sigma": 0.2644094929099083,
+        "scatter_over_claim": 0.42683814886314825,
+        "bias": -0.11730637985747307
+      },
+      "8": {
+        "coverage": 0.925,
+        "mean_mu": 0.031977991291126065,
+        "std_mu": 0.035079453425618946,
+        "mean_sigma": 0.09629295981444766,
+        "scatter_over_claim": 0.36429925399754587,
+        "bias": -0.11802200870887393
+      }
+    },
+    "0.3": {
+      "1": {
+        "coverage": 0.95,
+        "mean_mu": 0.03347016500774771,
+        "std_mu": 0.09704183436249127,
+        "mean_sigma": 0.2726637300103903,
+        "scatter_over_claim": 0.35590298115115393,
+        "bias": -0.2665298349922523
+      },
+      "8": {
+        "coverage": 0.0,
+        "mean_mu": 0.043771638522913575,
+        "std_mu": 0.04625797883150891,
+        "mean_sigma": 0.09526716551711083,
+        "scatter_over_claim": 0.4855605662288815,
+        "bias": -0.2562283614770864
+      }
+    }
+  },
+  "A_information": {
+    "sigma_single": 0.265362208088239,
+    "prior_sd": 0.2886751345948129,
+    "ratio_to_prior": 0.9192416536349896
+  },
+  "B_coverage_at_max_delta": 0.0,
+  "B_mean_relative_bias": -0.8204539648247238,
+  "C_mean_scatter_over_claim": 0.4073206503645675,
+  "prior_dominated": true,
+  "intervals_conservative": true,
+  "verdict": "PRIOR-DOMINATED \u2014 the stacking validation certifies prior-return, not method performance; re-scope v5's claim to 'the inverse-variance arithmetic is correct'"
+}
