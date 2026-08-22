@@ -15,7 +15,29 @@ __pycache__/
 sbi-logs/
 
 # --- trained model weights: regenerable by training; *_history.json IS kept ---
+# *.pt was a size rule ("torch checkpoints are big") and, like *.parquet before it, silently became a
+# judgement about evidentiary value: it excluded every trained model from every clone. The FINAL weights
+# behind published claims are not regenerable -- cnn_w64.pt is the workhorse for the 4,120-yr background,
+# the null, and every coincidence result, and its O3a training strain was purged after scoring, so no
+# amount of compute recovers it. Those are tracked below (~31 MB, stated exclusions).
+#
+# Deliberately still excluded, because these ARE working files rather than evidence:
+#   *_ckpt.pt          101 MB  mid-training state, superseded by the final weights beside them
+#   diag_*.pt           87 MB  exploratory clip/lr sweep; its CONCLUSIONS are in RESULTS.md
+#   11_tonecount_*.pt  7.3 MB  the 10-variant v4 tone-count diagnostic chain (parked negative)
+#   19_npe_n*.pt       7.0 MB  amortization-vs-N sweep
 *.pt
+!primordial_blackhole_search/models/cnn.pt
+!primordial_blackhole_search/models/cnn_w64.pt
+!primordial_blackhole_search/models/cnn_hl.pt
+!primordial_blackhole_search/models/transformer.pt
+!primordial_blackhole_search/models/ssl_encoder.pt
+!primordial_blackhole_search/models/semicoherent_v1def.pt
+!primordial_blackhole_search/models/semicoherent_v2.pt
+!echoes/results/07_scorer_H1.pt
+!echoes/results/07_scorer_L1.pt
+!ringdown_spectroscopy/results/08_posterior.pt
+!ringdown_spectroscopy/results/09_posterior_150k.pt
 
 # --- bulky result arrays: the small result JSONs + PNGs ARE committed as the
 #     scientific record; verify.sh's one tiny scorer .npy is whitelisted ---
