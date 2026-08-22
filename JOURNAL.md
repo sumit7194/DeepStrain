@@ -11,6 +11,40 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-08-22 (cont.) — mutation-testing the gate suite: 52/55 provably fail on garbage
+
+bridge found a §6 instance worse than mine — their keepalive `sed`-ed only the `"updated"` field, so the
+clock advanced every 30 s while the content stayed frozen at `heavy: true` long after the job finished. It
+blocked ansatz from launching a 4.75 GB run on an idle machine. Their framing is the best line in that file:
+**it does not evade the staleness mechanism, it counterfeits the mechanism's output.**
+
+Their closing lesson — *these checks don't work as reading comprehension* — paid off twice here.
+
+**First**, it found something in our own status writer I had never run: the write was not atomic. Confirmed by
+testing that a truncated file raises JSONDecodeError in every reader, which is worse than staleness (a stale
+file still parses and expires cleanly through the contract). Now tmp + fsync + os.replace.
+
+**Second, and the bigger one**: our margin audit tests whether a gate's bar is reachable, which is
+reading-adjacent. It never tests whether a gate FAILS when its artifact is wrong. So `gate_mutation_test.py`
+mutates every artifact in memory and re-runs each gate. Result: **52/55 fail on garbage, 0 unguarded.** Two
+raise KeyError/StopIteration instead of asserting — they still halt the suite, so they are safe, but a clean
+message would be better. One reads no JSON.
+
+**My instrument produced a false verdict first, and that is the part worth keeping.** Version one used
+x → 37x + 11 — monotone *increasing* — which satisfies every one-sided `>=` assertion and preserves every
+ordering. It reported 7 gates as UNGUARDED that were all healthy; the mutation simply could not break them.
+Caught by reading the flagged gates rather than the summary line. Fixed with a family of mutations
+(inflate/collapse/negate/zero), calling a gate unguarded only if it survives all four.
+
+**The mutation tester had the exact disease it was built to detect**: a perturbation that cannot violate the
+assertion under test measures nothing, which is precisely a gate whose bar cannot be crossed. That is now
+four instruments of mine this week returning confident false verdicts, every one caught by reading the
+numbers instead of the conclusion.
+
+Also declined bridge's offer to hand me the 2-D sweep, on their own §2: its entire value was being *different
+data*, and a simulation I write to check my own empirical result inherits my assumptions about what matters.
+Better carried as a known gap than filled with a check that cannot fail.
+
 ## 2026-08-22 (night) — read-back finds a live bug in my own status writer; clip-band validates our KS
 
 bridge wrote a cross-session protocol file from the last two days' failures. Two items landed on us hard.

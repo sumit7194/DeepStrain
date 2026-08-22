@@ -1,0 +1,71 @@
+{
+  "total": 55,
+  "healthy": [
+    "echoes E1 production-path upper limit (12: ML scorer does NOT tighten the exclusion -- honest negative)",
+    "echoes E2 independent background (13: GW150914 null holds vs a different-time, 4x-larger background)",
+    "echoes echo-spacing formula (14: first-principles \u0394t(M,\u03c7) reproduces Abedi Table I to <5%)",
+    "echoes N1 joint ringdown<->echo (15: mass-conditioned echo search on GW250114 is more sensitive)",
+    "echoes N3 stacked multi-event echo search (16: population null + combined limit tighter than best single)",
+    "ringdown R3 IMR referee (15: no-hair NPE unbiased on tones, start-time systematic on realistic IMR)",
+    "ringdown R3 capstone (16: GW250114 \u03b4 vs start time -- reproduces 09 at peak, Kerr-consistent throughout)",
+    "echoes N2 H1xL1 consistency statistic (17: pre-chosen lambda, bootstrap -- honest mixed/modest, not universal)",
+    "ringdown A5 tone-fit export for TheBridge (18: per-event 220/221 fits, reliability-flagged)",
+    "echoes Abedi cross-check export for TheBridge leg 8 (18: per-event \u0394t vs Abedi, formula + % agreement)",
+    "ringdown recalibration artifacts (10)",
+    "echoes E3 per-event ML scorers (19: broadened set, all clean nulls vs independent background)",
+    "ringdown R2 v2 (21: proper ringdown-package tone-count + NPE referee)",
+    "ringdown B1 start-time sweep (22: package refereess R3 -- overtone damps, peak-mass biased)",
+    "ringdown B3 close the NPE loop (23: NPE agrees with the package AND sits in the peak-start systematic)",
+    "D event watcher (watch_GW250114: one command reproduces all 3 sub-project headlines)",
+    "G8 Fisher floor on delta (24: NPE does NOT beat the Cram\u00e9r-Rao floor; prior-regularized -- G8 stands)",
+    "wall species (25: delta wall is species-1 statistically, but total error saturates at a systematic floor)",
+    "crossover sensitivity (25b: the species-1->4 crossover is conditional, NOT a constant)",
+    "ringdown R1 per-parameter recalibration (17: each param in band, but does NOT beat global T)",
+    "ringdown no-hair artifacts (09)",
+    "ringdown v5 delta-stacking (12) \u2014 RE-SCOPED 2026-08-22: the arithmetic is right, the VALIDATION was prior-dominated",
+    "ringdown v5 stress-test (13: only GW250114 informative, rest ~prior)",
+    "pbh N4 self-supervised backbone (ssl_finetune: SSL-pretrained beats from-scratch at scarce labels)",
+    "pbh N4 sensitive-distance follow-up (ssl_sensdist: SSL win translates to distance at a defined FAR)",
+    "pbh sensitivity artifacts (eval_cnn)",
+    "pbh track-aggregation artifacts (eval_cnn_track)",
+    "pbh rung-2 track artifacts (eval_cnn_w64_track_w64)",
+    "pbh rung-3 stage-0 oracle (oracle_semicoherent: n=8 vetoed clears the gate)",
+    "pbh rung-3 stage-1 learned (definitive negative: both designs -> 0 sensitive distance)",
+    "pbh path-G coincidence (coinc_eval: H1xL1 beats single-det at matched FAR)",
+    "pbh Build C-2 (coinc_learned_segments: LEARNED H1xL1 coincidence beats sum, leakage-free + significant)",
+    "pbh Build C-2 lower-FAR (coinc_learned_holdout: leakage-clean, reaches 1/year, learned still > sum)",
+    "pbh Build C (coinc_far: coincidence holds at realistic FAR, down to 1/year)",
+    "pbh A: real dense-bank MF vs CNN (bank_dense + bank_vs_cnn: realizable MF ties the CNN, bank-mismatch-limited)",
+    "pbh N5 triple-detector H1xL1xV1 (coinc_triple: double reproduces, but Virgo does NOT help subsolar)",
+    "pbh N5 O4b RE-TEST (coinc_triple_o4b: the Virgo negative REPLICATES on 2024-25 data)",
+    "pbh O4-3 search reach (o4_sensitive_distance: O4b search reach & volume gain over O3a)",
+    "pbh O4-3 STRESS-TEST (matched livetime + bootstrap: the reach gain is significant and mass-independent)",
+    "pbh O4-4 release watcher (o4c_release_watch: S251112cm/O4c embargo status)",
+    "ringdown delta-stacking wall RE-MEASURED vs the full catalog (26: still one informative event, SNR>=47)",
+    "echoes L4 (RETRACTED: the 3.2 sigma was an analytic artefact; 0.96 sigma on a paired bootstrap)",
+    "pbh confound check (tabula mechanism): no per-segment channel behind the learned coincidence gain",
+    "pbh L6 SSL pool scaling (saturates by 2.5k specs; cross-detector null) -- N4's caveat answered",
+    "pbh L1 ratio-filter: exact algebra, but an honest NEGATIVE for subsolar (0.94x, not 8x)",
+    "ringdown L5 third-tone floor (undetectable here; two DIFFERENT reasons, with a reopening number)",
+    "ringdown orthonormal-QNM test (27/28: the basis carries NO detection information)",
+    "pbh deep FAR (far_deep: 4,120-yr background on O4b -> 1/century reached, zero-lag clean)",
+    "pbh deep-FAR audit (independence holds; jackknife 33-44% -> ~10%; effective-N still binding; null 4/4)",
+    "pbh zero-lag population (independence verified to 99.98th pctile; 3 of 4 rungs beyond testable data)",
+    "pbh estimator audit (jackknife understates 4.2x, stable in n; N_eff does NOT control the error)",
+    "pbh tail-norm test (sum vindicated: equalising the 2x noise-tail asymmetry HURTS held-out)"
+  ],
+  "unguarded": [],
+  "errored": [
+    [
+      "ringdown A1 amortization->transfer for TheBridge (19: 5 NPE variants, gap + transfer per variant)",
+      "inflate=error:KeyError,collapse=error:KeyError,negate=error:KeyError,zero=error:KeyError"
+    ],
+    [
+      "ringdown v6 delta-measurability threshold (14: sigma(delta) shrinks with SNR; GW250114 at the edge)",
+      "inflate=error:StopIteration,collapse=error:StopIteration,negate=error:StopIteration,zero=error:StopIteration"
+    ]
+  ],
+  "no_json": [
+    "echoes artifacts"
+  ]
+}
