@@ -1147,6 +1147,39 @@ print(f"PASS  pbh glitch morphology (n={d['n_windows']} windows: Spearman(score,
       f"bought reach and tail-norm HURT)")
 PYEOFGM
 
+echo "--- pbh CNN response probe (it keys on band-limited noise power ~110 Hz; false alarms are signal-like)"
+./primordial_blackhole_search/.venv/bin/python - << 'PYEOFCR' || FAIL=1
+import json
+d = json.loads(open("primordial_blackhole_search/results/cnn_response_probe.json").read())
+
+# (1) WHAT IT USES: a narrow low-frequency region, not the full analysis band. If this ever broadens, the
+#     "~3/4 of the spectrogram is ignored capacity" observation and the band-narrowing question both change.
+for pop in ("injections", "top_scoring_noise"):
+    assert d["frac_below_224hz"][pop] > 0.90, \
+        f"{pop} sensitivity no longer concentrated below 224 Hz: {d['frac_below_224hz'][pop]:.3f}"
+    assert 60.0 < d["centre_hz"][pop] < 200.0, f"{pop} sensitivity centre moved: {d['centre_hz'][pop]:.1f} Hz"
+
+# (2) THE UNIFYING CLAIM: false alarms use the SAME spectral region as signals, so the detector is honestly
+#     fooled and no single-detector cut can separate them. This is what explains min/veto/tail-norm all
+#     failing while coincidence works. Gated on the PROFILE CORRELATION, not on argmax -- comparing peaks
+#     over adjacent bands is a coin flip when the peak is broad, and that is exactly how the first version
+#     of this script reached the opposite (wrong) conclusion.
+assert d["profile_corr_noise_vs_injections"] > 0.70, \
+    f"false-alarm and signal profiles diverged ({d['profile_corr_noise_vs_injections']:+.3f}) -- a separate " \
+    f"artefact may exist after all, which would REOPEN the single-detector veto question"
+assert d["false_alarm_matches_signal"], "verdict flipped -- re-derive the unifying explanation"
+
+# (3) and the detector must still be ignoring the top of the band, which is the actionable half
+top = [b for b in d["bands"] if b["lo_hz"] > 400][-1]
+assert abs(top["spearman"]) < 0.15, f"the top of the band now tracks the score: {top}"
+
+print(f"PASS  pbh CNN response probe (sensitivity centre {d['centre_hz']['injections']:.0f} Hz for signals / "
+      f"{d['centre_hz']['top_scoring_noise']:.0f} Hz for false alarms, {100*d['frac_below_224hz']['injections']:.0f}% "
+      f"of it below 224 Hz; profiles correlate {d['profile_corr_noise_vs_injections']:+.3f} => same feature, "
+      f"detector honestly fooled by band-limited noise power => no single-detector cut can work, and "
+      f"coincidence works because the fluctuation is independent between detectors)")
+PYEOFCR
+
 echo "========================================"
 [ $FAIL -eq 0 ] && echo "BLACKHOLE GATE: ALL GREEN" || echo "BLACKHOLE GATE: FAILURES"
 exit $FAIL

@@ -218,6 +218,24 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   checkpoints (never re-fetch a done segment), raw strain purged — **and the purge must clear astropy's download
   cache too** (`gwpy` keeps a 2nd copy, ~0.25 GB/segment, 5.3 GB accumulated; would have exhausted disk ~segment
   80 — caught mid-run, fixed, disk then flat at 19 GB). Gated (45). Artifacts: far_deep.json, results/far_scores/.
+- **CNN RESPONSE PROBE DONE (2026-09-02): it responds to BAND-LIMITED NOISE POWER at ~110 Hz — and that one
+  mechanism unifies four separate results.** Follow-up to the glitch finding (detector ignores transients).
+  `cnn_response_probe.py`, two probes: **(A)** band-power vs score over noise windows peaks **+0.395 at
+  107–153 Hz**, falls to **−0.04 at 717–1024 Hz**; **(B)** occlusion (replace a band with the window's median,
+  re-score) on top-scoring noise / median noise / injections. **ANSWER: ~73–224 Hz, sensitivity centre
+  111–121 Hz, and 97–100% of ALL sensitivity sits below 224 Hz.** **False alarms use the SAME region as real
+  signals — profile correlation +0.916, centres 121 vs 111 Hz** ⇒ **the detector is HONESTLY FOOLED**: a
+  high-scoring noise window is not a glitch but noise with elevated power exactly where a subsolar chirp
+  deposits its SNR (they sweep slowly at low f). **UNIFIES FOUR PRIOR RESULTS:** min/veto cost reach and never
+  bought any; tail-norm HURT 2–5%; no glitch morphology in the tail windows; and **H1×L1 coincidence buys
+  1.37× while every single-detector cut fails** — all follow if signal and false alarm are the SAME feature
+  and the fluctuation is INDEPENDENT BETWEEN DETECTORS. That last one we had never had a mechanism for.
+  **Actionable:** >250 Hz contributes ~nothing yet the band runs to 1024 Hz ⇒ ~¾ of the spectrogram is
+  ignored capacity; narrowing is untested, logged not claimed. **SIXTH false verdict from my own tooling:**
+  the script declared "different band ⇒ separate feature" from an **argmax over two ADJACENT bands** whose
+  profiles correlate 0.92 — rewritten to compare profile SHAPE, failure kept in the code. **Scope:** O3a
+  (in-domain), 1,240 noise windows + 40 injections; injections are louder (base 25.5 vs 1.5) so only the
+  NORMALISED shapes are comparable, which is what the claim uses. Gated. Artifact: cnn_response_probe.json.
 - **GLITCH MORPHOLOGY DONE (2026-09-02): the deep-FAR tail is NOT glitch-driven — the veto programme dies
   before it starts, and two old results are retro-explained.** We had called the tail-setting windows "glitchy
   segments" throughout and planned to identify the family so they could be vetoed on principled grounds.

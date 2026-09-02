@@ -11,6 +11,37 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-09-02 (cont.) — what the CNN responds to: band-limited noise power at ~110 Hz
+
+Having established the detector ignores transients, asked what it does use. Two probes: band-power vs score
+across the spectrum, and occlusion (replace a band with the window's median, re-score) on three populations.
+
+The answer is narrow and low: ~73-224 Hz, sensitivity centred at 111 Hz for signals and 121 Hz for false
+alarms, with 97-100% of all sensitivity below 224 Hz. Above 700 Hz the band correlation is -0.04. The
+analysis band runs to 1024 Hz, so roughly three quarters of the spectrogram is capacity the network learned
+to ignore.
+
+The important half is the comparison. False alarms use the SAME region as real signals -- occlusion profiles
+correlate at +0.916, centres 10 Hz apart. The detector is honestly fooled: a high-scoring noise window is not
+a glitch, it is noise with elevated power exactly where a subsolar chirp deposits its SNR, because these
+binaries sweep slowly at low frequency and that is where the accumulated signal lives. Signal and false alarm
+are the same feature.
+
+That single mechanism retro-explains four things we had each measured separately and never connected:
+min/veto costing reach and never buying any; tail-normalisation actively hurting 2-5%; the tail windows
+having no glitch morphology; and H1xL1 coincidence buying 1.37x while every single-detector cut failed. All
+of them follow if the trigger IS the signal feature and the fluctuation is independent between detectors.
+The coincidence one we had never had a mechanism for at all -- it works precisely because the trigger is
+ordinary noise rather than an instrumental artefact, which is the opposite of the glitch picture we assumed
+for the whole arc.
+
+Sixth false verdict from my own tooling in this stretch: the script declared "false alarms key on a DIFFERENT
+band, so the noise trigger is a separate feature" -- from an argmax over two ADJACENT bands, while the two
+profiles correlated at 0.92. An argmax over adjacent bins is a coin flip when the peak is broad. Rewritten to
+compare profile shape. Caught the same way as the other five, by reading the numbers instead of the
+conclusion line, and by now that is less a series of accidents than a property of how these tools get built:
+the summary line is written when you still believe your own framing.
+
 ## 2026-09-02 — the glitches aren't glitches: the veto programme dies before it starts
 
 Went looking for what the windows setting our deep-FAR ceiling actually are, so a veto could be built on

@@ -1672,3 +1672,69 @@ are glitch-free is established for **3 of 8** so far; the remaining five are beh
 ~1 kB/s. The two questions are separate and only the first is settled. **Open and now much more interesting:
 what DOES the CNN respond to?** — since it is demonstrably not transient power.
 Artifacts: glitch_morphology checkpoints, glitch_score_correlation.json.
+
+### What the CNN actually responds to: band-limited noise power at ~110 Hz — and it unifies the arc (2026-09-02)
+
+**The question, sharpened by the previous result.** Having established that the detector does *not* respond
+to transient excess (Spearman +0.091 over 1,860 windows; a max-excess-4708 transient scores −0.484), the
+obvious follow-up is what it *does* respond to. `cnn_response_probe.py` asks two ways, because a correlation
+can be confounded and an occlusion map cannot say what a feature means.
+
+**(A) Which part of the spectrum tracks the score** (band-power vs score, over noise windows):
+
+| band (Hz) | Spearman |
+|---|---|
+| 50–71 | +0.210 |
+| 73–104 | +0.351 |
+| **107–153** | **+0.395** |
+| 157–224 | +0.197 |
+| 229–327 | +0.123 |
+| 490–700 | +0.040 |
+| 717–1024 | −0.038 |
+
+**(B) Occlusion** — replace one band with the window's own median, re-score, record the drop — run on three
+populations: the top-scoring noise (what triggers a false alarm), injected subsolar signals (what the
+detector is meant to use), and median noise (the null).
+
+| | top-scoring noise | median noise | injections |
+|---|---|---|---|
+| peak band | 107–153 Hz | 73–104 Hz | 73–104 Hz |
+| sensitivity centre | 121.0 Hz | 118.4 Hz | **111.4 Hz** |
+| fraction of sensitivity below 224 Hz | **0.996** | 1.000 | **0.972** |
+| profile correlation vs injections | **+0.916** | +0.932 | — |
+
+**THE ANSWER: band-limited power in ~73–224 Hz, centred near 110–120 Hz.** And false alarms use the *same*
+region as real signals — the profiles correlate at **+0.916** and the sensitivity centres differ by 10 Hz.
+
+**THE DETECTOR IS HONESTLY FOOLED, AND THAT UNIFIES FOUR EARLIER RESULTS.** A high-scoring noise window is
+not a glitch or an artefact: it is noise with elevated power exactly where the detector watches, which is
+exactly where a subsolar chirp deposits its SNR (these binaries sweep slowly at low frequency, so that is
+where the accumulated signal lives). Signal and false alarm are *the same feature*. Consequences we had each
+measured separately and never connected:
+
+| previously measured | now explained |
+|---|---|
+| `min`/`veto` cost 1–4% reach and never bought any (G2a, L2) | nothing separate to cut — the trigger *is* the signal feature |
+| tail-normalising the 2× noise-tail asymmetry HURT 2–5% held-out | same |
+| the tail-setting windows contain no glitch morphology | there are no glitches; it is band-limited noise power |
+| **H1×L1 coincidence buys 1.37×** while every single-detector cut fails | the fluctuation is **independent between detectors**, so it dies under coincidence and survives every within-detector test |
+
+That last row is the one we had never had a mechanism for. Coincidence works *because* the trigger is
+ordinary noise rather than an instrumental artefact — the opposite of the glitch picture we had assumed.
+
+**AN ACTIONABLE OBSERVATION.** Above ~250 Hz the model contributes essentially nothing (occlusion drops go
+negative; band correlation −0.04 at 717–1024 Hz), yet the analysis band runs to 1024 Hz. Roughly
+three-quarters of the spectrogram is capacity the network learned to ignore. Whether narrowing the band buys
+anything or is merely cosmetic is a separate, testable question — logged, not claimed.
+
+**A SIXTH FALSE VERDICT FROM MY OWN TOOLING, and the same species as the other five.** The script first
+declared "false alarms key on a DIFFERENT band → the noise trigger is a separate feature" — from an `argmax`
+over two **adjacent** bands, while the two profiles correlated at 0.92 and their sensitivity centres differed
+by 10 Hz. An argmax over adjacent bins is a coin flip when the peak is broad. Rewritten to compare profile
+*shape*, with the failure kept in the code. Caught, as all six were, by reading the numbers rather than the
+conclusion line.
+
+**Scope.** O3a data (in-domain for cnn_w64, which was trained on it); 20 segments, 1,240 noise windows, 40
+injections. The injections are louder than the noise windows (base score 25.5 vs 1.5), so the occlusion
+*magnitudes* are not comparable across populations — only the normalised *shapes* are, which is what the
+claim rests on. Artifact: cnn_response_probe.json.
