@@ -348,3 +348,80 @@ appendix to it** — they are sequenced later only because some depend on the sh
    underneath any of the above.
 5. **L1, L4, L6** — independent of everything else; start whenever there is appetite.
 6. **L7** waits on the O4c release; the watcher fires it.
+
+---
+
+## sGB scope analysis (2026-09-02) — asked by the user, cross-checked with `bridge` over four rounds
+
+A theory programme proposed working at **first order in the sGB coupling** and **second order in spin**. The
+question put to us: is that scope physically relevant, or an artefact of what is calculable? Answered from
+the literature plus our own ringdown machinery. Every number below was recomputed independently by `bridge`;
+seven claims were overturned across four rounds, none of them by argument.
+
+**The observational bound.** Strongest current: **√α ≲ 0.26–0.30 km** (90% credible) from **GW230529**, a
+neutron star merging with a lower-mass-gap object — 0.298 km, tightening to 0.260 km with higher-order EdGB
+corrections; same analysis gives **ζ ≲ 0.024** [A]. Previous best from NSBH events (GW200105, GW200115,
+GW190814) was √α ≲ 1.33 km [A]. **These come from the inspiral**, where scalar dipole radiation is a −1PN
+effect accumulating over many cycles, and from *low-mass* systems, because the constraint scales as α/M².
+
+- [arXiv:2405.13279](https://arxiv.org/pdf/2405.13279) — GW230529 EdGB constraints **[A]**
+- [arXiv:2406.03568](https://arxiv.org/html/2406.03568) — Tests of GR with GW230529 **[A]**
+- [arXiv:2201.02543](https://arxiv.org/abs/2201.02543) — NSBH EdGB bounds **[A]**
+
+**First order in the coupling — fine, generously.** For a 68 M☉ remnant (GM/c² = 100.4 km) at √α ≤ 0.30 km:
+ξ = α/M² ≈ **9 × 10⁻⁶**. Second-order terms are four to five orders below first. This truncation is not
+where the programme is at risk.
+
+**The QNM shift is linear in ξ², not ξ.** [arXiv:2412.09377](https://arxiv.org/html/2412.09377) defines
+ξ = α/M² and expands the weak-coupling QNM correction **to quadratic order in α** **[A]**. We initially
+quoted a gap of 3–4 orders by conflating ξ with the shift; `bridge` caught it. Corrected:
+
+| remnant | ξ = α/M² | shift ~ ξ² | gap vs σ(δ) ≈ 0.14 |
+|---|---|---|---|
+| 68 M☉ | 8.9 × 10⁻⁶ | 8.0 × 10⁻¹¹ | **9.2 orders** |
+| 30 M☉ | 4.6 × 10⁻⁵ | 2.1 × 10⁻⁹ | 7.8 orders |
+| 5 M☉ | 1.7 × 10⁻³ | 2.7 × 10⁻⁶ | 4.7 orders |
+
+We sit at ξ ~ 10⁻⁵, deep inside the regime where the quadratic scaling is exact (the same paper reports it
+failing by ~55% only at large coupling), so this is a trustworthy perturbative number rather than an
+extrapolation. **⇒ sGB is unreachable by ringdown at current sensitivity, by 7–9 orders. It is constrained
+in the inspiral, and a ringdown/QNM programme works in the channel least sensitive to the theory.**
+
+**Second order in spin — measured, not argued.** Exact Kerr 220 frequencies from the `qnm` package, Taylor
+series fitted on χ ≤ 0.3 and extrapolated. Stable across polyfit range, fit degree, and three methods:
+
+| | χ = 0.69 (real remnants) | χ = 0.90 (EMRI central objects) |
+|---|---|---|
+| O(χ²) truncation error | **~4%** (spread 3.4–5.3%) | **~16%** (spread 14.7–17.5%) |
+| successive error ratio at 3rd order | ~0.50 | ~0.72 |
+
+Equal-mass non-spinning mergers give **χ_f ≈ 0.69 to ~1%** across NR codes
+([astro-ph/0609172](https://arxiv.org/pdf/astro-ph/0609172), [arXiv:1305.5991](https://arxiv.org/abs/1305.5991))
+**[A]**; our own GW250114 measurements agree (LVK 0.69, our coherent-package fit 0.730, our NPE 0.766).
+
+**⇒ the answer splits by channel.** For **ringdown**, ~4% truncation sits below our own σ(δ) ≈ 14% — *not*
+the binding constraint, contrary to our first assessment. For **EMRI**, ~16% at χ ≈ 0.9 against phase
+accuracy over ~10⁵ cycles is disqualifying, and there the remedy is non-perturbative in spin.
+
+**What is NOT established, after three methods tried.** Whether the asymptotic error ratio tends to χ (radius
+of convergence R = 1, the extremal singularity) or to something below it. **Only three Taylor coefficients
+are recoverable** from numerically-computed Kerr frequencies at this precision — polyfit, high-order finite
+differences, and Chebyshev all fail at the same orders. A degree sweep settles it: n=2 and n=3 drift by
+0.000 and 0.002 across fit degrees 12–28, n=5 drifts by 1.06, n=6 by **124**. *A quantity three independent
+methods cannot extract is not a hard extraction — it is absent.*
+
+**Method warning worth more than the physics.** Each failure wore the costume of its own method: a wandering
+|a₅|, a 10⁵ blow-up, a degree-dependent plateau. **The plateau was the most dangerous because it looked like
+convergence** — a blow-up announces itself, a plateau recruits you. Consequently: **extracting series
+coefficients from numerics is inference with an unquoted error bar; evaluating a closed form at points is
+verification.** They are different operations and only the second is safe.
+
+**Does an exact beyond-GR metric move our δ floor? No.** 7 of 8 events return the prior (σ/prior 0.93–0.99)
+— an *information* limit, fixed by SNR and not by modelling. GW250114, our one informative event, sits at the
+crossover: start-time systematic 0.175 peak-to-late against statistical σ ≈ 0.14–0.23. An exact ω_lmn(ε)
+improves *interpretation* (constrain α rather than a phenomenological δ) but adds no SNR and cannot say when
+linear ringdown begins. **It would not help.**
+
+**Open item, filed:** run the coefficient-decay check on the **actual sGB spin expansion** — and on
+**analytic coefficients if the theory provides them, never fitted**. This thread is the evidence for that
+qualifier.
