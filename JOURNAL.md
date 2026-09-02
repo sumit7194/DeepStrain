@@ -11,6 +11,41 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-09-02 — the glitches aren't glitches: the veto programme dies before it starts
+
+Went looking for what the windows setting our deep-FAR ceiling actually are, so a veto could be built on
+principled grounds. Verified the glitch taxonomy properly first (blips ~10 ms / ~100 Hz; scattered light ~4 s
+arches at 8-64 Hz), which produced a sharp prediction: our [50, 1024] Hz band removes scattered light almost
+entirely, so the tail-setters should be blip-family.
+
+They are neither. All three windows I could measure contain NO supra-threshold cluster at all -- 0.88x the
+max-excess of an ordinary window from the same segment -- while an ordinary window in that same segment
+holding a monster transient (max-excess 4708, kurtosis +2404) scores -0.484 and is ignored. Verified the
+extraction by re-scoring: all three reproduce their cached scores to 3 dp.
+
+Confirmed at n=1,860 on 30 cached O3a segments: Spearman(score, max_excess) = +0.091, the top-18 by score and
+top-18 by excess share ZERO windows, and top scorers are no more excess-bearing than average (0.11 vs 0.12).
+The CNN does not respond to transient power. There is nothing to veto.
+
+Two things make this better than a null. It retro-explains G2a/L2 (min and veto cost reach, never bought any)
+and the tail-norm result (equalising the noise-tail asymmetry HURT 2-5%) -- both are exactly what a
+non-glitch-driven tail predicts, since a consistency cut can only remove glitches. Three independent
+measurements, one mechanism. And it corrects our own language: we have written "glitchy segments" across
+several entries and attributed the effective-N limit to glitches. The limit stands; the mechanism we ascribed
+to it does not.
+
+The process notes are the usual shape. The overnight run was lost to my own typo (C.F_LOW for C.F_LOWER --
+which I had grepped, seen, and mistyped anyway), then sed silently failed to fix it because BSD sed has no
+\b. The morphology function was then broken twice in ways the smoke test caught before any real data: first
+measuring the noise floor rather than the transient (blip, noise, and chirp all returned duration 64 s), then
+ignoring the trials factor so pure noise classified as scattered light. Both had the same signature -- the
+same answer for signal and for nothing. And GWOSC turned out not to be down but resetting connections
+mid-transfer, so gwpy restarted the 97 MB file each time; the fix was curl -C -, and the diagnosis only came
+from comparing a small manual probe against the job's large one.
+
+The n=1,860 answer was on disk the whole time, in the 7 GB of cached O3a noise I had spent the previous night
+treating purely as a disk problem.
+
 ## 2026-08-22 (cont.) — mutation-testing the gate suite: 52/55 provably fail on garbage
 
 bridge found a §6 instance worse than mine — their keepalive `sed`-ed only the `"updated"` field, so the

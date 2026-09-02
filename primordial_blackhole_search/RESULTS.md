@@ -1618,3 +1618,57 @@ Artifact: far_ks_clipband.json.
 came from another project's methodology, applied to a number we had already published and were relying on.
 The cost was minutes. The general form: **any small residual quoted from a discretised computation needs its
 discretisation swept before it counts as a measurement.**
+
+### The deep-FAR tail is NOT glitch-driven — the veto programme dies before it starts (2026-09-02)
+
+**The premise being tested.** Every limit the deep-FAR arc hit traces to a handful of loud H1 windows (8 set
+1/decade, 3 set 1/century), and 51× more background barely moved those counts. We had called them "glitchy
+segments" throughout, and the plan was to identify the glitch family so they could be vetoed on principled
+grounds rather than the post-hoc removal we refused as tuning.
+
+**The instrument, validated on knowns before use.** `glitch_anatomy_morphology.py` measures the largest
+*connected* excess cluster in a whitened window: per-row median normalisation, a trials-aware threshold (so
+that <0.01 false pixels are expected across ~250,000 time-frequency pixels), then connected-component
+labelling. Smoke-tested on synthetics — a 10 ms broadband burst returns **0.055 s / 112 Hz** (published blips:
+~10 ms, ~100 Hz) and a 4 s low-frequency tone returns **4.04 s / 64 Hz peak** (published scattered light:
+~4 s arches, 8–64 Hz). Pure noise returns *no-excess*.
+
+**THE RESULT, and it inverts the premise.** On the one deep-FAR segment obtainable before GWOSC degraded, all
+three tail-setting windows contain **no supra-threshold cluster at all** — max-excess 17.9–22.4, kurtosis ~0,
+i.e. **0.88× an ordinary noise window** from the same segment. Meanwhile an ordinary window in that segment
+holding an enormous transient (**max-excess 4708, kurtosis +2404**) scores **−0.484**: below average, ignored.
+Window extraction was verified by re-scoring — all three reproduce their cached scores to 3 decimals.
+
+**Confirmed at n = 1,860** (`glitch_score_correlation.py`, 30 cached O3a segments — no fetching required,
+the data was already on disk):
+
+| measure | value |
+|---|---|
+| Spearman(score, max_excess) | **+0.091** |
+| top-18 by score ∩ top-18 by excess | **0 windows** |
+| fraction of top scorers with any excess | **0.11** (all windows: 0.12) |
+| median score of the highest-excess windows | **−0.900** (all windows: −0.976) |
+
+⇒ **the detector does not respond to transient excess.** Loud glitches score like ordinary noise, and the
+loudest-scoring windows are no more transient-rich than average. **There is nothing to veto**, and the whole
+signal-consistency programme — which we had queued as the obvious next move — is dead on evidence rather than
+left plausible-but-untested.
+
+**IT RETRO-EXPLAINS TWO RESULTS WE ALREADY HAD AND DID NOT UNDERSTAND.** G2a and the L2 audit both found
+`min` and `veto` cost reach and never bought any (0.96–0.99×); the tail-normalisation test found equalising
+the 2× noise-tail asymmetry actively **hurt** by 2–5% held-out. Both are exactly what you expect if the deep
+tail is not glitch-driven: a consistency cut can only remove glitches, and there are none to remove. Three
+independent measurements, one mechanism.
+
+**A CORRECTION TO OUR OWN LANGUAGE.** RESULTS.md, CLAUDE.md and several commit messages describe these as
+"glitchy segments" and "independent loud-noise samples", and attribute the effective-N limit to glitches.
+That language is now wrong. The windows setting the deep tail are **not transients**; they are something
+distributed in the noise that the CNN responds to and that leaves no localised time-frequency signature. The
+effective-N limit is real and unchanged — what changes is the mechanism we ascribed to it.
+
+**SCOPE, stated precisely.** The n=1,860 test is O3a (in-domain for cnn_w64, which was trained on it) and
+establishes the *mechanism*: this detector does not track transients. Whether the specific O4b tail windows
+are glitch-free is established for **3 of 8** so far; the remaining five are behind a GWOSC outage running at
+~1 kB/s. The two questions are separate and only the first is settled. **Open and now much more interesting:
+what DOES the CNN respond to?** — since it is demonstrably not transient power.
+Artifacts: glitch_morphology checkpoints, glitch_score_correlation.json.

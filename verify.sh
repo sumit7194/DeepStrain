@@ -1119,6 +1119,34 @@ print(f"PASS  pbh tail-norm (noise tails differ 1.97x max / 1.58x q99.9 vs gain 
       f"=> confounding not overfitting, `sum` stands; censoring hypothesis refuted at 0% of background)")
 PYEOFTN
 
+echo "--- pbh glitch morphology (the deep-FAR tail is NOT glitch-driven; nothing to veto)"
+./primordial_blackhole_search/.venv/bin/python - << 'PYEOFGM' || FAIL=1
+import json
+d = json.loads(open("primordial_blackhole_search/results/glitch_score_correlation.json").read())
+
+# (1) THE FINDING: the detector does not track transient excess. Gated so the veto programme cannot be
+#     quietly revived -- it was killed by measurement, not by opinion, and reviving it needs new evidence.
+assert d["n_windows"] > 1000, f"sample too small to carry the claim: {d['n_windows']}"
+assert abs(d["spearman_score_vs_maxexcess"]) < 0.30, \
+    f"score now tracks transient excess (rho={d['spearman_score_vs_maxexcess']:.3f}) -- re-open the veto idea"
+assert d["top_score_top_excess_overlap"] <= 2, \
+    f"loudest scorers and loudest transients now overlap ({d['top_score_top_excess_overlap']}) -- re-derive"
+
+# (2) the sharper form: top scorers are no more transient-rich than an average window. If this ever
+#     separates, the mechanism behind the deep-FAR tail has changed and several entries need rewriting.
+assert d["frac_top_scorers_with_excess"] < d["frac_all_windows_with_excess"] + 0.15, \
+    f"top scorers now excess-enriched: {d['frac_top_scorers_with_excess']:.2f} vs {d['frac_all_windows_with_excess']:.2f}"
+assert d["median_score_of_highest_excess"] < d["median_score_all"] + 0.5, \
+    "the biggest transients now score high -- the detector has started responding to glitches"
+
+print(f"PASS  pbh glitch morphology (n={d['n_windows']} windows: Spearman(score, max_excess) = "
+      f"{d['spearman_score_vs_maxexcess']:+.3f}, top-{d['top_k']}-by-score and top-{d['top_k']}-by-excess "
+      f"share {d['top_score_top_excess_overlap']} windows, top scorers {d['frac_top_scorers_with_excess']:.2f} "
+      f"vs all {d['frac_all_windows_with_excess']:.2f} excess-bearing => the CNN does NOT respond to transients, "
+      f"the deep-FAR tail is not glitch-driven, and there is nothing to veto -- which is why min/veto never "
+      f"bought reach and tail-norm HURT)")
+PYEOFGM
+
 echo "========================================"
 [ $FAIL -eq 0 ] && echo "BLACKHOLE GATE: ALL GREEN" || echo "BLACKHOLE GATE: FAILURES"
 exit $FAIL

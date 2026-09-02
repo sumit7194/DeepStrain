@@ -218,6 +218,28 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   checkpoints (never re-fetch a done segment), raw strain purged — **and the purge must clear astropy's download
   cache too** (`gwpy` keeps a 2nd copy, ~0.25 GB/segment, 5.3 GB accumulated; would have exhausted disk ~segment
   80 — caught mid-run, fixed, disk then flat at 19 GB). Gated (45). Artifacts: far_deep.json, results/far_scores/.
+- **GLITCH MORPHOLOGY DONE (2026-09-02): the deep-FAR tail is NOT glitch-driven — the veto programme dies
+  before it starts, and two old results are retro-explained.** We had called the tail-setting windows "glitchy
+  segments" throughout and planned to identify the family so they could be vetoed on principled grounds.
+  `glitch_anatomy_morphology.py` measures the largest CONNECTED excess cluster (per-row median normalisation,
+  trials-aware threshold so <0.01 false pixels across ~250k, connected-component labelling), **validated on
+  synthetics first**: a 10 ms burst → 0.055 s/112 Hz (published blips ~10 ms/~100 Hz), a 4 s tone → 4.04 s/
+  64 Hz (published scattered light ~4 s/8–64 Hz), pure noise → no-excess. **RESULT INVERTS THE PREMISE:** all
+  3 obtainable tail-setting windows have **NO supra-threshold cluster** (max-excess 17.9–22.4, kurtosis ~0 =
+  **0.88× an ordinary window**), while an ordinary window holding a huge transient (**max-excess 4708,
+  kurtosis +2404**) scores **−0.484**, i.e. ignored. Extraction verified by re-scoring (all 3 reproduce cached
+  scores to 3 dp). **CONFIRMED AT n=1,860** (`glitch_score_correlation.py`, 30 cached O3a segments, no fetch
+  needed — the data was on disk): **Spearman(score, max_excess) = +0.091**, top-18-by-score ∩ top-18-by-excess
+  = **0 windows**, top scorers with any excess **0.11** vs 0.12 for all, median score of highest-excess windows
+  −0.900 vs −0.976. ⇒ **the CNN does not respond to transient excess; there is nothing to veto.**
+  **RETRO-EXPLAINS TWO PRIOR RESULTS:** G2a/L2 found `min`/`veto` cost reach and never bought any (0.96–0.99×),
+  and tail-normalisation actively HURT 2–5% held-out — both are exactly what a non-glitch-driven tail predicts,
+  since a consistency cut can only remove glitches and there are none. Three measurements, one mechanism.
+  **CORRECTS OUR OWN LANGUAGE:** "glitchy segments" / glitch-attributed effective-N is WRONG across several
+  entries — the effective-N limit stands, the mechanism we ascribed to it does not. **Scope:** n=1,860 is O3a
+  (in-domain) and settles the MECHANISM; whether the specific O4b tail windows are glitch-free is settled for
+  **3 of 8**, rest behind a GWOSC outage at ~1 kB/s. **Now open and more interesting: what DOES the CNN respond
+  to?** Artifacts: glitch_score_correlation.json, glitch_morph_ckpt/.
 - **TAIL-NORM TEST DONE (2026-08-22): `sum` survives a REAL objection — equalising the 2x noise-tail
   asymmetry HURTS.** From `bridge` (TheBridge/G3): a statistic whose GAIN varies along a comparison axis
   manufactures structure, and 16x more data bought them ~nothing (systematic variation doesn't average down).
