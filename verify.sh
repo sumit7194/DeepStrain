@@ -1180,6 +1180,40 @@ print(f"PASS  pbh CNN response probe (sensitivity centre {d['centre_hz']['inject
       f"coincidence works because the fluctuation is independent between detectors)")
 PYEOFCR
 
+echo "--- ringdown spin truncation (31: O(chi^2) is ~4% at real remnants, ~16% at EMRI spins)"
+./ringdown_spectroscopy/.venv/bin/python - << 'PYEOFST' || FAIL=1
+import json
+d = json.loads(open("ringdown_spectroscopy/results/31_spin_truncation.json").read())
+t2 = d["truncation"]["2"]
+
+# (1) THE MEASUREMENT, and the channel split that is the actual finding. If either number moves materially
+#     the split may invert, and the split is what a theory programme would act on.
+assert 0.02 < t2["chi069"]["median"] < 0.08, f"O(chi^2) error at chi=0.69 moved: {t2['chi069']}"
+assert 0.10 < t2["chi090"]["median"] < 0.25, f"O(chi^2) error at chi=0.90 moved: {t2['chi090']}"
+assert t2["chi069"]["median"] < 0.14, \
+    "O(chi^2) error at remnant spins now EXCEEDS our sigma(delta) ~ 0.14 -- the ringdown half of the " \
+    "channel split inverts and 'not the binding constraint' must be withdrawn"
+assert t2["chi090"]["median"] > 3 * t2["chi069"]["median"], "the channel split has collapsed -- re-derive"
+
+# (2) the error must actually DECREASE with order -- this is what refutes "no finite order is controlled",
+#     which was the strong claim we had to withdraw. If it stops decreasing that claim comes back.
+errs = [d["truncation"][str(o)]["chi069"]["median"] for o in (2, 3, 4, 5, 6)]
+assert all(errs[i] > errs[i+1] for i in range(len(errs)-1)), f"error no longer falls with order: {errs}"
+
+# (3) AND THE HONESTY GUARD: only 2 coefficient ratios are stable under fit degree. If anyone later quotes
+#     an asymptotic limit from this data, this assertion is what says they cannot.
+stab = d["coefficient_stability"]
+assert stab["2"]["is_real"] and stab["3"]["is_real"], "the n=2,3 coefficients are no longer stable"
+assert not stab["5"]["is_real"], "n=5 became stable -- the 'limit not measurable' claim can be revisited"
+assert stab["5"]["drift"] > 0.5, f"n=5 drift shrank to {stab['5']['drift']:.3f} -- recheck"
+
+print(f"PASS  ringdown spin truncation (O(chi^2) error {t2['chi069']['median']:.1%} at chi=0.69 vs "
+      f"{t2['chi090']['median']:.1%} at chi=0.90 => NOT binding for ringdown (below our sigma(delta)~0.14), "
+      f"disqualifying for EMRI; error falls with order so 'no finite order works' is refuted; but only "
+      f"n=2,3 coefficients survive a fit-degree sweep (n=5 drifts {stab['5']['drift']:.2f}, "
+      f"n=6 drifts {stab['6']['drift']:.0f}) => the asymptotic limit is NOT measurable)")
+PYEOFST
+
 echo "========================================"
 [ $FAIL -eq 0 ] && echo "BLACKHOLE GATE: ALL GREEN" || echo "BLACKHOLE GATE: FAILURES"
 exit $FAIL

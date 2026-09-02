@@ -907,3 +907,67 @@ identical artefact was sitting inside the *injection validation* that was suppos
 invisible because the test was run at δ_true = 0, where returning the prior is indistinguishable from
 success. **A check evaluated at the prior's centre cannot detect a prior-returning estimator.**
 Gated. Artifact: results/30_stacking_audit.json.
+
+## SPIN-TRUNCATION MEASURED (2026-09-02): O(χ²) is ~4% at real remnants, ~16% at EMRI spins
+
+**Why it exists.** A theory programme proposed working to second order in spin, and asked whether that scope
+covers real black holes. The question is normally *argued*; `31_spin_truncation.py` measures it against exact
+Kerr 220 frequencies from the `qnm` package. **Both arguments people reach for turned out to be wrong, and
+one of them was ours.**
+
+**The two failed arguments, kept because the failure is instructive.**
+1. *"The first neglected term is χ³, and χ³/χ² = χ = 0.69, so the error is ~70%."* **A term ratio is not an
+   error.** It assumes the Taylor coefficients are O(1); they decay. **This was our claim and it was wrong by
+   more than an order of magnitude.**
+2. *"Therefore no finite order in χ is controlled, since the ratio is χ at every order."* **The same
+   unchecked premise, amplified.** If the coefficients decay the series converges — 2nd → 6th order buys
+   ~15× at remnant spins. This was `bridge`'s correction of our claim, and it inherited the assumption it was
+   correcting (now PROTOCOL §24).
+
+**MEASURED.** Truncation error of an order-*n* spin expansion, with the spread over fit ranges 0.15–0.40:
+
+| order | error at χ = 0.69 | error at χ = 0.90 |
+|---|---|---|
+| **2** | **4.43%** [3.44, 5.35] | **16.15%** [14.66, 17.47] |
+| 3 | 2.13% | 11.30% |
+| 4 | 1.07% | 8.19% |
+| 6 | 0.29% | 4.62% |
+
+χ = 0.69 is the universal final spin of equal-mass non-spinning mergers, reproducible to ~1% across NR codes
+(astro-ph/0609172, arXiv:1305.5991); our own GW250114 fits agree (LVK 0.69, coherent package 0.730, NPE 0.766).
+
+**⇒ THE ANSWER SPLITS BY CHANNEL, which is the finding.**
+- **Ringdown: NOT the binding constraint.** 4.4% sits well below our own σ(δ) ≈ 0.14. We initially called
+  O(χ²) disqualifying for ringdown and **withdrew that** — it is three times smaller than what we can resolve.
+- **EMRI: disqualifying.** 16% at χ ≈ 0.9, against phase accuracy accumulated over ~10⁵ cycles, is not a
+  correction but a different waveform. The remedy there is non-perturbative in spin, not more terms.
+
+**WHAT IS NOT ESTABLISHED, AND THE TEST THAT SHOWED IT.** Whether the asymptotic error ratio tends to χ
+(radius of convergence 1, the extremal singularity) or below it. A fit-**degree** sweep is decisive — a real
+coefficient does not move when the fit degree changes:
+
+| n | range over degrees 12–28 | drift | |
+|---|---|---|---|
+| 2 | 0.669 – 0.669 | 0.000 | **REAL** |
+| 3 | 0.731 – 0.733 | 0.002 | **REAL** |
+| 4 | 0.740 – 0.788 | 0.048 | drifting |
+| 5 | 0.150 – 1.208 | 1.06 | **FIT-DOMINATED** |
+| 6 | 0.735 – 125.09 | 124 | **FIT-DOMINATED** |
+
+**Only three coefficients are recoverable** from numerically-computed Kerr frequencies at this precision. We
+had reported the sequence 0.669, 0.731, 0.775, 0.801, 0.812 as evidence of a decelerating limit — **two of
+those five values do not exist.**
+
+**THREE METHODS, ONE FAILURE, THREE COSTUMES.** Monomial polyfit (|a₅| wandering an order of magnitude while
+|a₆| climbed with fit range), high-order finite differences (ill-conditioned; returned a₆ = 807312 and errors
+of 10⁵, discarded), and Chebyshev (well-conditioned at low order, degree-dependent above n=4). All die at the
+same orders ⇒ **a statement about the data, not the tools. A quantity three independent methods cannot
+extract is not a hard extraction — it is absent.**
+
+> **A blow-up announces itself. A plateau recruits you.** The Chebyshev ratios *looked* like a converging
+> sequence, which is why they were reported. The blow-up cost minutes; the plateau cost two rounds.
+
+**GENERAL FORM, worth more than the physics here: extracting series coefficients from numerics is inference
+with an unquoted error bar; evaluating a closed form at points is verification.** Only the second is safe.
+Any plan of the form "derive a closed form and check it against numerics" depends entirely on which of the
+two it means. Gated. Artifact: results/31_spin_truncation.json.

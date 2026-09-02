@@ -11,6 +11,38 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-09-02 (cont.) — measuring the spin truncation instead of arguing it
+
+A theory programme asked whether 2nd order in spin covers real black holes. Everyone argues this from term
+ratios; nobody measures it. Measured against exact Kerr 220: O(chi^2) is 4.4% at chi=0.69 and 16.2% at
+chi=0.90, stable across fit ranges.
+
+Both standard arguments are wrong and the first was ours. "The first neglected term is 70% of the retained
+one" treats a term ratio as an error and assumes O(1) coefficients; they decay, and the real number is 4.4%,
+wrong by more than an order of magnitude. bridge then corrected us with "and therefore no finite order is
+controlled" -- which inherited the same unchecked premise and amplified it. That pairing became PROTOCOL 24:
+a correction that keeps the premise of the thing it corrects looks like scrutiny and is the same mistake at
+higher confidence.
+
+The finding is the channel split. For ringdown, 4.4% sits below our own sigma(delta) ~ 0.14, so the spin
+truncation is NOT the binding constraint -- we withdrew our own disqualifying call. For EMRI, 16% against
+phase accuracy over ~1e5 cycles is a different waveform, and the remedy is non-perturbative in spin rather
+than more terms.
+
+What we could NOT establish is the more interesting half. A fit-degree sweep shows only the n=2 and n=3
+coefficient ratios are stable (drift 0.000 and 0.002); n=5 drifts by 1.06 and n=6 by 124. We had reported
+five ratios as a decelerating sequence and two of them do not exist. Three methods -- polyfit, finite
+differences, Chebyshev -- all fail at the same orders, which makes it a statement about the data rather than
+the tools: the coefficients are simply absent from numerically-computed frequencies at this precision.
+
+Each failure wore its own costume. The finite-difference blow-up (a6 = 807312) cost minutes because it
+announced itself. The Chebyshev plateau cost two rounds because it looked like convergence. Blow-ups
+announce; plateaus recruit.
+
+The transferable form is not about spin at all: extracting series coefficients from numerics is inference
+with an unquoted error bar, while evaluating a closed form at points is verification. Any plan of the shape
+"derive a closed form and check it against numerics" turns on which of those it means.
+
 ## 2026-09-02 (cont.) — what the CNN responds to: band-limited noise power at ~110 Hz
 
 Having established the detector ignores transients, asked what it does use. Two probes: band-power vs score

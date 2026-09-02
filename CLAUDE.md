@@ -624,6 +624,29 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
   consistent). **(c) NPE referee: package M 74.8 [70.4,79.0] / χ 0.729 vs our 09 NPE 76.0 [68.4,85.2] / 0.762 —
   first independent field-standard cross-validation of the NPE arc (package CI nests inside NPE's).** NUTS x64,
   R̂≤1.004, ESS≥950. Gated. Caveat: all peak-start fits carry the R3 early-time systematic; duration fixed 0.05 s.
+- **SPIN TRUNCATION MEASURED (2026-09-02): O(χ²) is ~4% at real remnants, ~16% at EMRI spins — and the
+  answer SPLITS BY CHANNEL.** Asked by the user as a scope question for a scalar-Gauss-Bonnet programme
+  working to 2nd order in spin. `31_spin_truncation.py` measures it against exact Kerr 220 from `qnm` instead
+  of arguing it. **BOTH standard arguments are wrong, one of them ours:** (a) *"first neglected term is
+  χ³/χ² = χ = 0.69 so the error is ~70%"* — **a term ratio is not an error**, it assumes O(1) coefficients and
+  they decay; measured error is **4.4%**, wrong by >10×, and it was OUR claim. (b) *"therefore no finite order
+  is controlled"* — same unchecked premise amplified; error falls 4.43→2.13→1.07→0.29% over orders 2–6, so the
+  series converges. (b) was `bridge` correcting (a) and **inheriting its premise** → PROTOCOL §24.
+  **MEASURED (spread over fit ranges 0.15–0.40): χ=0.69 → 4.43% [3.44,5.35]; χ=0.90 → 16.15% [14.66,17.47].**
+  χ=0.69 is the universal remnant spin (~1% across NR codes; our GW250114: LVK 0.69 / package 0.730 / NPE
+  0.766). ⇒ **RINGDOWN: NOT the binding constraint** (4.4% < our σ(δ)≈0.14 — we withdrew our own
+  "disqualifying" call); **EMRI: disqualifying** (16% against phase accuracy over ~10⁵ cycles; remedy is
+  non-perturbative in spin, not more terms). **NOT ESTABLISHED — and the test that showed it:** a fit-DEGREE
+  sweep (12–28) gives drift 0.000/0.002 at n=2,3 but **1.06 at n=5 and 124 at n=6** ⇒ **only 3 coefficients
+  are recoverable** from numerical Kerr frequencies at this precision, so no statement about the asymptotic
+  limit is supported. We had reported 0.669/0.731/0.775/0.801/0.812 as a decelerating sequence — **two of
+  those five values do not exist.** **THREE METHODS, ONE FAILURE, THREE COSTUMES:** polyfit (|a₅| wandering),
+  finite differences (a₆=807312, discarded), Chebyshev (degree-dependent above n=4) — all die at the same
+  orders ⇒ a statement about the DATA not the tools. **"A blow-up announces itself; a plateau recruits you"**
+  — the blow-up cost minutes, the plateau cost two rounds. **GENERAL FORM: extracting series coefficients from
+  numerics is inference with an unquoted error bar; evaluating a closed form at points is verification.**
+  Gated (incl. an honesty guard asserting n=5 stays unstable, so nobody later quotes a limit from this data).
+  Artifact: 31_spin_truncation.json.
 - **L5 THIRD-TONE FLOOR DONE (2026-08-15): a third tone is out of reach here — and the two candidates fail for
   OPPOSITE reasons.** The prereq ("read GWTC-5.0 first") **corrected our own [S] note**: we had recorded "GWTC-5.0
   reports the first measurement of three tones"; verified at **arXiv:2510.01001**, GW250114 has strong evidence
