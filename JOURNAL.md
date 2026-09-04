@@ -110,6 +110,28 @@ safe thing to over-apply, which is exactly why an over-applied restriction attra
 like caution from every angle. Relayed user instructions are now quoted verbatim in both directions, with the
 relayer's reading marked separately as theirs.
 
+Closing pass over the repo before pushing, prompted by the user asking whether any prior-art PDFs are
+tracked, since this is public. **Clean, and checked against history rather than the working tree**: no PDF,
+paper, or document file has EVER been committed on any branch, no paper-ish filenames, no secrets pattern,
+no venv contents. The only `.venv`-matching path is `ringdown_spectroscopy/.venv311-pins.txt`, which is a
+deliberately tracked pin list. 1,146 files, 71 MB. The `.gitignore` already carries the two hard-won rules
+about ignore-by-size silently becoming ignore-by-evidentiary-value.
+
+**And the audit caught a documentation error of my own from today.** CLAUDE.md entries carry a "Gated (N)"
+count, and I wrote 62, 63 and 65 for today's three entries by INCREMENTING rather than counting. The gate
+has 61 blocks, measured three independent ways (PASS lines, section headers, heredoc blocks, all 61). The
+baseline before today was 58, so the correct values were 59, 59 and 61. Checked the older citations the same
+way and 48 through 52 are all exactly right, so the convention was sound and today's entries were the
+anomaly. Corrected in place.
+
+That is the day's species one final time, in the most mundane possible place: a number that could have been
+counted, asserted by extrapolating from a previous number that was itself never counted. Nothing rested on
+it, which is exactly why nothing checked it.
+
+ROADMAP.md was stale since 2026-08-15 — it listed L1 through L7 as forward work when six of the seven had
+since closed, five of them as negatives. Updated with per-item outcomes and the reopening criteria, plus
+today's settled SSL trend. L7 remains the only item waiting on the world rather than on us.
+
 
 
 ## 2026-09-02 (cont.) — measuring the spin truncation instead of arguing it

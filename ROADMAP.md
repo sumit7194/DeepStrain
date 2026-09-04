@@ -87,15 +87,24 @@ literature sweep. **Standing rule: effort is not a reason to drop an item.** The
 runs unattended; long-running jobs are normal. An item leaves the list when it is *done* or *measured to be
 impossible* — never because it looked big.
 
-| | project | effort | buys |
-|---|---|---|---|
-| **L1** | cheap-template dense bank (de-chirping, ~8× per core → ~13k templates) | weeks | pushes the one axis Follow-up A named as the dominant loss |
-| **L2** | deep background → 1/century (~353 segs ≈ 1000 yr, ~14 h unattended) | days | a deeper rung **and** ±33% → ~±18% on the existing one |
-| **L3** | orthonormal-mode adoption across the ringdown arc (retrain NPE, recalibrate) | weeks | could overturn the parked v4 tone-count negative |
-| **L4** | coherent network echo search (phase-marginalized, cf. arXiv:2512.24730) | weeks | field-standard echo sensitivity; nulls become comparable |
-| **L5** | three-tone spectroscopy (GWTC-5.0 reports the first 3-tone measurement) | read, then weeks | extends the no-hair test beyond 220+221 |
-| **L6** | larger unlabeled pool for the SSL backbone | days | tests whether N4's data-wall win keeps growing |
-| **L7** | S251112cm (FAR 1/6.2 yr subsolar candidate) | — | **blocked: O4c not public.** `o4c_release_watch.py` is the trigger |
+**Status as of 2026-09-05: six of the seven are closed.** Five returned negatives or limits rather than
+wins, which is the expected yield and is why they were worth doing. Detail for each lives in CLAUDE.md.
+
+| | project | outcome |
+|---|---|---|
+| **L1** | cheap-template dense bank (ratio-filter de-chirping) | ❌ **CLOSED, honest negative (2026-08-15).** The algebra is exact but the gain is ≈ log N / log K, and subsolar needs K ≈ 16,385 taps → **0.94×, marginally slower**. The published 8× assumes K ≈ 250 (BNS). Reopens only for a signal class needing K ≲ 1,000 taps. |
+| **L2** | deep background → 1/century | ✅ **DONE (2026-08-19).** 727 segments → **4,120 yr**, 1/century reached, **null 4/4**. Precision 33–44% → 10–12%, though the estimator audit then showed the jackknife understates by 4.2×, so quote 1/decade **14.53 ± ~1.7**. Remaining limit is independent loud-noise samples, not livetime. |
+| **L3** | orthonormal-mode adoption across the ringdown arc | ❌ **CLOSED, negative (2026-08-15).** Max \|ΔAUC\| = **0.00000** bit-for-bit — the basis carries no detection information. Does **not** explain the v4 tone-count wall, which stands as an information limit. |
+| **L4** | coherent network echo search | ⚠️ **RETRACTED (2026-08-22).** The 1.12× at "3.2σ" was 0.96σ under a paired bootstrap; the analytic bar had omitted three terms. **The injection-convention finding stands** (physical 1.12× vs identical 0.92×). |
+| **L5** | three-tone spectroscopy | ❌ **CLOSED, information-limited (2026-08-15).** (2,2,2) is degeneracy-limited (needs A/A220 = 1.45); (3,3,0)/(4,4,0) are weakness-limited. **Reopening criterion: ρ_rd ≈ 38 ≈ 1.5× GW250114.** Also corrected our own [S] note — GWTC-5.0 *constrains* a third tone, it does not detect one. |
+| **L6** | larger unlabeled pool for the SSL backbone | ❌ **CLOSED, saturates (2026-08-15).** Fully achieved by **2,500 specs**, 8× less than N4 used; slope 5k→20k is **−0.020**. Cross-detector pool addition is null (+0.0009). A bigger fetch is not justified. |
+| **L7** | S251112cm (FAR 1/6.2 yr subsolar candidate) | 🔒 **STILL BLOCKED: O4c not public.** `o4c_release_watch.py` is the trigger; last checked 2026-09-04, only `O4c1DiscC00` (1.14 h) released and it does not cover the event. **The one item here that is waiting on the world rather than on us.** |
+
+**Added 2026-09-05 — SSL data-wall trend, settled.** N4's trend was gated on a 2-seed run. Two
+pre-registered re-runs (n=5 suggestive at 2.94σ, then n=20 fresh seeds) resolve it: **gap +0.209,
+bootstrap p = 0.00000, 7.39σ**. The decomposition changed the claim: at 2,000 labels from-scratch clears
+the 1%-FAR floor **0/20** and SSL **20/20**, so the gain is **floor-clearing, not distance**. Open follow-up
+if anyone wants it: the label-efficiency *curve shape*, which needs more budgets, not more seeds.
 
 ---
 

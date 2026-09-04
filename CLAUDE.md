@@ -227,7 +227,7 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   **A decomposition run on an underpowered pilot is itself underpowered**, and I stated it as a finding rather
   than a preview. **AND A COMMITTED N4 CLAIM DIES:** "at zero-FA the distance is 0 for BOTH" was a 2-seed
   statement — at 20 seeds scratch is still 0.0000 everywhere but **SSL reaches 0.0260 @4,000 and 0.0109
-  @8,000**, so the floor is not a property of reduced-budget models in general. Gated (65).
+  @8,000**, so the floor is not a property of reduced-budget models in general. Gated (61).
   Artifacts: results/ssl_sensdist_seeds20.json, results/ssl_trend_test_seeds20.json.
 - **N5 DONE (2026-06-27): triple-detector H1×L1×V1 — honest NEGATIVE, Virgo does NOT help subsolar.**
   `coinc_triple.py` extends the G1 double-coincidence to a 3rd detector (cnn_w64 on H1+L1+V1, 3-way time-slide
@@ -735,7 +735,7 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
   spin series is untouched, and the field's own O(χ²) sGB paper **extrapolates its accuracy from Kerr** ("for
   EdGB gravity **as well**") rather than measuring it — the same proxy step our open item flagged. The
   decisive numbers now exist non-perturbatively: **METRICS, arXiv:2406.11986 / PRD 110, 064019**, sGB QNMs to
-  a ≤ 0.85 with ~40 orders in spin. Gated (62). Artifact: 32_spin_truncation_crosscheck.json.
+  a ≤ 0.85 with ~40 orders in spin. Gated (59). Artifact: 32_spin_truncation_crosscheck.json.
 - **ERROR-RATIO STABILITY MEASURED (2026-09-04, same day, prompted by `bridge` asking whether their
   observation survived the corrected extractor): the RISE survives, and we had judged it with the WRONG
   INSTRUMENT.** The observation was that the successive error ratio climbs with order (convergence rate
@@ -751,7 +751,8 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
   observation: the DIRECTION is resolved at 21:1 (χ=0.90; 11:1 at χ=0.69) — the gap between the two solid
   ratios against how much they move — the TREND SHAPE is not, and the LIMIT is not.** Two points separate
   rising from falling; rising-toward-a-limit, rising-linearly and rising-then-turning-over are
-  indistinguishable from two. 31's "asymptotic limit NOT measurable" guard stands exactly as written. Gated (63) incl. an assertion that the
+  indistinguishable from two. 31's "asymptotic limit NOT measurable" guard stands exactly as written. Gated (59; the cross-check's
+  block gained assertions rather than a new one) incl. an assertion that the
   rise must persist or be recorded as dead rather than quietly dropped.
 - **L5 THIRD-TONE FLOOR DONE (2026-08-15): a third tone is out of reach here — and the two candidates fail for
   OPPOSITE reasons.** The prereq ("read GWTC-5.0 first") **corrected our own [S] note**: we had recorded "GWTC-5.0
