@@ -432,6 +432,33 @@ record before anyone plans an O(χ²) sGB calculation:
   coupling our observational bound allows, so it does not bite here — but it is the reason the coupling
   expansion cannot be waved through at arbitrary ξ.
 
+**EMRI non-integrability — the observable, and our scope limit (verified 2026-09-05).** Asked whether a
+structural non-existence result (no irreducible Killing tensor in a deformed-Kerr sGB metric ⇒ orbits not
+integrable) is observable, and at what SNR. **Recorded because the honest answer is a refusal:** EMRIs are a
+LISA source — millihertz band, 10⁴–10⁶ cycles accumulated over years **[S]**. We work 50–1024 Hz on LIGO
+strain, hold no EMRI data, and have no instrument that could. Any SNR figure from us would be an analogy
+from subsolar machinery that happens to fit superficially, which is the failure mode this repo spends most
+of its time catching. **The question is well-posed; it is simply not ours.**
+
+What the observable *is*, for whoever does hold the machinery: non-integrability shows up as **gravitational-wave
+"glitches"** — abrupt frequency jumps as the orbit crosses **Birkhoff resonance islands** — and as a chaotic
+signal developing dense inter-peak power in place of a discrete frequency comb
+([arXiv:2103.05643](https://arxiv.org/abs/2103.05643) **[S]**;
+[arXiv:2604.06053](https://arxiv.org/abs/2604.06053), *Probing Kerr Symmetry Breaking with LISA EMRIs*,
+**[S]** — pointer only, abstract not read).
+
+**What our own number does and does not say about such a proof.** If the metric is the second-order-in-spin
+one — as every sGB QNM paper checked above is — then the object differs from the physical one by **18.9%** at
+χ = 0.90 (measured, and externally validated). But the *direction* of a non-existence result makes it robust
+to that: finding a hidden symmetry **present** in a truncation would be the fragile claim, since a symmetry
+can appear by accident at finite order; finding it **absent** is stable, because restoring one by adding
+higher-order terms requires fine-tuning nothing supplies. ⇒ **the truncation bounds what such a proof
+licenses rather than threatening it** — exact for the truncated metric, strongly suggestive for the physical
+one, and not a proof of the latter. **The general form, which is the transferable part: exactness of a
+computation says nothing about fidelity of the object computed on.** An exact null has no error bar on
+"does *this* metric admit the tensor" and none at all on "do real orbits fail to be integrable" — and the
+second is the sentence that travels.
+
 **What is NOT established, after three methods tried.** Whether the asymptotic error ratio tends to χ (radius
 of convergence R = 1, the extremal singularity) or to something below it. **Only three Taylor coefficients
 are recoverable** from numerically-computed Kerr frequencies at this precision — polyfit, high-order finite
