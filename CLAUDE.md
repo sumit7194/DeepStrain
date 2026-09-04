@@ -198,6 +198,21 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   (from-scratch non-functional) → +0.01 @8000 (data-wall signature). At the strict zero-FA threshold both are 0 — a
   model-strength floor (needs ~full-data AUC), not an SSL failure. A real detection win. Gated.
   Artifacts: results/ssl_finetune.json, results/ssl_sensdist.json, models/ssl_encoder.pt.
+  **⚠️ SHARPENED 2026-09-04 by a pre-registered 5-seed re-run.** The original used `seeds=2` (one degree of
+  freedom), so its data-wall *trend* was never testable — and the gate had guarded it with a fixed 0.05
+  margin, a judgement wearing a number. Re-run at 5 seeds against a bar declared **before** the result:
+  **gap +0.181 ± 0.062 = 2.94σ ⇒ SUGGESTIVE, NOT resolved** at the declared 3σ. Reported as such rather than
+  rounded up — the whole point of writing the bar first, since 2.94 against a bar set afterwards is
+  "essentially three sigma". **My prediction that it would clear comfortably was WRONG**: the distance metric
+  is far noisier per seed than AUC, so the scatter changed, not the gap. **Headline sharpens: Δ@2000 =
+  +0.240 ± 0.042** (5 seeds) vs the committed +0.278 (2 seeds) — agreeing inside 1 SE, so a sharpening not a
+  retraction, and the 2-seed value was high as predicted. **CENSORED METRIC caveat:** 8 of 30 per-seed values
+  are exactly 0 (below the 1%-FAR floor), so the per-budget distribution is a mixture and a normal-theory SE
+  is the wrong error model ⇒ 2.94 is approximate. The zero among the 8,000-scratch seeds would *raise*
+  significance if dropped; it was not dropped, because a post-hoc exclusion favouring your own result is
+  exactly what a pre-registration exists to forbid. **What would settle it: more seeds** (scatter binds, not
+  the gap), not more budgets. Gated (64) at the pre-registered band so a re-run cannot quietly promote it.
+  Artifact: results/ssl_sensdist_seeds5.json.
 - **N5 DONE (2026-06-27): triple-detector H1×L1×V1 — honest NEGATIVE, Virgo does NOT help subsolar.**
   `coinc_triple.py` extends the G1 double-coincidence to a 3rd detector (cnn_w64 on H1+L1+V1, 3-way time-slide
   matched-FAR background w/ 8000 livetimes, injections projected onto all 3 via pycbc antenna+delay). Local H1∩L1

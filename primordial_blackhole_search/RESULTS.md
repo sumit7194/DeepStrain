@@ -1772,3 +1772,37 @@ currently guards it with a fixed 0.05 margin, which is a judgement wearing a num
 same trend measures 10σ, and the distance gap (0.278 vs 0.01) is proportionally larger than the AUC gap. I do
 **not** expect `delta@2000` to survive at 0.278 — a two-seed mean of a quantity this noisy is likelier high
 than exact, and the zero-FA floor beside it is already known to be threshold-sensitive.
+
+### RESULT against that pre-registration (2026-09-04): **2.94σ — SUGGESTIVE, not resolved. My prediction was wrong.**
+
+| budget | scratch per seed (5) | ssl per seed (5) | Δ | SE |
+|---|---|---|---|---|
+| 2,000 | 0, 0, 0, 0, 0 | 0.223, 0.334, 0.324, 0.107, 0.212 | **+0.240** | 0.042 |
+| 4,000 | 0, 0.104, 0.211, 0, 0.105 | 0.118, 0.353, 0.205, 0.232, 0.207 | +0.139 | 0.055 |
+| 8,000 | 0.205, 0.235, 0.229, 0.221, 0 | 0.225, 0.241, 0.257, 0.214, 0.248 | +0.059 | 0.045 |
+
+`gap = +0.181 ± 0.062` ⇒ **2.94σ**. The declared bar was 3σ. **It missed, and it is reported as suggestive
+rather than rounded up** — which is the entire reason the bar was written down first, because 2.94 against a
+bar set afterwards would have been "essentially three sigma."
+
+**I predicted it would clear comfortably and it did not.** The reasoning was that the AUC version of the same
+trend measures 10σ and the distance gap is proportionally larger. What that missed is that the distance metric
+is far noisier per seed than AUC — the scatter, not the gap, is what changed.
+
+**The headline moves and the direction was predicted.** `Δ@2000` is **+0.240 ± 0.042** at five seeds against
+the committed **+0.278** at two. They agree inside 1 SE, so this is a sharpening, not a retraction — but the
+five-seed value is the one to quote, and the two-seed number was high, as recorded in advance.
+
+**The metric is CENSORED and this is the honest limit on the 2.94.** A model below the 1%-FAR detection floor
+scores exactly 0.0, and **8 of 30 per-seed values are exactly zero** (all five scratch runs at 2,000; two at
+4,000; one at 8,000). The per-budget distribution is therefore a mixture — "below floor" and "functional at
+≈0.22" — not a Gaussian, so a normal-theory SE is the wrong error model and **2.94σ is approximate**. The
+zero among the 8,000 scratch seeds is the one that matters: dropping it would *raise* the significance. It has
+not been dropped, because a post-hoc exclusion that strengthens your own result is not available under a
+pre-registration, and the reason to write one is exactly to make that unavailable at the moment it is tempting.
+
+**What would settle it:** more seeds (the scatter is the binding term, not the gap), or an error model that
+respects the censoring. Not more budgets — those address the curve's *shape*, which this was never going to
+resolve. **Gate:** the old fixed 0.05 margin is **removed**, not retained; the seeds=5 artifact is gated at
+the pre-registered band, so a later re-run cannot quietly promote 2.94 to "resolved" without writing it up as
+a new result. Artifact: `ssl_sensdist_seeds5.json`.

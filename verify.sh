@@ -458,12 +458,54 @@ assert d["ssl_helps_at_softFAR"], "SSL no longer helps sensitive distance at the
 assert d["results"]["2000"]["FAR1pct"]["delta_mean"] > 0.10, \
     f"SSL sensitive-distance gain collapsed: {d['results']['2000']['FAR1pct']['delta_mean']}"
 assert small["FAR1pct"]["delta_mean"] > 0.10, f"SSL distance gain at scarce labels shrank: {small['FAR1pct']['delta_mean']}"
-# Same species as above. This artifact stores no per-seed arrays, so a scatter-based separation cannot be
-# computed honestly here -- a fixed margin well inside the measured 0.278 vs 0.01 is the available substitute.
+# TREND: measured at 5 seeds and it does NOT clear the pre-registered 3-sigma bar. The fixed 0.05 margin
+# that stood here is REMOVED rather than retained -- it was a judgement wearing a number, and having gone and
+# measured the thing it stood in for, keeping it would be worse than never having measured. See the seeds=5
+# gate below; this artifact (seeds=2) can only be checked for consistency with it.
 trend_gap = small["FAR1pct"]["delta_mean"] - big["FAR1pct"]["delta_mean"]
-assert trend_gap > 0.05, f"no data-wall trend beyond a usable margin: gap {trend_gap:.3f}"
+assert trend_gap > 0, f"2-seed trend inverted: gap {trend_gap:.3f}"
 print(f"PASS  pbh N4 sens-dist (SSL distance gain @1%FAR: +{small['FAR1pct']['delta_mean']:.2f}@{min(r,key=int)} -> +{big['FAR1pct']['delta_mean']:.2f}@{max(r,key=int)}; zero-FA needs full-data strength)")
 PYEOFN4S
+
+echo "--- pbh N4 sens-dist at 5 seeds (the pre-registered trend test: SUGGESTIVE at 2.94 sigma, NOT resolved)"
+./primordial_blackhole_search/.venv/bin/python - << 'PYEOFN4T' || FAIL=1
+import json, math
+d = json.loads(open("primordial_blackhole_search/results/ssl_sensdist_seeds5.json").read())
+old = json.loads(open("primordial_blackhole_search/results/ssl_sensdist.json").read())
+assert d["seeds"] == 5, f"not the 5-seed run: seeds={d['seeds']}"
+r = d["results"]
+
+def stats(b):
+    f = r[b]["FAR1pct"]; s, l = f["scratch_per_seed"], f["ssl_per_seed"]
+    sd = lambda a: (sum((x - sum(a)/len(a))**2 for x in a)/(len(a)-1))**0.5
+    return f["delta_mean"], math.sqrt(sd(s)**2 + sd(l)**2)/math.sqrt(len(s))
+
+(d_lo, se_lo), (d_hi, se_hi) = stats("2000"), stats("8000")
+gap, se = d_lo - d_hi, math.sqrt(se_lo**2 + se_hi**2)
+sigma = gap / se
+
+# THE PRE-REGISTERED CALL (RESULTS.md, written before the run finished): >3 resolved, 2-3 suggestive,
+# <2 not resolved. It landed at 2.94 and is reported as SUGGESTIVE. This assertion exists so that a later
+# re-run cannot quietly promote it -- if it clears 3, that is a NEW result and must be written up as one.
+assert 2.0 < sigma < 3.0, f"trend significance left the 'suggestive' band: {sigma:.2f} sigma -- re-report it"
+assert d_lo > d_hi, "the data-wall direction inverted at 5 seeds"
+
+# HEADLINE: the 5-seed estimate supersedes the 2-seed one. They agree inside 1 SE, so this is a sharpening,
+# not a retraction -- but the number to quote is the 5-seed one.
+assert abs(d_lo - old["results"]["2000"]["FAR1pct"]["delta_mean"]) < se_lo, \
+    f"5-seed and 2-seed headline now disagree by >1 SE: {d_lo:.3f} vs " \
+    f"{old['results']['2000']['FAR1pct']['delta_mean']:.3f} +- {se_lo:.3f} -- one of them must be withdrawn"
+
+# The metric is CENSORED at zero (a model below the 1% FAR detection floor scores exactly 0.0, and 6 of 30
+# per-seed values are exactly 0.0), so a normal-theory SE is the wrong error model and 2.94 is approximate.
+zeros = sum(v == 0.0 for b in r for k in ("scratch_per_seed", "ssl_per_seed") for v in r[b]["FAR1pct"][k])
+assert zeros >= 1, "no censored values -- the floor effect vanished, so the SE caveat can be dropped"
+
+print(f"PASS  pbh N4 sens-dist 5 seeds (pre-registered trend test: gap {gap:+.3f} +- {se:.3f} = "
+      f"{sigma:.2f} sigma => SUGGESTIVE, NOT resolved at the declared 3-sigma bar; headline "
+      f"{d_lo:+.3f}+-{se_lo:.3f} supersedes the 2-seed {old['results']['2000']['FAR1pct']['delta_mean']:+.3f}, "
+      f"agreeing inside 1 SE; {zeros}/30 per-seed values censored at 0 so the SE is approximate)")
+PYEOFN4T
 
 echo "--- pbh sensitivity artifacts (eval_cnn)"
 ./primordial_blackhole_search/.venv/bin/python - << 'PYEOF4' || FAIL=1
