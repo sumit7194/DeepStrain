@@ -211,8 +211,24 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   is the wrong error model ⇒ 2.94 is approximate. The zero among the 8,000-scratch seeds would *raise*
   significance if dropped; it was not dropped, because a post-hoc exclusion favouring your own result is
   exactly what a pre-registration exists to forbid. **What would settle it: more seeds** (scatter binds, not
-  the gap), not more budgets. Gated (64) at the pre-registered band so a re-run cannot quietly promote it.
+  the gap), not more budgets. Gated at the pre-registered band so a re-run cannot quietly promote it.
   Artifact: results/ssl_sensdist_seeds5.json.
+  **✅ SETTLED 2026-09-04 by a second pre-registered run at n=20 — RESOLVED at 7.39σ, and the effect is not
+  what the headline said.** Fresh seeds **5–24** (none drawn by the pilot, so the primary is new data rather
+  than a re-analysis of the run that selected the hypothesis), fixed n declared in advance, analysis code
+  written and committed BEFORE the result existed. **gap +0.2086, bootstrap p = 0.00000 (0/10,000), 99% CI
+  [+0.134, +0.278], 7.39σ**; pooled n=25 secondary agrees (+0.2031). **The pilot was NOT a lucky-high draw as
+  I predicted — the fresh gap is LARGER** (+0.209 vs +0.181). **THE DECOMPOSITION IS THE REAL RESULT:** at
+  2,000 labels from-scratch clears the 1%-FAR floor **0/20** and SSL **20/20** ⇒ there the gain is
+  **floor-clearing, not distance** — "SSL buys sensitive distance" is the wrong description, SSL is the
+  difference between a model that functions at all and one that does not. **AND IT CORRECTS MY OWN PILOT
+  READING:** I had reported mean-given-cleared "nearly flat everywhere (0.223–0.240)" from n=5; at n=20 it is
+  **0.148/0.192 (scratch) vs 0.256/0.241 (SSL)** — a genuine +0.05–0.11 magnitude effect that five seeds hid.
+  **A decomposition run on an underpowered pilot is itself underpowered**, and I stated it as a finding rather
+  than a preview. **AND A COMMITTED N4 CLAIM DIES:** "at zero-FA the distance is 0 for BOTH" was a 2-seed
+  statement — at 20 seeds scratch is still 0.0000 everywhere but **SSL reaches 0.0260 @4,000 and 0.0109
+  @8,000**, so the floor is not a property of reduced-budget models in general. Gated (65).
+  Artifacts: results/ssl_sensdist_seeds20.json, results/ssl_trend_test_seeds20.json.
 - **N5 DONE (2026-06-27): triple-detector H1×L1×V1 — honest NEGATIVE, Virgo does NOT help subsolar.**
   `coinc_triple.py` extends the G1 double-coincidence to a 3rd detector (cnn_w64 on H1+L1+V1, 3-way time-slide
   matched-FAR background w/ 8000 livetimes, injections projected onto all 3 via pycbc antenna+delay). Local H1∩L1

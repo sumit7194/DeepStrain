@@ -1,0 +1,77 @@
+{
+  "artifact": "ssl_sensdist_seeds20.json",
+  "seeds": 20,
+  "seed_values": [
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24
+  ],
+  "role": "primary",
+  "gap": 0.20861333333333335,
+  "bootstrap_p": 0.0,
+  "ci99": [
+    0.13414144166666664,
+    0.2781213583333331
+  ],
+  "n_boot": 10000,
+  "normal_gap": 0.20861333333333335,
+  "normal_se": 0.028227238643940857,
+  "normal_sigma": 7.390497383211567,
+  "verdict": "RESOLVED",
+  "decomposition": {
+    "2000": {
+      "scratch": {
+        "p_clear": 0.0,
+        "mean_given_cleared": null,
+        "n": 20
+      },
+      "ssl": {
+        "p_clear": 1.0,
+        "mean_given_cleared": 0.26745166666666664,
+        "n": 20
+      }
+    },
+    "4000": {
+      "scratch": {
+        "p_clear": 0.65,
+        "mean_given_cleared": 0.14805128205128207,
+        "n": 20
+      },
+      "ssl": {
+        "p_clear": 0.95,
+        "mean_given_cleared": 0.2556192982456141,
+        "n": 20
+      }
+    },
+    "8000": {
+      "scratch": {
+        "p_clear": 0.95,
+        "mean_given_cleared": 0.19166140350877195,
+        "n": 20
+      },
+      "ssl": {
+        "p_clear": 1.0,
+        "mean_given_cleared": 0.24091666666666667,
+        "n": 20
+      }
+    }
+  },
+  "driver_at_low_budget": "floor-clearing"
+}

@@ -1845,3 +1845,46 @@ separate declared question about the floor, decided on its own evidence.
 rather than +0.181 — the pilot was selected for being large enough to notice. I expect the decomposition to
 show the effect is **mostly floor-clearing** at 2,000 labels, where all five scratch seeds scored exactly
 zero, and mostly magnitude at 8,000.
+
+### RESULT II (2026-09-04): **RESOLVED at 7.39σ — and the effect is not what the headline said it was**
+
+Primary analysis, fresh seeds 5–24 (n=20, none drawn by the pilot), through the pre-registered script
+unmodified:
+
+| | gap | bootstrap p(gap ≤ 0) | 99% CI | normal-theory |
+|---|---|---|---|---|
+| **primary, n=20 fresh** | **+0.2086** | **0.00000** (0/10,000) | [+0.134, +0.278] | 7.39σ |
+| secondary, pooled n=25 | +0.2031 | 0.00000 | — | — |
+
+**Verdict: RESOLVED**, against the bar declared before the run (p < 0.0027). The 2.94σ is settled — the
+data-wall trend is real. And the pilot was **not** a lucky-high draw as I predicted: the fresh-seed gap is
+*larger* (+0.209 vs +0.181), so the winner's-curse correction I expected went the other way.
+
+**THE DECOMPOSITION IS THE FINDING, AND IT CORRECTS MY OWN READING FROM THE PILOT.**
+
+| budget | scratch P(clear) | scratch mean \| cleared | ssl P(clear) | ssl mean \| cleared |
+|---|---|---|---|---|
+| 2,000 | **0.00** | n/a | **1.00** | 0.267 |
+| 4,000 | 0.65 | 0.148 | 0.95 | 0.256 |
+| 8,000 | 0.95 | 0.192 | 1.00 | 0.241 |
+
+At **2,000 labels the effect is purely floor-clearing**: from-scratch reaches the 1%-FAR floor in **0 of 20**
+runs, SSL in **20 of 20**. There "SSL buys sensitive distance" is the wrong description — SSL is the
+difference between a model that functions at all and one that does not.
+
+But at 4,000 and 8,000 **both components are real**, and this is where the n=5 pilot misled me. I reported a
+few hours ago that mean-given-cleared was "nearly flat everywhere (0.223–0.240)". At n=20 it is not: scratch
+gets **0.148 / 0.192** where SSL gets **0.256 / 0.241**. Five seeds hid a genuine magnitude effect of
++0.05–0.11. **A decomposition run on the underpowered pilot was itself underpowered** — the same lesson as
+the headline, one level down, and I stated it as a finding rather than as a preview.
+
+**A COMMITTED N4 CLAIM DOES NOT SURVIVE 20 SEEDS.** The gated statement "at the strict zero-FA threshold the
+reduced-budget distance is 0 for **both**, a model-strength floor" came from 2 seeds. At 20: scratch is still
+0.0000 at every budget, but **SSL reaches 0.0260 at 4,000 and 0.0109 at 8,000**. So the floor is not a
+property of reduced-budget models in general — from-scratch never clears zero-FA and SSL occasionally does.
+The claim needs the qualifier; the direction of the original conclusion (zero-FA needs near-full-data
+strength) stands.
+
+**Prediction scorecard, since one was recorded.** Resolved as predicted ✓. Gap *larger* than the pilot, not
+smaller ✗. Floor-clearing dominant at 2,000 ✓. Magnitude-dominant at 8,000 ✓ (scratch clears 0.95 there, so
+the remaining gap is magnitude). Artifacts: `ssl_sensdist_seeds20.json`, `ssl_trend_test_seeds20.json`.
