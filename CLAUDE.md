@@ -731,7 +731,15 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
   Chebyshev route while its headline used polyfit. **Gate:** the 3× channel-split ratio bar was calibrated to
   the superseded numbers and tripped at 2.96; loosened to 2× **on the record**, since a ratio bar calibrated
   to a corrected number measures the old number — `chi069 < 0.14` is the assertion that carries the finding.
-  **STILL OPEN, and now correctly scoped:** this validates the *Kerr* truncation; the sGB correction's own
+  **⚠️ WHAT THE CONVERGENCE REFUTATION DOES NOT LICENSE (relayed from `ansatz` via `bridge`, 2026-09-05,
+  and it applies to us unchanged):** our "the error falls 6.36→3.38→1.87→1.06→0.79% over orders 2–6, so the
+  series converges" refutes the *no-finite-order-is-controlled* claim **only for the analytic part**. A
+  contribution non-perturbative in χ is **invisible to an order-by-order method by construction** — it is not
+  fine-tuned, it simply cannot appear at any order — so our six-order sequence would look **exactly as it
+  does** whether or not one is present. This also weakens my own robustness argument made the same day (that
+  restoring a hidden symmetry would require fine-tuning): that reasoning silently assumes analyticity. The
+  numbers are unchanged; what they license is narrower. **STILL OPEN, and now correctly scoped:** this
+  validates the *Kerr* truncation; the sGB correction's own
   spin series is untouched, and the field's own O(χ²) sGB paper **extrapolates its accuracy from Kerr** ("for
   EdGB gravity **as well**") rather than measuring it — the same proxy step our open item flagged. The
   decisive numbers now exist non-perturbatively: **METRICS, arXiv:2406.11986 / PRD 110, 064019**, sGB QNMs to
