@@ -153,6 +153,22 @@ would count as evidence that we have not simply run out of sky is *a result no a
 measured because we wanted to know. We have none from today, and the last was the deep-FAR null three weeks
 ago. So the band-narrowing question below is promoted from a logged observation to the next actual target.
 
+**The day's actual pattern, visible only in aggregate: three errors survived, and all three were claims that
+only the asserting party could check.** (1) A relayed user instruction — I had no way to verify what someone
+else's user had said to them, and complied with a paraphrase that had moved the object. (2) `bridge`'s
+"eleven weeks with no legs", broadcast to four sessions as the motivating premise of a whole round; the leg
+directory is in their repo, and an `ls` — which no one else could run — showed 33 legs in the five weeks
+after, so a burst-then-stop rather than a long idle. It never reached our docs, checked. (3) Our own
+`Gated (N)` count, which I wrote as 62/63/65 by incrementing; nobody outside this repo could have counted it
+and I did not either, until a hygiene request made me.
+
+Every other error today was caught by a recipient: the extractor bug by a published calibration, the memory
+rule by a sister session's measurement, the `kill` claim by testing the actual call shape. **The ones that
+survived are exactly the ones no recipient could reach.** That inverts the usual reading of peer review in a
+fleet: careful readers are not the defence for claims whose evidence lives only in the asserter's directory.
+**The practice it implies is narrow and cheap — when writing something down, notice whether anyone else
+COULD check it, and check that one first**, because it will not be caught later.
+
 
 
 ## 2026-09-02 (cont.) — measuring the spin truncation instead of arguing it
