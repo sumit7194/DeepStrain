@@ -1806,3 +1806,42 @@ respects the censoring. Not more budgets — those address the curve's *shape*, 
 resolve. **Gate:** the old fixed 0.05 margin is **removed**, not retained; the seeds=5 artifact is gated at
 the pre-registered band, so a later re-run cannot quietly promote 2.94 to "resolved" without writing it up as
 a new result. Artifact: `ssl_sensdist_seeds5.json`.
+
+### PRE-REGISTRATION II (2026-09-04, before the n=20 run) — settling the 2.94σ
+
+The 5-seed result landed at 2.94σ against a 3σ bar. Running more seeds *because* it fell just short is the
+textbook setup for optional-stopping bias, so the design below removes every degree of freedom I would
+otherwise have while the numbers come in.
+
+**1. Fresh seeds, not more of the same ones.** `--seed-offset 5 --seeds 20` ⇒ seed values 5–24, none of which
+the 5-seed run drew. **Primary analysis uses the new 20 alone.** The n=5 run selected this hypothesis for
+follow-up, so pooling it in would reuse the data that did the selecting. The pooled n=25 number is reported
+as **secondary**, clearly labelled.
+
+**2. Fixed n, declared now: 20.** From the pilot (`gap 0.181 ± 0.062` at n=5), SE scales as 1/√n, so n=20
+gives SE ≈ 0.031 — about 5.8σ if the gap holds, and still ~3.2σ if the true gap is only 0.10, i.e. if the
+pilot was a lucky-high draw. **I will not extend the run if it lands near a bar.** If it lands at 2.9 again,
+that is the answer.
+
+**3. Primary test is censoring-robust, because the normal-theory SE is known to be the wrong model here.**
+8 of 30 pilot values were exactly 0.0 (below the 1%-FAR floor), making each budget a mixture. Primary:
+**bootstrap over seeds, 10,000 resamples within budget, p = fraction of draws with gap ≤ 0.** The
+normal-theory σ is reported beside it for comparability with the 2.94, not as the decision statistic.
+
+**4. Bar.** **Resolved** if bootstrap p < 0.0027 (the two-sided 3σ equivalent, matching the pilot's bar).
+**Suggestive** if 0.0027 ≤ p < 0.05. **Not resolved** if p ≥ 0.05. Reported as it falls.
+
+**5. Decomposition, declared in advance because it changes what the result MEANS.** The censoring means the
+estimand mixes two effects: how often a model clears the detection floor at all, and how far it gets once it
+does. Both are reported per budget — `P(clear floor)` and `mean | cleared` — regardless of the headline. If
+the trend is carried entirely by the floor-clearing rate, then "SSL buys sensitive distance" is the wrong
+description of it and the write-up says so.
+
+**6. What this still cannot settle.** The shape of the label-efficiency curve, which needs more budgets, not
+more seeds. And the pilot's lone zero among the 8,000-scratch seeds is *not* revisited here — that stays a
+separate declared question about the floor, decided on its own evidence.
+
+**Prediction, recorded so it can be wrong (the last one was).** I expect p < 0.0027 and a gap near +0.15
+rather than +0.181 — the pilot was selected for being large enough to notice. I expect the decomposition to
+show the effect is **mostly floor-clearing** at 2,000 labels, where all five scratch seeds scored exactly
+zero, and mostly magnitude at 8,000.

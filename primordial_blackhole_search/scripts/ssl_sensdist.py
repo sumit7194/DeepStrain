@@ -65,6 +65,9 @@ def main() -> None:
     ap.add_argument("--seeds", type=int, default=2)
     ap.add_argument("--smoke", action="store_true")
     ap.add_argument("--tag", default="", help="artifact suffix, e.g. --tag _seeds5; empty overwrites")
+    ap.add_argument("--seed-offset", type=int, default=0,
+                    help="first seed value; use to draw seeds a PRIOR run did not, so a follow-up is fresh "
+                         "data rather than a re-analysis of the run that motivated it")
     args = ap.parse_args()
     dev = "mps" if torch.backends.mps.is_available() else "cpu"
     epochs = 4 if args.smoke else args.epochs
@@ -97,7 +100,7 @@ def main() -> None:
         agg = {("scratch", "zeroFA"): [], ("scratch", "FAR1pct"): [],
                ("ssl", "zeroFA"): [], ("ssl", "FAR1pct"): []}
         last = {}
-        for seed in range(seeds):
+        for seed in range(args.seed_offset, args.seed_offset + seeds):
             rng = np.random.default_rng(seed); k = budget // 2
             idx = np.concatenate([rng.choice(pos, k, replace=False), rng.choice(neg, k, replace=False)])
             for tag, builder in (("scratch", lambda: make_model("cnn").to(dev)),
@@ -130,7 +133,8 @@ def main() -> None:
           f"{'>0' if zf_helps else '0 for BOTH (models too weak; SSL AUC win does NOT reach zero-FA distance)'}; "
           f"at a softer (1%) FAR the SSL win {'DOES translate to sensitive distance' if soft_helps else 'still does not clearly translate'}.")
     (C.RESULTS_DIR / f"ssl_sensdist{args.tag}.json").write_text(json.dumps(
-        {"budgets": budgets, "epochs": epochs, "seeds": seeds, "results": out,
+        {"budgets": budgets, "epochs": epochs, "seeds": seeds, "seed_offset": args.seed_offset,
+         "seed_values": list(range(args.seed_offset, args.seed_offset + seeds)), "results": out,
          "metric": "sensitive-distance fraction 8/SNR50 from val injections (in_window_snr) at two thresholds",
          "zeroFA_distance_defined": bool(zf_helps), "ssl_helps_at_softFAR": bool(soft_helps)}, indent=2))
     # Name the file actually written. Hardcoded, this line said "ssl_sensdist.json" while --tag sent the
