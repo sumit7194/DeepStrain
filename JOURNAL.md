@@ -69,6 +69,20 @@ artifact, so a scatter-based bar is not honestly computable there -- a fixed mar
 `a90_stacked < best_single_a90` and `stack_gain > 1.0`, which are the same statement twice; now one margin
 (1.1x, inside the measured 1.21x) plus a check that stack_gain really is the ratio it claims to be.
 
+Acted on the retention finding rather than filing it: ssl_sensdist.py now stores per-seed arrays alongside
+the means, and gained a --tag so a run can write beside the committed artifact instead of over it. Its
+completion line had been hardcoded to "wrote results/ssl_sensdist.json" while --tag sent the output
+elsewhere, so a 4-epoch smoke run announced it had written the committed artifact -- it had not, but that is
+an instrument reporting an action it did not take.
+
+Acting on it exposed a second problem: the original run used seeds=2, so even with the arrays kept, a
+scatter bar from it would have been nearly meaningless. The recovered-but-thin case is more dangerous than
+the absent case, because it produces a number. Launched a 5-seed re-run and then KILLED it three minutes in:
+the box had 0.71 GB free with the compressor at 2.6 GB, against a sister project's ten-hour job with nine
+hours to go. Killing it released 1.76 GB while ps reported 823 MB resident -- RSS understates an MPS job on
+this box by ~2x, because Metal allocations live in unified memory. I had announced "~620 MB" in good faith.
+Re-run deferred until the box is free; the fixed script is committed, the artifact is untouched.
+
 
 
 ## 2026-09-02 (cont.) — measuring the spin truncation instead of arguing it

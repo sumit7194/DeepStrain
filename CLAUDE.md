@@ -461,6 +461,13 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   cannot be quietly re-inflated. **Bank deliberately NOT built** (~162 h for no speed gain) ⇒ *does a CNN still
   tie a matched filter once the bank is adequate?* stays OPEN, and needs a genuinely cheaper filter.
   Artifacts: bank_ratio_{golden,diag,mcscan,chunked,regime,realcost}.json.
+- **Resource accounting on this box (measured 2026-09-04): RSS UNDERSTATES an MPS job by ~2x.** Killing a
+  torch/MPS run showed `free` 0.71 -> 2.47 GB = **1.76 GB released while `ps` reported 823 MB resident** —
+  Metal allocations live in unified memory and do not land fully in RSS. ⇒ when announcing or scheduling a
+  run for the fleet, size it by **measured delta in `free`** (record `free` before and after), not by RSS,
+  and schedule against **`free`** rather than `available`, since reclaiming inactive under a fast large
+  allocation is when this box stalls. The compressor sitting at 2.6 GB with swap still 0 is the signal that
+  headroom is already being worked for.
 - **Dashboard:** `python3 dashboard.py` (repo root, stdlib only) serves a live run monitor
   over `*/results/progress/*.json` for all three sub-projects; pbh gained `pbh/progress.py`
   (same heartbeat convention as echolib/rdlib). Writes `.dashboard.pid` on start; **stop it
