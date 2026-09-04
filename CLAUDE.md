@@ -682,6 +682,20 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
   EdGB gravity **as well**") rather than measuring it — the same proxy step our open item flagged. The
   decisive numbers now exist non-perturbatively: **METRICS, arXiv:2406.11986 / PRD 110, 064019**, sGB QNMs to
   a ≤ 0.85 with ~40 orders in spin. Gated (62). Artifact: 32_spin_truncation_crosscheck.json.
+- **ERROR-RATIO STABILITY MEASURED (2026-09-04, same day, prompted by `bridge` asking whether their
+  observation survived the corrected extractor): the RISE survives, and we had judged it with the WRONG
+  INSTRUMENT.** The observation was that the successive error ratio climbs with order (convergence rate
+  degrading toward χ); we had dismissed any ratio involving a₄ because the *coefficient* ratio |a₅/a₄| drifts
+  0.048 under fit degree. Measured directly instead of inferred: at χ=0.90 the ratios are **0.7235 → 0.7485 →
+  0.7652** (superseded extractor gave 0.696/0.722/0.741 — nearly identical increments, so the rise was never
+  an artefact of the bug), with **drift 0.0000 / 0.0012 / 0.0720** over extraction range × degree. ⇒ **2→3 and
+  3→4 are DATA; only 4→5 is fit-dominated.** The 3→4 error ratio is **40× steadier than the coefficient ratio
+  that supposedly controls it**, because the order-n error depends on the **whole neglected tail**, not on one
+  coefficient — a fit that misplaces a₅ typically misplaces a₆ compensatingly. **So this is the first thing in
+  the thread that got STRONGER under a better instrument, not weaker** — a two-point rise on stable numbers,
+  where we had been treating it as one point. **Unchanged: two points cannot establish a limit**, so 31's
+  "asymptotic limit NOT measurable" guard stands exactly as written. Gated (63) incl. an assertion that the
+  rise must persist or be recorded as dead rather than quietly dropped.
 - **L5 THIRD-TONE FLOOR DONE (2026-08-15): a third tone is out of reach here — and the two candidates fail for
   OPPOSITE reasons.** The prereq ("read GWTC-5.0 first") **corrected our own [S] note**: we had recorded "GWTC-5.0
   reports the first measurement of three tones"; verified at **arXiv:2510.01001**, GW250114 has strong evidence

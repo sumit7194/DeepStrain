@@ -1041,3 +1041,27 @@ gravity **as well**") rather than measuring it, which is the same proxy step our
 decisive numbers now exist non-perturbatively:
 [arXiv:2406.11986](https://arxiv.org/abs/2406.11986) / *PRD* **110**, 064019 (METRICS), sGB QNMs to a ≤ 0.85
 with sGB corrections to ~40 orders in spin. Gated (62). Artifact: `results/32_spin_truncation_crosscheck.json`.
+
+### Follow-up the same day: the error-ratio rise survives, and we had judged it with the wrong instrument
+
+`bridge` asked the right question about the correction — six-digit stability says the *numbers* are stable, it
+does not say the successive error ratios still **climb** with order, and the climb was the basis of a separate
+observation (the convergence rate degrading toward χ). Measured rather than inferred, at χ = 0.90:
+
+| ratio | superseded extractor | corrected | drift over range × degree | |
+|---|---|---|---|---|
+| 2→3 | 0.696 | **0.7235** | 0.0000 | data |
+| 3→4 | 0.722 | **0.7485** | 0.0012 | data |
+| 4→5 | 0.741 | 0.7652 | 0.0720 | fit-dominated |
+
+**The rise survives** — increments +0.025, +0.017 corrected against +0.026, +0.019 before, so it was never an
+artefact of the bug. **And we had been judging it with the wrong instrument.** Any ratio involving a₄ had been
+called suspect because the *coefficient* ratio |a₅/a₄| drifts 0.048 under fit degree. The 3→4 **error** ratio
+drifts 0.0012 — forty times steadier — because the order-*n* error depends on the **whole neglected tail**,
+not on one coefficient: a fit that misplaces a₅ typically misplaces a₆ compensatingly. Coefficient stability
+is the right test for quoting a coefficient and the wrong test for quoting an error.
+
+So this is the first thing in the thread to get **stronger** under a better instrument: a two-point rise on
+numbers that do not move, where we had been treating it as one point. **Two points still cannot establish a
+limit**, so the "asymptotic limit is NOT measurable" guard stands unchanged. Gated (63), including an
+assertion that the rise must persist or be recorded as dead rather than quietly dropped.

@@ -116,18 +116,32 @@ def main() -> None:
         print(f"{order:>6}  {np.median(e69):8.3%} [{min(e69):.3%}, {max(e69):.3%}]"
               f"  {np.median(e90):8.3%} [{min(e90):.3%}, {max(e90):.3%}]")
 
-    # successive error ratios -- only meaningful at orders whose coefficients are real (see below)
+    # Successive error ratios, and -- the point -- their stability measured DIRECTLY rather than inferred
+    # from the coefficient-ratio sweep below.
+    #
+    # We had judged this sequence by the coefficient-ratio test: |a_5/a_4| drifts 0.048 under fit degree, so
+    # any ratio involving a_4 was called suspect. That is the WRONG INSTRUMENT. The order-n error depends on
+    # the whole neglected tail, not on one coefficient, and a fit that misplaces a_5 typically misplaces
+    # a_6 compensatingly. Measured, the 3->4 error ratio drifts 0.001 while the coefficient ratio that
+    # supposedly controls it drifts 0.048 -- forty times steadier. Only 4->5 is genuinely fit-dominated.
     res["error_ratio"] = {}
-    print("\nsuccessive error ratio (order n -> n+1)")
-    co = taylor_coefficients(w)
-    prev = None
-    for order in (2, 3, 4, 5):
-        e = {t: truncation_error(co, order, t, w(t)) for t in (CHI_REMNANT, CHI_EMRI)}
-        if prev:
-            r69, r90 = e[CHI_REMNANT] / prev[CHI_REMNANT], e[CHI_EMRI] / prev[CHI_EMRI]
-            res["error_ratio"][f"{order-1}->{order}"] = {"chi069": float(r69), "chi090": float(r90)}
-            print(f"   {order-1}->{order}:  chi=0.69 {r69:.3f}   chi=0.90 {r90:.3f}")
-        prev = e
+    print("\nsuccessive error ratio (order n -> n+1), and its drift over extraction range x degree")
+    sweep = [taylor_coefficients(w, hi=hi, deg=deg)
+             for hi in (0.3, 0.4, TAYLOR_RANGE) for deg in DEGREES]
+    for order in (3, 4, 5):
+        row = {}
+        for tag, chi in (("chi069", CHI_REMNANT), ("chi090", CHI_EMRI)):
+            ex = w(chi)
+            r = [truncation_error(c, order, chi, ex) / truncation_error(c, order - 1, chi, ex)
+                 for c in sweep]
+            row[tag] = {"median": float(np.median(r)), "min": float(min(r)), "max": float(max(r)),
+                        "drift": float(max(r) - min(r))}
+        # A ratio whose value moves with the extraction is not a measurement of the series.
+        row["is_data"] = bool(max(row[t]["drift"] for t in ("chi069", "chi090")) < 0.01)
+        res["error_ratio"][f"{order-1}->{order}"] = row
+        print(f"   {order-1}->{order}:  chi=0.69 {row['chi069']['median']:.4f} "
+              f"(drift {row['chi069']['drift']:.4f})   chi=0.90 {row['chi090']['median']:.4f} "
+              f"(drift {row['chi090']['drift']:.4f})   {'DATA' if row['is_data'] else 'FIT-DOMINATED'}")
 
     # ---- (3) WHICH COEFFICIENTS ARE REAL? the decisive test --------------------------------------------
     print("\ncoefficient ratio |a_(n+1)/a_n| vs Chebyshev fit degree -- a real coefficient does not move")

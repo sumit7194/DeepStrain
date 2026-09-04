@@ -1206,7 +1206,17 @@ assert t2["chi090"]["median"] > 2 * t2["chi069"]["median"], "the channel split h
 errs = [d["truncation"][str(o)]["chi069"]["median"] for o in (2, 3, 4, 5, 6)]
 assert all(errs[i] > errs[i+1] for i in range(len(errs)-1)), f"error no longer falls with order: {errs}"
 
-# (3) AND THE HONESTY GUARD: only 2 coefficient ratios are stable under fit degree. If anyone later quotes
+# (3) the successive error ratios RISE, and two of the three are stable enough to say so. We had dismissed
+#     this sequence via the coefficient-ratio test; measured directly it is far steadier than that test
+#     implied, because the order-n error depends on the whole neglected tail rather than on one coefficient.
+er = d["error_ratio"]
+assert er["2->3"]["is_data"] and er["3->4"]["is_data"], f"the two solid error ratios moved: {er}"
+assert not er["4->5"]["is_data"], "4->5 became stable -- the sequence can be read one term further"
+assert er["2->3"]["chi090"]["median"] < er["3->4"]["chi090"]["median"], \
+    "the error ratio no longer RISES with order -- the 'convergence rate degrades with order' observation " \
+    "dies, and it should be recorded as dead rather than quietly dropped"
+
+# (4) AND THE HONESTY GUARD: only 2 coefficient ratios are stable under fit degree. If anyone later quotes
 #     an asymptotic limit from this data, this assertion is what says they cannot.
 stab = d["coefficient_stability"]
 assert stab["2"]["is_real"] and stab["3"]["is_real"], "the n=2,3 coefficients are no longer stable"
@@ -1217,7 +1227,9 @@ print(f"PASS  ringdown spin truncation (O(chi^2) error {t2['chi069']['median']:.
       f"{t2['chi090']['median']:.1%} at chi=0.90 => NOT binding for ringdown (below our sigma(delta)~0.14), "
       f"disqualifying for EMRI; error falls with order so 'no finite order works' is refuted; but only "
       f"n=2,3 coefficients survive a fit-degree sweep (n=5 drifts {stab['5']['drift']:.2f}, "
-      f"n=6 drifts {stab['6']['drift']:.0f}) => the asymptotic limit is NOT measurable)")
+      f"n=6 drifts {stab['6']['drift']:.0f}) => the asymptotic limit is NOT measurable, though the error "
+      f"ratio does RISE on the two ratios that are data: {er['2->3']['chi090']['median']:.4f} -> "
+      f"{er['3->4']['chi090']['median']:.4f} at chi=0.90, drift <= {er['3->4']['chi090']['drift']:.4f})")
 PYEOFST
 
 echo "--- ringdown spin truncation CROSS-CHECK (32: published crossings reproduced, after they found our bug)"
