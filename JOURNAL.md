@@ -54,6 +54,22 @@ the open item flagged; and METRICS (arXiv:2406.11986, PRD 110, 064019) now compu
 non-perturbatively in spin to a <= 0.85 with ~40 orders, so the question is answerable by comparison rather
 than by fitting coefficients we have already shown are unrecoverable beyond n ~ 3.
 
+Then audited the other 62 gates for the same species, since the flaw I had just fixed -- asserting an
+ordering where a separation is what is meant -- is not specific to that gate. Mostly reassuring: the gates
+carrying headline claims already assert margins (Build C-2's learned-vs-sum asserts bootstrap CI > 0 at every
+FAR, not just learned > sum; the SSL small-budget gain already required 2-sigma over seed scatter), and the
+ordering-only assertions that remain are structural, where an ordering IS the claim -- FAR-ladder
+monotonicity, a null sitting below its threshold.
+
+Three were genuinely sign-only and are now separations. N4's data-wall TREND (`gain at 1000 > gain at 4000`)
+would have passed on a 1:1 margin; measured, it is 10 sigma above seed scatter, so the claim was never in
+doubt but the gate could not have told us. The sensitive-distance trend has no per-seed arrays in its
+artifact, so a scatter-based bar is not honestly computable there -- a fixed margin well inside the measured
+0.278 vs 0.01 is the substitute, and the reason is written in the file. And the echoes stacking gate asserted
+`a90_stacked < best_single_a90` and `stack_gain > 1.0`, which are the same statement twice; now one margin
+(1.1x, inside the measured 1.21x) plus a check that stack_gain really is the ratio it claims to be.
+
+
 
 ## 2026-09-02 (cont.) — measuring the spin truncation instead of arguing it
 

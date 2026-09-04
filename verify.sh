@@ -70,8 +70,10 @@ import json
 d = json.loads(open("echoes/results/16_stacked_echo.json").read())
 assert len(d["events"]) >= 4, "stacked over fewer than 4 events"
 assert d["p_stacked"] > 0.05, f"stacked echo search no longer null: p={d['p_stacked']}"
-assert d["a90_stacked"] < d["best_single_a90"], "stacking did not tighten the limit vs best single"
-assert d["stack_gain"] > 1.0, f"stack gain <= 1: {d['stack_gain']}"
+# These two said the same thing twice, and both were sign-only: `a90_stacked < best_single` is exactly
+# `stack_gain > 1`. Assert a MARGIN inside the measured 1.21x instead -- a gain of 1.001 is not a result.
+assert d["stack_gain"] > 1.1, f"stack gain no longer a usable margin above 1: {d['stack_gain']}"
+assert abs(d["stack_gain"] - d["best_single_a90"] / d["a90_stacked"]) < 1e-6, "stack_gain is not the ratio it reports"
 print(f"PASS  echoes N3 (stacked {len(d['events'])}-event echo search: null p={d['p_stacked']:.2f}, limit {d['stack_gain']:.2f}x tighter than best single)")
 PYEOFN3
 
@@ -431,8 +433,14 @@ sep = small["pretrained_mean"] - small["scratch_mean"] - 2 * (np.std(small["pret
 assert sep > 0, "SSL gain at scarce labels not beyond ~2-sigma seed scatter"
 # gain should shrink as labels grow (the wall recedes)
 big = r[max(r, key=int)]
-assert small["delta_mean"] > big["delta_mean"], "SSL gain not larger at the scarcer budget (no data-wall trend)"
-print(f"PASS  pbh N4 (SSL beats from-scratch: +{small['delta_mean']:.3f} AUC @{min(r,key=int)} labels, +{big['delta_mean']:.3f} @{max(r,key=int)}; data-wall mitigated)")
+# SEPARATION, not ordering. `small > big` alone passes on a 1:1 margin -- a sign-only assertion is the
+# plateau problem wearing a different hat: satisfiable by noise falling the right way, and silent about it.
+# (Species found 2026-09-04 in our own spin-truncation gate; this is the audit of the rest.)
+se = lambda a: (np.std(a["pretrained_auc"]) ** 2 + np.std(a["scratch_auc"]) ** 2) ** 0.5 / len(a["scratch_auc"]) ** 0.5
+trend_gap, trend_se = small["delta_mean"] - big["delta_mean"], (se(small) ** 2 + se(big) ** 2) ** 0.5
+assert trend_gap > 3 * trend_se, \
+    f"SSL data-wall trend not separated from seed scatter: gap {trend_gap:.4f} vs 3-sigma {3*trend_se:.4f}"
+print(f"PASS  pbh N4 (SSL beats from-scratch: +{small['delta_mean']:.3f} AUC @{min(r,key=int)} labels, +{big['delta_mean']:.3f} @{max(r,key=int)}, trend {trend_gap/trend_se:.0f}-sigma above seed scatter; data-wall mitigated)")
 PYEOFN4
 
 echo "--- pbh N4 sensitive-distance follow-up (ssl_sensdist: SSL win translates to distance at a defined FAR)"
@@ -450,7 +458,10 @@ assert d["ssl_helps_at_softFAR"], "SSL no longer helps sensitive distance at the
 assert d["results"]["2000"]["FAR1pct"]["delta_mean"] > 0.10, \
     f"SSL sensitive-distance gain collapsed: {d['results']['2000']['FAR1pct']['delta_mean']}"
 assert small["FAR1pct"]["delta_mean"] > 0.10, f"SSL distance gain at scarce labels shrank: {small['FAR1pct']['delta_mean']}"
-assert small["FAR1pct"]["delta_mean"] > big["FAR1pct"]["delta_mean"], "no data-wall trend (gain not larger at scarcer budget)"
+# Same species as above. This artifact stores no per-seed arrays, so a scatter-based separation cannot be
+# computed honestly here -- a fixed margin well inside the measured 0.278 vs 0.01 is the available substitute.
+trend_gap = small["FAR1pct"]["delta_mean"] - big["FAR1pct"]["delta_mean"]
+assert trend_gap > 0.05, f"no data-wall trend beyond a usable margin: gap {trend_gap:.3f}"
 print(f"PASS  pbh N4 sens-dist (SSL distance gain @1%FAR: +{small['FAR1pct']['delta_mean']:.2f}@{min(r,key=int)} -> +{big['FAR1pct']['delta_mean']:.2f}@{max(r,key=int)}; zero-FA needs full-data strength)")
 PYEOFN4S
 
