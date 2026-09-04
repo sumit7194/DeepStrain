@@ -64,6 +64,7 @@ def main() -> None:
     ap.add_argument("--epochs", type=int, default=40)
     ap.add_argument("--seeds", type=int, default=2)
     ap.add_argument("--smoke", action="store_true")
+    ap.add_argument("--tag", default="", help="artifact suffix, e.g. --tag _seeds5; empty overwrites")
     args = ap.parse_args()
     dev = "mps" if torch.backends.mps.is_available() else "cpu"
     epochs = 4 if args.smoke else args.epochs
@@ -109,9 +110,15 @@ def main() -> None:
         for tag in ("scratch", "ssl"):
             print(f"{budget:>7} {tag:>8} | {np.mean(agg[(tag,'zeroFA')]):>11.3f} | "
                   f"{np.mean(agg[(tag,'FAR1pct')]):>12.3f}", flush=True)
+        # Keep the PER-SEED values, not only their means. A mean cannot be re-examined: asked in 2026-09
+        # whether the data-wall trend clears seed scatter, this artifact could not answer -- the scatter had
+        # been thrown away at write time, months before the question existed, and it presented not as a
+        # limitation but as the absence of an option nobody thought to look for. Costs a few floats.
         out[budget] = {thr: {"scratch_mean": float(np.mean(agg[("scratch", thr)])),
                              "ssl_mean": float(np.mean(agg[("ssl", thr)])),
                              "delta_mean": float(np.mean(agg[("ssl", thr)]) - np.mean(agg[("scratch", thr)])),
+                             "scratch_per_seed": [float(v) for v in agg[("scratch", thr)]],
+                             "ssl_per_seed": [float(v) for v in agg[("ssl", thr)]],
                              "scratch_frac": last["scratch"][thr]["frac"], "ssl_frac": last["ssl"][thr]["frac"]}
                        for thr in ("zeroFA", "FAR1pct")}
         d0, ds = out[budget]["zeroFA"]["delta_mean"], out[budget]["FAR1pct"]["delta_mean"]
@@ -122,11 +129,14 @@ def main() -> None:
     print(f"VERDICT: at the HEADLINE zero-FA threshold the reduced-budget distance is "
           f"{'>0' if zf_helps else '0 for BOTH (models too weak; SSL AUC win does NOT reach zero-FA distance)'}; "
           f"at a softer (1%) FAR the SSL win {'DOES translate to sensitive distance' if soft_helps else 'still does not clearly translate'}.")
-    (C.RESULTS_DIR / "ssl_sensdist.json").write_text(json.dumps(
+    (C.RESULTS_DIR / f"ssl_sensdist{args.tag}.json").write_text(json.dumps(
         {"budgets": budgets, "epochs": epochs, "seeds": seeds, "results": out,
          "metric": "sensitive-distance fraction 8/SNR50 from val injections (in_window_snr) at two thresholds",
          "zeroFA_distance_defined": bool(zf_helps), "ssl_helps_at_softFAR": bool(soft_helps)}, indent=2))
-    print("wrote results/ssl_sensdist.json")
+    # Name the file actually written. Hardcoded, this line said "ssl_sensdist.json" while --tag sent the
+    # output elsewhere -- an instrument reporting an action it did not take, which is the exact species this
+    # project keeps cataloguing, and here it would have made a smoke run look like it clobbered the real one.
+    print(f"wrote {(C.RESULTS_DIR / f'ssl_sensdist{args.tag}.json')}")
 
 
 if __name__ == "__main__":
