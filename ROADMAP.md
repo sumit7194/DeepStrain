@@ -121,6 +121,29 @@ wins, which is the expected yield and is why they were worth doing. Detail for e
   precision problem, not a method problem — we hit the wall at 3 in double precision. We supply the
   observation, the validated extractor (Chebyshev-high/truncate-low, golden-tested on 1/(1−x)), the
   pre-registration, and the physical anchor. TheBridge joins them under a gate.
+- **✅ CONTROLS BUILT AND RUN (2026-09-05, `33_domb_sykes_controls.py`), and they change the ask.** `ansatz`
+  objected that the extractor's only golden test was 1/(1−x), whose R is exactly 1 — i.e. hypothesis H — so a
+  bias toward H would be invisible. Three controls, one per verdict band, on clean values and on float64:
+
+  | control | truth | clean values | float64 values |
+  |---|---|---|---|
+  | 1/(1−x) | R=1, real | **PASS**, 8 ratios | PASS, 4 ratios |
+  | 1/(1−2x) | R=1/2, real | **PASS**, R=0.5000 | PASS, R=0.5000 |
+  | 1/(1+x²) | R=1, **complex pair** | **PASS**, pair identified | **FAIL**, 2 ratios |
+
+  **The method is sound and can detect R<1** — the 1/(1−2x) control returns 0.5000 at both precisions, so the
+  feared "returns H by construction" is not a property of the method. **But at float64 the complex-pair
+  control FAILS**, and a complex pair is exactly what ¬H consists of ⇒ **on our data the pipeline could only
+  ever have returned R≈1.** The objection was right, for a reason neither of us had: not bias, *blindness*.
+- **⇒ THE HIGH-PRECISION LEAVER BUILD IS JUSTIFIED, and now by a measurement rather than an expectation.**
+  A provisional Kerr number exists (4 stable ratios 0.3366/0.5704/0.6694/0.7315, Domb–Sykes R = 1.13) and is
+  **explicitly not a result** — gated as PROVISIONAL, because the control that would license it fails at the
+  precision it was computed in.
+- **Three bugs the controls found in our own pipeline, all of which failed silently as "too few
+  coefficients"** — a message indistinguishable from a precision limit: normal equations (XᵀX) singular at
+  16 digits, fixed with QR; step-detection thresholding eight coefficients instead of two, rejecting a
+  genuinely even series; and iterating the ratio index by 1 when the series has stride 2, dividing two
+  numerical zeros. **Each would have been read as "we need more precision" and none was.**
 - **Pre-register before anyone runs it.** (i) coefficient count declared in advance and coefficients shown
   stable under extraction degree, per our own 2026-09-04 lesson; (ii) the Domb–Sykes fit range fixed;
   (iii) verdict bands: R ∈ [0.98, 1.02] ⇒ H; R < 0.95 ⇒ ¬H; between ⇒ unresolved and say so.

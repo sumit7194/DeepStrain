@@ -1,0 +1,152 @@
+{
+  "interval": [
+    0,
+    0.25
+  ],
+  "n_points": 120,
+  "degrees": [
+    16,
+    20,
+    24,
+    28
+  ],
+  "stable_tol": 0.001,
+  "controls": {
+    "1/(1-x)": {
+      "R_true": 1.0,
+      "singularity_true": "positive real axis",
+      "exact": {
+        "n_stable": 8,
+        "ratios": [
+          1.0,
+          1.0,
+          0.9999999999999996,
+          1.0000000000000597,
+          0.9999999999955105,
+          1.00000000022546,
+          0.9999999920026534,
+          1.0000002082807922
+        ],
+        "R": 0.9999992517222417,
+        "intercept": 1.0000007482783182,
+        "slope": -4.704750359044492e-06,
+        "step": 1,
+        "alternating": false,
+        "n_ratios_used": 3,
+        "singularity": "positive real axis",
+        "pass": true
+      },
+      "float64": {
+        "n_stable": 4,
+        "ratios": [
+          1.0000000000000293,
+          0.9999999999904737,
+          1.00000000139117,
+          0.9999998702049533
+        ],
+        "R": 1.0000002030577948,
+        "intercept": 0.9999997969422464,
+        "slope": 4.437783308493747e-07,
+        "step": 1,
+        "alternating": false,
+        "n_ratios_used": 3,
+        "singularity": "positive real axis",
+        "pass": true
+      }
+    },
+    "1/(1-2x)": {
+      "R_true": 0.5,
+      "singularity_true": "positive real axis",
+      "exact": {
+        "n_stable": 4,
+        "ratios": [
+          1.9999999999996474,
+          2.0000000001021827,
+          1.9999999882217603,
+          2.0000007198276926
+        ],
+        "R": 0.4999997191346581,
+        "intercept": 2.0000011234619985,
+        "slope": -2.457447101108326e-06,
+        "step": 1,
+        "alternating": false,
+        "n_ratios_used": 3,
+        "singularity": "positive real axis",
+        "pass": true
+      },
+      "float64": {
+        "n_stable": 4,
+        "ratios": [
+          1.9999999999995863,
+          2.0000000001332747,
+          1.9999999829898027,
+          2.0000012027419665
+        ],
+        "R": 0.49999953026890875,
+        "intercept": 2.0000018789261302,
+        "slope": -4.108535395441049e-06,
+        "step": 1,
+        "alternating": false,
+        "n_ratios_used": 3,
+        "singularity": "positive real axis",
+        "pass": true
+      }
+    },
+    "1/(1+x^2)": {
+      "R_true": 1.0,
+      "singularity_true": "complex pair off the real axis",
+      "exact": {
+        "n_stable": 4,
+        "ratios": [
+          -1.0,
+          -0.9999999999999989,
+          -1.0000000000046807,
+          -0.9999999954572739
+        ],
+        "R": 1.0000000035677796,
+        "intercept": 0.9999999928644409,
+        "slope": 3.1142089805447217e-08,
+        "step": 2,
+        "alternating": true,
+        "n_ratios_used": 3,
+        "singularity": "complex pair off the real axis",
+        "pass": true
+      },
+      "float64": {
+        "n_stable": 2,
+        "ratios": [
+          -1.0000000000572569,
+          -0.9999979100356431
+        ],
+        "R": null,
+        "note": "only 2 stable ratios; need >= 3",
+        "pass": false
+      }
+    }
+  },
+  "kerr_220_real": {
+    "n_stable": 4,
+    "ratios": [
+      0.3365686089181967,
+      0.5704260224911579,
+      0.6694472253857258,
+      0.7314719151378015
+    ],
+    "R": 1.127199215866941,
+    "intercept": 0.8871546270823913,
+    "slope": -0.637032662983835,
+    "step": 1,
+    "alternating": false,
+    "n_ratios_used": 3,
+    "singularity": "positive real axis",
+    "status": "PROVISIONAL -- not a result. At float64 the complex-pair control FAILS, so at this precision the pipeline cannot detect a singularity off the real axis, which is exactly what the R<1 hypothesis consists of. A number produced here could only ever come out as R~1. High-precision frequencies are required before this is quotable."
+  },
+  "wall": {
+    "extractor_capacity_on_clean_values": 8,
+    "capacity_with_float64_noise": 4,
+    "kerr_capacity": 4,
+    "verdict": "the FREQUENCIES' precision: the extractor recovers far more from clean values than from float64 ones, so a high-precision Leaver solver is genuinely required"
+  },
+  "controls_all_pass_clean": true,
+  "controls_all_pass_float64": false
+}
