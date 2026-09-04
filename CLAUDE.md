@@ -26,6 +26,21 @@ asserting them — never recite physics from memory and hope.** Especially numbe
 formulas, and dimension-dependent facts. Cite sources in the docs. If something can't be
 verified, say so plainly rather than bluffing.
 
+## Model tiering (user directive, 2026-09-05)
+**Use the cheapest model that can do the step correctly; reserve Fable for the hardest thinking.**
+- **Sonnet** — fetching, reading long docs, summarising, extracting lists, routine grep/inventory passes,
+  first-draft boilerplate. Anything where the answer is *in the files* and the job is to collect it.
+- **Opus** — judgement calls of moderate depth: surveying what a sibling repo can actually compute, triaging
+  a literature sweep, classifying results, drafting a pre-registration from an existing template.
+- **Fable (this model)** — synthesis and the genuinely hard steps only: forming a new hypothesis, deciding
+  what a measurement licenses, catching a proxy error, resolving a disagreement between two oracles,
+  anything where being subtly wrong is expensive and nobody downstream can check it.
+- Mechanism: the Agent tool with `model: sonnet|opus`. Launch independent reads in parallel; keep Fable's own
+  context for the synthesis. The reports come back as data — verify anything load-bearing before it becomes
+  a claim, same as with a sister session's relay.
+- This overrides the older "don't use subagents unless asked" note for read/summarise work; it does not
+  license delegating a claim's *verification* to a cheaper model when the claim is going into a gate.
+
 ## Working style that's landing well
 - Explain intuitively first (plain-language CS framing), then the precise statement.
 - End sections with **open threads** so the user can pick the next direction.
