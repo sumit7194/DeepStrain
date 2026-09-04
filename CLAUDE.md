@@ -484,9 +484,16 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   this box under a symbolic-algebra workload, so a difference of two single reads is *noisier* than one read,
   not more robust — and I wrote it up as the better instrument while making exactly that error. Note the
   direction: it made the box look tighter than it is, which flattered a decision I had already taken.
-  ⇒ **size a run by delta-in-`free` sampled as a median over ~15 s at each end**, schedule against `free`
-  rather than `available` (reclaiming inactive under a fast large allocation is when this box stalls), and
-  treat the compressor rising with swap still at 0 as headroom already being worked for.
+  ⇒ **size a run by delta-in-`free` sampled as a median over ~15 s at each end.**
+  ⚠️ **AND A SECOND CORRECTION, measured 2026-09-04 while launching the n=20 run: `free` is NOT a pressure
+  signal on this box.** With a job running, `free` sits pinned at **0.07–0.12 GB** — sampled ten times over
+  40 s — while **swap stays at 0.00 M and the compressor is FLAT at 2.53 GB** and `available` is 5.8 GB.
+  That is macOS working correctly: it does not leave memory idle, so low `free` is the normal state under
+  load, not a warning. The earlier rule here ("schedule against `free` rather than `available`") would fire
+  on every run and mean nothing. **The real pressure signals are SWAP GROWTH and COMPRESSOR GROWTH**, which
+  is what `blackhole_watchdog_9f21.sh` in the coordination dir watches (kills our own run by exact PID at
+  swap >512 MB or compressor +1 GB over its launch baseline, so a sister project's long job never has to ask).
+  Same error as the 2.19x: a rule generalised from one reading of a quantity nobody had watched move.
 - **Fleet convention (ansatz, 2026-09-04): no pre-emptive kills on another project's account.** Their runs
   are checkpointed per level; the ask is *"tell me when there is an ACTUAL overlap and I will schedule around
   it."* A resource question with no time axis — *is there room* — is the wrong shape; *is there room WHEN I
