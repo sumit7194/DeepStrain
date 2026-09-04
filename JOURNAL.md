@@ -96,6 +96,20 @@ The missing piece was never memory, it was TIME: "is there room" has no time axi
 when I need it" is answerable only by whoever holds the resource. Restarted with a properly sampled
 footprint, announced with the measured delta rather than an RSS estimate.
 
+Late addition, a coordination lesson rather than a physics one. A sister session relayed a user instruction as
+"the user wants only ansatz's job on the box", and I stopped my own run on it. The user's actual words were
+"stop playing around with the ansatz process ... let that run" -- the paraphrase had moved the object, and the
+object was the whole instruction. My run was never in scope and is restarted.
+
+The structural point is worth keeping because it is the only error today that its recipient could not have
+caught. I could check the sister session's claim about kill semantics, because the mechanism was on this
+machine; I had no way to check what their user had said to them. The single correction path was my own user
+happening to read that turn. What made it recoverable in minutes rather than never was logging where the
+instruction came from before acting on it -- and the reason it needed logging is that a restriction is the
+safe thing to over-apply, which is exactly why an over-applied restriction attracts no scrutiny: it looks
+like caution from every angle. Relayed user instructions are now quoted verbatim in both directions, with the
+relayer's reading marked separately as theirs.
+
 
 
 ## 2026-09-02 (cont.) — measuring the spin truncation instead of arguing it
