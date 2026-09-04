@@ -1062,6 +1062,9 @@ not on one coefficient: a fit that misplaces a₅ typically misplaces a₆ compe
 is the right test for quoting a coefficient and the wrong test for quoting an error.
 
 So this is the first thing in the thread to get **stronger** under a better instrument: a two-point rise on
-numbers that do not move, where we had been treating it as one point. **Two points still cannot establish a
-limit**, so the "asymptotic limit is NOT measurable" guard stands unchanged. Gated (63), including an
+numbers that do not move, where we had been treating it as one point. **What two points do and do not buy.** They separate by far more than they move — gap 0.0249 against drift
+0.0012 at χ = 0.90, a **21:1** separation (11:1 at χ = 0.69). So the **direction is resolved**, and the
+separation is recorded so a later reader can see what "resolved" cost rather than take it on trust. But
+rising-toward-a-limit, rising-linearly and rising-then-turning-over are indistinguishable from two points, so
+the **trend shape is not established and the limit is not** — the guard stands unchanged. Gated (63), including an
 assertion that the rise must persist or be recorded as dead rather than quietly dropped.

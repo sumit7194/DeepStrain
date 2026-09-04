@@ -1215,6 +1215,12 @@ assert not er["4->5"]["is_data"], "4->5 became stable -- the sequence can be rea
 assert er["2->3"]["chi090"]["median"] < er["3->4"]["chi090"]["median"], \
     "the error ratio no longer RISES with order -- the 'convergence rate degrades with order' observation " \
     "dies, and it should be recorded as dead rather than quietly dropped"
+# The rise is resolved only because the two ratios separate by far more than they move. Assert the
+# separation, not just the ordering: an ordering that survives on a 1:1 margin establishes nothing. Two
+# points give a DIRECTION -- not a trend shape, and not a limit.
+sep = d["direction"]
+assert sep["chi090"]["separation"] > 10 and sep["chi069"]["separation"] > 5, \
+    f"the two solid ratios no longer separate from their own drift: {sep}"
 
 # (4) AND THE HONESTY GUARD: only 2 coefficient ratios are stable under fit degree. If anyone later quotes
 #     an asymptotic limit from this data, this assertion is what says they cannot.
@@ -1229,7 +1235,8 @@ print(f"PASS  ringdown spin truncation (O(chi^2) error {t2['chi069']['median']:.
       f"n=2,3 coefficients survive a fit-degree sweep (n=5 drifts {stab['5']['drift']:.2f}, "
       f"n=6 drifts {stab['6']['drift']:.0f}) => the asymptotic limit is NOT measurable, though the error "
       f"ratio does RISE on the two ratios that are data: {er['2->3']['chi090']['median']:.4f} -> "
-      f"{er['3->4']['chi090']['median']:.4f} at chi=0.90, drift <= {er['3->4']['chi090']['drift']:.4f})")
+      f"{er['3->4']['chi090']['median']:.4f} at chi=0.90, separating {sep['chi090']['separation']:.0f}:1 "
+      f"from their own drift => DIRECTION resolved, trend shape and limit NOT)")
 PYEOFST
 
 echo "--- ringdown spin truncation CROSS-CHECK (32: published crossings reproduced, after they found our bug)"

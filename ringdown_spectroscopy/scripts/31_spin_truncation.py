@@ -143,6 +143,25 @@ def main() -> None:
               f"(drift {row['chi069']['drift']:.4f})   chi=0.90 {row['chi090']['median']:.4f} "
               f"(drift {row['chi090']['drift']:.4f})   {'DATA' if row['is_data'] else 'FIT-DOMINATED'}")
 
+    # WHAT THE TWO SOLID RATIOS DO AND DO NOT ESTABLISH. They separate by much more than they move, so the
+    # DIRECTION is resolved. They are two points: rising-toward-a-limit, rising-linearly and
+    # rising-then-turning-over are indistinguishable, so the SHAPE is not, and the limit is not. Recording
+    # the separation is the point -- it says what "resolved" cost, so a later reader need not take it on
+    # trust. (bridge's precision, 2026-09-04, offered against their own observation.)
+    a, b = res["error_ratio"]["2->3"], res["error_ratio"]["3->4"]
+    res["direction"] = {}
+    for tag in ("chi069", "chi090"):
+        gap = b[tag]["median"] - a[tag]["median"]
+        move = max(a[tag]["drift"], b[tag]["drift"])
+        res["direction"][tag] = {"gap": float(gap), "max_drift": float(move),
+                                 "separation": float(gap / move) if move else float("inf")}
+    res["direction"]["established"] = "sign only -- two points give a direction, not a trend shape or a limit"
+    print("\n   separation of the two solid ratios (gap between them vs how much they move):")
+    for tag in ("chi069", "chi090"):
+        dsep = res["direction"][tag]
+        print(f"     {tag}: gap {dsep['gap']:.4f} vs drift {dsep['max_drift']:.4f} = {dsep['separation']:.0f}:1")
+    print("   => direction RESOLVED; trend shape NOT; limit NOT")
+
     # ---- (3) WHICH COEFFICIENTS ARE REAL? the decisive test --------------------------------------------
     print("\ncoefficient ratio |a_(n+1)/a_n| vs Chebyshev fit degree -- a real coefficient does not move")
     lo, hi = 0.0, TAYLOR_RANGE

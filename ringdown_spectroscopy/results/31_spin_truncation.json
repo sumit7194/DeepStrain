@@ -118,6 +118,19 @@
       "is_data": false
     }
   },
+  "direction": {
+    "chi069": {
+      "gap": 0.02297012002864296,
+      "max_drift": 0.0021051842802326526,
+      "separation": 10.911215822922845
+    },
+    "chi090": {
+      "gap": 0.02493664721793154,
+      "max_drift": 0.0011978579201208372,
+      "separation": 20.817700329114146
+    },
+    "established": "sign only -- two points give a direction, not a trend shape or a limit"
+  },
   "coefficient_stability": {
     "2": {
       "min": 0.6693904523121025,

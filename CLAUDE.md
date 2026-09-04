@@ -693,8 +693,11 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
   that supposedly controls it**, because the order-n error depends on the **whole neglected tail**, not on one
   coefficient — a fit that misplaces a₅ typically misplaces a₆ compensatingly. **So this is the first thing in
   the thread that got STRONGER under a better instrument, not weaker** — a two-point rise on stable numbers,
-  where we had been treating it as one point. **Unchanged: two points cannot establish a limit**, so 31's
-  "asymptotic limit NOT measurable" guard stands exactly as written. Gated (63) incl. an assertion that the
+  where we had been treating it as one point. **Terminal form, sharpened by `bridge` against their own
+  observation: the DIRECTION is resolved at 21:1 (χ=0.90; 11:1 at χ=0.69) — the gap between the two solid
+  ratios against how much they move — the TREND SHAPE is not, and the LIMIT is not.** Two points separate
+  rising from falling; rising-toward-a-limit, rising-linearly and rising-then-turning-over are
+  indistinguishable from two. 31's "asymptotic limit NOT measurable" guard stands exactly as written. Gated (63) incl. an assertion that the
   rise must persist or be recorded as dead rather than quietly dropped.
 - **L5 THIRD-TONE FLOOR DONE (2026-08-15): a third tone is out of reach here — and the two candidates fail for
   OPPOSITE reasons.** The prereq ("read GWTC-5.0 first") **corrected our own [S] note**: we had recorded "GWTC-5.0
