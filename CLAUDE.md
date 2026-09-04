@@ -461,13 +461,22 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   cannot be quietly re-inflated. **Bank deliberately NOT built** (~162 h for no speed gain) ⇒ *does a CNN still
   tie a matched filter once the bank is adequate?* stays OPEN, and needs a genuinely cheaper filter.
   Artifacts: bank_ratio_{golden,diag,mcscan,chunked,regime,realcost}.json.
-- **Resource accounting on this box (measured 2026-09-04): RSS UNDERSTATES an MPS job by ~2x.** Killing a
-  torch/MPS run showed `free` 0.71 -> 2.47 GB = **1.76 GB released while `ps` reported 823 MB resident** —
-  Metal allocations live in unified memory and do not land fully in RSS. ⇒ when announcing or scheduling a
-  run for the fleet, size it by **measured delta in `free`** (record `free` before and after), not by RSS,
-  and schedule against **`free`** rather than `available`, since reclaiming inactive under a fast large
-  allocation is when this box stalls. The compressor sitting at 2.6 GB with swap still 0 is the signal that
-  headroom is already being worked for.
+- **Resource accounting on this box (measured 2026-09-04): RSS under-reports an MPS job by ~1.3x, and a
+  SINGLE `free` sample is not a state.** Metal allocations live in unified memory and do not fully land in
+  RSS, so `ps` under-counts a torch/MPS job — but by **1.33x** (footprint 1.00 GB against RSS 754 MB),
+  measured as the difference between two **medians of 8 samples**. ⚠️ **An earlier entry here said 2.19x;
+  that was one instantaneous `free` read before a kill against one after.** `free` oscillates by >1 GB on
+  this box under a symbolic-algebra workload, so a difference of two single reads is *noisier* than one read,
+  not more robust — and I wrote it up as the better instrument while making exactly that error. Note the
+  direction: it made the box look tighter than it is, which flattered a decision I had already taken.
+  ⇒ **size a run by delta-in-`free` sampled as a median over ~15 s at each end**, schedule against `free`
+  rather than `available` (reclaiming inactive under a fast large allocation is when this box stalls), and
+  treat the compressor rising with swap still at 0 as headroom already being worked for.
+- **Fleet convention (ansatz, 2026-09-04): no pre-emptive kills on another project's account.** Their runs
+  are checkpointed per level; the ask is *"tell me when there is an ACTUAL overlap and I will schedule around
+  it."* A resource question with no time axis — *is there room* — is the wrong shape; *is there room WHEN I
+  need it* is answerable only by whoever holds the resource, which is why it must be asked rather than
+  inferred from a memory reading.
 - **Dashboard:** `python3 dashboard.py` (repo root, stdlib only) serves a live run monitor
   over `*/results/progress/*.json` for all three sub-projects; pbh gained `pbh/progress.py`
   (same heartbeat convention as echolib/rdlib). Writes `.dashboard.pid` on start; **stop it

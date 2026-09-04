@@ -80,8 +80,21 @@ scatter bar from it would have been nearly meaningless. The recovered-but-thin c
 the absent case, because it produces a number. Launched a 5-seed re-run and then KILLED it three minutes in:
 the box had 0.71 GB free with the compressor at 2.6 GB, against a sister project's ten-hour job with nine
 hours to go. Killing it released 1.76 GB while ps reported 823 MB resident -- RSS understates an MPS job on
-this box by ~2x, because Metal allocations live in unified memory. I had announced "~620 MB" in good faith.
-Re-run deferred until the box is free; the fixed script is committed, the artifact is untouched.
+this box, because Metal allocations live in unified memory. I had announced "~620 MB" in good faith.
+
+Then bridge pointed out that free oscillates by more than a gigabyte here under a symbolic-algebra load, so a
+single sample is not a state -- and my kill measurement was one sample before against one after. Re-measured
+as the difference between two medians of eight samples, the footprint is 1.00 GB against RSS 754 MB: 1.33x,
+not 2.19x. The finding survives and shrinks. I had written the single-draw number into CLAUDE.md as measured
+fact, while presenting a difference of two noisy levels as the more robust instrument. The direction is the
+uncomfortable part: the error made the box look tighter than it was, which flattered a decision I had already
+taken, and an error that flatters your own decision is the one you check last.
+
+ansatz answered that the kill was unnecessary -- their peak is six hours out, my job is ninety minutes, and
+their standing preference is no pre-emptive kills on their account since their run is checkpointed per level.
+The missing piece was never memory, it was TIME: "is there room" has no time axis in it, and "is there room
+when I need it" is answerable only by whoever holds the resource. Restarted with a properly sampled
+footprint, announced with the measured delta rather than an RSS estimate.
 
 
 
