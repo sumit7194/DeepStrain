@@ -1876,7 +1876,10 @@ But at 4,000 and 8,000 **both components are real**, and this is where the n=5 p
 few hours ago that mean-given-cleared was "nearly flat everywhere (0.223–0.240)". At n=20 it is not: scratch
 gets **0.148 / 0.192** where SSL gets **0.256 / 0.241**. Five seeds hid a genuine magnitude effect of
 +0.05–0.11. **A decomposition run on the underpowered pilot was itself underpowered** — the same lesson as
-the headline, one level down, and I stated it as a finding rather than as a preview.
+the headline, one level down, and I stated it as a finding rather than as a preview. The transferable form,
+sharpened by `bridge`: **caveating one number does not caveat the numbers computed from it.** The headline
+was explicitly flagged as underpowered, and then the same five seeds were split three ways without
+re-deriving that the power survived the split. It did not.
 
 **A COMMITTED N4 CLAIM DOES NOT SURVIVE 20 SEEDS.** The gated statement "at the strict zero-FA threshold the
 reduced-budget distance is 0 for **both**, a model-strength floor" came from 2 seeds. At 20: scratch is still
