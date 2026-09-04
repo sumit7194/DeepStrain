@@ -1,0 +1,56 @@
+{
+  "published": {
+    "source": "Pierini & Gualtieri, PRD 106, 104009 (2022), arXiv:2207.11267, Sec. IV A",
+    "definition": "Eq. (44): (omega_Taylor - omega_Kerr) / omega_Kerr",
+    "crossing_1pct": {
+      "1": 0.22,
+      "2": 0.4
+    },
+    "tolerance": 0.02
+  },
+  "golden_geometric": {
+    "1": {
+      "expected": 0.1,
+      "measured": 0.10000000000212783,
+      "pass": true
+    },
+    "2": {
+      "expected": 0.2154434690031884,
+      "measured": 0.21544232363724317,
+      "pass": true
+    }
+  },
+  "measured": {
+    "022_real": {
+      "1": 0.21925722917187532,
+      "2": 0.40036769773746367
+    },
+    "022_imag": {
+      "1": 0.342966761510703,
+      "2": 0.477875867303269
+    },
+    "033_real": {
+      "1": 0.22752960281758894,
+      "2": 0.41522470411002815
+    },
+    "033_imag": {
+      "1": 0.30918104394207907,
+      "2": 0.4526292374759935
+    }
+  },
+  "earliest": {
+    "1": {
+      "crossing": 0.21925722917187532,
+      "curve": "022_real"
+    },
+    "2": {
+      "crossing": 0.40036769773746367,
+      "curve": "022_real"
+    }
+  },
+  "agrees_with_published": {
+    "1": true,
+    "2": true
+  },
+  "verdict": "our truncation machinery reproduces both published crossings, so 31's corrected numbers are externally validated"
+}

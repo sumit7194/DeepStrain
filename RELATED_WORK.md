@@ -387,21 +387,50 @@ failing by ~55% only at large coupling), so this is a trustworthy perturbative n
 extrapolation. **⇒ sGB is unreachable by ringdown at current sensitivity, by 7–9 orders. It is constrained
 in the inspiral, and a ringdown/QNM programme works in the channel least sensitive to the theory.**
 
-**Second order in spin — measured, not argued.** Exact Kerr 220 frequencies from the `qnm` package, Taylor
-series fitted on χ ≤ 0.3 and extrapolated. Stable across polyfit range, fit degree, and three methods:
+**Second order in spin — measured, not argued** *(numbers corrected 2026-09-04; see below)*. Exact Kerr 220
+frequencies from the `qnm` package; Taylor coefficients extracted by a high-degree Chebyshev fit and truncated
+low. Identical to six digits across extraction range and degree:
 
 | | χ = 0.69 (real remnants) | χ = 0.90 (EMRI central objects) |
 |---|---|---|
-| O(χ²) truncation error | **~4%** (spread 3.4–5.3%) | **~16%** (spread 14.7–17.5%) |
-| successive error ratio at 3rd order | ~0.50 | ~0.72 |
+| O(χ²) truncation error | **6.4%** | **18.9%** |
+| successive error ratio at 3rd order | 0.53 | 0.72 |
+
+> **Correction, 2026-09-04.** These were first recorded as ~4% and ~16% with a quoted spread. Those came from
+> `np.polyfit` **at the truncation order**, which is a least-squares fit on the interval, not a Taylor
+> truncation — it understates the error, and the "spread" was fit noise. Found by checking against
+> [arXiv:2207.11267](https://arxiv.org/abs/2207.11267) (Pierini & Gualtieri, *PRD* **106**, 104009), whose
+> Eq. (44) puts the 1% crossings at ā ≈ 0.22 and 0.40 **[A]**; the corrected extractor reproduces them at
+> 0.219 and 0.400, the old one gave 0.35 and 0.50. An analytic golden test on 1/(1−x) is what turned a
+> disagreement into a bug rather than an argument.
 
 Equal-mass non-spinning mergers give **χ_f ≈ 0.69 to ~1%** across NR codes
 ([astro-ph/0609172](https://arxiv.org/pdf/astro-ph/0609172), [arXiv:1305.5991](https://arxiv.org/abs/1305.5991))
 **[A]**; our own GW250114 measurements agree (LVK 0.69, our coherent-package fit 0.730, our NPE 0.766).
 
-**⇒ the answer splits by channel.** For **ringdown**, ~4% truncation sits below our own σ(δ) ≈ 14% — *not*
-the binding constraint, contrary to our first assessment. For **EMRI**, ~16% at χ ≈ 0.9 against phase
-accuracy over ~10⁵ cycles is disqualifying, and there the remedy is non-perturbative in spin.
+**⇒ the answer splits by channel.** For **ringdown**, 6.4% truncation sits below our own σ(δ) ≈ 14% — *not*
+the binding constraint, contrary to our first assessment, though the margin is 2.2× rather than the 3.2× first
+recorded. For **EMRI**, 18.9% at χ ≈ 0.9 against phase accuracy over ~10⁵ cycles is disqualifying, and there
+the remedy is non-perturbative in spin.
+
+**What the field itself does about the spin truncation, verified 2026-09-04.** Two things worth having on
+record before anyone plans an O(χ²) sGB calculation:
+- The second-order EdGB QNM paper ([arXiv:2207.11267](https://arxiv.org/abs/2207.11267) **[A]**) calibrates
+  its accuracy **on Kerr and extrapolates** — *"an indication that a second-order computation of QNMs may be
+  accurate for ā ≲ 0.4 (ā ≲ 0.7 with Padé resummation) for EdGB gravity **as well**"*. That "as well" is the
+  same proxy step our own open item flagged: the sGB correction's own spin series is **not** measured there.
+  They also need **Padé resummation** to reach ā ≈ 0.7 at all, which is not what a rapidly converging series
+  requires.
+- The truncation is no longer the only option. **METRICS**
+  ([arXiv:2406.11986](https://arxiv.org/abs/2406.11986), *PRD* **110**, 064019 **[A]**) computes sGB QNMs
+  **non-perturbatively in spin** to a ≤ 0.85 (accuracy ≤10⁻⁵ for a ≤ 0.6, ≲10⁻² for 0.7 < a ≤ 0.85), with sGB
+  corrections carried to ~40 orders in spin and no Padé needed for a ≥ 0.7. ⇒ **the coefficient-decay question
+  is answerable by comparison rather than by fitting**, which matters because our own work shows fitted
+  coefficients beyond n ≈ 3 are not recoverable.
+- Separately, on the **coupling** axis: [arXiv:2412.09377](https://arxiv.org/abs/2412.09377) **[A]** finds
+  weak-coupling approximations deviating by up to ~55% near the domain limit ξ ≈ 0.316. That is far above the
+  coupling our observational bound allows, so it does not bite here — but it is the reason the coupling
+  expansion cannot be waved through at arbitrary ξ.
 
 **What is NOT established, after three methods tried.** Whether the asymptotic error ratio tends to χ (radius
 of convergence R = 1, the extremal singularity) or to something below it. **Only three Taylor coefficients

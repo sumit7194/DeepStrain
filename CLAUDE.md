@@ -624,8 +624,10 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
   consistent). **(c) NPE referee: package M 74.8 [70.4,79.0] / χ 0.729 vs our 09 NPE 76.0 [68.4,85.2] / 0.762 —
   first independent field-standard cross-validation of the NPE arc (package CI nests inside NPE's).** NUTS x64,
   R̂≤1.004, ESS≥950. Gated. Caveat: all peak-start fits carry the R3 early-time systematic; duration fixed 0.05 s.
-- **SPIN TRUNCATION MEASURED (2026-09-02): O(χ²) is ~4% at real remnants, ~16% at EMRI spins — and the
-  answer SPLITS BY CHANNEL.** Asked by the user as a scope question for a scalar-Gauss-Bonnet programme
+- **SPIN TRUNCATION ⚠️ CORRECTED 2026-09-04 — the numbers were 4.43%/16.15%, they are 6.36%/18.86%; both
+  conclusions survive and are now externally validated. See the cross-check entry immediately below; the
+  original entry follows unedited except for this header.** — **SPIN TRUNCATION MEASURED (2026-09-02):
+  O(χ²) is ~4% at real remnants, ~16% at EMRI spins — and the answer SPLITS BY CHANNEL.** Asked by the user as a scope question for a scalar-Gauss-Bonnet programme
   working to 2nd order in spin. `31_spin_truncation.py` measures it against exact Kerr 220 from `qnm` instead
   of arguing it. **BOTH standard arguments are wrong, one of them ours:** (a) *"first neglected term is
   χ³/χ² = χ = 0.69 so the error is ~70%"* — **a term ratio is not an error**, it assumes O(1) coefficients and
@@ -647,6 +649,39 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
   numerics is inference with an unquoted error bar; evaluating a closed form at points is verification.**
   Gated (incl. an honesty guard asserting n=5 stays unstable, so nobody later quotes a limit from this data).
   Artifact: 31_spin_truncation.json.
+- **SPIN-TRUNCATION CROSS-CHECK DONE (2026-09-04): an outside number found a METHOD ERROR in our own script
+  — 4.43% → 6.36%, and the corrected value reproduces a published calibration exactly.** Prompted by
+  `bridge` relaying the open item on the sGB spin expansion. Before touching the sGB series, checked 31
+  against something we did not tune to: **Pierini & Gualtieri, PRD 106, 104009 (2022) / arXiv:2207.11267
+  Sec. IV A** — the second-order-in-spin EdGB QNM paper, i.e. the exact class of calculation the theory
+  programme proposes — whose Eq. (44) calibrates against exact Kerr and reports the Taylor expansion within
+  1% for **ā ≲ 0.22 at first order, ā ≲ 0.40 at second**. **First run said DISAGREE (ours 0.35/0.50), and the
+  tempting explanation was WRONG:** that their number bundles the slow-rotation method's own error (truncated
+  angular system, direct integration) on top of series truncation, so theirs is legitimately larger — a
+  physically sensible, unfalsifiable story for what was **our bug**. **THE BUG:** 31 obtained coefficients
+  with `np.polyfit` **at the truncation order** over [0,hi]; a degree-n least-squares fit is the best n-th
+  degree approximation *on that interval* and absorbs higher-order behaviour into its low coefficients, so
+  evaluating it outside understates the truncation error. **Fit HIGH in Chebyshev, truncate LOW** returns the
+  series' own coefficients. **CORRECTED: χ=0.69 → 6.364%, χ=0.90 → 18.857%** (was 4.43/16.15); the reported
+  **"spread [3.44,5.35]% was never a systematic — it was fit noise**, the correct calculation is identical to
+  six digits across every extraction range and degree. **VALIDATED: our crossings 0.219 / 0.400 vs published
+  0.22 / 0.40**, on the earliest of the four curves their single 1% line actually reports (comparing only
+  (022) real is what made the first run say DISAGREE). **THE GOLDEN TEST IS WHY THIS WAS FOUND, and it is
+  `tabula`'s precondition relayed the same morning — *a sweep is evidence only once the identical sweep has
+  been shown to land correctly on a case whose answer is fixed in advance*:** on 1/(1−x), whose order-n
+  relative error is exactly x^(n+1), the low-degree fit gives crossings 0.193/0.345 where truth is
+  0.1000/0.2154 — **it fails a case it must pass.** Without the analytic control the disagreement with the
+  paper would have been argued about instead of fixed. **CONCLUSIONS SURVIVE, margin shrinks:** ringdown
+  6.4% still below σ(δ)≈0.14 (margin 3.2×→2.2×), EMRI 18.9% still disqualifying. **31's own two halves had
+  disagreed methodologically all along** — its coefficient-stability section already used the correct
+  Chebyshev route while its headline used polyfit. **Gate:** the 3× channel-split ratio bar was calibrated to
+  the superseded numbers and tripped at 2.96; loosened to 2× **on the record**, since a ratio bar calibrated
+  to a corrected number measures the old number — `chi069 < 0.14` is the assertion that carries the finding.
+  **STILL OPEN, and now correctly scoped:** this validates the *Kerr* truncation; the sGB correction's own
+  spin series is untouched, and the field's own O(χ²) sGB paper **extrapolates its accuracy from Kerr** ("for
+  EdGB gravity **as well**") rather than measuring it — the same proxy step our open item flagged. The
+  decisive numbers now exist non-perturbatively: **METRICS, arXiv:2406.11986 / PRD 110, 064019**, sGB QNMs to
+  a ≤ 0.85 with ~40 orders in spin. Gated (62). Artifact: 32_spin_truncation_crosscheck.json.
 - **L5 THIRD-TONE FLOOR DONE (2026-08-15): a third tone is out of reach here — and the two candidates fail for
   OPPOSITE reasons.** The prereq ("read GWTC-5.0 first") **corrected our own [S] note**: we had recorded "GWTC-5.0
   reports the first measurement of three tones"; verified at **arXiv:2510.01001**, GW250114 has strong evidence

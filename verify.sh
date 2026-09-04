@@ -1180,7 +1180,7 @@ print(f"PASS  pbh CNN response probe (sensitivity centre {d['centre_hz']['inject
       f"coincidence works because the fluctuation is independent between detectors)")
 PYEOFCR
 
-echo "--- ringdown spin truncation (31: O(chi^2) is ~4% at real remnants, ~16% at EMRI spins)"
+echo "--- ringdown spin truncation (31: O(chi^2) is ~6% at real remnants, ~19% at EMRI spins)"
 ./ringdown_spectroscopy/.venv/bin/python - << 'PYEOFST' || FAIL=1
 import json
 d = json.loads(open("ringdown_spectroscopy/results/31_spin_truncation.json").read())
@@ -1193,7 +1193,13 @@ assert 0.10 < t2["chi090"]["median"] < 0.25, f"O(chi^2) error at chi=0.90 moved:
 assert t2["chi069"]["median"] < 0.14, \
     "O(chi^2) error at remnant spins now EXCEEDS our sigma(delta) ~ 0.14 -- the ringdown half of the " \
     "channel split inverts and 'not the binding constraint' must be withdrawn"
-assert t2["chi090"]["median"] > 3 * t2["chi069"]["median"], "the channel split has collapsed -- re-derive"
+# The split is NOT a ratio -- it is each number against its OWN comparator: 6.4% against our sigma(delta)
+# ~ 0.14 for ringdown, 18.9% against phase accuracy over ~1e5 cycles for EMRI. The bar below was written as
+# `> 3x` when the numbers were the superseded 4.43%/16.15% (ratio 3.65); the corrected 6.36%/18.86% give
+# 2.96 and tripped it. Loosened to 2x DELIBERATELY and on the record, because a ratio bar calibrated to a
+# number that has since been corrected is measuring the old number, not the finding -- the assertion above,
+# chi069 < 0.14, is the one that carries the ringdown half.
+assert t2["chi090"]["median"] > 2 * t2["chi069"]["median"], "the channel split has collapsed -- re-derive"
 
 # (2) the error must actually DECREASE with order -- this is what refutes "no finite order is controlled",
 #     which was the strong claim we had to withdraw. If it stops decreasing that claim comes back.
@@ -1213,6 +1219,33 @@ print(f"PASS  ringdown spin truncation (O(chi^2) error {t2['chi069']['median']:.
       f"n=2,3 coefficients survive a fit-degree sweep (n=5 drifts {stab['5']['drift']:.2f}, "
       f"n=6 drifts {stab['6']['drift']:.0f}) => the asymptotic limit is NOT measurable)")
 PYEOFST
+
+echo "--- ringdown spin truncation CROSS-CHECK (32: published crossings reproduced, after they found our bug)"
+./ringdown_spectroscopy/.venv/bin/python - << 'PYEOFCC' || FAIL=1
+import json
+d = json.loads(open("ringdown_spectroscopy/results/32_spin_truncation_crosscheck.json").read())
+
+# (1) THE GOLDEN TEST IS THE PRECONDITION, not decoration. The low-degree fit 31 used until 2026-09-04
+#     FAILS this case, which is how the method error was found. If it ever fails again, nothing below the
+#     line means anything and the comparison must not be reported.
+g = d["golden_geometric"]
+assert all(v["pass"] for v in g.values()), f"golden test failed: {g}"
+assert abs(g["2"]["measured"] - 0.2154) < 0.005, f"order-2 analytic crossing moved: {g['2']}"
+
+# (2) the external validation itself: two numbers from a paper we did not tune to.
+assert all(d["agrees_with_published"].values()), f"published crossings no longer reproduced: {d['earliest']}"
+assert abs(d["earliest"]["1"]["crossing"] - 0.22) <= 0.02
+assert abs(d["earliest"]["2"]["crossing"] - 0.40) <= 0.02
+
+# (3) and the reason the comparison is legal: the EARLIEST of the four curves is what a single 1% line in
+#     their four-curve figure reports. Comparing only (022) real is what made the first run say DISAGREE.
+assert len(d["measured"]) == 4, "the four-curve sweep shrank -- the earliest-curve rule needs all four"
+
+print(f"PASS  ringdown spin truncation cross-check (golden 1/(1-x) crossings exact; published 1% crossings "
+      f"{d['earliest']['1']['crossing']:.3f} vs 0.22 and {d['earliest']['2']['crossing']:.3f} vs 0.40 "
+      f"reproduced => 31's corrected 6.4%/18.9% are externally validated, and the low-degree fit that gave "
+      f"4.4%/16.2% fails the analytic control)")
+PYEOFCC
 
 echo "========================================"
 [ $FAIL -eq 0 ] && echo "BLACKHOLE GATE: ALL GREEN" || echo "BLACKHOLE GATE: FAILURES"

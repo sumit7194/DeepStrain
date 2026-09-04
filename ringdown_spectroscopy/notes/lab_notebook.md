@@ -908,7 +908,13 @@ invisible because the test was run at δ_true = 0, where returning the prior is 
 success. **A check evaluated at the prior's centre cannot detect a prior-returning estimator.**
 Gated. Artifact: results/30_stacking_audit.json.
 
-## SPIN-TRUNCATION MEASURED (2026-09-02): O(χ²) is ~4% at real remnants, ~16% at EMRI spins
+## SPIN-TRUNCATION MEASURED (2026-09-02): O(χ²) is ~6% at real remnants, ~19% at EMRI spins
+
+> **⚠️ CORRECTED 2026-09-04.** The numbers first recorded here (4.43% / 16.15%) came from `np.polyfit` at the
+> truncation order, which is a least-squares fit on the interval and **not** a Taylor truncation — it
+> understates the error. Corrected to **6.364% / 18.857%** and validated against a published calibration; see
+> *Spin-truncation cross-check* below. Both conclusions survive. The table and prose in this section carry the
+> corrected values; the reasoning is unchanged.
 
 **Why it exists.** A theory programme proposed working to second order in spin, and asked whether that scope
 covers real black holes. The question is normally *argued*; `31_spin_truncation.py` measures it against exact
@@ -928,18 +934,22 @@ one of them was ours.**
 
 | order | error at χ = 0.69 | error at χ = 0.90 |
 |---|---|---|
-| **2** | **4.43%** [3.44, 5.35] | **16.15%** [14.66, 17.47] |
-| 3 | 2.13% | 11.30% |
-| 4 | 1.07% | 8.19% |
-| 6 | 0.29% | 4.62% |
+| **2** | **6.36%** | **18.86%** |
+| 3 | 3.38% | 13.64% |
+| 4 | 1.87% | 10.21% |
+| 5 | 1.06% | 7.80% |
+| 6 | 0.79% | 6.78% |
+
+There is **no spread to quote**: the corrected extraction gives identical values to six digits across every
+range 0.15–0.40 and every fit degree. The "[3.44, 5.35]" first recorded as a systematic was fit noise.
 
 χ = 0.69 is the universal final spin of equal-mass non-spinning mergers, reproducible to ~1% across NR codes
 (astro-ph/0609172, arXiv:1305.5991); our own GW250114 fits agree (LVK 0.69, coherent package 0.730, NPE 0.766).
 
 **⇒ THE ANSWER SPLITS BY CHANNEL, which is the finding.**
-- **Ringdown: NOT the binding constraint.** 4.4% sits well below our own σ(δ) ≈ 0.14. We initially called
-  O(χ²) disqualifying for ringdown and **withdrew that** — it is three times smaller than what we can resolve.
-- **EMRI: disqualifying.** 16% at χ ≈ 0.9, against phase accuracy accumulated over ~10⁵ cycles, is not a
+- **Ringdown: NOT the binding constraint.** 6.4% sits below our own σ(δ) ≈ 0.14. We initially called
+  O(χ²) disqualifying for ringdown and **withdrew that** — it is ~2.2× smaller than what we can resolve.
+- **EMRI: disqualifying.** 18.9% at χ ≈ 0.9, against phase accuracy accumulated over ~10⁵ cycles, is not a
   correction but a different waveform. The remedy there is non-perturbative in spin, not more terms.
 
 **WHAT IS NOT ESTABLISHED, AND THE TEST THAT SHOWED IT.** Whether the asymptotic error ratio tends to χ
@@ -971,3 +981,63 @@ extract is not a hard extraction — it is absent.**
 with an unquoted error bar; evaluating a closed form at points is verification.** Only the second is safe.
 Any plan of the form "derive a closed form and check it against numerics" depends entirely on which of the
 two it means. Gated. Artifact: results/31_spin_truncation.json.
+
+## SPIN-TRUNCATION CROSS-CHECK (2026-09-04): an outside number found a method error in our own script
+
+**Why it exists.** `31_spin_truncation.py` measured the O(χⁿ) truncation error with our machinery and nothing
+else, and one of its numbers had been used to **withdraw our own claim**. A measurement that overturns a claim
+deserves an outside check more than one that confirms it. `bridge` relaying the open sGB item was the prompt;
+checking 31 before touching the sGB series was the order of work.
+
+**The outside number.** Pierini & Gualtieri, *PRD* **106**, 104009 (2022),
+[arXiv:2207.11267](https://arxiv.org/abs/2207.11267), Sec. IV A — the second-order-in-spin EdGB QNM paper,
+i.e. exactly the class of calculation a scalar-Gauss-Bonnet programme proposes. Their Eq. (44) defines the
+discrepancy against **exact Kerr**, and they report the Taylor expansion within 1% for **ā ≲ 0.22** at first
+order and **ā ≲ 0.40** at second. In GR the slow-rotation expansion of the field equations *is* the Taylor
+expansion of the exact Kerr frequency, which is what makes the comparison legal — and that holds only in the
+Kerr limit, not for the sGB correction.
+
+**First run: DISAGREE — and the tempting explanation was wrong.** Ours crossed at 0.35 and 0.50 against their
+0.22 and 0.40. The natural reading was that the two measure different objects: their curve bundles the
+slow-rotation method's own error (truncated angular system, direct integration) on top of the series
+truncation, so theirs is legitimately larger, and our number is an idealised floor. That story is physically
+sensible, unfalsifiable from here, and **wrong**. It was our bug.
+
+**The bug.** 31 obtained coefficients with `np.polyfit` **at the truncation order** over [0, hi]. A degree-*n*
+least-squares fit is the best *n*-th degree approximation **on that interval** — it absorbs part of the
+higher-order behaviour into its low coefficients — so evaluating it outside the interval understates the
+truncation error of the actual series. **Fit high in Chebyshev and truncate low** returns the series' own
+coefficients. 31's *coefficient-stability* section had used the correct route all along; its headline had not.
+The two halves of one script disagreed methodologically and nothing flagged it.
+
+**What the golden test did, and why it is the point.** `tabula`'s precondition, relayed the same morning: *a
+sweep is evidence only once the identical sweep has been shown to land correctly on a case whose answer is
+fixed in advance.* For 1/(1−x) the order-*n* relative truncation error is exactly x^(n+1), so the 1% crossings
+are **0.1000** and **0.2154**. The low-degree fit returns **0.193** and **0.345** — it fails a case it must
+pass. Without that control the disagreement with the paper would have been argued about instead of fixed.
+
+**Result after the fix.**
+
+| | order 1 | order 2 |
+|---|---|---|
+| golden 1/(1−x), analytic | 0.1000 | 0.2154 |
+| golden, measured | **0.1000** | **0.2154** |
+| Kerr, ours (earliest of four curves) | **0.219** | **0.400** |
+| Kerr, published | 0.22 | 0.40 |
+
+Their Fig. 1 carries four curves against a single 1% line — real and imaginary parts of (022) and (033) — so
+the quoted crossing is the **earliest** of the four. Comparing only (022) real is what made the first run say
+DISAGREE at both orders even after the extractor was correct.
+
+**Consequences.** χ = 0.69: 4.43% → **6.36%**. χ = 0.90: 16.15% → **18.86%**. Ringdown stays *not* binding
+(margin against σ(δ) ≈ 0.14 falls from 3.2× to 2.2×); EMRI stays disqualifying. The gate's 3× channel-split
+ratio bar had been calibrated to the superseded numbers, tripped at 2.96, and was loosened to 2× **on the
+record** — a ratio bar calibrated to a number that has since been corrected measures the old number, and
+`chi069 < 0.14` is the assertion that carries the ringdown half.
+
+**Still open, now correctly scoped.** This validates the *Kerr* truncation. The sGB correction's own spin
+series is untouched — and the field's own O(χ²) sGB paper **extrapolates** its accuracy from Kerr ("for EdGB
+gravity **as well**") rather than measuring it, which is the same proxy step our open item flagged. The
+decisive numbers now exist non-perturbatively:
+[arXiv:2406.11986](https://arxiv.org/abs/2406.11986) / *PRD* **110**, 064019 (METRICS), sGB QNMs to a ≤ 0.85
+with sGB corrections to ~40 orders in spin. Gated (62). Artifact: `results/32_spin_truncation_crosscheck.json`.

@@ -59,6 +59,33 @@ CHI_REMNANT = 0.69       # universal final spin, equal-mass non-spinning (astro-
 CHI_EMRI = 0.90          # representative high-spin supermassive central object
 FIT_RANGES = (0.15, 0.20, 0.25, 0.30, 0.35, 0.40)
 DEGREES = (12, 16, 20, 24, 28)
+TAYLOR_RANGE, TAYLOR_DEGREE = 0.5, 20
+
+
+def taylor_coefficients(f, hi=TAYLOR_RANGE, deg=TAYLOR_DEGREE):
+    """Taylor coefficients of f about 0, via a high-degree Chebyshev fit on [0, hi].
+
+    NOT np.polyfit AT A LOW DEGREE, which is what this script did until 2026-09-04 and which measures a
+    different thing. A degree-n least-squares fit over [0, hi] is the best n-th degree approximation on that
+    interval -- it absorbs part of the higher-order behaviour into its low coefficients -- so evaluating it
+    outside the interval UNDERSTATES the truncation error of the actual series. Caught by 32's golden test:
+    on 1/(1-x), whose order-n relative truncation error is exactly x^(n+1), the low-degree fit put the 1%
+    crossing at 0.193 and 0.345 where the true values are 0.1000 and 0.2154. The Chebyshev route returns
+    a_0..a_3 = 1.0 to 6+ digits on that same function and reproduces both crossings exactly.
+
+    Fitting HIGH and truncating LOW is what makes this work: the fit is converged on the interval, so its
+    low-order coefficients are the series' own. That does not extend to high order -- see the degree sweep
+    below, where n>=5 is fit-dominated regardless of method.
+    """
+    x = Ch.chebpts2(600)
+    cc = (x + 1) * hi / 2
+    y = np.array([f(v) for v in cc])
+    P = Pl.Polynomial(Ch.cheb2poly(Ch.chebfit(x, y, deg)))
+    return P(Pl.Polynomial([-1.0, 2.0 / hi])).coef
+
+
+def truncation_error(coef, order, chi, exact):
+    return abs(np.polyval(coef[:order + 1][::-1], chi) - exact) / abs(exact)
 
 
 def main() -> None:
@@ -74,17 +101,15 @@ def main() -> None:
     for k, v in res["exact"].items():
         print(f"   chi={k}: {v:.5f}")
 
-    # ---- (1)+(2) truncation error and its stability under fit range ----------------------------------
-    print(f"\nO(chi^n) truncation error, and its spread over fit ranges {FIT_RANGES}")
+    # ---- (1)+(2) truncation error and its stability under how the coefficients were obtained -----------
+    print(f"\nO(chi^n) truncation error, and its spread over extraction ranges {FIT_RANGES}")
     print(f"{'order':>6} {'err@0.69':>22} {'err@0.90':>22}")
     res["truncation"] = {}
+    ex69, ex90 = w(CHI_REMNANT), w(CHI_EMRI)
+    coefs = {hi: taylor_coefficients(w, hi=max(hi, 0.3)) for hi in FIT_RANGES}
     for order in (2, 3, 4, 5, 6):
-        e69, e90 = [], []
-        for hi in FIT_RANGES:
-            ch = np.linspace(0.0, hi, 80)
-            co = np.polyfit(ch, np.array([w(c) for c in ch]), order)
-            e69.append(abs(np.polyval(co, CHI_REMNANT) - w(CHI_REMNANT)) / w(CHI_REMNANT))
-            e90.append(abs(np.polyval(co, CHI_EMRI) - w(CHI_EMRI)) / w(CHI_EMRI))
+        e69 = [truncation_error(c, order, CHI_REMNANT, ex69) for c in coefs.values()]
+        e90 = [truncation_error(c, order, CHI_EMRI, ex90) for c in coefs.values()]
         res["truncation"][str(order)] = {
             "chi069": {"median": float(np.median(e69)), "min": float(min(e69)), "max": float(max(e69))},
             "chi090": {"median": float(np.median(e90)), "min": float(min(e90)), "max": float(max(e90))}}
@@ -93,12 +118,11 @@ def main() -> None:
 
     # successive error ratios -- only meaningful at orders whose coefficients are real (see below)
     res["error_ratio"] = {}
-    print("\nsuccessive error ratio (order n -> n+1), fit range 0-0.30")
-    ch = np.linspace(0.0, 0.30, 80); y = np.array([w(c) for c in ch])
+    print("\nsuccessive error ratio (order n -> n+1)")
+    co = taylor_coefficients(w)
     prev = None
     for order in (2, 3, 4, 5):
-        co = np.polyfit(ch, y, order)
-        e = {t: abs(np.polyval(co, t) - w(t)) / w(t) for t in (CHI_REMNANT, CHI_EMRI)}
+        e = {t: truncation_error(co, order, t, w(t)) for t in (CHI_REMNANT, CHI_EMRI)}
         if prev:
             r69, r90 = e[CHI_REMNANT] / prev[CHI_REMNANT], e[CHI_EMRI] / prev[CHI_EMRI]
             res["error_ratio"][f"{order-1}->{order}"] = {"chi069": float(r69), "chi090": float(r90)}
@@ -107,7 +131,7 @@ def main() -> None:
 
     # ---- (3) WHICH COEFFICIENTS ARE REAL? the decisive test --------------------------------------------
     print("\ncoefficient ratio |a_(n+1)/a_n| vs Chebyshev fit degree -- a real coefficient does not move")
-    lo, hi = 0.0, 0.5
+    lo, hi = 0.0, TAYLOR_RANGE
     x = Ch.chebpts2(600); cc = lo + (x + 1) * (hi - lo) / 2
     y = np.array([w(v) for v in cc]); s = 2.0 / (hi - lo)
     tab = {}

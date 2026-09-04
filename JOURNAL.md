@@ -11,6 +11,50 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-09-04 — an outside number found a method error in our own spin-truncation script
+
+`bridge` relayed the one open item on our side: run the coefficient-decay check on the *actual* sGB spin
+expansion rather than on Kerr 220, since everything measured on 2026-09-02 was a proxy. Before touching the
+sGB series I checked the proxy itself against something we had not tuned to, on the principle that a
+measurement which overturned our own claim deserves an outside check more than one that confirms it.
+
+Pierini & Gualtieri (PRD 106, 104009, arXiv:2207.11267) — the second-order-in-spin EdGB QNM paper, i.e. the
+exact class of calculation the theory programme proposes — calibrate against exact Kerr and put the 1%
+crossing at ā ≈ 0.22 at first order and ā ≈ 0.40 at second. We got 0.35 and 0.50. DISAGREE.
+
+The tempting explanation was that the two measure different objects: their curve carries the slow-rotation
+method's own error on top of the series truncation, so theirs is legitimately larger and ours is an idealised
+floor. Physically sensible, unfalsifiable from here, and wrong. It was our bug. 31 obtained its coefficients
+with `np.polyfit` at the truncation order, which is a least-squares fit on the interval and not a Taylor
+truncation — it absorbs higher-order behaviour into the low coefficients and understates the error outside the
+interval. Fitting high in Chebyshev and truncating low returns the series' own coefficients.
+
+What caught it was the golden test, and the golden test exists because tabula's precondition arrived that
+morning: a sweep is evidence only once the identical sweep has been shown to land correctly on a case whose
+answer is fixed in advance. On 1/(1-x) the order-n relative error is exactly x^(n+1), so the crossings are
+0.1000 and 0.2154; the old extractor returned 0.193 and 0.345. It fails a case it must pass. Without the
+analytic control the disagreement with the paper would have been argued about instead of fixed — which is
+bridge's own line from later the same day, that a wrong explanation is worse than no explanation because it
+closes the investigation.
+
+Corrected: chi=0.69 4.43% -> 6.364%, chi=0.90 16.15% -> 18.857%, and our crossings 0.219 / 0.400 now
+reproduce the published 0.22 / 0.40 on the earliest of the four curves their single 1% line reports. The
+quoted spread [3.44, 5.35]% was never a systematic; the correct calculation has none. Both conclusions
+survive: ringdown still not binding (margin 3.2x -> 2.2x), EMRI still disqualifying. 31's own two halves had
+disagreed methodologically all along — its coefficient-stability section already used the correct route.
+
+The gate's 3x channel-split ratio bar had been calibrated to the superseded numbers and tripped at 2.96;
+loosened to 2x on the record, because a ratio bar calibrated to a number that has since been corrected is
+measuring the old number. Gate green at 62.
+
+The original item stays open and is now correctly scoped: this validates the Kerr truncation, not the sGB
+correction's own spin series. Two things found while checking — the field's own O(chi^2) sGB paper
+extrapolates its accuracy from Kerr ("for EdGB gravity as well") rather than measuring it, the same proxy step
+the open item flagged; and METRICS (arXiv:2406.11986, PRD 110, 064019) now computes sGB QNMs
+non-perturbatively in spin to a <= 0.85 with ~40 orders, so the question is answerable by comparison rather
+than by fitting coefficients we have already shown are unrecoverable beyond n ~ 3.
+
+
 ## 2026-09-02 (cont.) — measuring the spin truncation instead of arguing it
 
 A theory programme asked whether 2nd order in spin covers real black holes. Everyone argues this from term

@@ -12,77 +12,77 @@
   "truncation": {
     "2": {
       "chi069": {
-        "median": 0.04432084491334515,
-        "min": 0.03442239496716443,
-        "max": 0.05349084413312831
+        "median": 0.06363797355610781,
+        "min": 0.06363797336228084,
+        "max": 0.06363797355610781
       },
       "chi090": {
-        "median": 0.1615307669407408,
-        "min": 0.14658404057850882,
-        "max": 0.17468416307065837
+        "median": 0.18856569238720156,
+        "min": 0.18856569212770716,
+        "max": 0.18856569238720156
       }
     },
     "3": {
       "chi069": {
-        "median": 0.021265035844281535,
-        "min": 0.015308506247460975,
-        "max": 0.027068170988111893
+        "median": 0.03376957523318145,
+        "min": 0.03376957523318145,
+        "max": 0.03376959997258464
       },
       "chi090": {
-        "median": 0.11295266053280782,
-        "min": 0.10020429534116654,
-        "max": 0.12431247669120427
+        "median": 0.13643568801297296,
+        "min": 0.13643568801297296,
+        "max": 0.13643573127002023
       }
     },
     "4": {
       "chi069": {
-        "median": 0.010674560903479454,
-        "min": 0.007138666704953534,
-        "max": 0.014306522166877436
+        "median": 0.01869715094148592,
+        "min": 0.01869558804762666,
+        "max": 0.01869715094148592
       },
       "chi090": {
-        "median": 0.08191103124752142,
-        "min": 0.07116889045032394,
-        "max": 0.09161922098478245
+        "median": 0.10212318841151176,
+        "min": 0.10211961740819614,
+        "max": 0.10212318841151176
       }
     },
     "5": {
       "chi069": {
-        "median": 0.005525139227776523,
-        "min": 0.0034390653396586804,
-        "max": 0.007783711990152065
+        "median": 0.010560713343783853,
+        "min": 0.010560713343783853,
+        "max": 0.010619469676686366
       },
       "chi090": {
-        "median": 0.06091919980824759,
-        "min": 0.05191955259632684,
-        "max": 0.06916400115255197
+        "median": 0.07796318661022378,
+        "min": 0.07796318661022378,
+        "max": 0.0781387250279199
       }
     },
     "6": {
       "chi069": {
-        "median": 0.002928520120638812,
-        "min": 0.0016988932138712407,
-        "max": 0.00433142862012948
+        "median": 0.007941325801800658,
+        "min": 0.0064911171476748335,
+        "max": 0.007941325801800658
       },
       "chi090": {
-        "median": 0.04619985297913334,
-        "min": 0.038666706805363674,
-        "max": 0.05319363818823613
+        "median": 0.06781809809206031,
+        "min": 0.06214929957264868,
+        "max": 0.06781809809206031
       }
     }
   },
   "error_ratio": {
     "2->3": {
-      "chi069": 0.4735542088956211,
-      "chi090": 0.6964561154351728
+      "chi069": 0.5306518616065574,
+      "chi090": 0.7235449120757323
     },
     "3->4": {
-      "chi069": 0.4955665421909113,
-      "chi090": 0.7224897221664911
+      "chi069": 0.5536092415069518,
+      "chi090": 0.7484743387667201
     },
     "4->5": {
-      "chi069": 0.5111070710696534,
-      "chi090": 0.7411646840299931
+      "chi069": 0.5686741029806288,
+      "chi090": 0.7655271980247742
     }
   },
   "coefficient_stability": {
@@ -125,8 +125,8 @@
   },
   "n_recoverable_coefficients": 4,
   "verdict": {
-    "ringdown": "O(chi^2) error 4.4% at chi=0.69 is BELOW our sigma(delta) ~ 0.14, so the spin truncation is NOT the binding constraint for ringdown",
-    "emri": "O(chi^2) error 16.2% at chi=0.90, against phase accuracy over ~1e5 cycles, is disqualifying -- the remedy there is non-perturbative in spin",
+    "ringdown": "O(chi^2) error 6.4% at chi=0.69 is BELOW our sigma(delta) ~ 0.14, so the spin truncation is NOT the binding constraint for ringdown",
+    "emri": "O(chi^2) error 18.9% at chi=0.90, against phase accuracy over ~1e5 cycles, is disqualifying -- the remedy there is non-perturbative in spin",
     "limit_not_established": "the asymptotic error ratio is NOT measurable: only the n=2 and n=3 coefficient ratios are stable under fit degree, so no statement about whether the ratio tends to chi or below it is supported"
   }
 }
