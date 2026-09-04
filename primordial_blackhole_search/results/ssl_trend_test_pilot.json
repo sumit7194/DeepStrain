@@ -1,0 +1,56 @@
+{
+  "artifact": "ssl_sensdist_seeds5.json",
+  "seeds": 5,
+  "seed_values": null,
+  "role": "pilot",
+  "gap": 0.18099333333333328,
+  "bootstrap_p": 0.0015,
+  "ci99": [
+    0.02647976666666667,
+    0.3017208333333332
+  ],
+  "n_boot": 10000,
+  "normal_gap": 0.18099333333333328,
+  "normal_se": 0.06156275713990291,
+  "normal_sigma": 2.9399809518280895,
+  "verdict": "RESOLVED",
+  "decomposition": {
+    "2000": {
+      "scratch": {
+        "p_clear": 0.0,
+        "mean_given_cleared": null,
+        "n": 5
+      },
+      "ssl": {
+        "p_clear": 1.0,
+        "mean_given_cleared": 0.23999333333333334,
+        "n": 5
+      }
+    },
+    "4000": {
+      "scratch": {
+        "p_clear": 0.6,
+        "mean_given_cleared": 0.13995555555555556,
+        "n": 5
+      },
+      "ssl": {
+        "p_clear": 1.0,
+        "mean_given_cleared": 0.2233133333333334,
+        "n": 5
+      }
+    },
+    "8000": {
+      "scratch": {
+        "p_clear": 0.8,
+        "mean_given_cleared": 0.22260833333333332,
+        "n": 5
+      },
+      "ssl": {
+        "p_clear": 1.0,
+        "mean_given_cleared": 0.23708666666666672,
+        "n": 5
+      }
+    }
+  },
+  "driver_at_low_budget": "floor-clearing"
+}
