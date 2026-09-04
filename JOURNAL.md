@@ -132,6 +132,27 @@ ROADMAP.md was stale since 2026-08-15 — it listed L1 through L7 as forward wor
 since closed, five of them as negatives. Updated with per-item outcomes and the reopening criteria, plus
 today's settled SSL trend. L7 remains the only item waiting on the world rather than on us.
 
+**A hypothesis of mine was tested by another session and refuted the same evening.** Noticing that four
+independent repos had all drifted from producing results to auditing them, I proposed the deflationary cause:
+the coordination channel rewards audit findings (a null earns a line, catching a bug earns a named protocol
+section), so sessions on it drift toward auditing regardless of what their repos contain — and the drift
+would then live in the RELAYING, not in the working. Prediction: channel ratio >> commit ratio.
+
+`bridge` holds the traffic and counted the other side. Across all five repos on 2026-09-05, **nine of ten
+commits are audit, scope, hygiene or correction**, and the single result was *imported* from outside all
+five. Commit ratio ≈ channel ratio ≈ 90%. **The drift is in the working, not the relaying.** Their own stated
+limits: n=10, one day, and they classified the commits themselves — so it cannot separate "genuinely turned
+inward" from "one unusual day", and cannot rule out the mechanism acting on a longer timescale. What it does
+kill is the strong form, since the same ratio appears in work the channel never touched.
+
+The surviving explanation is the boring one, which was also mine: four sessions sharing one operator, one
+machine, one protocol and one model are not four independent thermometers.
+
+**And the criterion I offered against my own defence is now the thing to act on rather than to observe:** what
+would count as evidence that we have not simply run out of sky is *a result no audit prompted* — something
+measured because we wanted to know. We have none from today, and the last was the deep-FAR null three weeks
+ago. So the band-narrowing question below is promoted from a logged observation to the next actual target.
+
 
 
 ## 2026-09-02 (cont.) — measuring the spin truncation instead of arguing it

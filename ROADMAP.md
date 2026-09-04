@@ -100,6 +100,22 @@ wins, which is the expected yield and is why they were worth doing. Detail for e
 | **L6** | larger unlabeled pool for the SSL backbone | ❌ **CLOSED, saturates (2026-08-15).** Fully achieved by **2,500 specs**, 8× less than N4 used; slope 5k→20k is **−0.020**. Cross-detector pool addition is null (+0.0009). A bigger fetch is not justified. |
 | **L7** | S251112cm (FAR 1/6.2 yr subsolar candidate) | 🔒 **STILL BLOCKED: O4c not public.** `o4c_release_watch.py` is the trigger; last checked 2026-09-04, only `O4c1DiscC00` (1.14 h) released and it does not cover the event. **The one item here that is waiting on the world rather than on us.** |
 
+**Added 2026-09-05 — P1: NARROW THE BAND. The next result that no audit prompted.**
+- **What:** retrain `cnn_w64` on a spectrogram truncated at ~250 Hz instead of 1024 Hz, and measure sensitive
+  distance at matched FAR against the existing model.
+- **Why:** the CNN response probe (2026-09-02) measured that **97–100% of the network's sensitivity sits
+  below 224 Hz**, with the centre at 111–121 Hz and band-power correlation falling to −0.04 by 717–1024 Hz.
+  So roughly **three-quarters of the spectrogram is capacity the network learned to ignore** — and subsolar
+  chirps genuinely deposit their SNR low, because they sweep slowly. Narrowing frees that capacity.
+- **Honest prior:** this could easily buy nothing. The unused capacity may already be costing nothing, and a
+  narrower input might simply train to the same operating point. The probe measured *where the sensitivity
+  is*, not *whether the ignored region is harmful* — those are different claims and only the first is
+  established.
+- **Why it is the item and not another audit:** it is a question nobody's correction raised. It came from
+  wanting to know what the detector actually responds to, and the answer suggested a change to the detector.
+  Pre-register the bar before running, as with the SSL trend.
+- **Cost:** one retrain plus a matched-FAR evaluation; the data is on disk. Waits for the box.
+
 **Added 2026-09-05 — SSL data-wall trend, settled.** N4's trend was gated on a 2-seed run. Two
 pre-registered re-runs (n=5 suggestive at 2.94σ, then n=20 fresh seeds) resolve it: **gap +0.209,
 bootstrap p = 0.00000, 7.39σ**. The decomposition changed the claim: at 2,000 labels from-scratch clears
