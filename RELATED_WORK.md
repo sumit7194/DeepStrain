@@ -459,6 +459,19 @@ computation says nothing about fidelity of the object computed on.** An exact nu
 "does *this* metric admit the tensor" and none at all on "do real orbits fail to be integrable" — and the
 second is the sentence that travels.
 
+**Radius of convergence of the Kerr QNM slow-rotation series — prior art (checked 2026-09-05).**
+[arXiv:2607.27043](https://arxiv.org/abs/2607.27043) **[A]**, *Resumming Kerr Quasinormal-Mode Frequencies:
+Accuracy and Breakdown Near Extremality*: Padé and Borel–Padé resummation of the WKB expansion, with a
+semi-analytic slow-rotation implementation "through 21th WKB order" and a fixed-spin one through 41st; a
+21st-order resummed slow-rotation result "significantly more accurate than the fourth-order approximation";
+breakdown for modes approaching the zero-damped branch near extremality, traced to "the near-horizon structure
+of the Chandrasekhar–Detweiler potential". **The abstract makes no statement about the radius of convergence
+of the spin series itself, nor the nearest singularity in the complex-spin plane, nor any coefficient-ratio
+(Domb–Sykes) analysis** — the breakdown it reports is of the WKB expansion about the potential peak, a
+different expansion. Two further targeted searches found no Domb–Sykes treatment of ω₂₂₀(χ). **Scope of this
+check: abstract only.** The body must be read before the ROADMAP P0 item claims novelty; it is the single
+most likely place the question has already been answered.
+
 **What is NOT established, after three methods tried.** Whether the asymptotic error ratio tends to χ (radius
 of convergence R = 1, the extremal singularity) or to something below it. **Only three Taylor coefficients
 are recoverable** from numerically-computed Kerr frequencies at this precision — polyfit, high-order finite

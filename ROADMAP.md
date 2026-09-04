@@ -100,6 +100,50 @@ wins, which is the expected yield and is why they were worth doing. Detail for e
 | **L6** | larger unlabeled pool for the SSL backbone | ❌ **CLOSED, saturates (2026-08-15).** Fully achieved by **2,500 specs**, 8× less than N4 used; slope 5k→20k is **−0.020**. Cross-detector pool addition is null (+0.0009). A bigger fetch is not justified. |
 | **L7** | S251112cm (FAR 1/6.2 yr subsolar candidate) | 🔒 **STILL BLOCKED: O4c not public.** `o4c_release_watch.py` is the trigger; last checked 2026-09-04, only `O4c1DiscC00` (1.14 h) released and it does not cover the event. **The one item here that is waiting on the world rather than on us.** |
 
+**Added 2026-09-05 — P0 (cross-project): THE RADIUS OF CONVERGENCE OF THE KERR QNM SPIN SERIES.**
+*A hypothesis two oracles can test on one object, born from our own instrument's limit.*
+- **The object.** ω₂₂₀(χ), the fundamental Kerr quasinormal frequency as a function of dimensionless spin —
+  the quantity we measure on real remnants (GW250114 at χ ≈ 0.69–0.77) and `ansatz` evaluates exactly with a
+  Leaver oracle (`qnm_precise.py`). Genuinely the same object; already joined once by TheBridge leg B.
+- **What we measured and where we stopped.** The slow-rotation series' successive error ratio *rises* with
+  order — 0.7235 → 0.7485 at χ = 0.90, separation 21:1 from its own drift — but only three Taylor
+  coefficients are recoverable from double-precision `qnm` frequencies (three methods, same wall), so
+  **direction resolved, trend shape not, limit not.**
+- **The hypothesis, stated with both live outcomes because both are consequential.** The series' radius of
+  convergence R is set by the nearest singularity of ω₂₂₀ in the *complex* χ-plane. **H: R = 1, with the
+  singularity at extremality of square-root type, so the error ratio → χ.** Then every O(χⁿ) programme is
+  convergent for all sub-extremal spin, error_n ~ χⁿ asymptotically, and our 0.7235/0.7485 climb to 0.90.
+  **¬H: R < 1** — a complex singularity closer than extremality — and the slow-rotation series *diverges*
+  above R; EMRI central objects at χ ≈ 0.9 would then sit past it, and "no finite order is controlled" —
+  the claim we refuted on 2026-09-02 — comes back true at high spin for a reason nobody argued.
+- **Who does what.** `ansatz` has the instrument we lack: arbitrary-precision Leaver. Domb–Sykes on the
+  series (a_n/a_{n−1} vs 1/n → intercept 1/R, slope → exponent) needs ~20 reliable coefficients, which is a
+  precision problem, not a method problem — we hit the wall at 3 in double precision. We supply the
+  observation, the validated extractor (Chebyshev-high/truncate-low, golden-tested on 1/(1−x)), the
+  pre-registration, and the physical anchor. TheBridge joins them under a gate.
+- **Pre-register before anyone runs it.** (i) coefficient count declared in advance and coefficients shown
+  stable under extraction degree, per our own 2026-09-04 lesson; (ii) the Domb–Sykes fit range fixed;
+  (iii) verdict bands: R ∈ [0.98, 1.02] ⇒ H; R < 0.95 ⇒ ¬H; between ⇒ unresolved and say so.
+- **Why it is physics and not numerics.** The near-extremal Kerr spectrum *branches* (zero-damped vs damped
+  families, Yang et al. 2013 **[S]**); whether that branching is what limits the slow-rotation series, or
+  something nearer, is a statement about the analytic structure of the Kerr spectrum in spin — and it is the
+  number every second-order-in-spin beyond-GR programme silently depends on.
+- **Prior art, checked before writing this.** arXiv:2607.27043 (2026) **[A]** resums Kerr QNMs with Padé /
+  Borel–Padé, including a slow-rotation implementation, and traces a breakdown near extremality to the
+  near-horizon potential — but its abstract states nothing about the spin series' radius of convergence or
+  the singularity location in the complex-spin plane. **Body not read; the residual risk that it does this
+  is real and must be retired by reading it before any claim of novelty.** No Domb–Sykes analysis of the
+  Kerr spin series found in two targeted searches.
+- **What it feeds.** The sGB programme's O(χ²) substrate (`ansatz`), the 6.4%/18.9% truncation numbers
+  (ours), and the open item "the sGB correction's own spin series" — if R = 1 for Kerr, the next question is
+  whether the *correction's* R is smaller, which is answerable by the same instrument on the same object.
+
+**Added 2026-09-05 — P1 (asked by a sister): does σ(δ) scale as 1/SNR or saturate?** TheBridge's standing
+`SISTER_REQUESTS.md` item for us. Data on disk (the 439-event δ re-measurement, 2026-08-07) can answer it
+now: fit σ(δ) vs ringdown SNR across real events, test Fisher 1/SNR against a floor. Our G8 result already
+found a species-4 crossover at SNR ≈ 124 from injections; this is the same question asked of the *real*
+event population. Cheap, pre-registerable, and someone is waiting for it.
+
 **Added 2026-09-05 — P1: NARROW THE BAND. The next result that no audit prompted.**
 - **What:** retrain `cnn_w64` on a spectrogram truncated at ~250 Hz instead of 1024 Hz, and measure sensitive
   distance at matched FAR against the existing model.
