@@ -1738,3 +1738,37 @@ conclusion line.
 injections. The injections are louder than the noise windows (base score 25.5 vs 1.5), so the occlusion
 *magnitudes* are not comparable across populations — only the normalised *shapes* are, which is what the
 claim rests on. Artifact: cnn_response_probe.json.
+
+---
+
+## PRE-REGISTRATION (2026-09-04, written before the seeds=5 result exists)
+
+A re-run of `ssl_sensdist.py` at `--seeds 5` is in flight (PID 23054). The bar is written down first, because
+the whole reason it is running is that the committed 2-seed artifact could not support a scatter-based claim,
+and a bar chosen after seeing five seeds would be worth no more than the one it replaces.
+
+**What is being asked.** Does the SSL data-wall *trend* — the gain being larger at scarce labels — clear the
+seed scatter? The committed run reports **+0.278** sensitive-distance fraction at 2,000 labels falling to
+**+0.01** at 8,000, but with `seeds: 2` (one degree of freedom) that separation was never testable. The gate
+currently guards it with a fixed 0.05 margin, which is a judgement wearing a number.
+
+**Declared in advance.**
+1. **Statistic.** `gap = delta@2000 − delta@8000`, where `delta = mean(ssl) − mean(scratch)` per budget, and
+   `SE(gap) = sqrt(SE(delta@2000)² + SE(delta@8000)²)` with `SE(delta) = sqrt(sd_ssl² + sd_scratch²)/sqrt(5)`.
+   Same form as the N4 AUC gate already uses, so it is not a statistic chosen to fit the answer.
+2. **Bar.** The trend is **resolved** if `gap > 3·SE(gap)`. Between 2σ and 3σ it is **suggestive, not
+   resolved**, and gets reported that way rather than rounded up.
+3. **If it does not clear.** The fixed 0.05 gate margin is replaced by an explicit statement that the trend is
+   not resolved at this seed count — *not* quietly retained. A margin that survives because nobody re-measured
+   it is precisely the failure this day has been about.
+4. **The headline is also on the table.** If `delta@2000` at five seeds lands materially below +0.278, the
+   published number is corrected to the five-seed value. Two seeds is the weaker measurement, and that it
+   happens to be the one already committed carries no weight.
+5. **What this cannot settle.** Five seeds is still small. Clearing 3σ says the trend is real at this scale;
+   it says nothing about the *shape* of the label-efficiency curve, which needs more budgets, not more seeds
+   — the same direction-versus-shape distinction settled on the ringdown side this morning.
+
+**Prediction, recorded so it can be wrong.** I expect the trend to clear comfortably: the AUC version of the
+same trend measures 10σ, and the distance gap (0.278 vs 0.01) is proportionally larger than the AUC gap. I do
+**not** expect `delta@2000` to survive at 0.278 — a two-seed mean of a quantity this noisy is likelier high
+than exact, and the zero-FA floor beside it is already known to be threshold-sensitive.
