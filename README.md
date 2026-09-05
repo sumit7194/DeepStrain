@@ -4,7 +4,9 @@
 
 Three real-data gravitational-wave sub-projects — a **subsolar / primordial-black-hole merger search**, a **post-merger echo search**, and **ringdown spectroscopy** (a no-hair test) — plus the black-hole physics notes that started it all. Everything is measured on **real O3a/O4 detector noise**: sensitivity comes from injections, significance from a measured background, and **null results are treated as results.**
 
-> A computer engineer's deep dive into gravitational-wave astronomy. Built carefully: every load-bearing claim is checked against the literature, every sensitivity number comes from injections into real noise, and a regression gate (`./verify.sh`, **46 checks**) asserts the headline results never silently change. Cross-validated against two sister projects — an exact-GR solution engine and a neural-network geometry-discovery model — via **[The Bridge](https://github.com/sumit7194/trivium)**.
+> A computer engineer's deep dive into gravitational-wave astronomy. Built carefully: every load-bearing claim is checked against the literature, every sensitivity number comes from injections into real noise, and a regression gate (`./verify.sh`, **46 checks**) asserts the headline results never silently change. Cross-validated against sister projects — an exact-GR solution engine, a neural-network geometry-discovery model, a quantum-foundations lab, and an entanglement-entropy corner-function study — via **[The Bridge](https://github.com/sumit7194/trivium)**.
+
+**The family:** [ansatz-machine](https://github.com/sumit7194/ansatz-machine) · [tabula-geometrica](https://github.com/sumit7194/tabula-geometrica) · [vestigium](https://github.com/sumit7194/vestigium) · [cuspis](https://github.com/sumit7194/cuspis) · [trivium](https://github.com/sumit7194/trivium) (the bridge). Each keeps its own code and its own gates; only questions and results cross.
 
 <p align="center"><img src="penrose.png" width="520" alt="Causal map of an (eternal) black hole"></p>
 
