@@ -484,6 +484,26 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   repo's own AUC helper instead of adding sklearn). **⇒ L6b (fetch a bigger pool) is NOT justified.** N4's
   headline stands and is better understood: real, cheap, saturates almost immediately. Gated (49).
   Artifact: results/ssl_poolscale.json.
+- **L1 RATIO-FILTER ⚠️ RE-SCOPED 2026-09-06 — the measurements stand, the GENERALISATION does not, and our
+  own cost model is what refutes it.** A production O4a subsolar search ([arXiv:2602.12115](https://arxiv.org/abs/2602.12115),
+  Kacanja/Soni/Akyüz/Nitz, PRD) built a **25-million-template** subsolar bank, primary 0.1–2 M☉, and states
+  the ratio-filter de-chirping framework is what made it feasible — *"an eightfold improvement in template
+  processing speed per core"*. That is the regime we closed. **THE RECONCILIATION, and it is not what I first
+  guessed:** my first hypothesis was that they use much shorter waveforms (they fix duration to 512 s by
+  raising f_low); **measured and REJECTED** — our own f_low = 50 Hz already gives 128 s at 1.0 M☉ and 1024 s
+  at 0.2 M☉, comparable, so duration is not the difference. **The actual answer is that our cost model was the
+  wrong model:** log N / log K gives 2.4× at K=1024 and 3.0× at K=256, and **reaching 8× would need K = 8
+  taps** — i.e. *a model that cannot reproduce the published number at any kernel length was used to conclude
+  the published number does not apply to us.* The method paper says plainly what the gain is: it *"transforms
+  the operation from a memory-bound FFT into a cache-efficient, compute-bound FIR convolution"* — a
+  **memory-hierarchy** effect, invisible to a numpy wall-clock timing where both paths are memory-bound, and
+  not represented in an operation-count model at all. ⇒ our 0.94× is a true statement about **our numpy
+  implementation**; "the method does not pay for subsolar" does not follow. **The recorded reopening criterion
+  ("a signal class needing K ≲ 1,000 taps") is WITHDRAWN — it was derived from the refuted model.** What would
+  settle it is an implementation question we never tested: does a cache-blocked compiled FIR beat FFT
+  correlation at our N and K? **If it does, the dense-bank wall — the largest blocker in the subsolar arc —
+  comes down, and *"does a CNN still tie a matched filter once the bank is adequate?"* becomes answerable.**
+  Gate re-scoped, assertions kept so the measurements cannot drift. — *original entry follows* —
 - **L1 RATIO-FILTER DONE (2026-08-15): HONEST NEGATIVE — 0.94x, not the published 8x. Dense bank stays blocked,
   now for an UNDERSTOOD reason.** Verified the method at the PRIMARY source (**arXiv:2601.18835**, PRD
   10.1103/k21q-wp8f, *Beyond FINDCHIRP*): with A_t = A_r·R our cross-correlation gives **c_t = c_r (*) IFFT[conj(R)]**,

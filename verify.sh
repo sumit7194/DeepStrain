@@ -934,9 +934,19 @@ assert all(r["taps_needed"] is not None and r["taps_needed"] <= 4097 for r in m[
 assert g["R2_noise_unbiased"], f"noise regime became BIASED -- would shift the threshold: {g['regimes']['noise']}"
 assert rc["taps"] >= 16385, "real-cost run no longer uses the taps the accuracy test demanded"
 
-# (4) THE VERDICT, asserted as a negative so it cannot be quietly re-inflated. The 8x does not transfer
-#     because the gain scales as log N / log K and subsolar forces K ~ 16k instead of ~250.
-assert not rc["helps"], f"ratio filtering now HELPS ({rc['speedup']:.2f}x) -- re-examine, this would reopen L1"
+# (4) THE VERDICT -- ⚠️ RE-SCOPED 2026-09-06 and no longer a claim about the METHOD.
+#     A production O4a subsolar search (arXiv:2602.12115) built a 25-MILLION-template bank and states the
+#     ratio-filter framework is what made it feasible, at "an eightfold improvement in template processing
+#     speed per core". Our numbers below stand as measurements OF OUR IMPLEMENTATION; the generalisation
+#     "the method does not pay for subsolar" does not follow from them, for a reason our own cost model
+#     supplies: log N / log K cannot produce 8x at ANY plausible kernel length (K=1024 -> 2.4x, K=256 ->
+#     3.0x; reaching 8x needs K=8 taps). A model that cannot reproduce the published number was used to
+#     conclude the published number does not apply to us. The method paper says what the gain actually is --
+#     "transforms the operation from a memory-bound FFT into a cache-efficient, compute-bound FIR
+#     convolution" -- i.e. a MEMORY-HIERARCHY effect, which our numpy timing could not have seen and our
+#     operation-count model does not represent. Assertions kept so the measurement cannot drift; the
+#     interpretation is corrected in CLAUDE.md and the item is reopened in ROADMAP.
+assert not rc["helps"], f"ratio filtering now HELPS ({rc['speedup']:.2f}x) in OUR implementation -- re-examine"
 assert rc["speedup"] < 2.0, f"speedup changed materially: {rc['speedup']}"
 assert rc["generation_frac_of_direct"] < 0.25, \
     f"generation share changed ({rc['generation_frac_of_direct']:.2f}) -- the superseded cost model claimed 0.98"
@@ -944,7 +954,10 @@ assert rc["speedup"] <= rc["theory_ceiling"] * 1.5, "measured speedup exceeds th
 
 print(f"PASS  pbh L1 ratio-filter (algebra EXACT to {min(r['exact'] for r in d['rows']):.6f}; but subsolar needs "
       f"K={rc['taps']} taps vs the paper's ~250, so log N/log K gives only a {rc['theory_ceiling']:.1f}x ceiling "
-      f"and the measurement is {rc['speedup']:.2f}x => HONEST NEGATIVE, dense bank stays blocked; generation is "
+      f"and OUR numpy measurement is {rc['speedup']:.2f}x => negative FOR OUR IMPLEMENTATION only (re-scoped "
+      f"2026-09-06: a 25M-template production bank exists at 8x, and our own log N/log K model cannot reach "
+      f"8x at any K, so it was the wrong model -- the published gain is cache-residency, not operation count); "
+      f"generation is "
       f"{100*rc['generation_frac_of_direct']:.0f}% of cost, not the 98% the superseded model assumed)")
 PYEOFRF
 
