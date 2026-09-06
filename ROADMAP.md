@@ -144,6 +144,26 @@ wins, which is the expected yield and is why they were worth doing. Detail for e
   16 digits, fixed with QR; step-detection thresholding eight coefficients instead of two, rejecting a
   genuinely even series; and iterating the ratio index by 1 when the series has stride 2, dividing two
   numerical zeros. **Each would have been read as "we need more precision" and none was.**
+- **✅ PRIOR-ART RISK RETIRED (2026-09-06, body read).** arXiv:2607.27043 computes its slow-rotation
+  expansion **only to a⁸** (eqs. 41–46), in Mathematica at unstated precision, and performs **no ratio test,
+  no Domb–Sykes analysis, no radius-of-convergence statement, and no search for singularities in the complex
+  spin plane**. It notes only that "the end result … is still a finite Taylor series in the spin, which is
+  not appropriate to model black holes with moderate rotations" — awareness of the limitation, no analysis of
+  it. Their Padé is applied to the **WKB** series in ξ̄, a different expansion. ⇒ **the question is open at
+  the level of the one paper most likely to have closed it.** Scope: one body read, not a proof of novelty.
+- **❌ AND THE CHEAP ROUTE IS CLOSED (`34_pade_pole.py`).** Before commissioning the Leaver build, tested
+  whether a **Padé pole** could locate the singularity from the few coefficients float64 already gives —
+  Domb–Sykes needs many terms, a [2/2] needs five. Put through the same three controls at the same float64
+  precision: **1/(1−x) returns R = 0.0096 where the truth is 1**, and 1/(1−2x) returns 0.0081 where the truth
+  is 1/2. Standard failure modes, both intrinsic: a degenerate Hankel system on exact input, Froissart
+  doublets near the origin on noisy input. **The controls earned their keep here** — the Kerr [2/2] returns
+  **R = 1.28**, which looks like support for H, from an estimator that gets a known R = 1 wrong by two orders
+  of magnitude. A number agreeing with the hypothesis, from an instrument broken on the hypothesis's own test
+  case, is the most expensive kind of number.
+- **⇒ NO CHEAPER ROUTE EXISTS. The high-precision Leaver build is the only path, and it is OURS to own** —
+  `ansatz` is right that nothing in GF(p) nullspace machinery helps and the skill needed is numerical. What
+  we would want from them is review of the continued-fraction recurrences, since a wrong one converges to a
+  confident wrong number.
 - **Pre-register before anyone runs it.** (i) coefficient count declared in advance and coefficients shown
   stable under extraction degree, per our own 2026-09-04 lesson; (ii) the Domb–Sykes fit range fixed;
   (iii) verdict bands: R ∈ [0.98, 1.02] ⇒ H; R < 0.95 ⇒ ¬H; between ⇒ unresolved and say so.

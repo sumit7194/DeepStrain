@@ -1,0 +1,140 @@
+{
+  "orders": [
+    [
+      2,
+      2
+    ],
+    [
+      3,
+      3
+    ],
+    [
+      4,
+      4
+    ]
+  ],
+  "fit_degree": 20,
+  "controls": {
+    "1/(1-x)": {
+      "R_true": 1.0,
+      "complex_true": false,
+      "orders": {
+        "2/2": {
+          "R": 0.009588116599448086,
+          "pole_re": -0.009588116599448086,
+          "pole_im": 0.0,
+          "complex": false,
+          "n_poles": 2,
+          "pass": false
+        },
+        "3/3": {
+          "R": 0.016300694114533772,
+          "pole_re": -0.013566970339876768,
+          "pole_im": -0.00903603587932784,
+          "complex": true,
+          "n_poles": 3,
+          "pass": false
+        },
+        "4/4": {
+          "R": 0.02394766695393987,
+          "pole_re": -0.02394766695393987,
+          "pole_im": 0.0,
+          "complex": false,
+          "n_poles": 4,
+          "pass": false
+        }
+      }
+    },
+    "1/(1-2x)": {
+      "R_true": 0.5,
+      "complex_true": false,
+      "orders": {
+        "2/2": {
+          "R": 0.00814557052134188,
+          "pole_re": -0.00814557052134188,
+          "pole_im": 0.0,
+          "complex": false,
+          "n_poles": 2,
+          "pass": false
+        },
+        "3/3": {
+          "R": 0.014351255540516989,
+          "pole_re": -0.011833760970468917,
+          "pole_im": 0.008119152473197317,
+          "complex": true,
+          "n_poles": 3,
+          "pass": false
+        },
+        "4/4": {
+          "R": 0.021575435439561523,
+          "pole_re": -0.021575435439561523,
+          "pole_im": 0.0,
+          "complex": false,
+          "n_poles": 4,
+          "pass": false
+        }
+      }
+    },
+    "1/(1+x^2)": {
+      "R_true": 1.0,
+      "complex_true": true,
+      "orders": {
+        "2/2": {
+          "R": 1.0000001717266473,
+          "pole_re": -1.691358299308994e-09,
+          "pole_im": -1.0000001717266473,
+          "complex": true,
+          "n_poles": 2,
+          "pass": true
+        },
+        "3/3": {
+          "R": 0.02405025201018414,
+          "pole_re": -0.02405025201018414,
+          "pole_im": 0.0,
+          "complex": false,
+          "n_poles": 3,
+          "pass": false
+        },
+        "4/4": {
+          "R": 0.035621780299626545,
+          "pole_re": -0.030721002007290943,
+          "pole_im": 0.018031396711926887,
+          "complex": true,
+          "n_poles": 4,
+          "pass": false
+        }
+      }
+    }
+  },
+  "controls_pass": {
+    "1/(1-x)": false,
+    "1/(1-2x)": false,
+    "1/(1+x^2)": false
+  },
+  "kerr_220_real": {
+    "2/2": {
+      "R": 1.2763089851171334,
+      "pole_re": 1.2763089851171334,
+      "pole_im": 0.0,
+      "complex": false,
+      "n_poles": 2
+    },
+    "3/3": {
+      "R": 0.07915473605718058,
+      "pole_re": 0.07915473605718058,
+      "pole_im": 0.0,
+      "complex": false,
+      "n_poles": 3
+    },
+    "4/4": {
+      "R": 0.04244808552829912,
+      "pole_re": -0.04244808552829912,
+      "pole_im": 0.0,
+      "complex": false,
+      "n_poles": 4
+    }
+  },
+  "failure_mode": "degenerate Hankel system on exact input; Froissart doublets near the origin on noisy input -- both standard, neither fixable by more careful coding",
+  "kerr_spread_across_orders": 1.2338608995888343,
+  "verdict": "Pade does NOT clear the controls at float64 (or the Kerr orders disagree, spread 1.234) => no cheaper route; the high-precision Leaver build stands"
+}
