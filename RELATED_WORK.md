@@ -494,3 +494,66 @@ linear ringdown begins. **It would not help.**
 **Open item, filed:** run the coefficient-decay check on the **actual sGB spin expansion** — and on
 **analytic coefficients if the theory provides them, never fitted**. This thread is the evidence for that
 qualifier.
+
+
+---
+
+## Sweep 2026-09-06 — three findings that touch committed results
+
+Two cheap-model agents swept the subsolar/ML and ringdown/echo literature; every item below that is load-
+bearing was then verified at the primary source by hand. Grades: **[A]** abstract read directly, **[S]**
+search snippet only.
+
+### ⚠️ 1. A production subsolar search reports the speedup our L1 measured as absent. UNRESOLVED.
+
+[arXiv:2602.12115](https://arxiv.org/abs/2602.12115) **[A]** — Kacanja, Soni, Akyüz & Nitz, *Search for
+Sub-Solar Mass Binaries in the First Part of LIGO's O4a*, Feb 2026, PRD. Verbatim: *"Due to the recent
+development of efficient ratio filter de-chirping frameworks, this search consisting of **25 million
+templates** is now computationally feasible."* Primary 0.1–2 M☉, secondary 0.1–1 M☉, tidal effects included.
+
+**This is the exact regime our L1 item closed as a negative.** We measured the ratio filter at **0.94×**
+(marginally *slower*) for subsolar, because the gain goes as log N / log K and we measured K ≈ 16,385 taps
+where the published BNS figure assumes K ≈ 250. On that basis we **deliberately did not build a dense bank**.
+They built 25 million templates on the strength of the same family of method.
+
+**Do not resolve this from abstracts, and do not assume either side is wrong.** The specific variable to check
+is whether their framework includes a **time-domain de-chirping reparametrisation** — which makes the chirp
+narrowband and would collapse the required kernel length — that our implementation did **not** have. Our
+`pbh/ratiofilter.py` builds the kernel by weighted least squares in the frequency domain and applies it as a
+FIR; if "de-chirping" in their pipeline is a distinct preceding step, then our K ≈ 16,385 is a measurement of
+a *different algorithm* and our negative is correctly scoped only to our own implementation. **Requires a body
+read of both 2602.12115 and [arXiv:2601.18835](https://arxiv.org/abs/2601.18835) (*Beyond FINDCHIRP*) before
+anything is claimed.** If our L1 negative turns out to be an incomplete implementation, the dense-bank wall —
+the largest single blocker in the subsolar arc — comes down, and the open question *"does a CNN still tie a
+matched filter once the bank is adequate?"* becomes answerable.
+
+### 2. The field's own null, to position ours against
+[arXiv:2605.05444](https://arxiv.org/abs/2605.05444) **[S]** — LVK, O4a subsolar search: no candidates,
+rate limits 110–10,000 Gpc⁻³yr⁻¹. And 2602.12115 constrains the local dark-matter fraction to **<0.5% at
+0.4 M☉**, ~1.8× tighter than O1–O3. Our 4,120-yr background null is an independent-methodology check on the
+same question, not a competitor — worth stating that way if we ever write it up.
+
+### 3. Our estimator worries are the field's, independently
+[arXiv:2509.05283](https://arxiv.org/abs/2509.05283) **[S]** (Koloniari) finds sensitive-distance
+measurements for ML pipelines vary substantially across month-long real-noise datasets;
+[arXiv:2501.13846](https://arxiv.org/abs/2501.13846) **[S]** (Nagarajan) names eleven supervised-learning
+biases and states existing detection-sensitivity metrics are unreliable for ML pipelines. Both are the
+field-wide version of our own estimator audit (jackknife 4.2× too tight; effective-N decoupled from
+precision). **Bycatch worth recording: the sweep found no 2026 paper critiquing time-slide backgrounds
+specifically**, which suggests our L2/audit work may be ahead of the published literature on that narrow
+point — stated as an absence from one sweep, which is exactly the kind of negative that cannot be falsified
+from inside the sweep that produced it.
+
+### 4. Ringdown — the orthonormal claim we refuted is now peer-reviewed
+[arXiv:2605.03576](https://arxiv.org/abs/2605.03576) **[S]** (Suzuki, PRD) reports GW250114 overtone
+significance rising **82.5% → 99.9%** under an orthonormalised QNM basis. Our L3 showed the ROC is
+**bit-for-bit identical** (max |ΔAUC| = 0.00000, Schur-complement equivalence) and that the significance
+shift is a prior/Occam artifact of the rotated basis. The claim now stands in the peer-reviewed literature
+uncorrected, and **our negative is the more complete account of it.**
+
+### 5. Ringdown — a nonlinear channel we did not park
+[arXiv:2510.16903](https://arxiv.org/abs/2510.16903) **[S]** reports evidence for a **220-quadratic (220Q)**
+mode in GW250114. Our parked B2 item concerned the *(4,4) quadratic* mode, which needs multi-multipole
+modelling with 2·f₂₂₀ frequency-locking that the vanilla `ringdown` package cannot do. 220Q is same-(ℓ,m)
+self-coupling and may be reachable **with the machinery we already have** — a narrower and possibly tractable
+version of a test we closed as out of reach. Unverified beyond a snippet; check before acting.
