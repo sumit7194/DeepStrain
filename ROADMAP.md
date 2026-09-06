@@ -181,11 +181,30 @@ wins, which is the expected yield and is why they were worth doing. Detail for e
   (ours), and the open item "the sGB correction's own spin series" — if R = 1 for Kerr, the next question is
   whether the *correction's* R is smaller, which is answerable by the same instrument on the same object.
 
+**✅ DONE 2026-09-06 — σ(δ) SATURATES; it does not follow 1/SNR.** Across SNR 20.0–78.6 (a 3.9× span) σ falls
+**1.15×** where Fisher demands 3.9×; a zero-free-parameter "σ = σ_prior" model beats the Fisher fit by 5× in
+SSR, and a crossover model puts its knee at SNR ≈ 84, *outside* the observed population. So more SNR buys
+nothing in the regime we can observe, and GW250114 at σ/prior = 0.822 is only just leaving the saturated
+branch. **Scope: one event above our informativeness threshold, so the 1/SNR branch is unverified, not
+refuted.** Artifact `35_sigma_vs_snr.json`. *(Original item follows.)*
+
 **Added 2026-09-05 — P1 (asked by a sister): does σ(δ) scale as 1/SNR or saturate?** TheBridge's standing
 `SISTER_REQUESTS.md` item for us. Data on disk (the 439-event δ re-measurement, 2026-08-07) can answer it
 now: fit σ(δ) vs ringdown SNR across real events, test Fisher 1/SNR against a floor. Our G8 result already
 found a species-4 crossover at SNR ≈ 124 from injections; this is the same question asked of the *real*
 event population. Cheap, pre-registerable, and someone is waiting for it.
+
+**Added 2026-09-06 — P1: RUN THE NPE ON GW231028. The cheapest shot at unparking v5 stacking.**
+- **What:** fetch GW231028_153006 and run our existing start-time-marginalized NPE; read δ_σ/prior.
+- **Why:** v5 δ-stacking is parked on one finding — *only GW250114 measures δ*. `arXiv:2509.08657` (verified
+  at abstract level) reports a first-overtone detection in GW231028 at **BF ≈ 189, >7σ**, remnant 246 M☉,
+  χ = 0.81. It is not in our 12-event sample. A second informative event unparks stacking at n = 2 and gives
+  the saturation result above its second point above threshold.
+- **Honest prior:** the remnant is ~4× heavier than GW250114, so the ringdown sits much lower in frequency,
+  near a band edge where our NPE has never been tested. Their "decisive overtone evidence" is a different
+  measurement from our δ and does not imply ours is informative. GWOSC availability unchecked.
+- **Cost:** one fetch plus one NPE evaluation; no retraining. Pre-register the informativeness bar
+  (δ_σ/prior < 0.88, the threshold already used) before looking.
 
 **Added 2026-09-05 — P1: NARROW THE BAND. The next result that no audit prompted.**
 - **What:** retrain `cnn_w64` on a spectrogram truncated at ~250 Hz instead of 1024 Hz, and measure sensitive

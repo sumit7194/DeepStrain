@@ -1068,3 +1068,51 @@ separation is recorded so a later reader can see what "resolved" cost rather tha
 rising-toward-a-limit, rising-linearly and rising-then-turning-over are indistinguishable from two points, so
 the **trend shape is not established and the limit is not** — the guard stands unchanged. Gated (63), including an
 assertion that the rise must persist or be recorded as dead rather than quietly dropped.
+
+
+## 2026-09-06 — sigma(delta) vs SNR: SATURATED, not Fisher. TheBridge's standing request, answered.
+
+**The question** (`SISTER_REQUESTS.md`): does our no-hair width σ(δ) fall as 1/SNR — the Fisher scaling every
+forecast assumes — or saturate at the prior? It decides whether waiting for louder events is a strategy.
+Answerable with no new compute: `26_more_events_o4.json` already holds 12 events spanning **SNR 20.0–78.6**.
+
+**Pre-registered before the fit** (`35_sigma_vs_snr.py`): model A σ = a/SNR, model B σ = σ_prior with no free
+parameter, model C σ = σ_prior/√(1+(SNR/SNR_c)²) which can favour either side without being told which.
+
+| model | fit | SSR |
+|---|---|---|
+| A — Fisher 1/SNR | σ = 6.78/SNR | 0.0504 |
+| B — saturated at prior | (no free parameter) | **0.0100** |
+| C — crossover | SNR_c = 84.0, **outside** the observed range | 0.0027 |
+
+**Answer: SATURATED.** Across a **3.9× span in SNR, σ falls 1.15×** where 1/SNR demands 3.9×. Model B beats
+Fisher by 5× in SSR *with no free parameter at all*. Model C fits best but places its crossover at SNR ≈ 84,
+**outside** the data — i.e. the fit's own preferred reading is that every observed event sits on the saturated
+branch, with GW250114 (78.6, σ/prior = 0.822) only just beginning to leave it.
+
+**Scope, and it is the important half.** Twelve events, and only the loudest clears our own informativeness
+threshold (SNR ≈ 47). **A 1/SNR branch supported by one point is not a measurement of that branch.** This
+bounds the saturated regime and says nothing reliable about the other side. It is consistent with — and
+independent of — G8's Fisher-floor result and the SNR ≈ 47 threshold computed in `26`.
+
+**For the sister asking:** the answer to "1/SNR or saturate" is *saturate, in the entire regime we can
+observe*, and the crossover is at the top edge of the population rather than inside it. Artifact:
+`results/35_sigma_vs_snr.json`.
+
+### Same-day literature: a SECOND informative event may exist
+
+`arXiv:2509.08657` (Wang, rev. 22 Jul 2026), **abstract verified directly**: *First Overtone Mode in the
+Ringdown Signal of GW231028* — GW231028_153006, first overtone (221) at **Bayes factor ≈ 189.2 and >7σ**
+amplitude exclusion at 10 M post-peak, validated against NR injection SXS:BBH:1282; remnant **246.2 M☉
+(redshifted), χ = 0.81**; their own no-hair test consistent with GR.
+
+**Why it matters here.** Our v5 δ-stacking is parked on exactly one finding: *only GW250114 measures δ*, all
+other events return the prior. GW231028 is a second event with an independently-claimed decisive multimode
+detection, and it is **not in our 12-event sample**. If our NPE finds it informative (δ_σ/prior < 0.88), the
+stacking programme unparks with n = 2 and the saturation result above gains its second point above threshold.
+
+**Caveats before anyone gets excited.** The remnant is 246 M☉ against GW250114's ~68 — nearly 4× heavier, so
+its ringdown sits far lower in frequency and closer to the band edge, where our NPE has never been tested;
+"decisive overtone evidence" in their analysis does not imply *our* δ is informative, since those are
+different measurements. The paper does not state the ringdown SNR, and GWOSC availability for that epoch is
+unchecked. **Next step is a measurement, not a claim: run the NPE on GW231028 and read δ_σ/prior.**

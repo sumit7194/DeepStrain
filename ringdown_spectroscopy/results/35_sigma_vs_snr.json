@@ -1,0 +1,101 @@
+{
+  "source": "26_more_events_o4.json",
+  "n_events": 12,
+  "sigma_prior": 0.2886751345948129,
+  "snr_range": [
+    20.0,
+    78.6
+  ],
+  "events": [
+    {
+      "event": "GW200224_222234",
+      "snr": 20.0,
+      "sigma": 0.2651069315892279,
+      "sigma_over_prior": 0.9183573499024584
+    },
+    {
+      "event": "GW230927_153832",
+      "snr": 20.3,
+      "sigma": 0.26549535105394173,
+      "sigma_over_prior": 0.9197028743975246
+    },
+    {
+      "event": "GW231206_233901",
+      "snr": 21.9,
+      "sigma": 0.25282565969846404,
+      "sigma_over_prior": 0.8758137761097174
+    },
+    {
+      "event": "GW190521_074359",
+      "snr": 25.9,
+      "sigma": 0.25329781411342545,
+      "sigma_over_prior": 0.8774493669811797
+    },
+    {
+      "event": "GW150914",
+      "snr": 26.0,
+      "sigma": 0.2729480519759878,
+      "sigma_over_prior": 0.945519787698723
+    },
+    {
+      "event": "GW240615_113620",
+      "snr": 26.4,
+      "sigma": 0.2703247414347821,
+      "sigma_over_prior": 0.9364323734159243
+    },
+    {
+      "event": "GW200129_065458",
+      "snr": 26.8,
+      "sigma": 0.2705431489642675,
+      "sigma_over_prior": 0.9371889592915731
+    },
+    {
+      "event": "GW240621_195059",
+      "snr": 28.2,
+      "sigma": 0.2615084830260144,
+      "sigma_over_prior": 0.9058919584226406
+    },
+    {
+      "event": "GW241127_061008",
+      "snr": 31.3,
+      "sigma": 0.2726074048268794,
+      "sigma_over_prior": 0.9443397513593045
+    },
+    {
+      "event": "GW231226_101520",
+      "snr": 34.7,
+      "sigma": 0.25680007393042625,
+      "sigma_over_prior": 0.8895815508698842
+    },
+    {
+      "event": "GW240920_124024",
+      "snr": 37.4,
+      "sigma": 0.25997105661444336,
+      "sigma_over_prior": 0.9005661571071618
+    },
+    {
+      "event": "GW250114_082203",
+      "snr": 78.6,
+      "sigma": 0.23731076878994317,
+      "sigma_over_prior": 0.8220686174548243
+    }
+  ],
+  "models": {
+    "A_fisher": {
+      "a": 6.778759988587601,
+      "ssr": 0.05044404408015004
+    },
+    "B_saturated": {
+      "ssr": 0.010016789729387998
+    },
+    "C_crossover": {
+      "snr_c": 84.00103298285636,
+      "ssr": 0.0027106007852640635,
+      "inside_observed_range": false
+    }
+  },
+  "observed_sigma_ratio": 1.1501713696675484,
+  "fisher_would_demand": 3.9299999999999997,
+  "verdict": "B: SATURATED at the prior. Across SNR 20-79 -- a factor 3.9 -- sigma falls only 1.15x, where 1/SNR demands 3.9x. More SNR buys nothing in this range.",
+  "scope": "12 events, and only the loudest clears our own informativeness threshold (SNR ~ 47). A 1/SNR branch supported by ONE point above threshold is not a measurement of that branch: this result bounds the saturated regime and says nothing reliable about the other side."
+}
