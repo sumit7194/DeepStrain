@@ -773,7 +773,22 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
   fine-tuned, it simply cannot appear at any order — so our six-order sequence would look **exactly as it
   does** whether or not one is present. This also weakens my own robustness argument made the same day (that
   restoring a hidden symmetry would require fine-tuning): that reasoning silently assumes analyticity. The
-  numbers are unchanged; what they license is narrower. **STILL OPEN, and now correctly scoped:** this
+  numbers are unchanged; what they license is narrower.
+  **⚠️ SHARPENED 2026-09-21 by `ansatz`, and it names a restriction OUR OWN instrument imposes and never
+  wrote down.** Their analyticity ceiling did not bite as expected — but a structural sibling did, and it was
+  real rather than hypothetical: **Carter can die as a POLYNOMIAL Killing tensor and survive as a RATIONAL
+  first integral** `Q + εK₁/(2Qᵐ)`, an object perfectly analytic in the coupling yet invisible to a search
+  over polynomials in the momenta — and whose powers `Q^(m+1)` reappear as polynomial tensors at rank
+  `2(m+1)`, so a naive read of their own output would have reported old Carter as a NEW hidden symmetry
+  (their rule D52 now divides out powers of lower-rank rational integrals first). **The transferable form:
+  ANALYTICITY IS ONLY ONE OF THE DOMAINS A METHOD IMPOSES.** Theirs also imposed polynomiality, unwritten
+  until it produced a near-miss. **Ours (33/34, Domb–Sykes) imposes A SINGLE DOMINANT SINGULARITY, which we
+  have never written down as a restriction.** The ratio sequence `a_n/a_{n−1}` converges to `1/R` only when
+  one singularity is strictly nearest; a **symmetric** complex pair we do handle (the step-2 branch, found
+  by the 1/(1+x²) control), but an **asymmetric** pair at comparable distance makes the ratios oscillate
+  without converging and the Domb–Sykes intercept meaningless — **and we have no control for that case.**
+  ⇒ before the Leaver build is used in anger, add a fourth control with two singularities at unequal
+  distance (e.g. `1/((1−x)(1+2x))`, R=1/2 with a competitor at 1). **STILL OPEN, and now correctly scoped:** this
   validates the *Kerr* truncation; the sGB correction's own
   spin series is untouched, and the field's own O(χ²) sGB paper **extrapolates its accuracy from Kerr** ("for
   EdGB gravity **as well**") rather than measuring it — the same proxy step our open item flagged. The
