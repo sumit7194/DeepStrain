@@ -858,7 +858,26 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
   failure mode**, and a high-precision Leaver alone would NOT settle the question — it fixes extraction, not
   the estimator. **Two independent failure modes now both bias toward R ≈ 1** (the float64 complex-pair
   blindness and this one). Any future attempt needs an estimator built for competing singularities
-  (Mercer–Roberts or a Padé/Drazin-style variant), pre-registered against all four controls. **STILL OPEN, and now correctly scoped:** this
+  (Mercer–Roberts or a Padé/Drazin-style variant), pre-registered against all four controls.
+  **⚠️ AND THAT CONCLUSION IS ITSELF CORRECTED, 2026-09-22 — I told `bridge` to retire the Leaver item and
+  that was WRONG.** They asked the question I had not: *we characterised THAT the estimator fails, never WHAT
+  IT RETURNS when it does* — a failure mode with an unmeasured output distribution cannot tell you how much of
+  your result it explains. So `35_estimator_null.py` runs the UNFIXED estimator over **20 functions with known,
+  deliberately spread R** (single poles, competing real poles, complex pairs, pole+branch-point), exact
+  arithmetic, no Leaver. **Pre-registered: fixed point if |ρ|<0.3 with median≈1; tracking if ρ>0.7.**
+  **RESULT: ρ = +0.912 ⇒ TRACKING, not a fixed point.** The estimator is **exact** on single poles
+  (0.5000/0.7000/1.0000/1.5000/2.0000) and on symmetric complex pairs (0.6000/1.0000/1.4000), and good on
+  pole+branch-point (0.8978 vs 0.90; 1.2993 vs 1.30). **It fails only on COMPETING REAL POLES** — and there
+  catastrophically in one case (1.1290 for a true 0.5, i.e. +126%, biased HIGH toward H). **So the 1.13/1.13
+  agreement was coincidence**, and the Kerr value is contaminated-at-worst, not vacuous. **AND THERE IS A
+  DIAGNOSTIC:** a competing real singularity makes the ratio sequence **oscillate** (catastrophic case
+  1.000, 3.000, 1.667, 2.200, second differences −3.33/+1.87 alternating; mild case 0.5, 1.5, 0.833, 1.1,
+  … five sign flips), while clean classes give constant ratios. **Kerr's ratios are 0.336569, 0.570426,
+  0.669447, 0.731472 — monotone increasing, second differences BOTH NEGATIVE (−0.1348, −0.0370), zero sign
+  flips** ⇒ **no competitor signature; the failure class we found does not apply to Kerr.** ⇒ **Kerr's
+  binding limit is what it always was — only four recoverable ratios, unconverged — which is EXACTLY what a
+  high-precision Leaver fixes. The Leaver item is back on, and my retirement of it was a one-hour-old
+  overcorrection made before measuring the estimator's output distribution.** **STILL OPEN, and now correctly scoped:** this
   validates the *Kerr* truncation; the sGB correction's own
   spin series is untouched, and the field's own O(χ²) sGB paper **extrapolates its accuracy from Kerr** ("for
   EdGB gravity **as well**") rather than measuring it — the same proxy step our open item flagged. The

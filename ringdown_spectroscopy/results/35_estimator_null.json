@@ -1,0 +1,155 @@
+{
+  "n_functions": 20,
+  "rows": [
+    {
+      "function": "1/(1-x/0.2)",
+      "class": "single pole",
+      "R_true": 0.2,
+      "R_returned": null,
+      "n_stable": 0
+    },
+    {
+      "function": "1/(1-x/0.35)",
+      "class": "single pole",
+      "R_true": 0.35,
+      "R_returned": null,
+      "n_stable": 2
+    },
+    {
+      "function": "1/(1-x/0.5)",
+      "class": "single pole",
+      "R_true": 0.5,
+      "R_returned": 0.4999997191346581,
+      "n_stable": 4
+    },
+    {
+      "function": "1/(1-x/0.7)",
+      "class": "single pole",
+      "R_true": 0.7,
+      "R_returned": 0.6999996150528489,
+      "n_stable": 6
+    },
+    {
+      "function": "1/(1-x/1.0)",
+      "class": "single pole",
+      "R_true": 1.0,
+      "R_returned": 0.9999992517222417,
+      "n_stable": 8
+    },
+    {
+      "function": "1/(1-x/1.5)",
+      "class": "single pole",
+      "R_true": 1.5,
+      "R_returned": 1.5000000675594418,
+      "n_stable": 9
+    },
+    {
+      "function": "1/(1-x/2.0)",
+      "class": "single pole",
+      "R_true": 2.0,
+      "R_returned": 1.9999999410399982,
+      "n_stable": 10
+    },
+    {
+      "function": "1/((1-x/0.25)(1+x/0.5))",
+      "class": "two real poles",
+      "R_true": 0.25,
+      "R_returned": null,
+      "n_stable": 0
+    },
+    {
+      "function": "1/((1-x/0.4)(1+x/1.2000000000000002))",
+      "class": "two real poles",
+      "R_true": 0.4,
+      "R_returned": 0.314698365561431,
+      "n_stable": 3
+    },
+    {
+      "function": "1/((1-x/0.5)(1+x/1.0))",
+      "class": "two real poles",
+      "R_true": 0.5,
+      "R_returned": 1.1290307263206487,
+      "n_stable": 4
+    },
+    {
+      "function": "1/((1-x/0.8)(1+x/3.2))",
+      "class": "two real poles",
+      "R_true": 0.8,
+      "R_returned": 0.7973312325840206,
+      "n_stable": 7
+    },
+    {
+      "function": "1/((1-x/1.0)(1+x/2.0))",
+      "class": "two real poles",
+      "R_true": 1.0,
+      "R_returned": 1.0690390555370468,
+      "n_stable": 8
+    },
+    {
+      "function": "1/((1-x/1.5)(1+x/4.5))",
+      "class": "two real poles",
+      "R_true": 1.5,
+      "R_returned": 1.4967597099086494,
+      "n_stable": 9
+    },
+    {
+      "function": "1/(1+(x/0.3)^2)",
+      "class": "complex pair",
+      "R_true": 0.3,
+      "R_returned": null,
+      "n_stable": 0
+    },
+    {
+      "function": "1/(1+(x/0.6)^2)",
+      "class": "complex pair",
+      "R_true": 0.6,
+      "R_returned": 0.5999982175927849,
+      "n_stable": 4
+    },
+    {
+      "function": "1/(1+(x/1.0)^2)",
+      "class": "complex pair",
+      "R_true": 1.0,
+      "R_returned": 1.0000000035677796,
+      "n_stable": 4
+    },
+    {
+      "function": "1/(1+(x/1.4)^2)",
+      "class": "complex pair",
+      "R_true": 1.4,
+      "R_returned": 1.3999998996055116,
+      "n_stable": 5
+    },
+    {
+      "function": "sqrt(1-x/0.8)/(1-x/0.4)",
+      "class": "pole + branch point",
+      "R_true": 0.4,
+      "R_returned": 0.3550729947061064,
+      "n_stable": 3
+    },
+    {
+      "function": "sqrt(1-x/1.8)/(1-x/0.9)",
+      "class": "pole + branch point",
+      "R_true": 0.9,
+      "R_returned": 0.8977614264960954,
+      "n_stable": 7
+    },
+    {
+      "function": "sqrt(1-x/2.6)/(1-x/1.3)",
+      "class": "pole + branch point",
+      "R_true": 1.3,
+      "R_returned": 1.2993478731743981,
+      "n_stable": 9
+    }
+  ],
+  "spearman_rho": 0.911764705882353,
+  "median_returned": 0.9999996276450107,
+  "iqr_returned": 0.6495116140943435,
+  "kerr_provisional": 1.13,
+  "broken_control_returned": 1.129,
+  "verdict": "TRACKING -- returned R follows true R, so the 1.13/1.13 agreement was coincidence and the Kerr value is contaminated but not vacuous",
+  "prereg": {
+    "fixed_point": "|rho|<0.3 and median in [0.85,1.35] and IQR<0.50",
+    "tracking": "rho>0.7"
+  }
+}
