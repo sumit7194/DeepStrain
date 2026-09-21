@@ -893,7 +893,28 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
   extremality) plus a same-sign competitor, and equally with 1.13 being real; the measurement cannot separate
   them. **Circularity worth naming (bridge's): at four ratios there are two second differences — a one-bit
   test — so the diagnostic is weakest exactly where it is needed, because its weakness and Kerr's
-  non-convergence are the same shortage.** ⇒ Leaver justified twice: more ratios resolve the convergence
+  non-convergence are the same shortage.**
+  **✅ LEAVER BUILT (2026-09-22, `36_leaver.py`) — golden test to 1.4e-15, AND THE REASON IT WAS BUILT WAS
+  WRONG.** Arbitrary-precision Kerr QNM solver; radial D-coefficients **ported from the `qnm` package's own
+  radial.py** (Cook & Zalutskiy Eqs. 31/44) after a from-memory version **converged confidently to the wrong
+  root, 8–30% off at every spin** — exactly the failure `ansatz` warned of. Independence recorded as
+  **PARTIAL**: the test validates the mpmath port, not a fresh derivation. **THE JUSTIFICATION FAILED:
+  60-digit frequencies bought exactly ONE extra ratio (4 → 5).** The limit was never frequency precision, it
+  is EXTRACTION — least squares on a real interval determines high-order coefficients weakly however exactly
+  the data is known, since χⁿ ~ 0.25ⁿ there. **⇒ THE SOLVER'S REAL VALUE IS SOMETHING NOBODY ARGUED FOR: it
+  continues to COMPLEX χ**, which converts the question from inference to measurement.
+  **`37_cauchy_radius.py`: coefficients by CAUCHY INTEGRAL on |χ| = r** — a DFT of ω around the circle, no
+  fitting, no estimator. **20 clean coefficients** (vs 5 real-axis, 4 double-precision), ratios rising
+  0.327 → 0.930, extrapolating to **R = 1.0008 (last 5), 1.0027 (last 8)** ⇒ **R = 1, hypothesis H.**
+  **NOT CLAIMED YET**: every failure mode found this week also biases toward R ≈ 1, so agreement with H
+  cannot be the reason to believe it. **MY CLOSURE CHECK WAS WRONG IN THE RARE DIRECTION** — it compared
+  `vals[0]` to `vals[-1]`, one step SHORT of the start, measuring a neighbour step and reporting 4.2e-3 as a
+  single-valuedness failure on good data. Confirmed independently: it equalled the typical step at every
+  radius and **halved when N doubled**. Corrected to step to angle 2π: **closure 2.67e-44** ⇒ single-valued
+  to 44 digits, coefficients valid. **⇒ AND THAT RETIRES THE PROXY: ω is analytic inside |χ| = r iff the
+  continuation closes, so enlarging the contour until closure fails MEASURES R directly** — no extrapolation,
+  no estimator. Scan running; falsifiable prediction: R = 1 ⇒ r = 0.95, 0.99 close and r = 1.05 fails.
+  ⇒ Leaver justified twice: more ratios resolve the convergence
   *and* give the diagnostic power. **For sGB the hazard is broader than recorded — a same-sign second
   singularity would bias the answer and leave the ratio sequence looking clean.** **STILL OPEN, and now correctly scoped:** this
   validates the *Kerr* truncation; the sGB correction's own
