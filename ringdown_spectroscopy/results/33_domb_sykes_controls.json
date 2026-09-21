@@ -122,6 +122,44 @@
         "note": "only 2 stable ratios; need >= 3",
         "pass": false
       }
+    },
+    "1/((1-2x)(1+x))": {
+      "R_true": 0.5,
+      "singularity_true": "positive real axis",
+      "exact": {
+        "n_stable": 4,
+        "ratios": [
+          0.9999999999997651,
+          3.0000000001364784,
+          1.6666666562122063,
+          2.200000769061689
+        ],
+        "R": 1.1290307263206487,
+        "intercept": 0.8857154873533499,
+        "slope": 3.8857116584772227,
+        "step": 1,
+        "alternating": false,
+        "n_ratios_used": 3,
+        "singularity": "positive real axis",
+        "pass": false
+      },
+      "float64": {
+        "n_stable": 4,
+        "ratios": [
+          0.9999999999999172,
+          3.000000000070716,
+          1.6666666610037728,
+          2.2000003959841123
+        ],
+        "R": 1.1290314696106458,
+        "intercept": 0.8857149042487336,
+        "slope": 3.885712933211448,
+        "step": 1,
+        "alternating": false,
+        "n_ratios_used": 3,
+        "singularity": "positive real axis",
+        "pass": false
+      }
     }
   },
   "kerr_220_real": {
@@ -147,6 +185,6 @@
     "kerr_capacity": 4,
     "verdict": "the FREQUENCIES' precision: the extractor recovers far more from clean values than from float64 ones, so a high-precision Leaver solver is genuinely required"
   },
-  "controls_all_pass_clean": true,
+  "controls_all_pass_clean": false,
   "controls_all_pass_float64": false
 }

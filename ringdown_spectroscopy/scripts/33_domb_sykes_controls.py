@@ -123,6 +123,14 @@ def main():
         "1/(1-x)":   (lambda x: 1 / (1 - x),      1.0, "positive real axis"),
         "1/(1-2x)":  (lambda x: 1 / (1 - 2 * x),  0.5, "positive real axis"),
         "1/(1+x^2)": (lambda x: 1 / (1 + x * x),  1.0, "complex pair off the real axis"),
+        # FOURTH CONTROL, added 2026-09-22 after `ansatz` named the restriction this method imposes and we
+        # had never written down: Domb-Sykes assumes ONE STRICTLY NEAREST singularity. Their own instrument
+        # imposed polynomiality unwritten until it nearly produced a false positive; ours imposes uniqueness.
+        # A SYMMETRIC complex pair we handle (the step-2 branch, forced by 1/(1+x^2)). An ASYMMETRIC pair --
+        # poles at x=1/2 and x=-1, a factor of 2 apart -- is the case with no control at all: the ratio
+        # sequence carries a decaying oscillation from the competitor and the intercept is biased until it
+        # dies out. R is 1/2 and the sub-dominant singularity is on the NEGATIVE axis.
+        "1/((1-2x)(1+x))": (lambda x: 1 / ((1 - 2 * x) * (1 + x)), 0.5, "positive real axis"),
     }
     res = {"interval": [0, HI], "n_points": NPTS, "degrees": list(DEGREES),
            "stable_tol": STABLE_TOL, "controls": {}}

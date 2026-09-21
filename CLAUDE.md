@@ -843,7 +843,22 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
   by the 1/(1+x²) control), but an **asymmetric** pair at comparable distance makes the ratios oscillate
   without converging and the Domb–Sykes intercept meaningless — **and we have no control for that case.**
   ⇒ before the Leaver build is used in anger, add a fourth control with two singularities at unequal
-  distance (e.g. `1/((1−x)(1+2x))`, R=1/2 with a competitor at 1). **STILL OPEN, and now correctly scoped:** this
+  distance. **✅ BUILT AND IT FAILS — 2026-09-22, and the failure is worse than a fail.** `1/((1−2x)(1+x))`,
+  poles at 1/2 and −1, true **R = 0.5**: our pipeline returns **R = 1.1290**, and it returns it **on exact
+  60-digit values**, so this is the METHOD, not precision. **Mechanism, measured:** the true ratios
+  `a_n/a_{n−1}` do converge to 2.0 — but they *oscillate* on the way (1.000, 3.000, 1.667, 2.200, 1.909,
+  2.048, 1.977, 2.012, 1.993, 2.018), because the sub-dominant pole contributes a decaying `(−1)ⁿ` term.
+  Our stability test accepts the first four, and a 3-point linear extrapolation of an **oscillating** sequence
+  reads 1.13 instead of 2. The late ratios that would resolve it are **not recoverable at any precision we can
+  reach** — at fit degree 28 they blow up (n≥11: 1.80, 4.25, −7.04, −16.17). ⇒ **for a function with a
+  sub-dominant singularity, the early ratios oscillate and the asymptotic ratios are unextractable, so
+  Domb–Sykes has NO USABLE WINDOW.** **AND THE DIRECTION IS THE DANGEROUS ONE:** the failure returns
+  **1.13**, which is (i) close to 1, i.e. hypothesis **H**, and (ii) *numerically almost identical to our own
+  provisional Kerr value of **R = 1.13***. So the provisional Kerr number is **indistinguishable from this
+  failure mode**, and a high-precision Leaver alone would NOT settle the question — it fixes extraction, not
+  the estimator. **Two independent failure modes now both bias toward R ≈ 1** (the float64 complex-pair
+  blindness and this one). Any future attempt needs an estimator built for competing singularities
+  (Mercer–Roberts or a Padé/Drazin-style variant), pre-registered against all four controls. **STILL OPEN, and now correctly scoped:** this
   validates the *Kerr* truncation; the sGB correction's own
   spin series is untouched, and the field's own O(χ²) sGB paper **extrapolates its accuracy from Kerr** ("for
   EdGB gravity **as well**") rather than measuring it — the same proxy step our open item flagged. The

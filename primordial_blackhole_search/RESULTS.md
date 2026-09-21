@@ -2066,3 +2066,23 @@ recovery 0.25% → 0.86 against 2% → 0.37, a steep region. Recorded before the
 **Now running:** `bank_dense.py --spacing 0.0005 --n-inj 1500` (B = 3,235, pid 24463, 2.7 GB, checkpointed
 per segment), which extends the sweep one rung and tests whether MF pulls away from the CNN as density rises.
 Announced to the fleet. Artifact: `bank_adequacy.json`.
+
+
+### STOPPING RULE for the density ladder (2026-09-22, declared while the 0.05% run is at 66% and before it lands)
+
+`bridge` asked the question I had not: the adequacy *criterion* was pre-registered, but **no stopping rule
+was** — and *"we will know it when we see it"* is precisely the condition under which a still-climbing bank
+gets called adequate, which is the mistake the 0.1% call already made once. Declared now, with the run
+unfinished and the numbers unseen:
+
+1. **Criterion, unchanged:** the bank is adequate iff MF(dense)/MF(coarser) **< 1.10 in every mass bin**.
+2. **If 0.05% fails, we do NOT reflexively halve again.** Instead fit the per-bin saturation curve over all
+   available densities (83 … 3,235) and **extrapolate the density at which the bar would be met**.
+3. **Then the decision is arithmetic, not judgement:** convert that density to wall-clock at the measured
+   0.128 min/template/segment. **If it exceeds 48 h, the recorded result is "an adequate bank is not
+   reachable at this scale"** — a measured impossibility, which is a result — **not another halving.**
+4. **At most ONE further halving (0.025%, ~28 h), and only if step 3 says saturation is within reach.**
+5. **No CNN-vs-MF verdict is quoted at any density that fails step 1**, however tempting the ratio looks.
+6. **Recorded prediction:** I expect the low-mass bin to still be climbing at 3,235 templates, because it
+   only crossed its detection floor between 649 and 1,619 — a bin that has just switched on is the least
+   likely to have saturated one doubling later.
