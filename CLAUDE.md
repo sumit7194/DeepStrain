@@ -877,7 +877,25 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
   flips** ⇒ **no competitor signature; the failure class we found does not apply to Kerr.** ⇒ **Kerr's
   binding limit is what it always was — only four recoverable ratios, unconverged — which is EXACTLY what a
   high-precision Leaver fixes. The Leaver item is back on, and my retirement of it was a one-hour-old
-  overcorrection made before measuring the estimator's output distribution.** **STILL OPEN, and now correctly scoped:** this
+  overcorrection made before measuring the estimator's output distribution.**
+  **⚠️ AND THE DIAGNOSTIC IS ONE-SIDED — `bridge` measured the counterexample and I reproduced it to four
+  decimals.** My catastrophic case had poles at **+1/2 and −1**, *opposite signs*, which is what creates the
+  alternating contribution and therefore the sign flips. **SAME-SIGN competing poles**
+  `1/((1−x/0.5)(1−x/b))`, true R = 0.5, give **zero sign flips at every separation** and still bias the
+  estimate: b=0.6 → 0.5370 (+7.4%), **b=0.8 → 0.5605 (+12.1%)**, b=1.0 → 0.5581 (+11.6%), b=2.0 → 0.5255
+  (+5.1%), b=4.0 → 0.5078 (+1.6%). Ratios monotone, smoothly decelerating — **the same signature I used to
+  clear Kerr.** ⇒ the diagnostic detects **opposite-sign or complex** competitors and **not same-sign real**
+  ones, so Kerr's zero-flip signature is consistent with *both* "no competitor" and "a same-sign competitor
+  biasing ~+12%". **It excludes the +126% catastrophe and nothing more.** **This is `ansatz`'s rule landing on
+  my own control: a pass condition of ZERO certifies almost nothing**, because an enormous space of
+  situations produces zero — and the class it discriminates well is the class I built it from, which was the
+  only failure I had. **The bias is again upward**, so our 1.13 is consistent with R = 1.0 (hypothesis H,
+  extremality) plus a same-sign competitor, and equally with 1.13 being real; the measurement cannot separate
+  them. **Circularity worth naming (bridge's): at four ratios there are two second differences — a one-bit
+  test — so the diagnostic is weakest exactly where it is needed, because its weakness and Kerr's
+  non-convergence are the same shortage.** ⇒ Leaver justified twice: more ratios resolve the convergence
+  *and* give the diagnostic power. **For sGB the hazard is broader than recorded — a same-sign second
+  singularity would bias the answer and leave the ratio sequence looking clean.** **STILL OPEN, and now correctly scoped:** this
   validates the *Kerr* truncation; the sGB correction's own
   spin series is untouched, and the field's own O(χ²) sGB paper **extrapolates its accuracy from Kerr** ("for
   EdGB gravity **as well**") rather than measuring it — the same proxy step our open item flagged. The

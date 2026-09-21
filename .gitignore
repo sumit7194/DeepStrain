@@ -56,6 +56,13 @@ sbi-logs/
 # --- per-run heartbeat caches ---
 **/results/progress/
 
+# --- MID-RUN checkpoints: working state, not evidence ---
+# Swept in by `git add -A` on 2026-09-22 while bank_dense was live: a 19 MB .npz that rewrites every 50
+# templates, committed under a message about something else entirely. The FINAL artifact (bank_dense.json)
+# is the evidence; the checkpoint exists only so a killed run resumes. Same distinction the *.pt rule
+# above draws between final weights and mid-training state.
+**/results/bank_dense/
+
 # --- raw strain anywhere (regenerable from GWOSC; e.g. spike/output/) ---
 *.hdf5
 
