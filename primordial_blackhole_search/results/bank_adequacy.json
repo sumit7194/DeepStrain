@@ -1,0 +1,39 @@
+{
+  "source": "bank_dense.json",
+  "spacing": 0.001,
+  "bar": 1.1,
+  "dense_B": 1619,
+  "coarse_B": 649,
+  "bins": {
+    "0.17-0.35": {
+      "coarse": 0.0,
+      "dense": 0.4723,
+      "ratio": Infinity,
+      "flattened": false
+    },
+    "0.35-0.55": {
+      "coarse": 0.4097,
+      "dense": 0.5086,
+      "ratio": 1.2413961435196486,
+      "flattened": false
+    },
+    "0.55-0.88": {
+      "coarse": 0.4537,
+      "dense": 0.4848,
+      "ratio": 1.0685474983469254,
+      "flattened": true
+    }
+  },
+  "adequate": false,
+  "cnn_w64": {
+    "0.17-0.35": 0.41,
+    "0.35-0.55": 0.46,
+    "0.55-0.88": 0.48
+  },
+  "mf_at_dense": {
+    "0.17-0.35": 0.4723,
+    "0.35-0.55": 0.5086,
+    "0.55-0.88": 0.4848
+  },
+  "verdict": "NOT ADEQUATE -- MF is still climbing at B=1619. Per the pre-registration NO CNN-vs-MF verdict is quoted from this bank; the deliverable is the density curve. Follow-up A's '1.03x tie' remains true as written -- it says REALIZABLE bank, and 1,619 was the laptop ceiling -- but it does NOT license 'a CNN ties matched filtering', because the bank had not saturated. The filter is now 2.5-3.5x cheaper, so the next rung is affordable and that is what settles it."
+}

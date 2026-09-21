@@ -2033,3 +2033,36 @@ was not dense enough* — and answering it after seeing the result is the worst 
 5. **Prediction, recorded so it can be wrong:** I expect MF to be still climbing between 0.3% and 0.1% —
    `bank_semiff` measured recovery 0.25% → 0.86 and 2% → 0.37, a steep region — so I expect this to come back
    **"0.1% is not adequate"** and for the deliverable to be the density curve rather than a CNN-vs-MF verdict.
+
+
+### RESULT (2026-09-21): **0.1% is NOT adequate — and the data was already on disk**
+
+The pre-registered saturation test, answered with **no new compute**: `bank_dense.json` already carried a
+sub-sampled density sweep from the committed run, which the standing rule says to check before recording
+anything as blocked.
+
+| B (templates) | 0.17–0.35 | 0.35–0.55 | 0.55–0.88 |
+|---|---|---|---|
+| 83 | 0.000 | 0.000 | 0.000 |
+| 326 | 0.000 | 0.347 | 0.000 |
+| 649 | 0.000 | 0.410 | 0.454 |
+| **1,619 (0.1%)** | **0.472** | **0.509** | **0.485** |
+
+Declared bar was MF(dense)/MF(coarser) < 1.10 in **every** bin. Measured: high-mass **1.07 FLAT**, mid-mass
+**1.24 still climbing**, low-mass **0.000 → 0.472** — not a ratio at all but *a threshold being crossed*. The
+lightest bin is invisible to a 649-template bank and visible to a 1,619-template one.
+
+**⇒ NOT ADEQUATE, and per the pre-registration no CNN-vs-MF verdict is quoted from this bank.**
+
+**What survives and what does not.** Follow-up A's headline — *a CNN ties a **realizable** matched-filter
+bank, 1.03×* — stands exactly as written, because "realizable" was load-bearing and 1,619 was the honest
+laptop ceiling at the time. What it does **not** license is *"a CNN ties matched filtering"*: the bank was
+still climbing when the comparison was made, so the tie is a statement about a bank that had not saturated.
+**The distinction was always in the wording and has never before been tested.**
+
+**My pre-registered prediction held** — I expected inadequacy, on the grounds that `bank_semiff` had measured
+recovery 0.25% → 0.86 against 2% → 0.37, a steep region. Recorded before the test.
+
+**Now running:** `bank_dense.py --spacing 0.0005 --n-inj 1500` (B = 3,235, pid 24463, 2.7 GB, checkpointed
+per segment), which extends the sweep one rung and tests whether MF pulls away from the CNN as density rises.
+Announced to the fleet. Artifact: `bank_adequacy.json`.
