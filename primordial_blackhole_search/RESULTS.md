@@ -1891,3 +1891,43 @@ strength) stands.
 **Prediction scorecard, since one was recorded.** Resolved as predicted ✓. Gap *larger* than the pilot, not
 smaller ✗. Floor-clearing dominant at 2,000 ✓. Magnitude-dominant at 8,000 ✓ (scratch clears 0.95 there, so
 the remaining gap is magnitude). Artifacts: `ssl_sensdist_seeds20.json`, `ssl_trend_test_seeds20.json`.
+
+---
+
+## PRE-REGISTRATION (2026-09-21, before the L1 loop-order benchmark runs)
+
+**Why this exists.** L1 was closed as a negative on a **timed** 0.94× (`oaconvolve`, 6.005 s vs 5.192 s at
+N = 16,711,680, K = 16,385). A production O4a search then built a **25-million-template** subsolar bank and
+credited the same method family with **8× per core**. The reconciliation is that our *ceiling* was modelled,
+not measured: `log N / log K` gives 2.4× at K=1024 and 3.0× at K=256 and needs **K = 8 taps** to reach 8×, so
+a model that cannot hit the target at any parameter value was used to conclude the target does not apply.
+
+**The hypothesis this tests, and it is not about kernel length.** Both our paths stream the whole reference
+correlation **per template**, so both are memory-bound and ~1× is self-consistent at any K. The production
+gain must therefore be **loop order**: hold a cache-sized block of the reference correlation resident and
+sweep many templates' kernels across it, paying the memory stream **once per block per pass** instead of
+once per template. With 25M templates that is the whole game. Our benchmark paid the full stream per
+template, so it could not have seen the gain at any K.
+
+**Declared before running.**
+1. **Three paths, identical arithmetic, different memory access order.**
+   **(A) direct** — per template, full-length FFT matched filter (the thing ratio filtering replaces).
+   **(B) streaming FIR** — per template, `oaconvolve` over the full-length reference series. *This is what
+   the 0.94× measured.*  **(C) blocked FIR** — outer loop over cache-sized blocks of the reference series,
+   inner loop over all templates, overlap-save across block boundaries.
+2. **Primary statistic: time per template**, swept over batch size **B ∈ {1, 4, 16, 64}**.
+3. **Bar.** Blocking *wins* if **(C) < 0.8 × (B)** at B = 64 **and** the ratio (C)/(B) **falls monotonically
+   with B** — because a constant offset is not amortisation, and only amortisation scales to 25M templates.
+   A win at B=64 that does not improve from B=16 is reported as a constant-factor win, not as the mechanism.
+4. **Correctness gate before timing.** (C) must reproduce (B) to `max |Δ| / max|c| < 1e-6` on the same
+   inputs. A faster path that computes something else is not a result. Timing is not reported if this fails.
+5. **If blocking does not win, L1 closes again** — this time on a measurement of the actual mechanism rather
+   than on a cost model, and the 25M-template paper's speedup is recorded as unexplained by anything we can
+   reproduce, which is an honest place to leave it.
+6. **Scope declared now:** single-threaded numpy/scipy on Apple Silicon, `complex64`. This cannot test their
+   compiled multi-core pipeline; it tests whether the *loop-order effect exists at all* on our hardware.
+
+**Prediction, recorded so it can be wrong.** I expect (C) to beat (B) and the ratio to fall with B, because
+the streaming path's 134 MB per-template traffic is pure waste once the kernel is short. I do **not** expect
+to see 8× — I would guess 2–3× at B=64, with the rest of the published gain living in compiled multi-core
+code we cannot reach from numpy.
