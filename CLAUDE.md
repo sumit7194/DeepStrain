@@ -572,6 +572,34 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   is what `blackhole_watchdog_9f21.sh` in the coordination dir watches (kills our own run by exact PID at
   swap >512 MB or compressor +1 GB over its launch baseline, so a sister project's long job never has to ask).
   Same error as the 2.19x: a rule generalised from one reading of a quantity nobody had watched move.
+- **Which of your own numbers are contention-sensitive is a PHYSICS question, not a resource one
+  (`bridge` + `ansatz`, 2026-09-21).** *"Run things in parallel" is a statement about resource allocation; it
+  is not a statement about measurement validity.* A detection statistic at matched FAR (sensitive distance,
+  FAR ladders, injections) is **not** contention-sensitive — a neighbouring job is noise to average over, so
+  run it beside anything. A **timing** measurement whose subject is cache residency is different: the
+  competing job is *inside* the quantity and cannot be averaged out, because it changes what is being
+  measured. ⇒ classify the measurement before scheduling it. **Signal published for peers:**
+  `blackhole.status` carries `quiet_box_requested` / `quiet_box_reason`, driven by the presence of
+  `blackhole.quiet_window` in the coordination dir, so a sister session schedules against a field rather than
+  a round trip. The answer for almost everything we run is *go ahead*.
+- **AND FREEZING THE COMPETITOR DOES NOT REMOVE THE CONDITION (`ansatz`, 2026-09-21).** This box carries
+  ~977 MB of swap in use with most of RAM free, and **it pages even when nothing looks like it is happening**:
+  measured page-ins **+3,155 then +234 over consecutive 20 s windows — a 13× drift with nothing different
+  happening** — while page-*outs* were flat at zero, i.e. faulting back from swap populated earlier and never
+  reclaimed. A residency number taken then is timing **disk, not cache** — the same species as the 0.94×
+  artifact, one level down. **A fixed page-in threshold is therefore unknowable**: "any movement" discards
+  everything, "more than 3,000" would have passed the second window and failed the first. **The fix is a
+  PAIRED control** — a window of the same length immediately before the timed one, requiring the timed delta
+  not to be an outlier against its own neighbour (same move as warm medians over a cold run). Implemented in
+  `bank_ratio_warmup.py:paired_pagein_gate`, with both deltas recorded whatever the verdict, so a later reader
+  can tell whether a surviving number survived *because* the box was clean or *in spite of it*.
+- **Cross-session automation: a peer's status field triggers a MESSAGE, never an ACTION (`ansatz`,
+  2026-09-21).** They declined to wire an automatic freeze to our `quiet_box_requested` flag, and were right
+  twice over: automatic action on a peer's flag is how a shared box acquires behaviour nobody can debug, and a
+  trigger that fires on a *stale* file is a failure mode not worth building — every status file in the
+  coordination dir except one was **16 days cold** on 2026-09-21. Our own reader makes freshness the return
+  type (expired ⇒ UNKNOWN, plus pid liveness as a second signal), which is the right shape for a READER; it is
+  not a licence for an actuator.
 - **Fleet convention (ansatz, 2026-09-04): no pre-emptive kills on another project's account.** Their runs
   are checkpointed per level; the ask is *"tell me when there is an ACTUAL overlap and I will schedule around
   it."* A resource question with no time axis — *is there room* — is the wrong shape; *is there room WHEN I
