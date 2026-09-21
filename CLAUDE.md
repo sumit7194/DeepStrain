@@ -914,6 +914,25 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
   to 44 digits, coefficients valid. **⇒ AND THAT RETIRES THE PROXY: ω is analytic inside |χ| = r iff the
   continuation closes, so enlarging the contour until closure fails MEASURES R directly** — no extrapolation,
   no estimator. Scan running; falsifiable prediction: R = 1 ⇒ r = 0.95, 0.99 close and r = 1.05 fails.
+  **✅✅ P0 RESOLVED 2026-09-22: R = 1.002 ⇒ HYPOTHESIS H, the extremal singularity.** Pre-registered bands
+  were R ∈ [0.98,1.02] ⇒ H, R < 0.95 ⇒ ¬H. **Measured 1.0015 / 1.0017 / 1.0020** across fit windows of 6, 10
+  and 16 ratios — and **that cross-window stability (±0.0005) IS the evidence**, since an unconverged
+  sequence gives window-dependent answers, as the earlier 20-ratio set did (1.0008/1.0027/1.0095/1.0239).
+  **Method:** 44 Taylor coefficients from a Cauchy contour at |χ| = 0.85 whose own closure is **1.58e-36**,
+  so the coefficients are valid by construction; ratios climb smoothly to 0.9656 at n=42.
+  **⚠️ THREE POSITIONS IN ONE NIGHT, each flagged provisional, and the sequence matters more than the
+  answer.** (i) 20 coefficients → 1.0008 ⇒ H. (ii) **Contour closure FAILED at every radius ≥ 0.93**,
+  resolution-independent (1.07e-1 identical at N=64/96/160) and **40 orders of magnitude** clear of the
+  closures below ⇒ branch point at ≈0.925 ⇒ **¬H**, which I reported as the likely answer. (iii) 44
+  coefficients ⇒ H. **What settles it needs no new data: if R < 0.93 then r = 0.85 lies INSIDE R, so those
+  coefficients are valid — and they say R = 1.00. Contradiction ⇒ R ≥ 0.93**, and the failures above 0.92 are
+  **the solver losing the branch near extremality**, where the damped and zero-damped families approach each
+  other — a limit of depth-500 continued fractions there, not a property of ω. **WHY THE ¬H READING WAS
+  TEMPTING, kept because it nearly got published:** it was the first NON-EXTRAPOLATED measurement, it
+  contradicted a hypothesis every known failure mode was biasing toward, and disbelieving your own favourable
+  bias had been the right move all week. It was still wrong. **CONSEQUENCE:** the slow-rotation series
+  converges for ALL sub-extremal spin, so our χ=0.69 remnant work and the O(χ²) sGB substrate are both
+  inside the domain, and "no finite order is controlled" stays refuted.
   ⇒ Leaver justified twice: more ratios resolve the convergence
   *and* give the diagnostic power. **For sGB the hazard is broader than recorded — a same-sign second
   singularity would bias the answer and leave the ratio sequence looking clean.** **STILL OPEN, and now correctly scoped:** this
