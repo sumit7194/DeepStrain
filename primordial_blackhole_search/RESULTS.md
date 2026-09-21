@@ -1931,3 +1931,61 @@ template, so it could not have seen the gain at any K.
 the streaming path's 134 MB per-template traffic is pure waste once the kernel is short. I do **not** expect
 to see 8× — I would guess 2–3× at B=64, with the rest of the published gain living in compiled multi-core
 code we cannot reach from numpy.
+
+
+### RESULT against that pre-registration (2026-09-21): **L1's negative was a TIMING BUG. 3.74×, not 0.94×.**
+
+**My pre-registered hypothesis was wrong, and the correct answer was underneath it.** I predicted blocking
+would win 2–3×. It **loses**: blocked is **2.7–2.9× slower** than streaming and flat in batch size.
+
+| B | direct/tmpl | streaming/tmpl | blocked/tmpl | C/B |
+|---|---|---|---|---|
+| 1 | 0.1198 | 0.0257 | 0.0737 | 2.87 |
+| 64 | 0.1197 | 0.0259 | 0.0706 | 2.73 |
+
+The reason is that **`scipy.signal.oaconvolve` already is the blocked algorithm** — it picks an optimal
+internal FFT block size. My outer loop added a second layer of manual blocking on top of a routine that
+already blocks, paying a 16,384-sample halo per block plus eight times the call overhead. Correctness gate
+passed first (3.55e-07), so the timing was reported rather than suppressed.
+
+**But the table contained something I did not predict: streaming FIR was already 4.6× faster than a
+full-length FFT matched filter** — against a committed negative of 0.94×. Chasing that:
+
+| | one FIR, in full-length-FFT equivalents |
+|---|---|
+| complex64, N=16.7M | **0.26** |
+| complex128, N=16.7M | **0.96** |
+
+and like-for-like at the original scale (N=16,711,680, 8 chunks, K=16,385): **single 5.21×, double 3.05×**.
+So the method wins in *both* precisions. The committed 0.94× was not reproducible by any of them.
+
+**THE BUG, found by re-running the committed script and then isolating it.** `bank_ratio_realcost.py` timed
+**one cold `oaconvolve`** on a freshly allocated 255 MB `complex128` array and multiplied it by `len(ch)=8`,
+while `segment_stats` ran first and amortised its own warm-up across 32 transforms inside a single timed
+region. Repeating the identical convolution on the identical array:
+
+```
+call 1: 0.272s   call 2: 0.214s   call 3: 0.193s   call 4: 0.190s   call 5: 0.192s
+```
+
+against the **0.725 s** the old script recorded for it. **An unamortised first-touch page-fault cost was
+measured once, multiplied by eight, and compared against a warm path.** Not denormals (subnormal fraction
+0.000e+00, checked), not the data values, not the machine — the script reproduces its own 1.02× today, so the
+artifact is in the script.
+
+**Corrected, warm, median of 5 repeats: DIRECT 5.7 s vs RATIO 1.5 s ⇒ 3.74×.** And the measurement
+**exceeds** the log N / log K ceiling of 1.6×, which is the expected state once you accept that the model
+counts operations and cannot see cache residency — a model being exceeded by a measurement is the model's
+problem.
+
+**What it changes.** The dense bank we declined to build:
+
+| spacing | templates | was | now |
+|---|---|---|---|
+| 0.1% | 1,619 | 15.5 h | **4.1 h** |
+| 0.01% | 16,166 | 154.7 h | **41.3 h** |
+
+⇒ **the dense-bank wall is no longer a filter-cost wall.** *"Does a CNN still tie a matched filter once the
+bank is adequate?"* — closed as unanswerable in August for want of a cheaper filter — is now answerable, and
+the filter was never the problem. Gate inverted to guard the positive. Artifacts:
+`bank_ratio_realcost.json`, `bank_ratio_blocked.json`.

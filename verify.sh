@@ -911,7 +911,7 @@ print(f"PASS  pbh L6 SSL pool scaling (gain {small['gain']:+.4f} already at {min
       f"{cd_['gain_vs_h1_only']:+.4f} = cross-detector null)")
 PYEOFL6
 
-echo "--- pbh L1 ratio-filter: exact algebra, but an honest NEGATIVE for subsolar (0.94x, not 8x)"
+echo "--- pbh L1 ratio-filter: OVERTURNED -- 3.7x, the 0.94x negative was a cold-timing artifact"
 ./primordial_blackhole_search/.venv/bin/python - << 'PYEOFRF' || FAIL=1
 import json
 R = "primordial_blackhole_search/results/"
@@ -946,19 +946,26 @@ assert rc["taps"] >= 16385, "real-cost run no longer uses the taps the accuracy 
 #     convolution" -- i.e. a MEMORY-HIERARCHY effect, which our numpy timing could not have seen and our
 #     operation-count model does not represent. Assertions kept so the measurement cannot drift; the
 #     interpretation is corrected in CLAUDE.md and the item is reopened in ROADMAP.
-assert not rc["helps"], f"ratio filtering now HELPS ({rc['speedup']:.2f}x) in OUR implementation -- re-examine"
-assert rc["speedup"] < 2.0, f"speedup changed materially: {rc['speedup']}"
+# ⚠️ INVERTED 2026-09-21. The negative was a TIMING BUG: one cold oaconvolve on a freshly allocated 255 MB
+# array, multiplied by 8, against a warm segment_stats. Timed warm (median of 5) the same comparison gives
+# 3.7x. The assertion now guards the POSITIVE, so the old negative cannot creep back in unnoticed.
+assert rc["helps"], f"ratio filtering no longer helps ({rc['speedup']:.2f}x) -- if this fails, check whether " \
+    "the timing went cold again before concluding the method died"
+assert rc["speedup"] > 2.5, f"speedup fell below the dense-bank threshold: {rc['speedup']}"
+assert rc["speedup"] > rc["theory_ceiling"], \
+    "measured speedup no longer exceeds the log N / log K ceiling -- that model counts operations and " \
+    "cannot see cache residency, so the measurement exceeding it is the expected state"
 assert rc["generation_frac_of_direct"] < 0.25, \
     f"generation share changed ({rc['generation_frac_of_direct']:.2f}) -- the superseded cost model claimed 0.98"
-assert rc["speedup"] <= rc["theory_ceiling"] * 1.5, "measured speedup exceeds the asymptotic ceiling -- suspicious"
+assert rc["taps"] >= 16385, "real-cost run no longer uses the taps the accuracy test demanded"
 
-print(f"PASS  pbh L1 ratio-filter (algebra EXACT to {min(r['exact'] for r in d['rows']):.6f}; but subsolar needs "
-      f"K={rc['taps']} taps vs the paper's ~250, so log N/log K gives only a {rc['theory_ceiling']:.1f}x ceiling "
-      f"and OUR numpy measurement is {rc['speedup']:.2f}x => negative FOR OUR IMPLEMENTATION only (re-scoped "
-      f"2026-09-06: a 25M-template production bank exists at 8x, and our own log N/log K model cannot reach "
-      f"8x at any K, so it was the wrong model -- the published gain is cache-residency, not operation count); "
-      f"generation is "
-      f"{100*rc['generation_frac_of_direct']:.0f}% of cost, not the 98% the superseded model assumed)")
+print(f"PASS  pbh L1 ratio-filter OVERTURNED (algebra EXACT to {min(r['exact'] for r in d['rows']):.6f}; timed "
+      f"WARM the speedup is {rc['speedup']:.2f}x, not the 0.94x recorded 2026-08-15 -- that number was ONE COLD "
+      f"oaconvolve on a fresh 255 MB array multiplied by 8, against a warm segment_stats, i.e. page faults "
+      f"attributed to the algorithm; K={rc['taps']} taps is unchanged and the log N/log K ceiling of "
+      f"{rc['theory_ceiling']:.1f}x is EXCEEDED because that model counts operations and cannot see cache "
+      f"residency => the dense bank drops from ~155 h to ~41 h at 0.01% spacing and is no longer blocked on "
+      f"filter cost)")
 PYEOFRF
 
 echo "--- ringdown L5 third-tone floor (undetectable here; two DIFFERENT reasons, with a reopening number)"

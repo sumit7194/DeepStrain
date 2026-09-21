@@ -484,6 +484,24 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   repo's own AUC helper instead of adding sklearn). **⇒ L6b (fetch a bigger pool) is NOT justified.** N4's
   headline stands and is better understood: real, cheap, saturates almost immediately. Gated (49).
   Artifact: results/ssl_poolscale.json.
+- **L1 RATIO-FILTER ⚠️⚠️ OVERTURNED 2026-09-21 — the negative was a TIMING BUG in our own benchmark. 3.74×,
+  not 0.94×, and the dense-bank wall is down.** The 2026-08-15 script timed **one cold `oaconvolve`** on a
+  freshly allocated 255 MB complex128 array and **multiplied it by 8**, while `segment_stats` ran first and
+  amortised its warm-up across 32 transforms in a single timed region. Repeating the identical convolution on
+  the identical array: **0.272 → 0.214 → 0.193 → 0.190 → 0.192 s** against the **0.725 s** recorded. First-touch
+  page faults, measured once, multiplied by eight, compared against a warm path. Checked and excluded first:
+  denormals (subnormal fraction **0.000e+00**), the data values, and the machine — the old script still
+  reproduces its own 1.02× today, so the artifact is in the script, not the box. **Corrected (warm, median of
+  5): DIRECT 5.7 s vs RATIO 1.5 s ⇒ 3.74×**, and like-for-like at the same N and K the method wins in **both**
+  precisions (single **5.21×**, double **3.05×**). The measurement **exceeds** the 1.6× log N/log K ceiling,
+  which is the model's problem: it counts operations and cannot see cache residency. **MY PRE-REGISTERED
+  HYPOTHESIS WAS WRONG and the right answer was underneath it** — I predicted cache-blocking would win 2–3×;
+  blocked is **2.7× SLOWER** and flat in batch size, because `oaconvolve` already *is* the blocked algorithm
+  and my outer loop added a halo and 8× the call overhead on top of it. **WHAT IT CHANGES: the dense bank goes
+  from 154.7 h to 41.3 h at 0.01% spacing (1,619 templates: 15.5 h → 4.1 h)** ⇒ *"does a CNN still tie a matched
+  filter once the bank is adequate?"*, closed in August for want of a cheaper filter, **is now answerable — and
+  the filter was never the problem.** Gate INVERTED to guard the positive so the old negative cannot creep back.
+  Artifacts: bank_ratio_realcost.json, bank_ratio_blocked.json. — *the 09-06 re-scoping follows* —
 - **L1 RATIO-FILTER ⚠️ RE-SCOPED 2026-09-06 — the measurements stand, the GENERALISATION does not, and our
   own cost model is what refutes it.** A production O4a subsolar search ([arXiv:2602.12115](https://arxiv.org/abs/2602.12115),
   Kacanja/Soni/Akyüz/Nitz, PRD) built a **25-million-template** subsolar bank, primary 0.1–2 M☉, and states

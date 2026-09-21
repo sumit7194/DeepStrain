@@ -1,0 +1,46 @@
+{
+  "n": 4194304,
+  "taps": 16385,
+  "block": 524288,
+  "dtype": "complex64",
+  "correctness_error": 3.5518431218406477e-07,
+  "batches": [
+    1,
+    4,
+    16,
+    64
+  ],
+  "rows": {
+    "1": {
+      "direct_s": 0.11978799989446998,
+      "streaming_s": 0.025671583134680986,
+      "blocked_s": 0.07374112494289875,
+      "blocked_over_streaming": 2.872480616253007,
+      "speedup": 0.34813115686205914
+    },
+    "4": {
+      "direct_s": 0.11857018747832626,
+      "streaming_s": 0.02580114605370909,
+      "blocked_s": 0.07069186447188258,
+      "blocked_over_streaming": 2.7398730399311138,
+      "speedup": 0.3649804153060837
+    },
+    "16": {
+      "direct_s": 0.11815245836623944,
+      "streaming_s": 0.025403403691598214,
+      "blocked_s": 0.07055727081024088,
+      "blocked_over_streaming": 2.7774731160760404,
+      "speedup": 0.3600394884875719
+    },
+    "64": {
+      "direct_s": 0.11972201952812611,
+      "streaming_s": 0.02591256770392647,
+      "blocked_s": 0.07061363802858978,
+      "blocked_over_streaming": 2.72507297753784,
+      "speedup": 0.36696264953003965
+    }
+  },
+  "ratio_falls_with_batch": false,
+  "wins_at_max_batch": false,
+  "verdict": "BLOCKING DOES NOT WIN -- L1 closes again, this time on a measurement of the mechanism rather than on a cost model, and the published 8x is unexplained by anything we can reproduce here"
+}

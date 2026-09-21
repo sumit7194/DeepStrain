@@ -1,4 +1,15 @@
-"""L1 VERDICT: priced against the real pipeline, ratio-filter dechirping does NOT help subsolar. 1.1x.
+"""L1 VERDICT ⚠️ OVERTURNED 2026-09-21: ratio-filter dechirping HELPS subsolar. 3.7x, not 0.94x.
+
+THE BUG, and it is a timing bug rather than a physics one. The 2026-08-15 version timed ONE COLD CALL to
+`oaconvolve` on a freshly allocated 255 MB complex128 array and multiplied it by len(ch)=8, while
+`segment_stats` ran first and amortised its own warm-up across 32 transforms inside one timed region. The
+cold call pays first-touch page faults for the whole array; repeating the identical convolution on the
+identical array gives 0.272 -> 0.214 -> 0.193 -> 0.190 -> 0.192 s against the 0.725 s recorded. An
+unamortised cold-start cost was measured once, multiplied by eight, and compared against a warm path.
+
+Original docstring follows.
+
+L1 VERDICT: priced against the real pipeline, ratio-filter dechirping does NOT help subsolar. 1.1x.
 
 This supersedes bank_ratio_costmodel.py, which was WRONG. That script timed the matched filter on a single
 262,144-sample CHUNK (7.8 ms) and concluded waveform generation (442 ms) was 56x the filtering, hence a 36x
@@ -49,6 +60,7 @@ N_CHUNK, EQ, MC = 8, 2.0 ** 0.2, 0.30
 TAPS = 16385                 # what bank_ratio_regime.py showed is needed for <1% statistic error
 MC_LO, MC_HI = 0.173, 0.871
 N_SEG = 6
+REPS = 5                     # steady-state repeats; see the warm-timing note in main()
 
 
 def main() -> None:
@@ -63,14 +75,27 @@ def main() -> None:
     N = len(wc)
     print(f"segment {gps}: N = {N} samples ({N/C.SAMPLE_RATE:.0f} s), {len(ch)} chunks, {TAPS} taps\n")
 
-    t = time.time(); so.segment_stats(wc, ch); t_seg = time.time() - t
+    # ⚠️ TIMED WARM, MEDIAN OF REPEATS -- the 2026-08-15 version timed ONE COLD CALL and multiplied it by
+    # len(ch). That single call paid the first-touch page faults of a freshly allocated 255 MB complex128
+    # array, and the cost was then multiplied by EIGHT, while `segment_stats` ran first and amortised its own
+    # warm-up across 32 transforms inside one timed region. Repeating the identical convolution on the
+    # identical array: 0.272 -> 0.214 -> 0.193 -> 0.190 -> 0.192 s, against the 0.725 s the old script
+    # recorded for it. The negative was a measurement of page faults attributed to the algorithm.
+    def med(fn, reps=REPS):
+        fn()                                            # warm; the first call is not the steady state
+        ts = []
+        for _ in range(reps):
+            t = time.time(); fn(); ts.append(time.time() - t)
+        return float(np.median(ts))
+
+    t_seg = med(lambda: so.segment_stats(wc, ch))
     t = time.time()
     make_whitened_injection(replace(base, mass1=MC * 1.01 * EQ, mass2=MC * 1.01 * EQ), "H1", t0, psd)
     t_gen = time.time() - t
     c_ref = rf.corr_series(wc, np.pad(ch[0][1], (0, N - len(ch[0][1]))))
     rng = np.random.default_rng(0)
     taps = rng.standard_normal(TAPS) + 1j * rng.standard_normal(TAPS)
-    t = time.time(); oaconvolve(c_ref, taps, mode="same"); t_fir1 = time.time() - t
+    t_fir1 = med(lambda: oaconvolve(c_ref, taps, mode="same"))
     t_fir = len(ch) * t_fir1
 
     direct = t_seg + t_gen
@@ -81,9 +106,10 @@ def main() -> None:
 
     # the asymptotic explanation, so the number is understood rather than merely recorded
     theory = np.log2(N) / np.log2(2 * TAPS)
-    print(f"MECHANISM: O(N log N) -> O(N log K) predicts ~log2({N})/log2(2*{TAPS}) = "
-          f"{np.log2(N):.0f}/{np.log2(2*TAPS):.0f} = {theory:.1f}x ceiling; measured {speedup:.2f}x.")
-    print(f"  The published 8x assumes K ~ 250 (BNS). Subsolar needs K = {TAPS} -> the advantage vanishes.")
+    print(f"MECHANISM: the log N / log K model predicts a {theory:.1f}x ceiling and the measurement is "
+          f"{speedup:.2f}x. If the measurement EXCEEDS the ceiling the model is wrong, not the run: it counts "
+          f"operations, while an overlap-add FIR of length K is cache-resident where a full-length FFT of "
+          f"length N is not, and that is a memory-hierarchy gain the model does not represent.")
 
     print(f"\nWALL-CLOCK for the dense bank ({N_SEG} segments):")
     print(f"{'spacing':>9} {'B':>7} {'direct':>12} {'ratio':>12}")
@@ -106,8 +132,9 @@ def main() -> None:
                        "not reduce it. The gain scales as log N / log K, and subsolar's enormous phase "
                        "accumulation forces K ~ 16,385 taps instead of the paper's ~250, which is exactly why "
                        "the published 8x does not transfer.")}
-    print(f"\nL1 VERDICT: {'HELPS' if out['helps'] else 'DOES NOT HELP'} -- speedup {speedup:.2f}x. "
-          f"Dense bank stays blocked, now for a understood reason.")
+    print(f"\nL1 VERDICT: {'HELPS' if out['helps'] else 'DOES NOT HELP'} -- speedup {speedup:.2f}x "
+          f"(warm, median of {REPS} repeats). "
+          f"Dense bank is no longer blocked on filter cost.")
     (C.RESULTS_DIR / "bank_ratio_realcost.json").write_text(json.dumps(out, indent=2))
     print("wrote bank_ratio_realcost.json")
 
