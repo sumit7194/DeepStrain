@@ -1,0 +1,62 @@
+{
+  "dps": 30,
+  "depth": 200,
+  "rows": [
+    {
+      "chi": 0.0,
+      "qnm": [
+        0.37367168441804177,
+        -0.08896231568893546
+      ],
+      "ours": [
+        0.3736716844180418,
+        -0.0889623156889357
+      ],
+      "absdiff": 2.423651445728339e-16,
+      "ok": true
+    },
+    {
+      "chi": 0.2,
+      "qnm": [
+        0.4021453242476554,
+        -0.08831116620760161
+      ],
+      "ours": [
+        0.40214532424765553,
+        -0.08831116620760301
+      ],
+      "absdiff": 1.4060466165506383e-15,
+      "ok": true
+    },
+    {
+      "chi": 0.5,
+      "qnm": [
+        0.4641230259759387,
+        -0.08563883498806392
+      ],
+      "ours": [
+        0.4641230259759384,
+        -0.08563883498806402
+      ],
+      "absdiff": 2.9406505148178845e-16,
+      "ok": true
+    },
+    {
+      "chi": 0.7,
+      "qnm": [
+        0.532600243551018,
+        -0.08079287315500686
+      ],
+      "ours": [
+        0.532600243551018,
+        -0.08079287315500766
+      ],
+      "absdiff": 8.049116928532385e-16,
+      "ok": true
+    }
+  ],
+  "worst_absdiff": 1.4060466165506383e-15,
+  "golden_pass": true,
+  "independence": "PARTIAL. The ANGULAR recurrence is Leaver (1985) as implemented here; the RADIAL D-coefficients are ported from the `qnm` package's own radial.py after a from-memory version converged confidently to the wrong root. So agreement with `qnm` validates the PORT to mpmath, not an independent derivation.",
+  "verdict": "golden test PASSED -- reproduces `qnm` to machine precision, so the mpmath port is faithful and may be pushed to higher precision. NOT an independent confirmation of the radial recurrence: see `independence`."
+}
