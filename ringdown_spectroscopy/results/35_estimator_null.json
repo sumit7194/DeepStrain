@@ -147,9 +147,36 @@
   "iqr_returned": 0.6495116140943435,
   "kerr_provisional": 1.13,
   "broken_control_returned": 1.129,
-  "verdict": "TRACKING -- returned R follows true R, so the 1.13/1.13 agreement was coincidence and the Kerr value is contaminated but not vacuous",
+  "verdict": "TRACKING FOR R >= 0.40 (the range that returned values; all 4 failures are R <= 0.35) -- returned R follows true R, so the 1.13/1.13 agreement was coincidence and the Kerr value is contaminated but not vacuous",
   "prereg": {
     "fixed_point": "|rho|<0.3 and median in [0.85,1.35] and IQR<0.50",
     "tracking": "rho>0.7"
+  },
+  "coverage": {
+    "n_total": 20,
+    "n_with_value": 16,
+    "dropped": [
+      {
+        "R_true": 0.2,
+        "class": "single pole"
+      },
+      {
+        "R_true": 0.35,
+        "class": "single pole"
+      },
+      {
+        "R_true": 0.25,
+        "class": "two real poles"
+      },
+      {
+        "R_true": 0.3,
+        "class": "complex pair"
+      }
+    ],
+    "R_true_range_covered": [
+      0.4,
+      2.0
+    ],
+    "note": "rho was computed ONLY on functions that returned a value. All four failures are small-R (0.20-0.35) because the extraction interval is 0.25 and the estimator fails when the singularity sits inside or near it. The sample is therefore SELECTED BY THE INSTRUMENT'S OWN SUCCESS, and the tracking claim is conditional on R >= 0.40, not general."
   }
 }

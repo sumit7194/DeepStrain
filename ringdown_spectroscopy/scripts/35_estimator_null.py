@@ -78,6 +78,12 @@ def main() -> None:
         shown = f"{got:10.4f}" if got is not None else "       n/a"
         print(f"{name:>26} {kind:>20} {R_true:8.2f} {shown} {len(rs):9}")
 
+    # ⚠️ THIS FILTER IS A SELECTION. Functions the estimator could not resolve return None and are dropped
+    # here, so every statistic below describes the subset it SUCCEEDED on. Measured: all four failures are
+    # R <= 0.35, because the extraction interval is 0.25 and the estimator fails when the singularity sits
+    # inside or near it. So the tracking claim is conditional on R >= 0.40 and is reported that way.
+    # bridge's species, one step over: not "failure looks like an answer" but "failure looks like ABSENCE",
+    # and filtering absences makes them invisible in the headline number.
     got = [(r["R_true"], r["R_returned"]) for r in rows if r["R_returned"] is not None]
     t = np.array([a for a, _ in got]); g = np.array([b for _, b in got])
     rt, rg = np.argsort(np.argsort(t)), np.argsort(np.argsort(g))
