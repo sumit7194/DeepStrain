@@ -952,6 +952,23 @@ assert rc["taps"] >= 16385, "real-cost run no longer uses the taps the accuracy 
 assert rc["helps"], f"ratio filtering no longer helps ({rc['speedup']:.2f}x) -- if this fails, check whether " \
     "the timing went cold again before concluding the method died"
 assert rc["speedup"] > 2.5, f"speedup fell below the dense-bank threshold: {rc['speedup']}"
+
+# THE SYMMETRIC CHECK, which is the one this gate structurally cannot make for itself: an inverted gate
+# guards against the positive REGRESSING, not against the positive being WRONG. The original bug was one
+# path cold and one warm; a fix that merely flipped that asymmetry would pass everything above. So assert
+# the conclusion holds in BOTH orders and in BOTH warm states -- the worst case (cold FIR straight after a
+# direct pass has evicted everything) is the one that matters.
+import os
+_sp = []
+for _o in ("direct", "ratio"):
+    _p = R + f"bank_ratio_warmup_{_o}first.json"
+    assert os.path.exists(_p), f"symmetric warm-up check missing for order={_o}"
+    _w = json.loads(open(_p).read())
+    assert _w["cold_speedup"] > 2.0 and _w["warm_speedup"] > 2.0, \
+        f"ratio filtering loses in some warm state (order={_o}): {_w['cold_speedup']:.2f}/{_w['warm_speedup']:.2f}"
+    assert _w["direct_cold_s"] / _w["direct_warm_s"] < 1.10, \
+        f"the DIRECT path became warm-up sensitive (order={_o}) -- the asymmetry may have flipped"
+    _sp.extend([_w["cold_speedup"], _w["warm_speedup"]])
 assert rc["speedup"] > rc["theory_ceiling"], \
     "measured speedup no longer exceeds the log N / log K ceiling -- that model counts operations and " \
     "cannot see cache residency, so the measurement exceeding it is the expected state"
@@ -959,13 +976,15 @@ assert rc["generation_frac_of_direct"] < 0.25, \
     f"generation share changed ({rc['generation_frac_of_direct']:.2f}) -- the superseded cost model claimed 0.98"
 assert rc["taps"] >= 16385, "real-cost run no longer uses the taps the accuracy test demanded"
 
+_wmin, _wmax = min(_sp), max(_sp)
 print(f"PASS  pbh L1 ratio-filter OVERTURNED (algebra EXACT to {min(r['exact'] for r in d['rows']):.6f}; timed "
       f"WARM the speedup is {rc['speedup']:.2f}x, not the 0.94x recorded 2026-08-15 -- that number was ONE COLD "
       f"oaconvolve on a fresh 255 MB array multiplied by 8, against a warm segment_stats, i.e. page faults "
       f"attributed to the algorithm; K={rc['taps']} taps is unchanged and the log N/log K ceiling of "
       f"{rc['theory_ceiling']:.1f}x is EXCEEDED because that model counts operations and cannot see cache "
-      f"residency => the dense bank drops from ~155 h to ~41 h at 0.01% spacing and is no longer blocked on "
-      f"filter cost)")
+      f"residency; symmetric check both orders x both warm states gives {_wmin:.2f}-{_wmax:.2f}x with DIRECT "
+      f"warm-independent to 3%, so the asymmetry did NOT flip => the dense bank drops from ~155 h to ~41 h at "
+      f"0.01% spacing and is no longer blocked on filter cost)")
 PYEOFRF
 
 echo "--- ringdown L5 third-tone floor (undetectable here; two DIFFERENT reasons, with a reopening number)"

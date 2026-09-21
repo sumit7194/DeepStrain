@@ -1,0 +1,14 @@
+{
+  "order": "direct",
+  "n": 16711680,
+  "taps": 16385,
+  "n_chunk": 8,
+  "reps": 5,
+  "direct_cold_s": 5.304909917060286,
+  "ratio_cold_s": 2.154402291867882,
+  "direct_warm_s": 5.253922083880752,
+  "ratio_warm_s": 1.5909421658143401,
+  "cold_speedup": 2.462358092118855,
+  "warm_speedup": 3.3023966532381634,
+  "cold_warm_disagreement": 0.2543723996012439
+}

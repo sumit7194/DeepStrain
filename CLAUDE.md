@@ -492,7 +492,16 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   page faults, measured once, multiplied by eight, compared against a warm path. Checked and excluded first:
   denormals (subnormal fraction **0.000e+00**), the data values, and the machine — the old script still
   reproduces its own 1.02× today, so the artifact is in the script, not the box. **Corrected (warm, median of
-  5): DIRECT 5.7 s vs RATIO 1.5 s ⇒ 3.74×**, and like-for-like at the same N and K the method wins in **both**
+  5): DIRECT 5.7 s vs RATIO 1.5 s ⇒ 3.74×** — **and then bounded by a SYMMETRIC check `bridge` demanded, since
+  a fix that warms the FIR path could have flipped the bias and kept its magnitude, which the inverted gate
+  would guard just as faithfully.** Both paths, both states, both orders: **direct is warm-up- and
+  order-independent (5.25/5.30/5.32/5.40 s, flat within 3%)** because 32 full-length transforms stream memory
+  regardless, so no cold-FFT configuration can inflate the ratio; only the FIR path is warm-sensitive
+  (2.15 s cold-after-direct vs 1.57 s warm). ⇒ **the honest headline is a RANGE, 2.46× (worst case) to 3.45×
+  (both warm), order-independent** — and the committed 0.94× lies outside even the worst case by 2.6×, so the
+  original artifact was worse than a cold-start asymmetry rather than merely one. **Measured under contention
+  (a sibling dCS solve at 99.6% of a core, load 2.87), so it is a FLOOR** — eviction can only hurt a
+  cache-residency advantage, and like-for-like at the same N and K the method wins in **both**
   precisions (single **5.21×**, double **3.05×**). The measurement **exceeds** the 1.6× log N/log K ceiling,
   which is the model's problem: it counts operations and cannot see cache residency. **MY PRE-REGISTERED
   HYPOTHESIS WAS WRONG and the right answer was underneath it** — I predicted cache-blocking would win 2–3×;

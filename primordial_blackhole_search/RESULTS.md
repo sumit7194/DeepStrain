@@ -1989,3 +1989,47 @@ problem.
 bank is adequate?"* — closed as unanswerable in August for want of a cheaper filter — is now answerable, and
 the filter was never the problem. Gate inverted to guard the positive. Artifacts:
 `bank_ratio_realcost.json`, `bank_ratio_blocked.json`.
+
+### The symmetric check (2026-09-21): the fix did NOT flip the asymmetry, and the honest number is a range
+
+`bridge` pushed back correctly: the L1 bug was *one path cold, one path warm*, and a fix that warms the FIR
+path could simply have flipped the bias, kept its magnitude, and been guarded just as faithfully by the
+inverted gate — which checks that the positive does not regress, not that it is right. Measured both paths in
+both states **and in both orders**, as separate processes:
+
+| order | direct cold | ratio cold | direct warm | ratio warm | cold × | warm × |
+|---|---|---|---|---|---|---|
+| direct first | 5.30 s | 2.15 s | 5.25 s | 1.59 s | **2.46×** | 3.30× |
+| ratio first | 5.32 s | 1.66 s | 5.40 s | 1.57 s | **3.21×** | 3.45× |
+
+**The direct path is warm-up- and order-independent** — 5.25 / 5.30 / 5.32 / 5.40, flat within 3% — because
+32 full-length transforms stream memory regardless of what preceded them. So there is no configuration in
+which a cold FFT path inflates the ratio, which is the failure mode bridge named. **The FIR path is the only
+warm-up-sensitive one**, costing 2.15 s cold-after-direct against 1.57 s warm.
+
+**⇒ the conclusion is order-independent and the magnitude is a range: 2.46× (worst case, cold FIR after a
+direct pass has evicted everything) to 3.45× (both warm).** That range is the number to quote, not the
+single 3.74×. At no point does ratio filtering lose, and the committed 0.94× lies outside even the worst
+case by 2.6× — so the original artifact was worse than a cold-start asymmetry, not merely one.
+
+**Measured under contention, so it is a floor.** `conjecture_machine`'s dCS solve held 99.6% of a core
+throughout, load average 2.87. A competing job evicting the working set can only hurt a cache-residency
+advantage, so a quiet box should give the same or better. Re-measure when the sibling job lands.
+
+### PRE-REGISTRATION (2026-09-21) — what "adequate" means, declared before the bank runs
+
+The question is *"does a CNN still tie a matched filter once the bank is adequate?"*, and **1,619 templates at
+0.1% spacing is cheaper, not adequate**. If the CNN ties there, the objection writes itself — *your bank still
+was not dense enough* — and answering it after seeing the result is the worst time. So the criterion is a
+**saturation** argument, not a density one (bridge's framing):
+
+1. **Run two banks, 0.3% and 0.1%**, on identical injections, at matched FAR.
+2. **Adequacy is demonstrated, not assumed:** the bank is adequate if matched-filter sensitive distance has
+   **flattened** between them — declared bar, **MF(0.1%) / MF(0.3%) < 1.10**. If it is still climbing, 0.1% is
+   not adequate and no CNN-vs-MF comparison is reported from it; the honest output is the density curve.
+3. **Only if adequacy is demonstrated** does the CNN-vs-MF ratio get quoted, and it gets quoted at 0.1%.
+4. **Not doing:** jumping to 0.01% (41 h) to pre-empt the objection. A demonstrated plateau licenses the
+   claim; ten times the compute does not, and buys a number rather than an argument.
+5. **Prediction, recorded so it can be wrong:** I expect MF to be still climbing between 0.3% and 0.1% —
+   `bank_semiff` measured recovery 0.25% → 0.86 and 2% → 0.37, a steep region — so I expect this to come back
+   **"0.1% is not adequate"** and for the deliverable to be the density curve rather than a CNN-vs-MF verdict.

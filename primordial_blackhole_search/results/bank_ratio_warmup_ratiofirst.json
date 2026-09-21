@@ -1,0 +1,14 @@
+{
+  "order": "ratio",
+  "n": 16711680,
+  "taps": 16385,
+  "n_chunk": 8,
+  "reps": 5,
+  "ratio_cold_s": 1.659257624996826,
+  "direct_cold_s": 5.32207641704008,
+  "ratio_warm_s": 1.5661245419178158,
+  "direct_warm_s": 5.40444879187271,
+  "cold_speedup": 3.207504571238755,
+  "warm_speedup": 3.450842284391144,
+  "cold_warm_disagreement": 0.07051545480738272
+}
