@@ -941,6 +941,15 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
   EdGB gravity **as well**") rather than measuring it — the same proxy step our open item flagged. The
   decisive numbers now exist non-perturbatively: **METRICS, arXiv:2406.11986 / PRD 110, 064019**, sGB QNMs to
   a ≤ 0.85 with ~40 orders in spin. Gated (59). Artifact: 32_spin_truncation_crosscheck.json.
+- **sGB QNM CORRECTION TRUNCATION MEASURED (2026-09-22): O(a²) is off by 12.4% (022P), 15.4% (033P), 9.8%
+  (021P) at a = 0.69 — ~2× Kerr's own 6.36%.** `39_sgb_qnm_truncation.py` evaluates Pierini & Gualtieri's published
+  O(a²) series against METRICS' tabulated non-perturbative ω⁽¹⁾ at tabulated spins — no fit. Pre-registered (022P
+  NOT blind; 033P/021P blind, prediction 5–20% met). **G1 FAILED first run on 033P and was right: METRICS' reprint
+  of PG has a SIGN ERROR (033P linear imaginary term −0.05664; PG's tables give +0.05664)** — series rebuilt from
+  PG's own Table V (Taylor coefficients; METRICS reprinted the degree-6-fit ones, sensitivity ≤1.5 pts), G1 then
+  passes all three (a⁰ ≤0.34%, residual slopes 2.07–3.15). **S1: METRICS' printed fit polynomials truncated at a⁴
+  miss their own table by 383% at a = 0.2 (022P)** — degree-8 least-squares artefacts, not Taylor coefficients,
+  despite the text calling w₀,₁,₂ "close to" PG. Polar modes only. Gated (63). Artifact: 39_sgb_qnm_truncation.json.
 - **sGB SUPPLEMENT MEASURED (2026-09-22): the O(a²) substrate is fine for the METRIC (1–6%) and poor at the
   HORIZON (κ⁽¹⁾ 22.6%, Ω⁽¹⁾ 84.6%) at a = 0.69.** `38_sgb_supplement.py` parses arXiv:2406.11986's notebook
   (φ, H1–H4, Ω⁽¹⁾, κ⁽¹⁾ to a⁴⁰; **`a` = spin, χ = cos θ** — an earlier census had χ as spin, retracted before

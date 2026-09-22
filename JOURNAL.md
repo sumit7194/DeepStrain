@@ -11,6 +11,18 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-09-22 (cont.) — the sGB ringdown correction truncates 2× worse than Kerr, and a gate caught a paper's sign error
+
+Next object after the background: the QNM frequency correction itself. METRICS tabulates it non-perturbatively; Pierini &
+Gualtieri publish the second-order-in-spin series. Comparing them at tabulated spins needs no fitting at all. Pre-registered
+(one entry not blind, said so). The small-spin golden test failed on one mode — and the failure was METRICS' reprint of PG's
+coefficient carrying a flipped sign, confirmed against PG's own tables. Rebuilt from the primary source, every gate passes:
+**12.4% / 15.4% / 9.8% at a = 0.69 for 022/033/021 polar, against Kerr's 6.36%.** Also measured: the paper's printed
+'fitting polynomials truncated at a⁴' miss its own data by 383% at a = 0.2 — least-squares coefficients are not Taylor
+coefficients, which is the exact bug we found in our own script 31 on 09-04.
+
+---
+
 ## 2026-09-22 — the sGB spin series, measured: the metric is fine, the horizon is not
 
 The open item since 09-04: stop quoting our Kerr-QNM truncation (6.36%) as the statement of `ansatz`'s sGB

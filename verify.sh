@@ -1444,6 +1444,25 @@ print(f"PASS  sGB supplement (5 parse gates; Yunes-Stein 1 and 4/3 reproduced; O
       f"metric functions <= {100*max(v['0.69']['rel_err'] for k, v in m.items() if k[0] == 'H'):.1f}%)")
 PYEOFSGB
 
+echo "--- ringdown sGB QNM truncation (39: published O(a^2) series vs tabulated non-perturbative omega1 -- no fit)"
+./ringdown_spectroscopy/.venv/bin/python - << 'PYEOFQNM' || FAIL=1
+import json
+d = json.loads(open("ringdown_spectroscopy/results/39_sgb_qnm_truncation.json").read())
+m = d["modes"]
+# (1) G1 is the precondition: two independent calculations agree at small spin, residual ~ a^3.
+assert d["G1_all_pass"] and all(2 <= v["G1"]["loglog_slope_0.1_0.3"] <= 4 for v in m.values())
+# (2) the reprint error G1 caught: METRICS prints 033P's linear imaginary term with the wrong sign.
+assert d["reprint_audit"]["033P"] and not d["reprint_audit"]["022P"] and not d["reprint_audit"]["021P"]
+# (3) the measurement at the remnant spin, all three polar modes, and the sensitivity to PG's two coefficient sets
+r = {k: v["rel_err_0.69_interp"] for k, v in m.items()}
+assert 0.10 < r["022P"] < 0.15 and 0.13 < r["033P"] < 0.18 and 0.08 < r["021P"] < 0.12, r
+assert all(abs(v["sensitivity_fitC2_rel"]["0.7"] - v["rel_err"]["0.7"]["rel"]) < 0.02 for v in m.values())
+# (4) the paper's printed fit truncated at a^4 is NOT a slow-rotation expansion: it misses its own table at a = 0.2
+assert m["022P"]["S1_fit4_vs_table"]["0.2"] > 1.0
+print(f"PASS  sGB QNM truncation (G1 PASS; O(a^2) error at a=0.69: 022P {100*r['022P']:.1f}%, 033P "
+      f"{100*r['033P']:.1f}%, 021P {100*r['021P']:.1f}% vs Kerr 6.36%; METRICS reprint sign error on 033P caught)")
+PYEOFQNM
+
 echo "========================================"
 [ $FAIL -eq 0 ] && echo "BLACKHOLE GATE: ALL GREEN" || echo "BLACKHOLE GATE: FAILURES"
 exit $FAIL

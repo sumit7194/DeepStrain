@@ -1194,3 +1194,40 @@ relayed, citing cadfed9 / M1_posthoc): their O(a²) substrate is off by tens of 
 They also checked the Ω⁽⁰⁾ misprint **independently against the textbook** Kerr Ω_H = a/(r₊² + a²) = a/(2M r₊)
 = a/(2M(1+b)), so the erratum stands on two routes (the paper's own metric, and the standard Kerr result), not
 on the notebook.
+
+## 2026-09-22 (cont.) — the sGB QNM correction's own O(a²) truncation: ~10–15% at a = 0.69, by evaluation
+
+**Object.** 38 measured the sGB *background*. What a ringdown test consumes is ω⁽¹⁾ (ω = ω_Kerr + ζ ω⁽¹⁾).
+METRICS tabulates ω⁽¹⁾ non-perturbatively at 10 spins with per-entry numerical error; Pierini & Gualtieri
+(PG, arXiv:2207.11267) give the second-order-in-spin series. `39_sgb_qnm_truncation.py` compares the two at
+**tabulated** spins — evaluation of two published objects, no fit. Pre-registered and committed before the
+first run; **022P at a = 0.7 was NOT blind** (evaluated by hand while scoping, ~12.6%) and is marked so.
+
+**G1 FAILED on the first run — on 033P, and correctly.** Residual slope 1.33 where a³ scaling needs ~3. Rebuilding
+the series from **PG's own tables** (Eq. 40: ω = w₀ + ā m w₁ + ā²(w₂ₐ + m² w₂ᵦ), ×16 to METRICS normalisation)
+reproduces every coefficient METRICS reprints **except 033P's linear imaginary term: PG gives 16·3·(+1.18e-3) =
++0.05664, METRICS prints −0.05664.** A sign error in the reprint (second one in this paper after Ω⁽⁰⁾). Also:
+METRICS reprinted PG's *fit* coefficients (degree-6 in ζ, Tables I–IV); PG's Table V has the *Taylor*
+coefficient, the correct object — used as primary, fit set kept as sensitivity (≤1.5 points). With the
+primary-source series **G1 passes on all three** (a⁰ agreement ≤0.34%, slopes 2.85 / 3.15 / 2.07).
+
+**RESULT (O(a²) error, relative to ω⁽¹⁾, METRICS numerical error as bar):**
+| mode | 0.3 | 0.5 | 0.6 | 0.7 | 0.8 | interp 0.69 |
+|---|---|---|---|---|---|---|
+| 022P | 3.8% | 11.0% | 13.6% | 12.2% | 11.8% | **12.4%** (not blind) |
+| 033P | 2.2% | 7.6% | 11.4% | 15.9% | 21.8% | **15.4%** |
+| 021P | 1.7% | 5.4% | 8.0% | 10.0% | 3.7% | **9.8%** |
+Bars ≤0.06% up to 0.7; 0.849 entries carry METRICS errors of 0.6–4.4% and are not quoted. **Prediction 5–20%
+for 033P/021P: met.** Compare Kerr 220's own O(a²) truncation 6.36% ⇒ the sGB *correction* truncates ~2× worse
+than the GR frequency it corrects. (PG's own ~2% accuracy claim for ā ≲ 0.7 is for their Padé-resummed
+results, not the plain O(a²) Taylor series measured here.)
+
+**S1 — the paper's printed "fitting polynomials truncated at a⁴" are not slow-rotation expansions.** Evaluated
+against their own table: 022P off by **15.7% at a = 0.1 and 383% at a = 0.2** (033P 21%, 021P 61% at 0.2). Their
+low coefficients (022P w₂ = +48.5 vs PG's −0.32) are least-squares artefacts of a degree-8 fit to 10 points,
+so the text's "w₀,₁,₂ close to PG" is contradicted by its own printed numbers. Anyone lifting those truncated
+polynomials as a spin expansion gets nonsense — 31's polyfit lesson, in a published paper.
+
+**Floor.** Two independent calculations (spectral vs shooting) agree to ~0.3% of ω⁽¹⁾ at a⁰ — PG's Taylor-vs-fit
+spread is the same size — so the 10–15% measured is ~40× above the floor. Scope: polar modes only (PG gives no
+axial series here). Gated (63). Artifact: `results/39_sgb_qnm_truncation.json`.

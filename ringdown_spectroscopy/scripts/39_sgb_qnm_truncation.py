@@ -40,9 +40,42 @@ from pathlib import Path
 RESULTS = Path(__file__).resolve().parent.parent / "results"
 OUT = RESULTS / "39_sgb_qnm_truncation.json"
 
-# PG second-order-in-spin polar series, as REPRINTED in METRICS main.tex Eq. (freq_Gultierai), METRICS
-# normalisation. Transcribed from the tex source; G1 is what checks the transcription and the conversion.
-PG = {
+# PG second-order-in-spin polar series, BUILT FROM PG'S OWN TABLES (arXiv:2207.11267) rather than taken
+# from METRICS' reprint. PG Eq. (40): omega = w0 + a m w1 + a^2 (w2a + m^2 w2b); METRICS normalisation is
+# 16 x PG's O(zeta^2) coefficient (METRICS footnote; the x16 is what G1's a^0 agreement verifies).
+#
+# ⚠️ FIRST RUN USED THE REPRINT AND G1 FAILED ON 033P (residual slope 1.33, needs ~3). Rebuilding from PG's
+# tables reproduces every reprinted coefficient EXCEPT 033P's linear imaginary term: PG gives
+# 16 * 3 * (+1.18e-3) = +0.05664, METRICS prints -0.05664. A sign error in the reprint, caught by the gate.
+#
+# Two versions of PG's O(zeta^2) coefficient exist: Tables I-IV hold C2 of a degree-6 FIT in zeta (what METRICS
+# used); Table V holds the TAYLOR coefficient omega_r(2). The Taylor one is the correct object -- a
+# least-squares coefficient is not a Taylor coefficient, which is 31's lesson -- so it is primary; the fit
+# version is kept as a sensitivity check (they differ by ~0.4%).
+PG_TAYLOR = {  # Table V, rows "r 2": (Re, Im) for l = 2 and l = 3
+    "0":  {2: (-1.411e-2, -4.70e-3), 3: (-5.463e-2, -7.21e-3)},
+    "1":  {2: (-1.049e-2, 4e-5),     3: (-2.166e-2, 1.17e-3)},
+    "2a": {2: (1.340e-2, 6.54e-3),   3: (2.947e-2, 1.777e-2)},
+    "2b": {2: (-8.42e-3, 3.19e-3),   3: (-9.50e-3, 4.3e-4)},
+}
+PG_FITC2 = {   # Tables I-IV, row C2 -- what METRICS reprinted
+    "0":  {2: (-1.406e-2, -4.70e-3), 3: (-5.453e-2, -7.19e-3)},
+    "1":  {2: (-1.048e-2, 2e-5),     3: (-2.156e-2, 1.18e-3)},
+    "2a": {2: (1.348e-2, 6.50e-3),   3: (2.941e-2, 1.857e-2)},
+    "2b": {2: (-8.37e-3, 3.13e-3),   3: (-9.95e-3, 7.0e-4)},
+}
+MODES = {"022P": (2, 2), "033P": (3, 3), "021P": (2, 1)}
+
+
+def pg_series(src, l, m):
+    c = {k: complex(*v[l]) * 16 for k, v in src.items()}
+    return [c["0"], m * c["1"], c["2a"] + m * m * c["2b"]]
+
+
+PG = {k: pg_series(PG_TAYLOR, *lm) for k, lm in MODES.items()}
+PG_FIT = {k: pg_series(PG_FITC2, *lm) for k, lm in MODES.items()}
+# METRICS main.tex Eq. freq_Gultierai, verbatim -- compared against PG_FIT below, not used for measurement.
+REPRINT = {
     "022P": [complex(-0.22496, -0.0752), complex(-0.33536, 0.00064), complex(-0.32, 0.30432)],
     "033P": [complex(-0.87248, -0.11504), complex(-1.03488, -0.05664), complex(-0.96224, 0.39792)],
     "021P": [complex(-0.22496, -0.0752), complex(-0.16768, 0.00032), complex(0.08176, 0.15408)],
@@ -97,6 +130,17 @@ def main() -> None:
             raise SystemExit(f"table {k}: parsed {len(t)} rows, expected 10 -- transcription unsafe")
     rep = {"source": "arXiv:2406.11986 main.tex Appendix B + Eq. freq_Gultierai", "modes": {}}
 
+    audit = {}
+    for mode in MODES:
+        bad = [(k, part) for k in range(3) for part in ("re", "im")
+               if abs(getattr(REPRINT[mode][k], "real" if part == "re" else "imag")
+                      - getattr(PG_FIT[mode][k], "real" if part == "re" else "imag")) > 1e-4]
+        audit[mode] = [f"a^{k} {part}: reprint {getattr(REPRINT[mode][k], 'real' if part == 're' else 'imag'):+.5f}"
+                       f" vs PG tables {getattr(PG_FIT[mode][k], 'real' if part == 're' else 'imag'):+.5f}"
+                       for k, part in bad]
+        print(f"  reprint audit {mode}: {'matches PG tables' if not bad else 'MISMATCH ' + '; '.join(audit[mode])}")
+    rep["reprint_audit"] = audit
+
     ok_g1 = True
     for mode, pg in PG.items():
         t = {a: v["P"] for a, v in tabs[mode[:3]].items()}
@@ -113,11 +157,13 @@ def main() -> None:
         rel = {a: {"rel": res[a] / abs(t[a][0]), "bar": t[a][1] / abs(t[a][0]), "T2": [poly(pg, a).real, poly(pg, a).imag],
                    "metrics": [t[a][0].real, t[a][0].imag]} for a in sorted(t)}
         r69 = rel[0.6]["rel"] + (rel[0.7]["rel"] - rel[0.6]["rel"]) * 0.9
+        sens = {a: abs(poly(PG_FIT[mode], a) - t[a][0]) / abs(t[a][0]) for a in (0.6, 0.7, 0.8)}
         # ---- S1: the paper's printed fit, truncated at a^4, against its own table at small spin ----------
         s1 = {a: abs(poly(FIT4[mode], a) - t[a][0]) / abs(t[a][0]) for a in (0.005, 0.1, 0.2)}
         rep["modes"][mode] = {"G1": {"a0_rel_at_0.005": a0, "residual": {str(a): res[a] for a in sorted(res)},
                                      "loglog_slope_0.1_0.3": slope, "pass": g1},
                               "rel_err": {str(a): v for a, v in rel.items()}, "rel_err_0.69_interp": r69,
+                              "sensitivity_fitC2_rel": {str(a): v for a, v in sens.items()},
                               "S1_fit4_vs_table": {str(a): v for a, v in s1.items()},
                               "fit_vs_PG_coeffs": {"w1": [FIT4[mode][1].real, FIT4[mode][1].imag],
                                                    "PG_w1": [pg[1].real, pg[1].imag],
@@ -128,6 +174,7 @@ def main() -> None:
         print(f"        O(a^2) truncation error:  " + "  ".join(
             f"a={a}: {100*rel[a]['rel']:.2f}% (+/-{100*rel[a]['bar']:.3f})" for a in (0.3, 0.5, 0.6, 0.7, 0.8, 0.849))
               + f"   | interp 0.69: {100*r69:.2f}%")
+        print(f"        sensitivity (PG fit-C2 instead of Taylor): " + "  ".join(f"a={a}: {100*v:.2f}%" for a, v in sens.items()))
         print(f"        S1 paper's fit truncated at a^4 vs its own table: "
               + "  ".join(f"a={a}: {100*v:.1f}%" for a, v in s1.items()))
     rep["G1_all_pass"] = bool(ok_g1)
