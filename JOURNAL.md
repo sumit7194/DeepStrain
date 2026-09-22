@@ -11,6 +11,20 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-09-23 — GW231028 is not a second informative event, and our 'informative' bar got its first null check
+
+The one lead that could unpark multi-event δ stacking. Our network couldn't reach it (240 M☉ vs a 120 M☉ prior), so a
+new one was built for that mass, preflighted, pre-registered and validated before the event was read. Verdict as
+predicted: not informative. The decisive check was the one 30 taught us to add — plant δ = +0.3 in real noise and see
+whether the estimate moves. It didn't (−0.01); the recovered mass moved instead (−32 M☉, 2.5σ). Wang's overtone
+detection is about the tone being present, not about measuring its frequency shift.
+
+The by-product mattered more: a barely-trained smoke network passed our 0.88 'informative' bar. First ever null check
+of that bar on the real network: pure noise gives 0.92, GW250114 gives 0.82 — our one informative event survives, and
+every network now measures its own no-signal floor before its event is read.
+
+---
+
 ## 2026-09-22 (cont.) — the sGB ringdown correction truncates 2× worse than Kerr, and a gate caught a paper's sign error
 
 Next object after the background: the QNM frequency correction itself. METRICS tabulates it non-perturbatively; Pierini &

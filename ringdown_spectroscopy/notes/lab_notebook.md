@@ -1265,3 +1265,20 @@ tested against a null for the first time, on 09 itself: **pure white-noise input
 property of a network — an untrained flow emits a narrower-than-prior blob for any input — so 41 now measures its
 own floor (R0) and requires the event below min(0.88, R0 P10). Amended before the full run, reason recorded; the
 smoke network's floor was 0.828/P10 0.812, and the amended gate correctly rejects its 0.822.
+
+**41 RESULT (full run, 150k sims, converged at 32 epochs): GW231028 is NOT informative — prediction held.**
+| gate | result |
+|---|---|
+| R1 coverage | 0.86 / 0.88 / 0.86 — PASS |
+| R0 no-signal floor | median 0.952, P10 0.914 (09's: 0.921 / 0.886) |
+| R2a δ̂ at δ = 0 | +0.012 — PASS (unbiased) |
+| **R2b δ̂ moves with δ** | **difference −0.011 (2 SE 0.022), response −0.04 vs GW250114-loudness ~0.3 — FAIL** |
+| R3 trust | M 264 [205, 329] ✓ but χ 0.59 [0.17, 0.85] vs 0.81 — FAIL |
+| R3 informative | δ = +0.03 [−0.41, +0.44], sd/prior 0.939 > floor P10 — NO |
+**Exploratory (not pre-registered), n = 8 per arm:** planting δ = +0.3 moved the recovered MASS by **−32 M☉ (2.5σ)**
+and χ by −0.17 (1.8σ) while δ̂ moved −0.01. At this loudness the network reads a shifted overtone frequency as a
+lighter, slower-spinning remnant — the deviation is absorbed into the Kerr parameters instead of being measured.
+**Reading against Wang's BF ≈ 189:** detecting that a 221 is PRESENT and measuring its frequency DEVIATION are
+different questions; the second needs far more ringdown SNR. No contradiction, and consistent with v4's tone-count
+and 13's per-event findings. **v5 stacking stays at n = 1 (GW250114 only).** Gated (64).
+Artifacts: `results/41_gw231028_npe.json`, weights `results/41_npe_weights.pt` (gitignored, regenerable).

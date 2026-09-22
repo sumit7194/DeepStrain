@@ -1463,6 +1463,22 @@ print(f"PASS  sGB QNM truncation (G1 PASS; O(a^2) error at a=0.69: 022P {100*r['
       f"{100*r['033P']:.1f}%, 021P {100*r['021P']:.1f}% vs Kerr 6.36%; METRICS reprint sign error on 033P caught)")
 PYEOFQNM
 
+echo "--- ringdown GW231028 NPE (41: a 240-Msun network, validated at that mass -- the event is NOT informative)"
+./ringdown_spectroscopy/.venv/bin/python - << 'PYEOF41' || FAIL=1
+import json
+d = json.loads(open("ringdown_spectroscopy/results/41_gw231028_npe.json").read())
+assert not d["smoke"] and d["settings"]["n_train"] == 150000
+assert d["R1"]["pass"], "the network's own calibration failed -- nothing below is interpretable"
+# the no-signal floor is per-network; the event is read against THIS network's floor, not 09's
+assert 0.88 < d["R0"]["p10"] < 1.0
+# R2b is the result: a true delta = 0.3 does not move the estimate at this loudness
+assert d["R2"]["R2a"] and not d["R2"]["R2b"] and abs(d["R2"]["response"]) < 0.15
+assert not d["R3"]["informative"] and d["R3"]["delta_sd_over_prior"] > d["R0"]["p10"]
+print(f"PASS  GW231028 NPE (R1 pass; R2b response {d['R2']['response']:+.2f} vs GW250114-loudness ~0.3; event delta "
+      f"sd/prior {d['R3']['delta_sd_over_prior']:.3f} above this network's no-signal P10 {d['R0']['p10']:.3f} "
+      f"=> not informative, stacking stays at n=1)")
+PYEOF41
+
 echo "========================================"
 [ $FAIL -eq 0 ] && echo "BLACKHOLE GATE: ALL GREEN" || echo "BLACKHOLE GATE: FAILURES"
 exit $FAIL

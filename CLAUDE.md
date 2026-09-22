@@ -941,6 +941,16 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
   EdGB gravity **as well**") rather than measuring it — the same proxy step our open item flagged. The
   decisive numbers now exist non-perturbatively: **METRICS, arXiv:2406.11986 / PRD 110, 064019**, sGB QNMs to
   a ≤ 0.85 with ~40 orders in spin. Gated (59). Artifact: 32_spin_truncation_crosscheck.json.
+- **GW231028 NPE (2026-09-23): NOT informative — v5 stacking stays at n = 1.** 09 can't reach it (prior M ≤ 120,
+  remnant ~240 M☉ detector-frame), so `41_gw231028_npe.py` trains a 240-M☉ network (M ∈ [150, 350], 0.1 s window,
+  20 ms start range; weights-only persistence). Preflight (40): whitening fidelity 0.981 at 80 Hz vs 0.959 at the
+  validated control ⇒ idealised simulator kept (first version scored the control 0.35 — a damped-cosine turn-on
+  jump smeared acausally; fixed). **Pre-registered and met:** R1 PASS; R2a unbiased; **R2b FAIL — planting δ = +0.3
+  moves δ̂ by −0.01 (GW250114-loudness responds ~0.3)**; event δ = +0.03 [−0.41, +0.44], sd/prior 0.939 above this
+  network's no-signal floor. Exploratory: the planted shift moves M by −32 M☉ (2.5σ) instead — absorbed into Kerr
+  parameters. Wang's BF ≈ 189 is about the 221 being PRESENT, not its frequency deviation. **Gate audit it forced:**
+  a 3-epoch smoke net scored 0.824, passing the project's 0.88 'informative' bar; on 09 the trained no-signal floor
+  is 0.921 (P10 0.886) so GW250114's 0.82 survives, but the bar is per-network ⇒ R0 now measures it. Gated (64).
 - **sGB QNM CORRECTION TRUNCATION MEASURED (2026-09-22): O(a²) is off by 12.4% (022P), 15.4% (033P), 9.8%
   (021P) at a = 0.69 — ~2× Kerr's own 6.36%.** `39_sgb_qnm_truncation.py` evaluates Pierini & Gualtieri's published
   O(a²) series against METRICS' tabulated non-perturbative ω⁽¹⁾ at tabulated spins — no fit. Pre-registered (022P
