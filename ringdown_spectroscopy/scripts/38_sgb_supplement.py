@@ -463,6 +463,124 @@ def main() -> None:
     report["all_gates_pass"] = bool(ok2 and ok3 and ok4 and ok5)
     OUT.write_text(json.dumps(report, indent=2))
     print(f"wrote {OUT.name}   all gates: {'PASS' if report['all_gates_pass'] else 'FAIL'}")
+    if not report["all_gates_pass"]:
+        return
+    measure(F, report)
+    OUT.write_text(json.dumps(report, indent=2))
+    print(f"wrote {OUT.name}")
+
+
+def truncation(c, a, keep=2):
+    """Relative error of keeping powers <= keep against the full a^40 series, plus the reference's own
+    validity: the pre-registered rule compares the LAST term to the error being quoted; the geometric tail
+    q/(1-q) |last| is reported beside it because a slowly converging series makes the last term an
+    underestimate of what was cut off."""
+    full = sum(c[k] * a ** k for k in range(len(c)))
+    t = sum(c[k] * a ** k for k in range(keep + 1))
+    err = abs(t - full)
+    top = max(k for k in range(len(c)) if c[k] != 0)
+    prev = max(k for k in range(top) if c[k] != 0)
+    last = abs(c[top] * a ** top)
+    q = abs(c[top] / c[prev]) * a ** (top - prev)
+    tail = last * q / (1 - q) if q < 1 else mp.inf
+    return {"rel_err": float(err / abs(full)), "full": float(full), "truncated": float(t),
+            "last_term_over_err": float(last / err), "geom_tail_over_err": float(tail / err),
+            "resolved": bool(last < mp.mpf("0.01") * err)}
+
+
+def radius(d, windows=(6, 10, 16)):
+    """Domb-Sykes on a series in u: |d_k/d_(k-1)| vs 1/k, linear over the last w ratios; R_u = 1/intercept,
+    R_a = sqrt(R_u). Cross-window agreement is the convergence evidence, as for P0."""
+    rat = [abs(d[k] / d[k - 1]) for k in range(1, len(d))]
+    signs = "".join("+" if (d[k] / d[k - 1]) > 0 else "-" for k in range(1, len(d)))
+    out = {"ratios": [float(x) for x in rat], "ratio_signs": signs, "windows": {}}
+    for w in windows:
+        ks = list(range(len(rat) - w + 1, len(rat) + 1))
+        A = mp.matrix([[1, mp.mpf(1) / k] for k in ks])
+        y = mp.matrix([rat[k - 1] for k in ks])
+        sol = mp.qr_solve(A, y)[0]
+        icpt = sol[0]
+        out["windows"][w] = float(mp.sqrt(1 / icpt)) if icpt > 0 else None
+    return out
+
+
+def measure(F, report):
+    """M1 and M2 exactly as pre-registered in the module docstring."""
+    z = dict(r=mp.mpf(3), chi=mp.mpf(0))
+    objs = {"kappa1": (F["kappa"], z), "Omega1": (F["Omega"], z)}
+    for r in (3, 6):
+        for chi in ("0", "0.5"):
+            for k in ("H1", "H2", "H3", "H4", "phi"):
+                objs[f"{k}(r={r},chi={chi})"] = (F[k], dict(r=mp.mpf(r), chi=mp.mpf(chi)))
+    coefs = {}
+    for name, (f, kw) in objs.items():
+        c = [mp.re(x) for x in a_coeffs(f, **kw)]
+        big = max(abs(x) for x in c)
+        coefs[name] = [x if abs(x) > mp.mpf(10) ** -35 * big else mp.mpf(0) for x in c]
+
+    print("\n  M1  O(a^2) truncation error against the a^40 series  (pre-registered; Kerr 220 reference 6.36% "
+          "at 0.69, 18.86% at 0.90)")
+    m1 = {}
+    for name, c in coefs.items():
+        row = {}
+        for a in ("0.69", "0.90"):
+            row[a] = truncation(c, mp.mpf(a))
+        m1[name] = row
+        cell = lambda x: (f"{100*x['rel_err']:8.2f}%" if x["resolved"] else f"{100*x['rel_err']:7.2f}%?")
+        print(f"     {name:22s} a=0.69 {cell(row['0.69'])}  (last/err {row['0.69']['last_term_over_err']:.0e}, "
+              f"tail/err {row['0.69']['geom_tail_over_err']:.0e})   a=0.90 {cell(row['0.90'])}  "
+              f"(last/err {row['0.90']['last_term_over_err']:.0e}, tail/err {row['0.90']['geom_tail_over_err']:.0e})")
+    print("     ? = UNRESOLVED by the pre-registered rule (the a^40 reference's last term is >= 1% of the error)")
+    report["M1_truncation"] = m1
+
+    # ---- M2 with its controls on the SAME scale: 21 exact coefficients in u, identical estimator ----------
+    def taylor_u(g, n=21, N=128, rho=mp.mpf("0.5")):
+        # By DFT, not mp.taylor: numerical differentiation to order 20 sheds digits the gates just earned.
+        # Aliasing error is |c_(k+N)| rho^N ~ 0.5^128 -- nil.
+        vals = [g(rho * mp.expjpi(mp.mpf(2 * k) / N)) for k in range(N)]
+        return [mp.re(sum(v * mp.expjpi(-mp.mpf(2 * k * j) / N) for k, v in enumerate(vals)) / N / rho ** j)
+                for j in range(n)]
+    controls = {
+        "kappa0 = b/(2(1+b)), R=1":            (lambda u: mp.sqrt(1 - u) / (2 * (1 + mp.sqrt(1 - u))), 1.0),
+        "Omega0/a = 1/(2(1+b)), R=1":          (lambda u: 1 / (2 * (1 + mp.sqrt(1 - u))), 1.0),
+        "sqrt(1-u)/(1-u/1.3), same-sign, R=1": (lambda u: mp.sqrt(1 - u) / (1 - u / mp.mpf("1.3")), 1.0),
+        "sqrt(1-u/0.8)*sqrt(1-u), R=sqrt0.8":  (lambda u: mp.sqrt(1 - u / mp.mpf("0.8")) * mp.sqrt(1 - u),
+                                                 float(mp.sqrt(mp.mpf("0.8")))),
+    }
+    print("\n  M2  radius of convergence in a (Domb-Sykes in u = a^2, windows of 6/10/16 ratios)")
+    print("     CONTROLS, identical estimator, 21 exact coefficients:")
+    m2 = {"controls": {}, "series": {}}
+    for name, (g, truth) in controls.items():
+        res = radius(taylor_u(g)); res["truth"] = truth
+        m2["controls"][name] = res
+        print(f"       {name:38s} truth {truth:.4f}  ->  " +
+              "  ".join(f"w{w}: {v:.4f}" if v else f"w{w}: --" for w, v in res["windows"].items()))
+    for name, parity in (("kappa1", 0), ("Omega1", 1)):
+        d = [coefs[name][2 * k + parity] for k in range(21) if 2 * k + parity < len(coefs[name])]
+        d = d[:20] if parity else d
+        res = radius(d)
+        m2["series"][name] = res
+        print(f"     {name:40s}  ->  " + "  ".join(f"w{w}: {v:.4f}" if v else f"w{w}: --"
+                                                     for w, v in res["windows"].items())
+              + f"   ratio signs {res['ratio_signs']}")
+
+    # ---- EXPLORATORY, NOT pre-registered: effective exponent at u = 1 ------------------------------------
+    # For (1-u)^g the ratio is exactly 1 - (1+g)/k, so g_k = k (1 - ratio_k) - 1. The Kerr control, whose
+    # true exponent is +1/2, reads 0.41 -> 0.43 at k = 15..20: this estimator runs LOW and converges slowly,
+    # so only the SIGN is quoted as a finding. Negative => the correction DIVERGES at extremality.
+    print("\n  EXPLORATORY (not pre-registered) effective exponent g_k at u = 1, last 6 orders:")
+    expl = {}
+    for name, res in [("kappa0 control (true g = +0.5)", m2["controls"]["kappa0 = b/(2(1+b)), R=1"])] + \
+            list(m2["series"].items()):
+        g = [k * (1 - x) - 1 for k, x in enumerate(res["ratios"], 1)]
+        # g_k = g_inf + c/k over the last 6, least squares. Validated on the control before being read.
+        ks = list(range(len(g) - 5, len(g) + 1))
+        sol = mp.qr_solve(mp.matrix([[1, mp.mpf(1) / k] for k in ks]), mp.matrix([g[k - 1] for k in ks]))[0]
+        expl[name] = {"g_k": [float(x) for x in g], "g_inf_1overk": float(sol[0])}
+        print(f"     {name:32s} " + " ".join(f"{x:+.3f}" for x in g[-6:])
+              + f"   -> 1/k-extrapolated {float(sol[0]):+.3f}")
+    m2["exploratory_exponent"] = expl
+    report["M2_radius"] = m2
 
 
 if __name__ == "__main__":

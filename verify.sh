@@ -1401,6 +1401,44 @@ print(f"PASS  ringdown spin truncation cross-check (golden 1/(1-x) crossings exa
       f"4.4%/16.2% fails the analytic control)")
 PYEOFCC
 
+echo "--- ringdown sGB supplement (38: 40-order spin series parsed behind five gates; O(a^2) truncation measured)"
+./ringdown_spectroscopy/.venv/bin/python - << 'PYEOFSGB' || FAIL=1
+import json
+d = json.loads(open("ringdown_spectroscopy/results/38_sgb_supplement.json").read())
+g = d["gates"]
+
+# (1) THE PARSE IS ONLY AS GOOD AS ITS GATES. Parity is physics (Omega odd, the rest even) and the parser
+#     never used the census that found it; G3/G5 tie separately parsed cells together through the metric.
+assert d["all_gates_pass"], "a parse gate failed -- no number below this line is reportable"
+assert g["G2_parity"]["Omega"]["parity"] == "odd" and all(
+    v["parity"] == "even" for k, v in g["G2_parity"].items() if k != "Omega")
+assert g["G3_rigidity"][0]["rel_mismatch"] < 1e-35 and g["G5_surface_gravity"][0]["rel_mismatch"] < 1e-25
+
+# (2) the PUBLISHED coefficient, side by side: Yunes & Stein 2011 Eq. 8 ratios 1 and 4/3.
+rep = g["G4_published_scalar"]["reproduced"]
+assert abs(rep["c2_over_c1"] - 1) < 1e-12 and abs(rep["c3_over_c1"] - 4 / 3) < 1e-12
+
+# (3) the printed Omega0 in main.tex disagrees with its own metric by (1+b)/b; if this ever reads 1, the
+#     source changed or our metric did, and the erratum note must be revisited, not silently kept.
+assert all(abs(p["ratio_printed_over_metric"] - (1 + (1 - p["a"]**2)**0.5) / (1 - p["a"]**2)**0.5) < 1e-9
+           for p in d["printed_Omega0_vs_metric"])
+
+# (4) M1, pre-registered: O(a^2) truncation at a = 0.69, every entry resolved by the a^40 reference.
+m = d["M1_truncation"]
+assert all(v["0.69"]["resolved"] for v in m.values()), "an a=0.69 entry became unresolved"
+assert 0.20 < m["kappa1"]["0.69"]["rel_err"] < 0.25 and 0.80 < m["Omega1"]["0.69"]["rel_err"] < 0.90
+assert max(v["0.69"]["rel_err"] for k, v in m.items() if k[0] == "H") < 0.0636, \
+    "a metric function now exceeds Kerr's 6.36% -- the 'metric below Kerr' reading is dead"
+
+# (5) M2 bands as pre-registered; Omega1 is H in every window, kappa1 only in the two shorter ones.
+s = d["M2_radius"]["series"]
+assert all(0.98 <= v <= 1.02 for v in s["Omega1"]["windows"].values())
+assert all(0.98 <= s["kappa1"]["windows"][w] <= 1.02 for w in ("6", "10")) and s["kappa1"]["windows"]["16"] > 1.02
+print(f"PASS  sGB supplement (5 parse gates; Yunes-Stein 1 and 4/3 reproduced; O(a^2) truncation at 0.69: "
+      f"kappa1 {100*m['kappa1']['0.69']['rel_err']:.1f}%, Omega1 {100*m['Omega1']['0.69']['rel_err']:.1f}%, "
+      f"metric functions <= {100*max(v['0.69']['rel_err'] for k, v in m.items() if k[0] == 'H'):.1f}%)")
+PYEOFSGB
+
 echo "========================================"
 [ $FAIL -eq 0 ] && echo "BLACKHOLE GATE: ALL GREEN" || echo "BLACKHOLE GATE: FAILURES"
 exit $FAIL

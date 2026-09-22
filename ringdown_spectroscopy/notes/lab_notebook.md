@@ -1116,3 +1116,61 @@ its ringdown sits far lower in frequency and closer to the band edge, where our 
 "decisive overtone evidence" in their analysis does not imply *our* δ is informative, since those are
 different measurements. The paper does not state the ringdown SNR, and GWOSC availability for that epoch is
 unchecked. **Next step is a measurement, not a claim: run the NPE on GW231028 and read δ_σ/prior.**
+
+## 2026-09-22 — sGB supplement: 40-order spin series parsed behind five gates, O(a²) truncation measured
+
+**Object.** arXiv:2406.11986 (METRICS) supplementary notebook: the sGB O(ζ) corrections φ (scalar), H1–H4
+(metric), Ω⁽¹⁾_H, κ⁽¹⁾ as unresummed series to a⁴⁰. **Symbols from `main.tex` and the notebook header, not a
+title:** `a` = dimensionless spin, `χ = cos θ`, ζ = α²/M⁴. (An earlier census had χ as the spin variable —
+retracted before any number was computed.)
+
+**Parser redesign.** Evaluates the Mathematica box tree directly (shunting-yard per RowBox → postfix program,
+mpmath 50 digits). The first version emitted Python and `eval`'d it: eval on downloaded text, and CPython's
+own parser raises RecursionError on a flat 10⁵-term sum. Unknown leaves and box heads raise instead of guessing.
+
+**Gates (all PASS; nothing below them is reported otherwise):**
+| gate | what | result |
+|---|---|---|
+| G2 | parity in `a` by exact DFT (the parser never used the census) | Ω odd, φ/H1–4/κ even ✓ |
+| G3 | Ω⁽¹⁾ = Ω⁽⁰⁾(H2−H4) at r₊, χ-independent (rigidity) | 6e-41 at a=0.1; at the a⁴² truncation scale throughout ✓ |
+| G4 | **published:** Yunes & Stein 2011 (arXiv:1101.2921) Eq. 8, static scalar ratios | reproduced **1.000000000000000** vs 1, **1.333333333333333** vs 4/3; all other 1/rᵖ ≤ 5e-44 ✓ |
+| G5 | κ⁽¹⁾ re-derived from H1–H4 through main.tex's κ formula; Kerr κ⁽⁰⁾ as control | 1e-29 at a=0.1 ✓; O(ζ) part of ξ² vanishes at r₊ ✓ |
+
+**Erratum candidate in the paper.** main.tex prints Ω⁽⁰⁾_H = a/(2Mb), b = √(1−a²) (its glossary). Its own
+metric gives a/(2M(1+b)) — the printed form is a/(2M) at small spin where the metric gives a/(4M). G3 first
+FAILED by exactly (1+b)/b (2.005/2.048/2.155/2.400) while χ-independence held to 1e-44 — a prefactor error,
+not a parse error. The notebook's Ω⁽¹⁾ agrees with the metric-derived Ω⁽⁰⁾; journal version not checked.
+
+**M1 (pre-registered, committed before computing): O(a²) truncation error vs the a⁴⁰ series.**
+| object | a = 0.69 | a = 0.90 |
+|---|---|---|
+| κ⁽¹⁾ | **22.6%** | 93.8% |
+| Ω⁽¹⁾ | **84.6%** | 166% |
+| H1–H4, r = 3M, χ ∈ {0, 0.5} | 1.4–6.1% | UNRESOLVED (a⁴⁰ reference not converged) |
+| H1–H4, r = 6M | 1.1–1.8% | UNRESOLVED |
+| φ | 4.8–4.9% | 30–32% |
+| *Kerr 220 QNM (31/32)* | *6.36%* | *18.86%* |
+Every a=0.69 entry resolved (reference last term ≤ 6e-5 of the error). **Prediction partially WRONG:** I said
+10–30% for the horizon quantities — κ⁽¹⁾ is in range, Ω⁽¹⁾ is 3× outside it; and I half-expected a metric
+function to exceed Kerr's 6.36% — none does.
+
+**M2 (pre-registered): radius in a, Domb–Sykes in u = a², windows 6/10/16.** Controls on the same 21-coefficient
+scale: Kerr κ⁽⁰⁾ (R=1) → 1.0023/1.0031/1.0069; same-sign competitor (R=1) → 1.034/1.053/1.198; nearer
+competitor (R=0.894) → 0.908/0.911/0.919. **Ω⁽¹⁾ → 1.0065/1.0086/1.0182 — H in every window. κ⁽¹⁾ →
+1.0101/1.0143/1.0449 — H at w6/w10, OUT of band at w16**, drift 8× the same-class control's. Ratio signs
+positive after the first 1–2 ⇒ singularity on the real axis at |a| = 1. Reading: H favoured, established for
+Ω⁽¹⁾ by the pre-registered criterion, not for κ⁽¹⁾. Every failure mode of this estimator biases UP, so ≥1.0
+readings do not exclude a true R slightly below 1; not-H (< 0.95) would need a >6% bias, which only the
+same-sign-competitor control produced (at w16).
+
+**Exploratory (not pre-registered): effective exponent at u = 1.** gₖ = k(1 − ratioₖ) − 1, extrapolated linearly
+in 1/k over the last 6: Kerr control **+0.495** (truth +0.5) ⇒ validated; **κ⁽¹⁾ −0.476, Ω⁽¹⁾ −0.537.** The
+sGB horizon corrections appear to **diverge like 1/√(1−a²)** at extremality, where the Kerr quantities vanish
+like √(1−a²). That is the mechanism for the large truncation errors: a divergent singularity at |a| = 1
+leaves the coefficients decaying slowly. Sign negative at every available order; the value is a 6-point
+extrapolation and quoted as such.
+
+**Scope.** This is the BACKGROUND's truncation. It is not the QNM correction's truncation, which the notebook
+does not contain; the paper's Appendix B tables of ω⁽¹⁾ at spins to 0.85 are the next object, and extracting a
+truncation error from tabulated values is inference with an error bar (31's lesson), not verification.
+Gated (62). Artifact: `results/38_sgb_supplement.json`.

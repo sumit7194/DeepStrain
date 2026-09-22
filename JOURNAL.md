@@ -11,6 +11,33 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-09-22 — the sGB spin series, measured: the metric is fine, the horizon is not
+
+The open item since 09-04: stop quoting our Kerr-QNM truncation (6.36%) as the statement of `ansatz`'s sGB
+limitation and measure their object. METRICS' supplement carries the sGB corrections to a⁴⁰.
+
+Two retractions came first and cost nothing because no number had been computed: the expansion variable is
+`a` (spin), not χ (= cos θ), and the one bare `a` in the census was Ω — odd in spin because frame dragging
+reverses with spin. That parity split became a parser gate.
+
+The parser was rebuilt to evaluate the Mathematica boxes directly (a hook rightly refused `eval` on downloaded
+text, and CPython's parser can't take a 10⁵-term sum anyway). Five gates, all passing: parity; horizon
+rigidity tying H2, H4 and Ω together to 1e-41; κ⁽¹⁾ re-derived from H1–H4 to 1e-29; and the **published
+Yunes–Stein 2011 scalar profile reproduced side by side — 1 and 4/3 exactly.** G3 first failed by exactly
+(1+b)/b, which turned out to be the paper's *printed* Ω⁽⁰⁾ = a/(2Mb) disagreeing with its own metric; the
+notebook data are fine.
+
+Pre-registered, then measured: O(a²) truncation at a = 0.69 is **1–6% for the metric functions (below Kerr's
+6.36%), 22.6% for κ⁽¹⁾ and 84.6% for Ω⁽¹⁾.** My prediction got the horizon half wrong. Radius: Ω⁽¹⁾ is R = 1 in
+every window; κ⁽¹⁾ only in two of three. Exploratory and control-validated: both horizon corrections diverge
+like 1/√(1−a²) at extremality, which is why their series converge so slowly.
+
+What this does and doesn't license for `ansatz`: their O(a²) substrate is good to a few percent in the metric
+at the remnant spin, and poor for anything evaluated at the horizon. It says nothing yet about the QNM
+correction's own truncation, which lives in the paper's tables, not the notebook.
+
+---
+
 ## 2026-09-04 — an outside number found a method error in our own spin-truncation script
 
 `bridge` relayed the one open item on our side: run the coefficient-decay check on the *actual* sGB spin

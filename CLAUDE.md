@@ -941,6 +941,22 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
   EdGB gravity **as well**") rather than measuring it — the same proxy step our open item flagged. The
   decisive numbers now exist non-perturbatively: **METRICS, arXiv:2406.11986 / PRD 110, 064019**, sGB QNMs to
   a ≤ 0.85 with ~40 orders in spin. Gated (59). Artifact: 32_spin_truncation_crosscheck.json.
+- **sGB SUPPLEMENT MEASURED (2026-09-22): the O(a²) substrate is fine for the METRIC (1–6%) and poor at the
+  HORIZON (κ⁽¹⁾ 22.6%, Ω⁽¹⁾ 84.6%) at a = 0.69.** `38_sgb_supplement.py` parses arXiv:2406.11986's notebook
+  (φ, H1–H4, Ω⁽¹⁾, κ⁽¹⁾ to a⁴⁰; **`a` = spin, χ = cos θ** — an earlier census had χ as spin, retracted before
+  any number) by evaluating the Mathematica box tree directly (no eval; mpmath 50 digits). **Five gates, all
+  pass:** parity (Ω odd, rest even — physics, never used by the parser); horizon rigidity Ω⁽¹⁾ = Ω⁽⁰⁾(H2−H4)
+  at r₊ to 6e-41; κ⁽¹⁾ re-derived from H1–H4 to 1e-29; **published Yunes & Stein 2011 Eq. 8 scalar ratios
+  reproduced as 1 and 4/3 exactly.** **Erratum candidate:** main.tex prints Ω⁽⁰⁾ = a/(2Mb), off from its
+  own metric by (1+b)/b; the notebook data follow the metric. **Pre-registered M1** (O(a²) vs a⁴⁰): metric
+  functions 1.1–6.1% (all below Kerr QNM 6.36%), φ ~4.8%, κ⁽¹⁾ 22.6%, Ω⁽¹⁾ 84.6% — my "10–30% horizon"
+  prediction was wrong for Ω⁽¹⁾; at a = 0.90 the metric entries are UNRESOLVED (reference not converged).
+  **M2** radius: Ω⁽¹⁾ R = 1.007/1.009/1.018 (H in every window), κ⁽¹⁾ 1.010/1.014/1.045 (H at 2 of 3 windows,
+  drift 8× the same-class control) ⇒ H favoured, not established for κ⁽¹⁾. **Exploratory, control-validated
+  (Kerr +0.495 vs 0.5):** effective exponent at a = 1 is **−0.48 (κ⁽¹⁾), −0.54 (Ω⁽¹⁾)** ⇒ the sGB horizon
+  corrections diverge like 1/√(1−a²) at extremality, which is why they converge slowly. **Scope:** background
+  truncation only; the QNM correction's truncation lives in the paper's Appendix B tables and is the next
+  object. Gated (62). Artifact: 38_sgb_supplement.json.
 - **ERROR-RATIO STABILITY MEASURED (2026-09-04, same day, prompted by `bridge` asking whether their
   observation survived the corrected extractor): the RISE survives, and we had judged it with the WRONG
   INSTRUMENT.** The observation was that the successive error ratio climbs with order (convergence rate
