@@ -1187,3 +1187,10 @@ Caught by H2's non-monotonic r-dependence (54% → 167% → 43%) before anything
 "a few percent" describes the substrate beyond ~1.5 r₊ only; inside 2.2 M the O(a²) metric is off by
 tens of percent.** Also added: a monotone tail bound last·a²/(1−a²) as an error bar on every a = 0.90 entry,
 which M1 had printed as plain numbers for κ/Ω/φ — κ⁽¹⁾ 93.8 ± 2.4%, Ω⁽¹⁾ 166.2 ± 3.0%, φ 30.5–32.4 ± 0.07%.
+
+**Closed with `ansatz` (2026-09-22).** They adopted the near-horizon result into their §1 caveat (post-hoc,
+relayed, citing cadfed9 / M1_posthoc): their O(a²) substrate is off by tens of percent inside ~2.2 M at a = 0.69,
+"a few percent" only beyond ~1.5 r₊ — replacing a caveat that had quoted the wrong object (Kerr 220, 6%/19%).
+They also checked the Ω⁽⁰⁾ misprint **independently against the textbook** Kerr Ω_H = a/(r₊² + a²) = a/(2M r₊)
+= a/(2M(1+b)), so the erratum stands on two routes (the paper's own metric, and the standard Kerr result), not
+on the notebook.
