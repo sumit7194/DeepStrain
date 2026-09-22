@@ -557,3 +557,36 @@ mode in GW250114. Our parked B2 item concerned the *(4,4) quadratic* mode, which
 modelling with 2·f₂₂₀ frequency-locking that the vanilla `ringdown` package cannot do. 220Q is same-(ℓ,m)
 self-coupling and may be reachable **with the machinery we already have** — a narrower and possibly tractable
 version of a test we closed as out of reach. Unverified beyond a snippet; check before acting.
+
+
+## σ(δ) saturation — positioned against the literature (2026-09-22, verified at abstract level)
+
+An outside reviewer (relayed via `bridge`) flagged that our **σ(δ) saturates rather than following 1/SNR**
+result needs positioning before it is called a finding. Checked at the primary source.
+
+**[arXiv:2509.17315](https://arxiv.org/abs/2509.17315) [A]** — Chandra & Calderón Bustillo, *Black-hole
+ringdown analysis with inspiral-merger informed templates and limitations of classical spectroscopy*,
+22 Sep 2025. Verbatim: *"by analysing simulated signals with post-merger signal-to-noise ratios up to 100,
+we show that classical spectroscopy based on overtone detection alone cannot provide strong no-hair tests."*
+
+**The flag was right to raise: "more SNR does not rescue the no-hair test" is in the literature, and ours
+must be read against it.** But three things separate the results, and one correction goes back to the relay:
+
+| | theirs | ours |
+|---|---|---|
+| statistic | Bayes factors, model selection over overtone count | **posterior WIDTH** σ(δ) of a *fixed* model |
+| mechanism | **non-orthogonality of QNMs** ⇒ mode content strongly model-dependent, multiple inconsistent interpretations equally supported | posterior pinned at the **prior** across a 3.9× SNR span |
+| low-SNR regime | abstract is silent | σ/σ_prior, informativeness threshold **SNR ≈ 47**, crossover **≈ 84** |
+
+⇒ **not a rediscovery** — a complementary limit reached by a different route on a different quantity. It
+should nonetheless be *cited alongside*, because a reader who knows 2509.17315 will otherwise ask.
+
+**⚠️ THE RELAYED MECHANISM WAS WRONG.** The reviewer attributed their limitation to *"an Ockham penalty from
+resolvable overtones"*. The abstract attributes it to **non-orthogonality**, not an Occam factor; the Ockham
+framing appears to come from a search snippet's gloss. Same species this fleet keeps finding: a mechanism
+that mutates in relay while the citation stays correct. **The flag survives, the explanation does not.**
+
+**AND IT CROSS-LINKS TO OUR OWN L3.** They find non-orthogonality makes inferred mode content
+model-dependent; we measured that the basis rotation carries **zero** detection information (max |ΔAUC| =
+0.00000, Schur-complement equivalence) while the *implied prior* moves log₁₀BF by −0.454. Compatible — and
+ours names which half of "non-orthogonality" does the work: **not the decorrelation, the prior it smuggles.**
