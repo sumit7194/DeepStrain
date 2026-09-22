@@ -1174,3 +1174,16 @@ extrapolation and quoted as such.
 does not contain; the paper's Appendix B tables of ω⁽¹⁾ at spins to 0.85 are the next object, and extracting a
 truncation error from tabulated values is inference with an error bar (31's lesson), not verification.
 Gated (62). Artifact: `results/38_sgb_supplement.json`.
+
+**Post-hoc, requested by `ansatz` the same day (NOT pre-registered).** Their Killing-tensor computation
+consumes H1–H4 only, never Ω or κ — so the rows that measure *their* substrate are the metric functions, and
+quoting Ω⁽¹⁾'s 85%/166% as "the substrate's error" would overstate it. But κ⁽¹⁾ is built from the H's AT r₊,
+so its slow convergence hinted the H's degrade near the hole, and a Killing tensor is global. **Measured at
+a = 0.69 (r₊ = 1.724 M): H4 — which never approaches zero — goes 6.0% (1.5 r₊) → 17% (2.2 M) → 26% (1.2 r₊)
+→ 64% (1.05 r₊) → 88% (r₊); H3 stays 0.2–5%.** H1 and H2 CROSS ZERO near the horizon (H1 = +0.031 at r₊), so
+their first-printed relative errors (423%, 1245%, 167%) are artifacts on absolute errors of 0.04–0.18; the
+script now flags any entry below 20% of the largest |Hᵢ| at that point and reports absolute error beside it.
+Caught by H2's non-monotonic r-dependence (54% → 167% → 43%) before anything was sent. **Net for `ansatz`:
+"a few percent" describes the substrate beyond ~1.5 r₊ only; inside 2.2 M the O(a²) metric is off by
+tens of percent.** Also added: a monotone tail bound last·a²/(1−a²) as an error bar on every a = 0.90 entry,
+which M1 had printed as plain numbers for κ/Ω/φ — κ⁽¹⁾ 93.8 ± 2.4%, Ω⁽¹⁾ 166.2 ± 3.0%, φ 30.5–32.4 ± 0.07%.

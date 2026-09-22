@@ -483,8 +483,14 @@ def truncation(c, a, keep=2):
     last = abs(c[top] * a ** top)
     q = abs(c[top] / c[prev]) * a ** (top - prev)
     tail = last * q / (1 - q) if q < 1 else mp.inf
-    return {"rel_err": float(err / abs(full)), "full": float(full), "truncated": float(t),
+    # Conservative bound (added 2026-09-22 at ansatz's request): if the step-2 ratios keep RISING toward their
+    # R = 1 limit -- as every series here does -- each further term is at most a^2 times the previous, so the
+    # tail is at most last * a^2 / (1 - a^2). This is larger than the geometric estimate, which freezes the
+    # ratio at its current value. It becomes the error bar on rel_err.
+    bound = last * a * a / (1 - a * a)
+    return {"rel_err": float(err / abs(full)), "abs_err": float(err), "full": float(full), "truncated": float(t),
             "last_term_over_err": float(last / err), "geom_tail_over_err": float(tail / err),
+            "tail_bound_over_err": float(bound / err), "rel_err_bar": float(bound / abs(full)),
             "resolved": bool(last < mp.mpf("0.01") * err)}
 
 
@@ -532,6 +538,48 @@ def measure(F, report):
               f"(last/err {row['0.90']['last_term_over_err']:.0e}, tail/err {row['0.90']['geom_tail_over_err']:.0e})")
     print("     ? = UNRESOLVED by the pre-registered rule (the a^40 reference's last term is >= 1% of the error)")
     report["M1_truncation"] = m1
+
+    # ---- POST-HOC (ansatz, 2026-09-22), NOT pre-registered ------------------------------------------------
+    # (a) the monotone tail bound as an error bar on every a = 0.90 entry, which M1 printed as plain numbers
+    #     for kappa, Omega and phi while applying the resolution rule only to the H rows;
+    print("\n  M1 POST-HOC (a): a = 0.90 with the monotone tail bound as an error bar (last * a^2/(1-a^2))")
+    for name in ("kappa1", "Omega1") + tuple(k for k in m1 if k.startswith("phi")):
+        x = m1[name]["0.90"]
+        print(f"     {name:22s} {100*x['rel_err']:7.2f}% +/- {100*x['rel_err_bar']:.2f}%   "
+              f"(bound/err {x['tail_bound_over_err']:.1e}; resolved by the pre-registered rule: {x['resolved']})")
+    # (b) the metric functions NEAR THE HORIZON at a = 0.69. kappa^(1) is built from H1..H4 at r_+ and
+    #     converges slowly, which is indirect evidence that the H's do too THERE -- and a Killing tensor is
+    #     global, so "1-6% at 3M and 6M" may not describe the substrate everywhere.
+    a69 = mp.mpf("0.69"); rp69 = 1 + mp.sqrt(1 - a69 * a69)
+    radii = [("r+(0.69)", rp69), ("1.05 r+", mp.mpf("1.05") * rp69), ("1.2 r+", mp.mpf("1.2") * rp69),
+             ("2.2M", mp.mpf("2.2")), ("1.5 r+", mp.mpf("1.5") * rp69)]
+    print(f"\n  M1 POST-HOC (b): H1..H4 O(a^2) truncation near the horizon at a = 0.69  (r+ = {float(rp69):.4f} M)")
+    near = {}
+    for lab, r in radii:
+        for chi in ("0", "0.5"):
+            for k in ("H1", "H2", "H3", "H4"):
+                c = [mp.re(x) for x in a_coeffs(F[k], r=r, chi=mp.mpf(chi))]
+                big = max(abs(x) for x in c)
+                c = [x if abs(x) > mp.mpf(10) ** -35 * big else mp.mpf(0) for x in c]
+                x = truncation(c, a69)
+                near[f"{k}(r={lab},chi={chi})"] = dict(x, r=float(r))
+            row = [near[f"{k}(r={lab},chi={chi})"] for k in ("H1", "H2", "H3", "H4")]
+            # ⚠️ H1 and H2 CROSS ZERO near the horizon (H1 = +0.031 at r+, chi = 0), so their relative errors
+            # read 423% / 1245% / 167% on absolute errors of 0.05-0.17. First pass printed those as if they
+            # were truncation findings; H2's non-monotonic r-dependence (54% -> 167% -> 43%) exposed it. An
+            # entry whose |value| is < 20% of the largest |H_i| at that point is flagged `~` and must be read
+            # by its ABSOLUTE error. H4 never approaches zero and carries the trend.
+            scale = max(abs(x["full"]) for x in row)
+            for x in row:
+                x["near_zero"] = bool(abs(x["full"]) < 0.2 * scale)
+            print(f"     r = {lab:9s} ({float(r):.4f})  chi={chi:3s}  " + "  ".join(
+                f"{k} {100*x['rel_err']:7.1f}%{'~' if x['near_zero'] else ' '}(abs {x['abs_err']:.3f})"
+                for k, x in zip(("H1", "H2", "H3", "H4"), row)))
+    print("     ~ = the function is near a zero crossing there: the relative error is not meaningful, read abs")
+    report["M1_posthoc"] = {"note": "requested by ansatz 2026-09-22 after M1; NOT pre-registered",
+                            "a090_error_bars": {n: m1[n]["0.90"] for n in m1
+                                                if n in ("kappa1", "Omega1") or n.startswith("phi")},
+                            "near_horizon_a069": near}
 
     # ---- M2 with its controls on the SAME scale: 21 exact coefficients in u, identical estimator ----------
     def taylor_u(g, n=21, N=128, rho=mp.mpf("0.5")):

@@ -956,7 +956,10 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
   (Kerr +0.495 vs 0.5):** effective exponent at a = 1 is **−0.48 (κ⁽¹⁾), −0.54 (Ω⁽¹⁾)** ⇒ the sGB horizon
   corrections diverge like 1/√(1−a²) at extremality, which is why they converge slowly. **Scope:** background
   truncation only; the QNM correction's truncation lives in the paper's Appendix B tables and is the next
-  object. Gated (62). Artifact: 38_sgb_supplement.json.
+  object. **POST-HOC (ansatz): their substrate is the H's, not Ω/κ — and the H's DEGRADE toward the hole:**
+  H4 (never near zero) 6% at 1.5 r₊ → 17% at 2.2M → 88% at r₊ (a=0.69); H1/H2 cross zero there, so their
+  423%/1245% relative errors are flagged artifacts, read by absolute error. "A few percent" holds beyond
+  ~1.5 r₊ only. Gated (62). Artifact: 38_sgb_supplement.json.
 - **ERROR-RATIO STABILITY MEASURED (2026-09-04, same day, prompted by `bridge` asking whether their
   observation survived the corrected extractor): the RISE survives, and we had judged it with the WRONG
   INSTRUMENT.** The observation was that the successive error ratio climbs with order (convergence rate

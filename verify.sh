@@ -1434,6 +1434,11 @@ assert max(v["0.69"]["rel_err"] for k, v in m.items() if k[0] == "H") < 0.0636, 
 s = d["M2_radius"]["series"]
 assert all(0.98 <= v <= 1.02 for v in s["Omega1"]["windows"].values())
 assert all(0.98 <= s["kappa1"]["windows"][w] <= 1.02 for w in ("6", "10")) and s["kappa1"]["windows"]["16"] > 1.02
+# (6) POST-HOC (ansatz): the metric functions degrade toward the horizon. H4 never nears zero, so it carries the
+#     trend; H1/H2 cross zero there and must stay FLAGGED, or their 423%/1245% get quoted as truncation.
+nh = d["M1_posthoc"]["near_horizon_a069"]
+assert nh["H4(r=r+(0.69),chi=0)"]["rel_err"] > 0.5 and nh["H4(r=1.5 r+,chi=0)"]["rel_err"] < 0.10
+assert not nh["H4(r=r+(0.69),chi=0)"]["near_zero"] and nh["H1(r=r+(0.69),chi=0)"]["near_zero"]
 print(f"PASS  sGB supplement (5 parse gates; Yunes-Stein 1 and 4/3 reproduced; O(a^2) truncation at 0.69: "
       f"kappa1 {100*m['kappa1']['0.69']['rel_err']:.1f}%, Omega1 {100*m['Omega1']['0.69']['rel_err']:.1f}%, "
       f"metric functions <= {100*max(v['0.69']['rel_err'] for k, v in m.items() if k[0] == 'H'):.1f}%)")
