@@ -949,7 +949,8 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
   PG's own Table V (Taylor coefficients; METRICS reprinted the degree-6-fit ones, sensitivity ≤1.5 pts), G1 then
   passes all three (a⁰ ≤0.34%, residual slopes 2.07–3.15). **S1: METRICS' printed fit polynomials truncated at a⁴
   miss their own table by 383% at a = 0.2 (022P)** — degree-8 least-squares artefacts, not Taylor coefficients,
-  despite the text calling w₀,₁,₂ "close to" PG. Polar modes only. Gated (63). Artifact: 39_sgb_qnm_truncation.json.
+  despite the text calling w₀,₁,₂ "close to" PG. Polar modes only. **Errata scope: all three checked live in arXiv v2 (the
+  latest; pinned-v2 main.tex byte-identical to the one read) — journal version paywalled, NOT checked.** Gated (63). Artifact: 39_sgb_qnm_truncation.json.
 - **sGB SUPPLEMENT MEASURED (2026-09-22): the O(a²) substrate is fine for the METRIC (1–6%) and poor at the
   HORIZON (κ⁽¹⁾ 22.6%, Ω⁽¹⁾ 84.6%) at a = 0.69.** `38_sgb_supplement.py` parses arXiv:2406.11986's notebook
   (φ, H1–H4, Ω⁽¹⁾, κ⁽¹⁾ to a⁴⁰; **`a` = spin, χ = cos θ** — an earlier census had χ as spin, retracted before

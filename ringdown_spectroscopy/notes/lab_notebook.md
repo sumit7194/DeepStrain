@@ -1231,3 +1231,11 @@ polynomials as a spin expansion gets nonsense — 31's polyfit lesson, in a publ
 **Floor.** Two independent calculations (spectral vs shooting) agree to ~0.3% of ω⁽¹⁾ at a⁰ — PG's Taylor-vs-fit
 spread is the same size — so the 10–15% measured is ~40× above the floor. Scope: polar modes only (PG gives no
 axial series here). Gated (63). Artifact: `results/39_sgb_qnm_truncation.json`.
+
+**Version check on the METRICS errata (2026-09-22, asked by `bridge`).** arXiv:2406.11986 has v1 (17 Jun 2024)
+and v2 (7 Sep 2024). Scripts 38/39 read the unversioned `arxiv.org/src/2406.11986` (= latest); its `main.tex` is
+dated 7 Sep 2024, and the **explicitly pinned v2 source's `main.tex` is byte-identical** (`cmp`). The rendered v2
+HTML independently shows the Ω⁽⁰⁾ = a/(2Mb) line. ⇒ **All three errata — Ω⁽⁰⁾ factor (1+b)/b, the 033P sign in
+the PG reprint, the "truncated at a⁴" fits — are live in the LATEST arXiv version.** The journal version (PRD 110,
+064019) is paywalled and **not checked**; nothing here claims it carries them. The PG sign is established against
+PG's own tables (arXiv:2207.11267, latest version).
