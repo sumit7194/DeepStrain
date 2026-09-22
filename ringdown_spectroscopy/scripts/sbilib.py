@@ -78,15 +78,18 @@ def simulate_tonecount_conv(mass, chi, n_tones, amp_frac, rng, noise_wins, asd_f
     return x, float(np.sqrt(overtone_snr2))
 
 
-def simulate(mass, chi, delta, rng, n_det=2):
-    """Whitened-domain segment: Kerr 220 + (1+delta)-shifted 221 + white noise."""
+def simulate(mass, chi, delta, rng, n_det=2, n_samp=N_SAMP, t0_max_ms=T0_MAX_MS, amp_range=PEAK_AMP_RANGE):
+    """Whitened-domain segment: Kerr 220 + (1+delta)-shifted 221 + white noise.
+
+    Window, start-time range and amplitude range are parameters so a heavier event can get its own network
+    (40/41, GW231028 at ~240 Msun); the defaults are 09's, unchanged."""
     i = min(max(np.searchsorted(CHI_GRID, chi), 0), len(CHI_GRID) - 1)
     f1, tau1 = W220[i][0] / mass, W220[i][1] * mass
     f2, tau2 = W221[i][0] / mass * (1.0 + delta), W221[i][1] * mass
-    t = np.arange(N_SAMP) / FS
-    t0 = rng.uniform(0, T0_MAX_MS / 1000.0)
-    x = np.empty((n_det, N_SAMP), dtype=np.float32)
-    a220 = rng.uniform(*PEAK_AMP_RANGE)
+    t = np.arange(n_samp) / FS
+    t0 = rng.uniform(0, t0_max_ms / 1000.0)
+    x = np.empty((n_det, n_samp), dtype=np.float32)
+    a220 = rng.uniform(*amp_range)
     for d in range(n_det):
         amp1 = a220 * rng.uniform(0.7, 1.3)
         amp2 = amp1 * rng.uniform(0.5, 1.5)
@@ -94,7 +97,7 @@ def simulate(mass, chi, delta, rng, n_det=2):
             dict(f=f1, tau=tau1, amp=amp1, phi=rng.uniform(-np.pi, np.pi)),
             dict(f=f2, tau=tau2, amp=amp2, phi=rng.uniform(-np.pi, np.pi)),
         ]
-        x[d] = rdlib.damped_sinusoids(t, t0, params) + rng.standard_normal(N_SAMP)
+        x[d] = rdlib.damped_sinusoids(t, t0, params) + rng.standard_normal(n_samp)
     return x
 
 
@@ -148,10 +151,10 @@ def simulate_tonecount(mass, chi, n_tones, amp_frac, rng, n_det=2, noise=None, s
 
 
 class Embed(torch.nn.Module):
-    def __init__(self, n_out=56):
+    def __init__(self, n_out=56, n_samp=N_SAMP):
         super().__init__()
         self.net = torch.nn.Sequential(
-            torch.nn.Unflatten(1, (2, N_SAMP)),
+            torch.nn.Unflatten(1, (2, n_samp)),
             torch.nn.Conv1d(2, 16, 9, padding=4), torch.nn.ReLU(),
             torch.nn.Conv1d(16, 32, 9, padding=4, stride=2), torch.nn.ReLU(),
             torch.nn.Conv1d(32, 32, 9, padding=4, stride=2), torch.nn.ReLU(),
