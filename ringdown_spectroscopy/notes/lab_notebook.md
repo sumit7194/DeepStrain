@@ -1239,3 +1239,29 @@ HTML independently shows the Ω⁽⁰⁾ = a/(2Mb) line. ⇒ **All three errata 
 the PG reprint, the "truncated at a⁴" fits — are live in the LATEST arXiv version.** The journal version (PRD 110,
 064019) is paywalled and **not checked**; nothing here claims it carries them. The PG sign is established against
 PG's own tables (arXiv:2207.11267, latest version).
+
+## 2026-09-23 — GW231028: preflight, a pre-registered 240-Msun NPE, and the first null check of our "informative" gate
+
+**Why a new network.** GW231028_153006 (arXiv:2509.08657: 221 at BF ~189; GWOSC O4a H1+L1, network SNR ~22, final
+mass 144 M☉ source × 1.64 ⇒ ~236 detector-frame, Wang 246) is outside 09's prior (M ∈ [40, 120]) and badly served
+by its 40 ms window (~2.6 τ₂₂₀ at 240 M☉). Running 09 on it would return the prior edge.
+
+**40 preflight — kept the idealised simulator.** Whitening fidelity (whitened injected 220 vs the ideal damped
+sinusoid) **0.981 at 240 M☉ / 80 Hz vs 0.959 at the validated 251 Hz control.** ⚠️ The first version read
+0.47 / **0.35** — scoring the setup 09's real-noise injections already validated at 0.35. Cause: it injected a
+damped COSINE (a jump from 0 at t₀) and cropped from 10 ms before t₀; whitening is acausal and put 39–44% of the
+energy before t₀ where no template lives. Continuous start + t ≥ t₀ window fixed it. Event whitened peak |x|
+3.7 (H1) / 2.9 (L1), off-source std 1.13 / 1.08.
+
+**41 pre-registered** (M ∈ [150, 350], 0.1 s window, 20 ms start range, amplitude (1, 12), 150k sims; weights-only
+persistence — no pickled object). R1 coverage, R2 real-O4a injections calibrated to the event's loudness with
+R2b requiring the estimate to MOVE with δ (30's lesson), R3 trust check. Prediction: NOT informative.
+
+**The gate audit this forced (a real result, not bookkeeping).** A 3-epoch smoke network returned δ sd/prior
+**0.824** on the event — PASSING the project's 0.88 "informative" bar while knowing almost nothing. So the bar was
+tested against a null for the first time, on 09 itself: **pure white-noise input ⇒ sd/prior 0.921 [P10 0.886, P90
+0.968]**; a loud simulated 68/0.69 ringdown ⇒ 0.811. **GW250114's 0.82 sits below the whole no-signal band ⇒ its
+"informative" status survives**, and 0.88 was a sound bar *for 09* (it sits at the floor's P10). But it is a
+property of a network — an untrained flow emits a narrower-than-prior blob for any input — so 41 now measures its
+own floor (R0) and requires the event below min(0.88, R0 P10). Amended before the full run, reason recorded; the
+smoke network's floor was 0.828/P10 0.812, and the amended gate correctly rejects its 0.822.
