@@ -590,3 +590,31 @@ that mutates in relay while the citation stays correct. **The flag survives, the
 model-dependent; we measured that the basis rotation carries **zero** detection information (max |ΔAUC| =
 0.00000, Schur-complement equivalence) while the *implied prior* moves log₁₀BF by −0.454. Compatible — and
 ours names which half of "non-orthogonality" does the work: **not the decorrelation, the prior it smuggles.**
+
+
+## The 40-order sGB spin series — checked, alive, and it belongs to `ansatz` (2026-09-22, body read)
+
+Queued lead from an outside reviewer via `bridge`: could **[arXiv:2406.11986](https://arxiv.org/abs/2406.11986)**
+(METRICS) settle the sGB spin-convergence question with no new Leaver runs? **Failure mode declared before
+checking:** if the ~40 orders were Padé-resummed rather than raw coefficients they are useless for a ratio
+test, and the lead would die *quietly* unless said in advance.
+
+**It does not die.** Body, verbatim: *"we include sGB corrections to the metric up to 40 orders in
+dimensionless spin"*, and **the supplemental material provides explicit power series "up to the 40th order of
+a."** Raw, tabulated, unresummed.
+
+**⚠️ But the abstract alone says "second order in spin", and I nearly filed that as contradicting our own
+[A]-graded note.** Two fetches disagreeing is not settled by preferring the later one. The body shows **three
+different expansions in one paper**, and the abstract mentions only the smallest:
+
+| expansion | order | what it is |
+|---|---|---|
+| sGB **metric** corrections | **40** in spin | the raw series, in the supplement |
+| QNM **frequency** polynomial fit | 2 in spin | what the abstract quotes |
+| Chebyshev × Legendre | unstated | the **spectral basis** — not a spin expansion at all |
+
+**AND THE OBJECT DISTINCTION DECIDES WHO THIS HELPS.** Their 40 orders are the **metric's** spin series. Our
+P0 was the **QNM frequency's** spin series — a different function, possibly a different radius, and already
+resolved at R = 1 for Kerr. **But the metric is `ansatz`'s object**: their substrate is the O(ζ)O(χ²)
+*metric*, so a ratio test on this supplement bounds *their* truncation directly, with **no new computation
+anywhere in the fleet**. Handed over rather than taken.
