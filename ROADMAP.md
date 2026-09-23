@@ -230,6 +230,43 @@ if anyone wants it: the label-efficiency *curve shape*, which needs more budgets
 
 ---
 
+## MOONSHOT LADDER (2026-09-23) — ranked by difficulty × long odds × payoff
+
+Built from (a) a full inventory of planned-but-undone items in our own docs and (b) a four-agent literature
+sweep, with every load-bearing external claim below **opened at the primary source by hand** (✓ = verified
+2026-09-23; [S] = snippet only). Scores: **D** difficulty 1–5, **P** chance of a *decisive* outcome (positive
+or clean null), **I** impact if it goes the interesting way 1–5. Rows sorted by **Score = I × D / P**, where P is the chance of the *interesting* outcome (a detection or
+a decisive refutation of a live claim) — the user's brief was
+"highest complexity, least chance, biggest impact". Effort is never a reason to drop an item.
+
+| # | Moonshot | D | P | I | Score | Doable now? |
+|---|---|---|---|---|---|---|
+| M1 | **Area-quantisation / quantum-ringdown tail in GW250114** — search the post-ringdown residual for the weak, long-lived low-frequency "soft graviton" flux predicted by Topaloglou, Cuoco & Casadio (arXiv:2609.14160 ✓, Sep 2026). The only route in this list to *S = A/4 as an observable*. No quantitative LIGO-band amplitude in the abstract ⇒ step 0 is extracting one from the paper. | 5 | ~1% | 5 | 2500 | yes (data public) |
+| M2 | **Eccentric subsolar search on O4 data** — the last eccentric SSM search is O3 (Nitz & Wang 2021, [S]); every O4-era bank (LVK arXiv:2605.05444 ✓; Kacanja et al. 2602.12115 ✓) is circular. Extend the now-adequate semi-coherent bank by a coarse eccentricity axis. A detection would be first PBH evidence; a clean null is the first O4 eccentric SSM limit. | 5 | ~1% det. / 60% null | 5 | 2500 | yes (O4a+O4b public) |
+| M6 | **Adjudicate the 5.4σ scalar-polarisation claim** (Barodkin, Zenodo 18226451 ✓, v1.2 Jan 2026, independent, "pending peer review"; claims τ ≈ 2 s, ~40× GR, 9.2σ stacked; 359 MB code linked). An extraordinary claim on public data with no replication; our FAR/estimator audits are exactly the tools for its likely failure modes (trials, background). | 3 | ~70% clean / <1% real | 5 if real | 1500 | yes |
+| M9 | **Echo rung-up: phase-marginalised likelihood (arXiv:2512.24730) + full GWTC-5 harvest + Abedi's GW190521 outlier** (arXiv:2301.00025 ✓: combined null A<0.4, but GW190521 "evidence of 9.2", author-flagged FP 1.5–4.4%). A third, independent referee between Abedi and Westerweck lineages. | 4 | <2% positive | 4 | 800 | yes |
+| M4 | **Isospectrality-breaking test** — fit parity-even vs parity-odd QNM content in GW250114; theory now exists (Johannsen–Psaltis breaks it at all spins, arXiv:2512.14679 [S]; EFT counterexamples 2605.03018 [S]) but **no observational test found**. Likely below current SNR — the null would quantify how far. | 4 | ~5% | 4 | 320 | yes |
+| M11 | **Re-score LVK's own O4a SSM trigger list with our pipeline** (arXiv:2605.05444 ✓ Table 1, FAR < 2/yr, UTC times published). Two HL triggers with BOTH components subsolar: **2023-07-19 11:50:50.27 (0.74+0.24)** and **2023-08-10 10:10:03.37 (0.60+0.21)**; also 2023-09-14 21:02:19.50 (2.63+0.29), 2023-10-14 08:15:06.33 (2.28+0.22). LVK: all noise-consistent. An independent CNN + adequate-bank + H1×L1 verdict, background from our own O4 time slides. | 2 | ~5% interesting | 3–4 | 140 | **yes — data public, pipeline ready** |
+| M5 | **S251112cm + tidal PBH discriminator** — the one real SSM candidate (GCN 42650: GPS 1446995943.362, FAR ≈1/6.2 yr → 1/4 yr in GCN 42690 [agent-verified]). Crescimbeni (arXiv:2511.01051 [agent A]) argues tidal deformability is *exactly zero* for a PBH. Prepare now with injections at its SNR; run the day O4c strain lands (**not on GWOSC today ✓**; "December 2026" is [S]). | 4 | ~20% | 5 | 100 | prep yes, data no |
+| M3 | **Independent test of the GW250114 "direct wave" horizon signature** (Lu, Ma, Piccinni, Chen & Sun, arXiv:2510.01001 ✓, **Nature 2026**): a component at ~2Ω_H, H1 SNR 15.8 after QNM removal. Our ringdown machinery + start-time discipline is the right toolkit; a Nature claim on public data with no independent reproduction found. | 4 | ~25% | 5 | 80 | yes |
+| M10 | **GW memory stacking cross-check** (arXiv:2607.04909 [S]: stacked (2,0) crosses threshold, memory alone does not) with our v5 prior-domination / √N-trap detectors. | 4 | ~20% | 4 | 80 | yes |
+| M8 | **Nonlinear quadratic mode in GW250114** (B2, parked) — now corroborated by a second group (Yang, Shi, Hu arXiv:2510.16903 [agent A]). Needs a custom multi-multipole, frequency-locked fit. | 5 | ~30% | 4 | 67 | yes, weeks |
+| M13 | **GW231123 ringdown with our NPE** — two groups report a 200 mode (2509.02047, 2511.02691 [agent A]); gate first on the microglitch challenge (Ray, Banagiri, Thrane, Lasky arXiv:2510.07228 ✓: microglitches bias spins toward χ≈1). Remnant ~300 M☉ ⇒ GW231028's lesson predicts δ uninformative; the 200-mode frequency may be the better target. | 3 | ~15% | 3 | 60 | yes |
+| M7 | **Is the GWTC-4 GR tension a finite-SNR bias?** LVK's pSEOB remnant test puts GR at the **98.6% (+1.4/−9.4) boundary, up from 93.8%**, hierarchical δτ̂₂₂₀ at **99.3%**, the shift toward LONGER damping (arXiv:2603.19021 ✓, full text). Kyutoku (arXiv:2607.05486 ✓, Jul 2026) derives a systematic bias toward larger damping times at finite SNR and warns of false Kerr violations when combining ~100 ρ≈10 events. LVK lists noise, correlations, waveforms, catalog variance, selection — **not this mechanism** (it post-dates them); their mocks show similar deviations "in a small subset" of GR catalogs. Question: is the mock distribution *shifted* positive (bias) or only wide (variance)? | 3 | ~40% | 4 | 30 | yes (public posteriors) |
+| M12 | **Train the NPE on IMR/NR waveforms** (waveform-completeness fix for the δ systematics floor; v4 shelf). | 4 | ~50% | 3 | 24 | yes |
+| M14 | **Fine-timing / hybrid trigger→verify coincidence** (parked because the bank wall blocked it; the adequate bank now exists). | 3 | ~50% | 3 | 18 | yes |
+| M15 | **Deep-FAR estimator-bias methods note** — the jackknife-understates-4.2× and effective-N-decoupled findings; the sweep found no published fix. | 2 | ~80% | 3 | 8 | yes |
+
+**Carried from our own docs, lower on this axis** (valuable, not moonshots): narrow-band CNN retrain (P1);
+same-segment-negative confound re-check on 24 segments; learned coincidence to lower FAR with O4b data;
+L3 union-of-bases; "what does the CNN respond to beyond band power"; L5 three-tone (needs a louder event).
+
+**Prior-art caution:** the sweep found no published ML-vs-*adequate*-bank comparison for long subsolar signals,
+which would make our 6% result the first. That is a novelty claim and is **not** made until a dedicated
+prior-art search clears it.
+
+---
+
 ## Known blockers carried forward (context for the above)
 - **PBH subsolar:** template-bank density wall — subsolar needs ≤0.1% Mc spacing (~1,600+ templates);
   1,619 was our laptop ceiling. **⚠️ "Intractable locally" NO LONGER HOLDS (2026-08-15):** the field's

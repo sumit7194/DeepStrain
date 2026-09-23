@@ -1014,7 +1014,8 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
   OPPOSITE reasons.** The prereq ("read GWTC-5.0 first") **corrected our own [S] note**: we had recorded "GWTC-5.0
   reports the first measurement of three tones"; verified at **arXiv:2510.01001**, GW250114 has strong evidence
   for **(2,2,0)+(2,2,1)** only, a **weak early-time preference** for (2,2,2) at t≲5 M_f, and (4,4,0) with *"SNR
-  insufficient for detection"* — the LVK **constrains** a third tone, doesn't detect one. So `29_third_tone_floor.py`
+  insufficient for detection"* — a third tone is **constrained**, not detected (source is Lu et al., not the LVK — see
+  ROADMAP moonshot ladder, 2026-09-23). So `29_third_tone_floor.py`
   turns "undetectable" into a number instead of building a chase. **Framework** (reuses 27's linear/quadrature
   setup): a third mode is measurable only via its component **orthogonal to span{220,221}**. At GW250114's remnant
   (ρ_rd 24.9, our convention): **(2,2,2) orth frac 0.139 ⇒ needs A/A220 = 1.45** (an overtone louder than the

@@ -164,8 +164,10 @@ background) are **consistent with the field's latest, including on GW250114.** T
 combination is the obvious next rung above our single-detector-ish comb on an ML-residual envelope, if echoes
 are ever reopened.
 
-- **[S]** [arXiv:2510.01001](https://arxiv.org/html/2510.01001v3) — *GW250114 reveals black hole horizon
-  signatures* (context; unverified).
+- **[A]** [arXiv:2510.01001](https://arxiv.org/abs/2510.01001) — Lu, Ma, Piccinni, Chen & Sun, *GW250114 reveals
+  black hole horizon signatures*, **Nature (2026)**. Headline: a "direct wave" component oscillating near twice the
+  horizon rotation frequency, H1 matched-filter SNR 15.8 (90%), decaying as predicted — a frame-dragging measurement
+  at the horizon. Abstract verified 2026-09-23. **Not re-examined by us; see ROADMAP moonshot M3.**
 
 ---
 
@@ -306,7 +308,10 @@ sensitivity rung for echoes, and makes our nulls directly comparable to theirs r
 ⚠️ **The [S] claim in this file was WRONG**: GWTC-5.0 does not report "the first measurement of three tones".
 Verified at [arXiv:2510.01001](https://arxiv.org/html/2510.01001v3): GW250114 has strong evidence for
 (2,2,0)+(2,2,1), a *weak early-time* preference for (2,2,2), and (4,4,0) with **"SNR insufficient for
-detection"** — the LVK **constrains** a third tone. Our own measurement (`29_third_tone_floor.py`): the two
+detection"** — a third tone is **constrained** (these are Lu et al.'s statements in their QNM-removal step,
+not an LVK catalog result).
+⚠️ *Attribution corrected 2026-09-23:* arXiv:2510.01001 is **Lu, Ma, Piccinni, Chen & Sun, "GW250114 reveals black hole horizon signatures" (Nature 2026)** — not an LVK/GWTC paper. The quoted (2,2,2)/(4,4,0) statements are real but come from its QNM-removal step; its HEADLINE is a detected near-horizon "direct wave" at ~2Ω_H (H1 matched-filter SNR 15.8), which our notes never recorded.
+Our own measurement (`29_third_tone_floor.py`): the two
 candidates fail for **different** reasons — (2,2,2) is 86% absorbed by refitting 220+221 (**degeneracy**,
 needs an unphysical A/A₂₂₀ = 1.45), while (3,3,0)/(4,4,0) are 61–81% orthogonal but intrinsically faint
 (**weakness**). **Reopens at ~1.5× GW250114's ringdown SNR.** A second [S] entry that did not survive contact.
