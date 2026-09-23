@@ -1479,6 +1479,26 @@ print(f"PASS  GW231028 NPE (R1 pass; R2b response {d['R2']['response']:+.2f} vs 
       f"=> not informative, stacking stays at n=1)")
 PYEOF41
 
+echo "--- pbh adequate bank (0.05%: saturated, and the MF then BEATS the CNN on identical injections)"
+./primordial_blackhole_search/.venv/bin/python - << 'PYEOFADQ' || FAIL=1
+import json
+a = json.loads(open("primordial_blackhole_search/results/bank_adequacy_bank_dense_s0.0005.json").read())
+v = json.loads(open("primordial_blackhole_search/results/bank_vs_cnn_s0.0005.json").read())
+# (1) the pre-registered saturation test, against the bank's OWN halving on the same 9,000 injections
+assert a["adequate"] and a["dense_B"] == 3235 and a["coarse_B"] == 1617
+assert all(r["ratio"] < 1.10 for r in a["bins"].values())
+# (2) the verdict is quotable only because (1) passed; decision = bootstrap CI excludes 1
+assert v["n_inj"] == 9000 and v["mf_beats_cnn"] and v["boot90"][0] > 1.0 and 1.03 < v["ratio"] < 1.10
+# (3) post-hoc: no single noise segment's removal flips it
+assert v["posthoc_loso_range"][0] > 1.0
+# (4) the committed 0.1% artifacts are untouched by the new rung
+b = json.loads(open("primordial_blackhole_search/results/bank_dense.json").read())
+assert b["spacing"] == 0.001 and b["B"] == 1619 and b["n_inj"] == 1500
+print(f"PASS  adequate bank (3,235 vs 1,617: {[round(r['ratio'],2) for r in a['bins'].values()]} < 1.10; MF/CNN "
+      f"{v['ratio']:.3f} [{v['boot90'][0]:.3f}, {v['boot90'][1]:.3f}], leave-one-segment-out "
+      f"{v['posthoc_loso_range'][0]:.3f}-{v['posthoc_loso_range'][1]:.3f} => MF beats CNN by ~6%)")
+PYEOFADQ
+
 echo "========================================"
 [ $FAIL -eq 0 ] && echo "BLACKHOLE GATE: ALL GREEN" || echo "BLACKHOLE GATE: FAILURES"
 exit $FAIL

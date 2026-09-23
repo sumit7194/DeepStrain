@@ -11,6 +11,20 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-09-23 (cont.) — the dense bank is adequate, and then the matched filter wins by 6%
+
+The 0.05% bank finished after ~34 h. Pre-registered saturation test against its own halving on the same 9,000
+injections: 1.01 / 0.97 / 0.98 — flat. I had predicted the light bin would still be climbing; it wasn't. So the
+CNN comparison became quotable, and the one we'd been quoting (1.03×, 'a tie') was against a bank that hadn't
+saturated. On identical injections, with a paired bootstrap written in advance: MF/CNN 1.062 [1.041, 1.088] — the
+matched filter wins, most at the lightest signals. A post-hoc leave-one-segment-out on both thresholds keeps it
+(1.061–1.079). The August question is closed: an adequate bank beats the CNN, but only by 6%.
+
+Two near-misses, both caught before they cost anything: the merge would have overwritten the committed 0.1%
+artifact, and a 'different injections' alarm turned out to be 250-vs-1,500 per segment with an identical prefix.
+
+---
+
 ## 2026-09-23 — GW231028 is not a second informative event, and our 'informative' bar got its first null check
 
 The one lead that could unpark multi-event δ stacking. Our network couldn't reach it (240 M☉ vs a 120 M☉ prior), so a

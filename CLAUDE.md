@@ -484,6 +484,18 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   repo's own AUC helper instead of adding sklearn). **⇒ L6b (fetch a bigger pool) is NOT justified.** N4's
   headline stands and is better understood: real, cheap, saturates almost immediately. Gated (49).
   Artifact: results/ssl_poolscale.json.
+- **ADEQUATE BANK REACHED (2026-09-23): the dense bank saturates by ~1,600 templates, and then the MATCHED FILTER
+  BEATS the CNN by 6%.** `bank_dense.py --spacing 0.0005 --n-inj 1500` (B = 3,235, 9,000 injections, ~34 h, made
+  affordable by the L1 re-timing). **Pre-registered adequacy:** MF(3,235)/MF(1,617) = **1.01/0.97/0.98 < 1.10 ⇒
+  ADEQUATE** (nested sub-bank, same injections; 649→1,617 still climbs, so the 0.1% 'NOT ADEQUATE' call was right).
+  Two bins dip as the zero-FA threshold rises with the trials factor (12.09→12.59). My prediction (low-mass still
+  climbing) was WRONG. **Pre-registered verdict:** cnn_w64 on the IDENTICAL 9,000 windows ⇒ **MF/CNN 1.062, paired
+  bootstrap 90% CI [1.041, 1.088] ⇒ MF BEATS CNN** (1.11/1.05/1.03 light→heavy); prediction 1.03–1.15 met.
+  Post-hoc leave-one-segment-out on both thresholds: 1.061–1.079, MF ahead in every drop; one segment sets BOTH
+  detectors' thresholds. **Answers the question parked in August:** the CNN does NOT tie an adequate bank — it
+  lands within 6% of it in one forward pass. Follow-up A's 'ties a REALIZABLE bank' stands as worded. merge no
+  longer overwrites the committed 0.1% bank_dense.json. Gated (65). Artifacts: bank_dense_s0.0005.json,
+  bank_adequacy_bank_dense_s0.0005.json, bank_vs_cnn_s0.0005.json.
 - **L1 RATIO-FILTER ⚠️⚠️ OVERTURNED 2026-09-21 — the negative was a TIMING BUG in our own benchmark. 3.74×,
   not 0.94×, and the dense-bank wall is down.** The 2026-08-15 script timed **one cold `oaconvolve`** on a
   freshly allocated 255 MB complex128 array and **multiplied it by 8**, while `segment_stats` ran first and

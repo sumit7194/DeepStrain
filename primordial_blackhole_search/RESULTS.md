@@ -2068,6 +2068,52 @@ per segment), which extends the sweep one rung and tests whether MF pulls away f
 Announced to the fleet. Artifact: `bank_adequacy.json`.
 
 
+### ✅ THE DENSE BANK IS ADEQUATE — and once it is, the matched filter BEATS the CNN by 6% (2026-09-23)
+
+**Adequacy (pre-registered criterion, stopping-rule step 1).** 0.05% spacing, B = 3,235, **9,000 injections**
+(1,500 per test segment; the 0.1% run's 250 per segment are its prefix — verified identical), density sweep taken
+by nested sub-sampling of the SAME bank so every rung is paired:
+
+| B | 0.17–0.35 | 0.35–0.55 | 0.55–0.88 |
+|---|---|---|---|
+| 649 | 0.376 | 0.447 | 0.498 |
+| 1,617 | 0.488 | 0.533 | 0.539 |
+| **3,235** | **0.493** | **0.520** | **0.528** |
+| ratio 3,235/1,617 | **1.01** | **0.97** | **0.98** |
+
+All < 1.10 ⇒ **ADEQUATE.** Saturation sets in near ~1,600 templates (649 → 1,617 still climbs 1.30/1.19/1.08,
+consistent with the 0.1% "NOT ADEQUATE" call). Two bins DIP: doubling the bank raises the zero-FA threshold
+12.09 → 12.59 (trials factor), which the gain in match no longer pays for — saturation, not noise. **My recorded
+prediction (low-mass still climbing) was WRONG.** The stopping rule's extrapolation branch is not needed.
+
+**The verdict (pre-registered decision: MF beats CNN iff the paired-bootstrap 90% CI excludes 1).** cnn_w64 scored
+on the IDENTICAL 9,000 windows (injections regenerated from the same [SEED, gps] streams; the script refuses to
+continue unless they match bank_dense's rows AND the per-injection MF detections reproduce the merged fractions):
+
+| mass bin | CNN | adequate MF | MF/CNN |
+|---|---|---|---|
+| 0.17–0.35 | 0.445 | 0.493 | 1.11× |
+| 0.35–0.55 | 0.496 | 0.520 | 1.05× |
+| 0.55–0.88 | 0.511 | 0.528 | 1.03× |
+| **mean** | 0.484 | 0.514 | **1.062×, 90% CI [1.041, 1.088]** |
+
+**⇒ the matched filter BEATS the CNN once the bank is adequate — modestly, 6%, largest at the lightest (longest)
+signals.** Prediction (1.03–1.15, CI excluding 1): met. **Post-hoc robustness (not pre-registered):** the bootstrap
+holds both zero-FA thresholds fixed, and each is a max over 6 segments — 08-20's audit found such thresholds ~4×
+noisier than they look. Leave-one-segment-out on BOTH thresholds and the injections: **MF/CNN 1.061–1.079, MF ahead
+in every drop.** The same segment (1242206018) sets BOTH detectors' thresholds (MF 12.59, CNN 0.746); dropping it
+lowers both and raises the ratio — the two methods are fooled by the same noise (an observation, consistent with
+the response probe's "honestly fooled by band-limited power").
+
+**What changes.** Follow-up A's *"a CNN ties a **realizable** bank, 1.03×"* stands as written — it was a statement
+about a bank that had not saturated. The question parked in August — *does a CNN still tie a matched filter once
+the bank is adequate?* — is now answered: **no, it loses by ~6%, and a 1-forward-pass network landing within 6% of
+an adequate 3,235-template semi-coherent bank is the actual result.** Made affordable by the L1 re-timing (the
+filter was never the problem). Scope: H1-only, O3a test segments, zero-FA threshold over 6.8 h, the n=8
+semi-coherent statistic (a full-coherent bank remains intractable locally). Artifacts: `bank_dense_s0.0005.json`,
+`bank_adequacy_bank_dense_s0.0005.json`, `bank_vs_cnn_s0.0005.json` (+ `_rows.parquet`).
+
+
 ### STOPPING RULE for the density ladder (2026-09-22, declared while the 0.05% run is at 66% and before it lands)
 
 `bridge` asked the question I had not: the adequacy *criterion* was pre-registered, but **no stopping rule

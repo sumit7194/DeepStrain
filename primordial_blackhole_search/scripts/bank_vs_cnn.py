@@ -107,7 +107,7 @@ def main() -> None:
             win64 += sig[-WIN:] if len(sig) >= WIN else np.pad(sig, (WIN - len(sig), 0))
             wins.append(pool_and_log(spectrogram(win64), NBINS)); meta.append((p.chirp_mass, target))
         sc = score_windows(model, dev, np.stack(wins))
-        rows += [dict(chirp_mass=mc, target_snr=t, score=float(s)) for (mc, t), s in zip(meta, sc)]
+        rows += [dict(chirp_mass=mc, target_snr=t, score=float(s), seg=int(gps)) for (mc, t), s in zip(meta, sc)]
         print(f"{gps}: scored {args.n_inj} injections (noise max {noise_max[-1]:.3f})", flush=True)
 
     df = pd.DataFrame(rows)
@@ -142,10 +142,36 @@ def main() -> None:
     print(f"{'mean':>12} | {mc:>14.3f} | {mb:>12.3f} | {mb/mc:>5.2f}x")
 
     beats = bool(lo90 > 1.0)
+
+    # ---- POST-HOC (not pre-registered): leave-one-SEGMENT-out on BOTH zero-FA thresholds -----------------
+    # The bootstrap resamples injections but holds both thresholds fixed, and each is a max over only 6 noise
+    # segments (the CNN's is set by one: 0.746 vs <= 0.41 elsewhere). 08-20's estimator audit measured that
+    # such thresholds are ~4x noisier than they look, so the injection CI understates. Drop each segment from
+    # BOTH thresholds and from the injections, recompute the ratio.
+    seg_arr = df.seg.to_numpy()
+    mf_thr_seg = {g: float(np.nanmax(np.load(bd.OUT / f"thr_{g}_s{args.spacing}.npy"))) for g in segs}
+    B = len(bd.bank_mcs(args.spacing))
+    mf_max = np.nanmax(pd.concat([pd.read_parquet(bd.OUT / f"seg_{g}_s{args.spacing}.parquet") for g in segs],
+                                 ignore_index=True)[[f"t{k}" for k in range(B)]].to_numpy(), axis=1)
+    jack = {}
+    for k, g in enumerate(segs):
+        keep = seg_arr != g
+        t_mf = max(v for h, v in mf_thr_seg.items() if h != g)
+        t_cn = max(v for h, v in zip(segs, noise_max) if h != g)
+        fb = fracs(mc_b[keep], snr_b[keep], mf_max[keep] > t_mf)
+        fc = fracs(mc_c[keep], snr_c[keep], df.score.to_numpy()[keep] > t_cn)
+        jack[str(g)] = float(np.mean(list(fb.values())) / np.mean(list(fc.values())))
+        print(f"  drop seg {g}: MF thr {t_mf:.2f}, CNN thr {t_cn:.3f}  ->  MF/CNN {jack[str(g)]:.3f}", flush=True)
+    jmin, jmax = min(jack.values()), max(jack.values())
+    print(f"  leave-one-segment-out MF/CNN range [{jmin:.3f}, {jmax:.3f}]  "
+          f"({'every drop keeps MF > CNN' if jmin > 1 else 'at least one drop gives MF <= CNN'})")
+    df.to_parquet(C.RESULTS_DIR / f"bank_vs_cnn{tag}_rows.parquet")
     (C.RESULTS_DIR / f"bank_vs_cnn{tag}.json").write_text(json.dumps(
         {"spacing": args.spacing, "cnn_thr": thr, "cnn_frac_same_inj": cnn_frac, "bank_frac": bank_frac,
          "cnn_mean": float(mc), "bank_mean": float(mb), "ratio": float(mb / mc),
          "boot90": [lo90, hi90], "n_boot": len(ratios), "mf_beats_cnn": beats,
+         "cnn_noise_max_per_seg": dict(zip(map(str, segs), noise_max)),
+         "posthoc_leave_one_segment_out": jack, "posthoc_loso_range": [jmin, jmax],
          "verdict": "MF BEATS CNN (90% CI excludes 1)" if beats else "TIE (90% CI includes 1)",
          "n_inj": len(df)}, indent=2))
     print(f"\nmean MF/CNN {mb/mc:.3f}, paired-bootstrap 90% CI [{lo90:.3f}, {hi90:.3f}]  ->  "
