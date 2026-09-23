@@ -23,18 +23,22 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from pbh import config as C
 
 SRC = C.RESULTS_DIR / "bank_dense.json"
-OUT = C.RESULTS_DIR / "bank_adequacy.json"
 BAR = 1.10          # pre-registered: MF(dense)/MF(coarser) below this = flattened
 BINS = ("0.17-0.35", "0.35-0.55", "0.55-0.88")
 
 
 def main() -> None:
-    d = json.loads(SRC.read_text())
+    import argparse
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--src", default=SRC.name, help="density-sweep json in results/ (default: the 0.1%% run)")
+    src = C.RESULTS_DIR / ap.parse_args().src
+    out = C.RESULTS_DIR / ("bank_adequacy.json" if src.name == SRC.name else f"bank_adequacy_{src.stem}.json")
+    d = json.loads(src.read_text())
     sweep = {int(k): v for k, v in d["sweep"].items()}
     Bs = sorted(sweep)
     dense, coarse = Bs[-1], Bs[-2]
 
-    print(f"density sweep from {SRC.name} (spacing {d['spacing']}, n_inj {d['n_inj']})")
+    print(f"density sweep from {src.name} (spacing {d['spacing']}, n_inj {d['n_inj']})")
     print(f"{'B':>7} " + "".join(f"{b:>12}" for b in BINS))
     for B in Bs:
         print(f"{B:>7} " + "".join(f"{sweep[B]['frac'][b]:12.3f}" for b in BINS))
@@ -52,7 +56,7 @@ def main() -> None:
         print(f"  {b:>12}  {lo:.3f} -> {hi:.3f}   ratio {shown}  {'FLAT' if ok else 'STILL CLIMBING'}{note}")
 
     adequate = all(verdicts)
-    res = {"source": SRC.name, "spacing": d["spacing"], "bar": BAR,
+    res = {"source": src.name, "spacing": d["spacing"], "bar": BAR,
            "dense_B": dense, "coarse_B": coarse, "bins": rows,
            "adequate": bool(adequate),
            "cnn_w64": d["cnn_w64"], "mf_at_dense": {b: sweep[dense]["frac"][b] for b in BINS}}
@@ -65,8 +69,8 @@ def main() -> None:
         f"'a CNN ties matched filtering', because the bank had not saturated. The filter is now 2.5-3.5x "
         f"cheaper, so the next rung is affordable and that is what settles it.")
     print(f"\nVERDICT: {res['verdict']}")
-    OUT.write_text(json.dumps(res, indent=2))
-    print(f"wrote {OUT.name}")
+    out.write_text(json.dumps(res, indent=2))
+    print(f"wrote {out.name}")
 
 
 if __name__ == "__main__":

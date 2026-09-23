@@ -1,0 +1,39 @@
+{
+  "source": "bank_dense_s0.0005.json",
+  "spacing": 0.0005,
+  "bar": 1.1,
+  "dense_B": 3235,
+  "coarse_B": 1617,
+  "bins": {
+    "0.17-0.35": {
+      "coarse": 0.488,
+      "dense": 0.4935,
+      "ratio": 1.0112704918032787,
+      "flattened": true
+    },
+    "0.35-0.55": {
+      "coarse": 0.5335,
+      "dense": 0.5199,
+      "ratio": 0.9745079662605437,
+      "flattened": true
+    },
+    "0.55-0.88": {
+      "coarse": 0.5393,
+      "dense": 0.5277,
+      "ratio": 0.978490636009642,
+      "flattened": true
+    }
+  },
+  "adequate": true,
+  "cnn_w64": {
+    "0.17-0.35": 0.41,
+    "0.35-0.55": 0.46,
+    "0.55-0.88": 0.48
+  },
+  "mf_at_dense": {
+    "0.17-0.35": 0.4935,
+    "0.35-0.55": 0.5199,
+    "0.55-0.88": 0.5277
+  },
+  "verdict": "ADEQUATE -- MF has flattened by B=3235, so the CNN-vs-MF comparison at this density is quotable"
+}

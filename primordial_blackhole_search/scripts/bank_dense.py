@@ -134,7 +134,8 @@ def merge(spacing: float) -> None:
     score_cols = df[[f"t{k}" for k in range(B)]].to_numpy()
 
     out = {"spacing": spacing, "B": B, "n_inj": len(df), "sweep": {}}
-    for nsub in (83, 164, 326, 649, B):
+    # B // 2 is the halving the adequacy criterion compares against; the fixed rungs alone skip it for B > 1,300.
+    for nsub in sorted({83, 164, 326, 649, B // 2, B}):
         idx = np.unique(np.linspace(0, B - 1, nsub).astype(int))
         thr_sub = float(np.nanmax(thr_mat[:, idx]))                                     # zero-FA over subset
         det = np.nanmax(score_cols[:, idx], axis=1) > thr_sub
@@ -155,9 +156,11 @@ def merge(spacing: float) -> None:
     full = out["sweep"][str(B)]["frac"]
     out["cnn_w64"] = cnn
     out["beats_cnn"] = bool(np.mean(list(full.values())) > np.mean(list(cnn.values())))
-    (C.RESULTS_DIR / "bank_dense.json").write_text(json.dumps(out, indent=2))
+    # The 0.1% artifact is committed and cited; any other spacing gets its own file instead of overwriting it.
+    name = "bank_dense.json" if spacing == 0.001 else f"bank_dense_s{spacing}.json"
+    (C.RESULTS_DIR / name).write_text(json.dumps(out, indent=2))
     print(f"full-bank frac {full} vs cnn_w64 {cnn} -> beats_cnn={out['beats_cnn']}")
-    print("wrote bank_dense.json")
+    print(f"wrote {name}")
 
 
 def main() -> None:
