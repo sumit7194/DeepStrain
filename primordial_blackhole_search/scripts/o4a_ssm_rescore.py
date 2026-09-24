@@ -38,6 +38,12 @@ file is committed before the scoring run.
     The trigger's in-band network SNR rho_T = (Table-1 network SNR) x c, with c^2 the ratio of the inspiral
     SNR integral over [50, 1024] Hz to that over PyCBC's [45, 1000] Hz (paper Sec. 2.3), on an O4a PSD.
 
+  AMENDMENT 2026-09-24 13:25 (procedural, before any trigger is scored): GWOSC failed to deliver 4 of the first 24
+    background segments ('failed to get data from any source'). After the first pass, ONE retry pass is made over the
+    skipped segments; `freeze` then uses every segment obtained (the pool is NOT re-drawn or topped up, so no
+    segment is chosen after its data were seen) and reports N. Floor: freeze refuses below 20 segments
+    (T_bg ~2.4 yr at N=20, enough to place the 1/yr threshold on >= 2 background pairs).
+
   LOOK-ELSEWHERE: 2 primary triggers x 2 statistics = 4 looks. A look is SIGNIFICANT iff 4 x FAR <= 1/yr.
 
   VERDICT per (trigger, statistic), with eps evaluated at rho_T:
@@ -369,6 +375,8 @@ def band_factor(psd):
 
 def freeze():
     zs, cat = load_bg()
+    if len(zs) < 20:
+        raise SystemExit(f"only {len(zs)} background segments -- the amendment's floor is 20")
     tsets = json.loads(TSETS.read_text())
     prim = primaries()
     g0 = json.loads(POOL.read_text())["segments"][0]
