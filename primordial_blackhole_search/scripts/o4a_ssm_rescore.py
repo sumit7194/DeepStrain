@@ -43,6 +43,12 @@ file is committed before the scoring run.
     skipped segments; `freeze` then uses every segment obtained (the pool is NOT re-drawn or topped up, so no
     segment is chosen after its data were seen) and reports N. Floor: freeze refuses below 20 segments
     (T_bg ~2.4 yr at N=20, enough to place the 1/yr threshold on >= 2 background pairs).
+  AMENDMENT 2026-09-25 (before any trigger is scored): the first pass was ended by a machine reboot at 19/30 cached
+    (last completion 12:26, then ~6 h stuck on a degraded GWOSC fetch). The relaunch skips the 19, is the single
+    retry for the 5 failed (#16, 19, 21, 22, 24) and the first attempt for #25-30. STALL RULE: if no segment
+    completes for 90 min, an external guard terminates the run and it is reported; the stalled segment counts as
+    FAILED and is not retried again. Ending below the floor of 20 means freeze refuses -- that is the result;
+    the floor is not lowered. Logs live in results/o4a_ssm/, not /tmp (the first pass's log died in the reboot).
 
   LOOK-ELSEWHERE: 2 primary triggers x 2 statistics = 4 looks. A look is SIGNIFICANT iff 4 x FAR <= 1/yr.
 
