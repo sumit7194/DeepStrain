@@ -32,8 +32,10 @@ LAST=$(date +%s); SEEN=$(ncache); WHY="completed its pass"
 while ps -p $PID >/dev/null 2>&1; do
   N=$(ncache); [ "$N" != "$SEEN" ] && { SEEN=$N; LAST=$(date +%s); }
   AV=$(df -k /System/Volumes/Data | awk 'NR==2{print int($4/1048576)}')
+  ST=$(sysctl -n vm.swapusage | awk '{gsub(/M/,"",$3); print int($3)}')
   SF=$(sysctl -n vm.swapusage | awk '{gsub(/M/,"",$9); print int($9)}')
-  if [ "$AV" -lt 5 ] || [ "$SF" -lt 512 ]; then WHY="GUARD-STOPPED (disk ${AV} GB, swap free ${SF} MB)"; kill $PID; break; fi
+  # swap rule only when swap exists: after a reboot macOS reports total = free = 0, which would read as "full"
+  if [ "$AV" -lt 5 ] || { [ "$ST" -gt 0 ] && [ "$SF" -lt 512 ]; }; then WHY="GUARD-STOPPED (disk ${AV} GB, swap free ${SF} MB)"; kill $PID; break; fi
   if [ $(( $(date +%s) - LAST )) -ge 5400 ]; then WHY="STALL-STOPPED (no segment completed for 90 min; that segment counts as FAILED)"; kill $PID; break; fi
   sleep 60
 done
