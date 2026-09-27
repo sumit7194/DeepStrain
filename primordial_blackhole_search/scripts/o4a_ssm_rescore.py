@@ -421,10 +421,24 @@ def freeze():
 
 
 # ---- stage: score (trigger data touched only here) --------------------------------------------------------------
+def trigger_segments(t):
+    """{detector: 4096-s start} fully inside that detector's DATA segments with the trigger well inside the crop.
+    Shared by `score` and the prefetcher so both use exactly the same files."""
+    from gwosc.timeline import get_segments
+    seg = {}
+    for d in [d for d in DETS if d[0] in t["ifos"]]:
+        ok = get_segments(f"{d}_DATA", int(t["gps"]) - 4200, int(t["gps"]) + 4200)
+        for off in (2048, 1024, 3072, 512, 3584):
+            g = int(t["gps"]) - off
+            if any(a <= g and g + C.SEGMENT_LEN <= b for a, b in ok) and \
+                    g + (CROP + WIN + PAD) / FS + 1 < t["gps"] < g + C.SEGMENT_LEN - CROP / FS - 1:
+                seg[d] = g; break
+    return seg
+
+
 def score():
     if not FROZEN.exists():
         raise SystemExit("frozen.json missing: thresholds and sensitivity must be frozen (and committed) first")
-    from gwosc.timeline import get_segments
     fr = json.loads(FROZEN.read_text())
     tsets = json.loads(TSETS.read_text())
     zs, cat = load_bg()
@@ -436,15 +450,7 @@ def score():
             row["note"] = "chirp mass outside [0.173, 0.871]: not scored"
             res["triggers"].append(row); continue
         dets = [d for d in DETS if d[0] in t["ifos"]]
-        # a 4096-s stretch fully inside each detector's DATA segments with the trigger well inside the crop
-        seg = {}
-        for d in dets:
-            ok = get_segments(f"{d}_DATA", int(t["gps"]) - 4200, int(t["gps"]) + 4200)
-            for off in (2048, 1024, 3072, 512, 3584):
-                g = int(t["gps"]) - off
-                if any(a <= g and g + C.SEGMENT_LEN <= b for a, b in ok) and \
-                        g + (CROP + WIN + PAD) / FS + 1 < t["gps"] < g + C.SEGMENT_LEN - CROP / FS - 1:
-                    seg[d] = g; break
+        seg = trigger_segments(t)
         if len(seg) < len(dets):
             row["note"] = f"no clean 4096-s stretch around the trigger for {[d for d in dets if d not in seg]}"
             res["triggers"].append(row); continue
