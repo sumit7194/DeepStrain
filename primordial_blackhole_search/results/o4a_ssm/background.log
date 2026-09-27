@@ -1,0 +1,6 @@
+PyCBC.libutils: pkg-config call failed, setting NO_PKGCONFIG=1
+[16/30] 1383111917: 62 windows, 48 injections (33.4 min)
+[19/30] 1384430358: SKIP GetExceptionGroup: failed to get data from any source (1 sub-exception)
+[21/30] 1384986935: 62 windows, 48 injections (34.2 min)
+[22/30] 1385813067: SKIP GetExceptionGroup: failed to get data from any source (1 sub-exception)
+[24/30] 1387082915: SKIP GetExceptionGroup: failed to get data from any source (1 sub-exception)
