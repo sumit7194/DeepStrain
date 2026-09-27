@@ -6,3 +6,33 @@ Sat Sep 26 03:42:04 IST 2026 NOTE launched
 Sat Sep 26 07:13:16 IST 2026 NOTE ended
 Sun Sep 27 13:31:16 IST 2026 autopilot start (pid 2909), cached 21/30
 Sun Sun Sep 27 13:31:36 IST 2026 autopilot 2909 stopped by DeepStrain to fix swap-rule bug (total=0 after reboot read as full); relaunching
+Sun Sep 27 13:31:38 IST 2026 autopilot start (pid 2992), cached 21/30
+H1 1387938968: FAIL GetExceptionGroup: failed to get data from any source (1 sub-exception)
+L1 1387938968: FAIL GetExceptionGroup: failed to get data from any source (1 sub-exception)
+Sun Sep 27 13:42:06 IST 2026 CHECK FAIL
+H1 1387938968: FAIL GetExceptionGroup: failed to get data from any source (1 sub-exception)
+L1 1387938968: FAIL GetExceptionGroup: failed to get data from any source (1 sub-exception)
+Sun Sep 27 14:59:58 IST 2026 CHECK FAIL
+H1 1387938968: FAIL GetExceptionGroup: failed to get data from any source (1 sub-exception)
+L1 1387938968: FAIL GetExceptionGroup: failed to get data from any source (1 sub-exception)
+Sun Sep 27 16:04:58 IST 2026 CHECK FAIL
+H1 1387938968: FAIL GetExceptionGroup: failed to get data from any source (1 sub-exception)
+L1 1387938968: 262144 samples, finite=True in 77.3s
+Sun Sep 27 17:11:59 IST 2026 CHECK FAIL
+H1 1387938968: FAIL GetExceptionGroup: failed to get data from any source (1 sub-exception)
+L1 1387938968: FAIL GetExceptionGroup: failed to get data from any source (1 sub-exception)
+Sun Sep 27 18:21:19 IST 2026 CHECK FAIL
+H1 1387938968: FAIL GetExceptionGroup: failed to get data from any source (1 sub-exception)
+L1 1387938968: FAIL GetExceptionGroup: failed to get data from any source (1 sub-exception)
+Sun Sep 27 19:31:19 IST 2026 CHECK FAIL
+H1 1387938968: FAIL GetExceptionGroup: failed to get data from any source (1 sub-exception)
+L1 1387938968: FAIL GetExceptionGroup: failed to get data from any source (1 sub-exception)
+Sun Sep 27 20:39:42 IST 2026 CHECK FAIL
+H1 1387938968: FAIL GetExceptionGroup: failed to get data from any source (1 sub-exception)
+L1 1387938968: FAIL GetExceptionGroup: failed to get data from any source (1 sub-exception)
+Sun Sep 27 21:49:33 IST 2026 CHECK FAIL
+H1 1387938968: FAIL GetExceptionGroup: failed to get data from any source (1 sub-exception)
+L1 1387938968: FAIL GetExceptionGroup: failed to get data from any source (1 sub-exception)
+Sun Sep 27 22:57:08 IST 2026 CHECK FAIL
+Sun Sep 27 23:31:32 IST 2026 autopilot stopped by DeepStrain on the user's GO for freeze/score (relayed by The Bridge). FINAL cached 21/30. Never obtained: #19 #22 #24 (failed single retry), #25 (stall rule), #26-30 (first attempts never launched: every hourly GWOSC check 13:31-22:57 on 27 Sep failed).
+Sun Sep 27 23:37:24 IST 2026 freeze attempt stopped: GWOSC file server delivering ~6 KB/s (curl 4 MB range: 359 kB in 60 s), fetch cannot complete; no frozen.json written, nothing scored.
