@@ -1,0 +1,8 @@
+PyCBC.libutils: pkg-config call failed, setting NO_PKGCONFIG=1
+/Users/sumit/Github/BlackHole/primordial_blackhole_search/scripts/o4a_ssm_rescore.py:383: RuntimeWarning: divide by zero encountered in power
+  integ = lambda lo, hi: float(np.sum((f ** (-7 / 3) / np.where(ok, S, np.inf))[(f >= lo) & (f <= hi) & ok]))
+2023-07-19T11:50:50 cnn: threshold(1/yr) 8.050; eps over SNR [6.0, 8.0, 10.0, 12.0, 14.0, 16.0] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]; rho_T = 9.31 -> eps 0.000
+2023-07-19T11:50:50 bank: threshold(1/yr) 15.119; eps over SNR [6.0, 8.0, 10.0, 12.0, 14.0, 16.0] = [0.0, 0.0, 0.095, 0.464, 0.679, 0.893]; rho_T = 9.31 -> eps 0.062
+2023-08-10T10:10:03 cnn: threshold(1/yr) 8.050; eps over SNR [6.0, 8.0, 10.0, 12.0, 14.0, 16.0] = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]; rho_T = 9.27 -> eps 0.000
+2023-08-10T10:10:03 bank: threshold(1/yr) 15.362; eps over SNR [6.0, 8.0, 10.0, 12.0, 14.0, 16.0] = [0.0, 0.024, 0.107, 0.417, 0.75, 0.857]; rho_T = 9.27 -> eps 0.077
+wrote frozen.json -- COMMIT IT before --stage score
