@@ -5,6 +5,7 @@
 #   3. While it runs, every 60 s: terminate it (SIGTERM, our own PID only) if free disk < 5 GB, free swap < 512 MB,
 #      or no background segment has completed for 90 min (the stall rule -- the stalled segment counts as FAILED).
 #   4. Inbox notes for The Bridge on launch and on end. Give up after 48 h of failed checks.
+# ONLY=26,27,... restricts the background stage to those pool indices (amendment 2026-09-27).
 # Freeze and scoring are NOT automated: the pre-registration requires frozen.json to be committed before scoring.
 cd "$(dirname "$0")/.." || exit 1
 OUT=results/o4a_ssm; LOG=$OUT/autopilot.log; BGLOG=$OUT/background.log
@@ -24,7 +25,7 @@ while :; do
   fi
   sleep 3600
 done
-nohup nice -n 10 .venv/bin/python scripts/o4a_ssm_rescore.py --stage background >> "$BGLOG" 2>&1 &
+nohup nice -n 10 .venv/bin/python scripts/o4a_ssm_rescore.py --stage background ${ONLY:+--only $ONLY} >> "$BGLOG" 2>&1 &
 PID=$!
 note launched "DeepStrain M11 LAUNCHED at $(date) (pid $PID) after a clean GWOSC check. Cached $(ncache)/30 at launch. Guard: disk<5GB / swap<512MB / 90-min stall -> SIGTERM of pid $PID only. Log: primordial_blackhole_search/$BGLOG"
 LAST=$(date +%s); SEEN=$(ncache); WHY="completed its pass"

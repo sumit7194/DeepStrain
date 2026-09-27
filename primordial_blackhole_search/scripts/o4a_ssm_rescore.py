@@ -49,6 +49,11 @@ file is committed before the scoring run.
     completes for 90 min, an external guard terminates the run and it is reported; the stalled segment counts as
     FAILED and is not retried again. Ending below the floor of 20 means freeze refuses -- that is the result;
     the floor is not lowered. Logs live in results/o4a_ssm/, not /tmp (the first pass's log died in the reboot).
+  AMENDMENT 2026-09-27 (before any trigger is scored; frozen.json never written): the relaunch was STALL-STOPPED
+    on #25 at 21/30 (#16, #21 recovered; #19, #22, #24 failed their single retry; #25 FAILED by the stall rule).
+    #26-30 were never attempted. With the user's OK (machine free), ONE first attempt is made for #26-30 ONLY
+    (`--only 26,27,28,29,30`) under the same guard, stall rule and hourly GWOSC pre-check; no failed segment is
+    retried, the pool is unchanged, and freeze then uses whatever is cached (>= 21 already clears the floor).
 
   LOOK-ELSEWHERE: 2 primary triggers x 2 statistics = 4 looks. A look is SIGNIFICANT iff 4 x FAR <= 1/yr.
 
@@ -282,14 +287,14 @@ def select():
 
 
 # ---- stage: background (+ injections), one checkpoint per segment -----------------------------------------------
-def background():
+def background(only=None):
     pool = json.loads(POOL.read_text())["segments"]
     tsets = json.loads(TSETS.read_text())
     prim = primaries()
     model, dev = load_model()
     for si, g in enumerate(pool):
         f = SEGS / f"seg_{g}.npz"
-        if f.exists():
+        if f.exists() or (only and si + 1 not in only):
             continue
         t_start = time.time()
         try:
@@ -492,8 +497,12 @@ def score():
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--stage", required=True, choices=["discover", "select", "background", "freeze", "score"])
-    {"discover": discover, "select": select, "background": background, "freeze": freeze,
-     "score": score}[ap.parse_args().stage]()
+    ap.add_argument("--only", default="", help="background: comma-separated 1-based pool indices to attempt")
+    a = ap.parse_args()
+    if a.stage == "background":
+        background({int(x) for x in a.only.split(",") if x} or None)
+    else:
+        {"discover": discover, "select": select, "freeze": freeze, "score": score}[a.stage]()
 
 
 if __name__ == "__main__":
