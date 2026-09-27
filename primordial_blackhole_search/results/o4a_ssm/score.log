@@ -1,0 +1,8 @@
+PyCBC.libutils: pkg-config call failed, setting NO_PKGCONFIG=1
+2023-09-14T21:02:19 (out-of-domain): {'cnn_H1': -1.0594426393508911, 'cnn_L1': -0.9648634195327759}  -- no verdict by pre-registration
+2023-07-19T11:50:50 [cnn] x = -1.057  FAR 1.41e+05/yr (x4 = 5.65e+05)  eps(rho_T=9.31) = 0.000  ->  UNINFORMATIVE
+2023-07-19T11:50:50 [bank] x = 12.359  FAR 3.33e+05/yr (x4 = 1.33e+06)  eps(rho_T=9.31) = 0.062  ->  UNINFORMATIVE
+2023-10-14T08:15:06 (out-of-domain): {'cnn_H1': -0.891455888748169, 'cnn_L1': -0.024978328496217728}  -- no verdict by pre-registration
+2023-08-10T10:10:03 [cnn] x = -0.733  FAR 9.42e+04/yr (x4 = 3.77e+05)  eps(rho_T=9.27) = 0.000  ->  UNINFORMATIVE
+2023-08-10T10:10:03 [bank] x = 13.131  FAR 7.04e+04/yr (x4 = 2.81e+05)  eps(rho_T=9.27) = 0.077  ->  UNINFORMATIVE
+wrote rescore.json

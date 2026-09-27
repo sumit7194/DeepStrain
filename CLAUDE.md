@@ -484,6 +484,16 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   repo's own AUC helper instead of adding sklearn). **⇒ L6b (fetch a bigger pool) is NOT justified.** N4's
   headline stands and is better understood: real, cheap, saturates almost immediately. Gated (49).
   Artifact: results/ssl_poolscale.json.
+- **M11 DONE (2026-09-28): LVK's O4a subsolar triggers re-scored — UNINFORMATIVE, as pre-registered.** Two primary
+  triggers from arXiv:2605.05444 Table 1 (Jul 19 0.74+0.24, Aug 10 0.60+0.21; both in our validated population, H1+L1)
+  scored with CNN + targeted adequate bank + H1×L1 coincidence vs an O4a time-slide background (21/30 segments, 1,302
+  windows, 3.44 yr). **Sensitivity at their in-band SNR ρ≈9.3: CNN 0%, bank 6–8%** ⇒ all 4 looks UNINFORMATIVE; scores
+  noise-like (bank 12.36/13.13 vs bg median ~12.6). Neither support nor refutation — it measures the gap: LVK ranked
+  them at SNR ~9.5, our bank's 50% point at 1/yr is ~12–13 (~1.3×, cause likely semi-coherent + equal-mass, not isolated). Survived a reboot + 2-day GWOSC degradation (~6 KB/s); every amendment
+  committed before any score, refactor proven identical to the registered commit. Artifacts: results/o4a_ssm/.
+  **Resource lessons (2026-09-24, from `bridge`):** a SIGSTOPped process frees NOTHING on macOS (compressed pages keep
+  migrating to swap on disk) — guards must terminate; size jobs by top's MEM incl. CMPRS (ours 3.2 GB vs RSS 1.95 GB,
+  1.65×); after a reboot vm.swapusage reads total=free=0, which a naive 'free swap < X' guard reads as FULL.
 - **ADEQUATE BANK REACHED (2026-09-23): the dense bank saturates by ~1,600 templates, and then the MATCHED FILTER
   BEATS the CNN by 6%.** `bank_dense.py --spacing 0.0005 --n-inj 1500` (B = 3,235, 9,000 injections, ~34 h, made
   affordable by the L1 re-timing). **Pre-registered adequacy:** MF(3,235)/MF(1,617) = **1.01/0.97/0.98 < 1.10 ⇒

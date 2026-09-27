@@ -1499,6 +1499,20 @@ print(f"PASS  adequate bank (3,235 vs 1,617: {[round(r['ratio'],2) for r in a['b
       f"{v['posthoc_loso_range'][0]:.3f}-{v['posthoc_loso_range'][1]:.3f} => MF beats CNN by ~6%)")
 PYEOFADQ
 
+echo "--- pbh M11 (LVK O4a subsolar triggers re-scored: UNINFORMATIVE as pre-registered)"
+./primordial_blackhole_search/.venv/bin/python - << 'PYEOFM11' || FAIL=1
+import json
+f = json.loads(open("primordial_blackhole_search/results/o4a_ssm/frozen.json").read())
+r = json.loads(open("primordial_blackhole_search/results/o4a_ssm/rescore.json").read())
+assert f["n_segments"] >= 20 and f["n_segments"] == 21, "floor / segment count moved"
+assert all(v["applicable"] and v["eps_at_rho_T"] < 0.1 for v in f["stats"].values())
+prim = [t for t in r["triggers"] if t["cls"] == "primary"]
+assert len(prim) == 2 and all(v["verdict"] == "UNINFORMATIVE" for t in prim for v in t["verdicts"].values())
+assert all(v["far_x_looks"] > 1.0 for t in prim for v in t["verdicts"].values())
+print(f"PASS  M11 ({f['n_segments']} O4a segments, T_bg {f['T_bg_yr']:.2f} yr; eps(rho_T) CNN 0, bank "
+      f"{max(v['eps_at_rho_T'] for k, v in f['stats'].items() if 'bank' in k):.3f}; 4/4 looks UNINFORMATIVE)")
+PYEOFM11
+
 echo "========================================"
 [ $FAIL -eq 0 ] && echo "BLACKHOLE GATE: ALL GREEN" || echo "BLACKHOLE GATE: FAILURES"
 exit $FAIL

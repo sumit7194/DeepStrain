@@ -2068,6 +2068,47 @@ per segment), which extends the sweep one rung and tests whether MF pulls away f
 Announced to the fleet. Artifact: `bank_adequacy.json`.
 
 
+### M11 DONE (2026-09-28): LVK's O4a subsolar triggers re-scored — UNINFORMATIVE, exactly as pre-registered
+
+**Question.** LVK's O4a sub-solar-mass search (arXiv:2605.05444, Table 1) publishes every trigger with FAR < 2/yr; an
+independent PE paper (arXiv:2607.23119) says three "may contain" a sub-solar component. What do OUR instruments
+(cnn_w64, the adequate semi-coherent bank, H1×L1 coincidence) say? Pre-registered (c0a59cd) before any trigger was
+touched; thresholds and sensitivity frozen and committed (157452e) before scoring. Script `o4a_ssm_rescore.py`.
+
+**Classes by rule.** PRIMARY (both components in our validated [0.2, 1.0] M☉ population, H1+L1): 2023-07-19
+11:50:50 (0.74+0.24, FAR 1.3/yr, SNR 9.47) and 2023-08-10 10:10:03 (0.60+0.21, 1.4/yr, 9.43). OUT-OF-DOMAIN
+(Sep 14, Oct 14 HL; Aug 10 07:13 L-only): CNN FAR, no verdict. OUT-OF-RANGE (Mc ≈ 2: GW230529, May 28): not scored.
+
+**Background.** 21 of 30 pre-drawn O4a H1∩L1 segments (floor 20), **1,302 windows, T_bg = 3.44 yr**. Lost segments,
+per the amendments: #19/#22/#24 failed their single retry, #25 hit the 90-min stall rule, #26–30 never launched
+(GWOSC delivered ~6 KB/s for a day). Injections: 84 per SNR point per trigger (planned 120; fewer segments).
+Band factor c = 0.983 (PyCBC's 45 Hz vs our 50 Hz) ⇒ in-band network SNR ρ_T = 9.31 / 9.27.
+
+**Sensitivity (the result that decides everything).** At FAR = 1/yr, injections with each trigger's own masses:
+
+| statistic | ε at SNR 6 / 8 / 10 / 12 / 14 / 16 | ε(ρ_T) |
+|---|---|---|
+| CNN coincidence (both triggers) | 0 / 0 / 0 / 0 / 0 / 0 | **0.000** |
+| bank, Jul 19 | 0 / 0 / 0.095 / 0.464 / 0.679 / 0.893 | **0.062** |
+| bank, Aug 10 | 0 / 0.024 / 0.107 / 0.417 / 0.750 / 0.857 | **0.077** |
+
+**Scores (noise-like everywhere).** Jul 19: CNN −1.06 (bg median −1.53), bank 12.36 (bg median 12.56 — *below* it).
+Aug 10: CNN −0.73, bank 13.13 (bg median 12.62, p90 13.25). FARs 7×10⁴–3×10⁵ /yr. **All four looks UNINFORMATIVE**
+(not significant, ε < 0.1). Out-of-domain CNN FARs: Sep 14 3.9×10⁵/yr, Oct 14 1.2×10⁵/yr; Aug 10 07:13 had no clean
+4096-s L1 stretch.
+
+**Reading.** Prediction held. Our instruments cannot test triggers this weak: the CNN is blind at every network
+SNR ≤ 16 on this population, and the adequate bank reaches 50% only near SNR 12–13 — a real signal at ρ ≈ 9.3
+would almost never clear our 1/yr threshold. So this is **neither support for nor evidence against** the LVK/
+Christensen triggers; it quantifies how much more sensitive a pipeline must be to adjudicate them. Roughly: LVK's
+coherent searches ranked these at network SNR ~9.5 near FAR 1/yr, while our bank reaches 50% efficiency at 1/yr only
+near SNR 12–13 — a gap of ~1.3×, *likely* from the n=8 semi-coherent statistic plus equal-mass templates (87–88% match
+on q≈0.33), not isolated here. The CNN's 0% at network SNR 16 (~11 per detector) is what its known ~17 per-detector
+50% point predicts, not a new effect. **Process:** the machine rebooted mid-run, GWOSC degraded for two days; every
+change (retry pass, stall rule, `--only`, the swap-rule bug fix, the trigger_segments refactor — proven identical
+against the registered commit, 1d397ee) was committed before any score existed. Artifacts: results/o4a_ssm/.
+
+
 ### ✅ THE DENSE BANK IS ADEQUATE — and once it is, the matched filter BEATS the CNN by 6% (2026-09-23)
 
 **Adequacy (pre-registered criterion, stopping-rule step 1).** 0.05% spacing, B = 3,235, **9,000 injections**

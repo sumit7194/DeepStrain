@@ -11,6 +11,18 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-09-28 — LVK's own subsolar triggers, through our instruments: uninformative, as predicted
+
+Step 1 of the combined fleet plan. LVK published its O4a subsolar trigger list with times and masses; O4a data is
+public; we have a CNN, an adequate bank and a coincidence background. Pre-registered, frozen, then scored. Both
+in-domain triggers score like ordinary noise — but the decisive number came before the scores: at their strength
+(in-band SNR ≈ 9.3) our CNN detects 0% of injections and our bank 6–8%. So we can neither support nor contest them.
+The run itself was the harder part: a reboot killed the first pass, GWOSC served ~6 KB/s for two days, and the
+guard nearly killed the relaunch because a post-reboot Mac reports zero swap as 'no free swap'. Every rule change was
+committed before any trigger was touched.
+
+---
+
 ## 2026-09-23 (cont.) — the dense bank is adequate, and then the matched filter wins by 6%
 
 The 0.05% bank finished after ~34 h. Pre-registered saturation test against its own halving on the same 9,000
