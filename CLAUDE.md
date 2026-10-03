@@ -1083,6 +1083,11 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
 - **All three arcs are PARKED COMPLETE** (FOCUS DIRECTIVE in ../SpaceTime: curvature
   only until mined out). Green gates, shelf lists in each lab notebook. Revisit when
   the curvature project is done.
+- **⚠️ VENVS DELETED 2026-10-03 to free disk (user's call): all four (`primordial_blackhole_search/.venv`,
+  `echoes/.venv`, `ringdown_spectroscopy/.venv`, `.venv311`).** Exact package sets are frozen in each sub-project's
+  `requirements-lock*.txt` (commit 26b63b0), each with its Python version and the one-line `uv` rebuild command.
+  **`./verify.sh` needs them** — rebuild before running the gate or any script. Also deleted: 10 O4b strain
+  segments (results cached) and `data/waveform_pool` (rebuild: `scripts/build_waveform_pool.py`, ~17 min).
 - **Regression gate: `./verify.sh`** — asserts echoes (07) + ringdown (09/10) + pbh
   (CNN sensitivity, eval_cnn) headline artifacts against saved results. Run after any
   change here; a result isn't real until the gate is green. (The `.venv` folders were
