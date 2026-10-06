@@ -11,6 +11,18 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-10-06 — Why every network hit the same wall: a first-principles brainstorm
+
+The user asked whether maths or architecture could get more out of data we were "always short on". The maths
+answer first: no transform amplifies a signal (Parseval, data-processing, Neyman–Pearson). The useful answer came
+from inventorying every network we built: our input throws away phase, the second detector and most of a light
+chirp (a 0.2+0.2 M☉ chirp lasts ~350 s; the window shows 32–64 s) before any net sees it — so different
+architectures on the same lossy input landed in the same place. Corrected our own yardstick ("1.0 = ideal" is a
+hard-coded SNR 8; realizable best is the bank at 0.514 vs CNN 0.484). Eight directions with prior-art status,
+traded with the `tabula-geometrica` session (they caught that a time-reversed chirp also flips the envelope — so
+two decoy families; we caught that straightening a power image is not coherence). Plan + draft pre-registration
+in `primordial_blackhole_search/NN_REDESIGN.md`. Nothing built yet.
+
 ## 2026-09-28 — LVK's own subsolar triggers, through our instruments: uninformative, as predicted
 
 Step 1 of the combined fleet plan. LVK published its O4a subsolar trigger list with times and masses; O4a data is

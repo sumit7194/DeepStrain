@@ -12,6 +12,15 @@ already have on the same data**, plus the one guardrail on a parked thread.
 
 ---
 
+## NEW 2026-10-06 — Rethinking the subsolar networks (brainstorm → plan)
+- **What:** first-principles diagnosis of why every architecture hit the same ceiling — the input throws away
+  **phase**, **the second detector** and **most of the chirp** before any net sees it (N^(1/4) incoherent loss) —
+  plus 8 directions (decoy hard negatives, complex chunk tokens, early cross-spectrum fusion, whole-signal
+  context, proposer+verifier, learned noise model, f^(−8/3) straightening/PCEN, more noise data).
+- **Yardstick fixed:** oracle 0.66–0.76 / realizable bank 0.514 / CNN 0.484 (the old "1.0 = ideal" is a hard-coded SNR 8).
+- **Where:** [primordial_blackhole_search/NN_REDESIGN.md](primordial_blackhole_search/NN_REDESIGN.md).
+- **Status:** proposed; first step = pre-registered decoy test of what `cnn_w64` learned. Awaiting user go.
+
 ## P1 — Echo non-detections → real UPPER LIMITS  *(highest leverage)*
 - **What:** add an **injection-efficiency curve** to the echo comb search — i.e.
   measure, per echo spacing Δt (≡ λ), the amplitude you *would have detected*.
