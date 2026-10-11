@@ -13,13 +13,11 @@ plus a stamp of what affects numerics. Re-stamp with `python tools/envstamp.py E
 | Mac, ringdown package (`.venv311`, deleted) | `ringdown_spectroscopy/requirements-lock-py311.txt` | — | Python 3.11, jax 0.4.35 x64 |
 | Google Cloud L4 GPU VM `alphaludo-l4` (Build C, C-2, 2026-06-20) | **not recorded** — VM deleted | — | CUDA; exact versions unrecoverable. Results from it are gated on saved artifacts only |
 
-## Known numerics hazard: Apple Accelerate QR (fleet alert 2026-10-11, root-caused by tabula 59812ec)
-Accelerate's `dgeqrf` silently corrupts the heap for near-square matrices ~550–800 × 550–629. **Mac torch also
-links Accelerate** (`LAPACK_INFO=accelerate`, checked 2026-10-11), so `torch.linalg` on Mac CPU is NOT a workaround —
-use an OpenBLAS environment (e.g. the phone, or a Linux venv). **Audit of our code (2026-10-11): no call in the
-affected regime** — every `qr`/`lstsq`/`polyfit`/`chebfit` is tall-skinny with 2–29 columns, `inv`/`solve` are small or
-LU (not QR), and the scoring path (`track_eval.py`) does no dense linear algebra. Re-audit before adding any
-hundreds-scale QR/lstsq/SVD/pinv/matrix_rank on the Mac.
+## Known numerics hazard (2026-10-11)
+A vendor numerical-library defect is under responsible disclosure; details are withheld until the vendor resolves
+it. **Audit of our code: not affected.** General note: on the Mac, torch's CPU linear algebra uses the same vendor
+library as numpy/scipy (`LAPACK_INFO=accelerate`), so switching to torch is not an independent cross-check there; an
+OpenBLAS environment (the phone, or a Linux venv) is.
 
 ## Back-fill policy for finished results
 Results committed before 2026-10-11 carry no environment line. Back-filled rule: **unless an entry says otherwise, a
