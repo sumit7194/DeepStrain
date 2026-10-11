@@ -1,0 +1,2 @@
+PyCBC.libutils: pkg-config call failed, setting NO_PKGCONFIG=1
+done 600

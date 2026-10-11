@@ -1,0 +1,37 @@
+#!/bin/bash
+# Runs INSIDE the Debian chroot on the phone: the pre-registered job order, each job resumable.
+# A job that exits non-zero is retried after 5 min from its last checkpoint.
+# OFFLINE MODE (amendment 2): if a fresh-noise job fails while the internet is down and the 16 control segments are
+# on disk, work on the next unfinished control run for up to 30 min, then re-check. Scheduling only: every run is
+# deterministic per (seed, segment) and checkpointed, so results are identical to the pre-registered order.
+# Started at boot by the init via /mnt/userdata/autostart.sh; the lock makes a second start a no-op.
+cd /root/pbhcode || exit 1
+exec 9>/root/pbhcode/.queue.lock
+flock -n 9 || { echo "$(date -u '+%F %T') queue already running; not starting a second one"; exit 0; }
+export PYTHONPATH=/root/pbhcode
+log() { echo "$(date -u '+%F %T') $*"; }
+sha256sum -c --quiet FROZEN.sha256 || { log "FROZEN hashes do not match: refusing to train"; exit 1; }
+PY=/root/pbh/.venv/bin/python
+online() { curl -s -o /dev/null -m 20 -I https://gwosc.org/; }
+controls_local() { $PY -c '
+import json, sys
+from pbh import config as C
+from pbh.data import segment_path
+sys.exit(0 if all(segment_path("H1", g).exists() for g in json.load(open(C.DATA_DIR / "manifest.json"))["H1"]["train"]) else 1)'; }
+next_control() { for s in 0 1 2 3 4; do [ -f "runs/original_s$s/final.pt" ] || { echo "$s"; return 0; }; done; return 1; }
+
+for job in "stream 0" "original 0" "stream 1" "original 1" "original 2" "original 3" "original 4"; do
+  set -- $job
+  [ -f "runs/$1_s$2/final.pt" ] && { log "skip $1 s$2 (done)"; continue; }
+  until $PY -W ignore stream_train.py --source "$1" --seed "$2"; do
+    if [ "$1" = stream ] && ! online && controls_local && c=$(next_control); then
+      log "job $1 s$2 failed and internet is down: offline work on control C$c for up to 30 min"
+      timeout 1800 $PY -W ignore stream_train.py --source original --seed "$c"
+      log "offline window over (rc=$?); re-checking internet"
+    else
+      log "job $1 s$2 exited non-zero; retrying in 300 s"
+      sleep 300
+    fi
+  done
+done
+log "QUEUE_DONE"

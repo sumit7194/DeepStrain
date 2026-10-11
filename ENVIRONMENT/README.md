@@ -32,11 +32,14 @@ python tools/envstamp.py      # record what you actually ran on
 ```
 Then run the script named in the RESULTS entry (each entry names its script and artifact).
 
-**Phone (noise-variety experiment):** Debian 13 arm64 chroot, Python 3.12.13 via uv:
+**Phone (noise-variety experiment):** code + pre-registration are committed in
+[`primordial_blackhole_search/device_stream/`](../primordial_blackhole_search/device_stream/README.md). On a Debian 13 arm64
+box (Python 3.12.13 via uv):
 ```bash
-uv venv --python 3.12 /root/pbh/.venv && uv pip install --python /root/pbh/.venv/bin/python -r phone_pbh_requirements.lock
+uv venv --python 3.12 /root/pbh/.venv && uv pip install --python /root/pbh/.venv/bin/python -r ENVIRONMENT/phone_pbh_requirements.lock
+mkdir -p /root/pbhcode && cp -r primordial_blackhole_search/device_stream/* primordial_blackhole_search/pbh /root/pbhcode/
+# build the 600-entry bank on the Mac (device_stream/build_bank.py), copy bank/ over, verify against bank.md5
 cd /root/pbhcode && sha256sum -c FROZEN.sha256 && ./run_queue.sh
 ```
-The experiment code and pre-registration live **outside this repo by the user's directive**
-(`antigravity/fervent-carson/deepstrain_stream/`, pinned by `FROZEN.sha256`). Any run on another aarch64 Linux box
-with the same lock is expected to reproduce the phone's weights bit-for-bit (untested off the phone); the Mac agrees to ~7 decimals (measured).
+Device setup (custom init, Wi-Fi, SSH) is deliberately not in the repo. Any aarch64 Linux box with the same lock is
+expected to reproduce the phone's weights bit-for-bit (untested off the phone); the Mac agrees to ~7 decimals (measured).
