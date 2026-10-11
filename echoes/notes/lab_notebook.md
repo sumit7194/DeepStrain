@@ -2,6 +2,8 @@
 
 *Decisions, simplifications, and dead ends. Newest at the bottom.*
 
+> **Environment (back-filled 2026-10-11):** unless an entry says otherwise, results here ran in the sub-project venv whose exact package set is the committed `echoes/requirements-lock.txt`; see [ENVIRONMENT/README.md](../../ENVIRONMENT/README.md) for the stamp, caveats. Entries from 2026-10-11 on carry their own `Environment:` line.
+
 ## 2026-06-10 — v1 pipeline design
 
 **Goal of v1:** a complete, honest, end-to-end pipeline on ONE event (GW150914) —

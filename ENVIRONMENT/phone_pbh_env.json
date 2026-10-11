@@ -1,0 +1,15 @@
+{
+ "_note": "Phone compute node, stamped 2026-10-11 WITHOUT importing torch (trainer running; no-swap device). Packages: phone_pbh_requirements.lock (uv pip freeze).",
+ "device": "Xiaomi Redmi 9A/10A, MediaTek Helio G25 (MT6765, 8x Cortex-A53, CPU part 0xd03), 2.77 GB RAM, no swap",
+ "os": "Android/MIUI removed: custom Rust barebone init on stock kernel 4.19.127-perf (aarch64), Debian 13.7 (trixie) arm64 chroot",
+ "libc": "glibc 2.41",
+ "python": "3.12.13 (uv 0.12.23 managed), venv /root/pbh/.venv",
+ "packages": {"numpy": "2.4.6", "scipy": "1.17.1", "torch": "2.12.0+cpu", "pycbc": "2.10.0 (built from source on the phone)",
+              "gwpy": "4.0.1", "lalsuite": "7.26.14"},
+ "blas_lapack": {"numpy": "scipy-openblas64 (bundled wheel lib)", "scipy": "scipy-openblas (bundled wheel lib)",
+                 "torch": "OpenBLAS + Arm Compute Library (bundled libopenblas, libarm_compute)"},
+ "torch": {"threads": "8 (stream_train.py --threads default, torch.set_num_threads)", "device": "cpu", "dtype": "float32"},
+ "thread_env": "no OMP/MKL/OPENBLAS thread variables set",
+ "numerics_check": "phone outputs match the Mac to ~7 decimals (benchmark 2026-10-06); runs bit-identical across reruns and kill/resume on the phone itself",
+ "experiment_code": "git-ignored by user directive: /Users/sumit/Github/antigravity/fervent-carson/deepstrain_stream (FROZEN.sha256 pins it)"
+}

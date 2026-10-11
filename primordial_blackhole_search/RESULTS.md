@@ -4,6 +4,8 @@
 mergers in public LIGO data. Everything below is measured, not asserted; every
 sensitivity number comes from injections into real O3a noise.*
 
+> **Environment (back-filled 2026-10-11):** unless an entry says otherwise, results here ran in the sub-project venv whose exact package set is the committed `primordial_blackhole_search/requirements-lock.txt`; see [ENVIRONMENT/README.md](../ENVIRONMENT/README.md) for the stamp, caveats and the Build C / C-2 exception (L4 GPU VM, versions unrecorded). Entries from 2026-10-11 on carry their own `Environment:` line.
+
 ---
 
 ## Headline numbers

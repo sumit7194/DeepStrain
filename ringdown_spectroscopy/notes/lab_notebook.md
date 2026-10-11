@@ -3,6 +3,8 @@
 *Chronological record of what was run, what came out, and what it means.
 Plain-language; every claim tied to a script + artifact in this repo.*
 
+> **Environment (back-filled 2026-10-11):** unless an entry says otherwise, results here ran in the sub-project venv whose exact package set is the committed `ringdown_spectroscopy/requirements-lock.txt` (`ringdown` package fits: `requirements-lock-py311.txt`)`; see [ENVIRONMENT/README.md](../../ENVIRONMENT/README.md) for the stamp, caveats. Entries from 2026-10-11 on carry their own `Environment:` line.
+
 ---
 
 ## 2026-06-10 — v1 built end-to-end

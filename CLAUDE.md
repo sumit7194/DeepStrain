@@ -1088,6 +1088,11 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
   `requirements-lock*.txt` (commit 26b63b0), each with its Python version and the one-line `uv` rebuild command.
   **`./verify.sh` needs them** — rebuild before running the gate or any script. Also deleted: 10 O4b strain
   segments (results cached) and `data/waveform_pool` (rebuild: `scripts/build_waveform_pool.py`, ~17 min).
+- **Reproducibility (fleet policy, 2026-10-11):** every RESULTS / lab-notebook entry from now on ends with one line
+  `Environment: <where> · <lock file> · <stamp or key versions> · git <commit>` — run `python tools/envstamp.py` and
+  cite it. Pinned environments + stamps + reproduce commands live in `ENVIRONMENT/` (Mac pbh venv, phone node; the
+  deleted echoes/ringdown venvs via their `requirements-lock*.txt`). Older entries are covered by a "back-filled"
+  pointer at the top of each results doc. Mac = Accelerate BLAS, phone = OpenBLAS ⇒ ~7-decimal agreement, not bitwise.
 - **Regression gate: `./verify.sh`** — asserts echoes (07) + ringdown (09/10) + pbh
   (CNN sensitivity, eval_cnn) headline artifacts against saved results. Run after any
   change here; a result isn't real until the gate is green. (The `.venv` folders were

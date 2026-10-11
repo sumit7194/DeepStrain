@@ -87,10 +87,13 @@ Each sub-project is self-contained: `scripts/` (numbered steps + a shared lib), 
 ## Reproduce
 Large, regenerable artifacts — raw LIGO strain, spectrogram shards, model weights, venvs — are **not** committed; only the code, docs, result records, and the segment `manifest.json` (so the exact GPS segments can be re-fetched from GWOSC).
 
+Exact, pinned environments (one per place code runs: Mac sub-project venvs, the phone compute node) with numerics
+stamps, plus step-by-step commands, are in **[`ENVIRONMENT/README.md`](ENVIRONMENT/README.md)**. In short:
+
 ```bash
-cd <subproject> && uv venv && uv pip install -r requirements.txt   # per-project venv
-.venv/bin/python scripts/01_*.py         # fetch data from GWOSC, then run the numbered pipeline
-./verify.sh                              # from the root: 46 checks assert every headline result
+cd <subproject> && uv venv --python 3.12 .venv && uv pip install --python .venv/bin/python -r requirements-lock.txt
+cd .. && ./verify.sh                      # regression gate: every headline result asserted (66 checks); must be green
+python tools/envstamp.py                  # record the environment you actually ran on
 ```
 
 **Docs:** [`ROADMAP.md`](ROADMAP.md) (next moves) · [`PLAN.md`](PLAN.md) (full backlog, done + parked) · [`JOURNAL.md`](JOURNAL.md) (dated log) · each sub-project's `notes/lab_notebook.md`.

@@ -1,0 +1,49 @@
+{
+ "python": "3.12.13",
+ "executable": "/Users/sumit/Github/BlackHole/primordial_blackhole_search/.venv/bin/python",
+ "implementation": "CPython",
+ "platform": "macOS-26.5-arm64-arm-64bit",
+ "machine": "arm64",
+ "cpu_count": 10,
+ "packages": {
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "torch": "2.12.0",
+  "pycbc": "2.10.0",
+  "gwpy": "4.0.1",
+  "lal": "7.7.1",
+  "sbi": null,
+  "qnm": null,
+  "mpmath": "1.3.0",
+  "ringdown": null,
+  "jax": null
+ },
+ "blas_lapack": {
+  "numpy": {
+   "blas": "accelerate",
+   "lapack": "accelerate"
+  },
+  "scipy": {
+   "blas": "Accelerate",
+   "lapack": "Accelerate"
+  }
+ },
+ "torch": {
+  "threads": 4,
+  "interop_threads": 10,
+  "mps": true,
+  "cuda": false,
+  "default_dtype": "torch.float32"
+ },
+ "thread_env": {
+  "OMP_NUM_THREADS": null,
+  "MKL_NUM_THREADS": null,
+  "OPENBLAS_NUM_THREADS": null,
+  "VECLIB_MAXIMUM_THREADS": null,
+  "PYTORCH_ENABLE_MPS_FALLBACK": null
+ },
+ "git": {
+  "commit": "0cb5884cc31b1b98d850d5d10bb6299fe54865dd",
+  "dirty": false
+ }
+}
