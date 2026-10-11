@@ -29,6 +29,21 @@ changed). `run_queue.sh.pre_amend3` is the queue script before Amendment 3 (stal
 The phone runs these against the repo's own `pbh/` library (the device copy is byte-identical to
 `primordial_blackhole_search/pbh/`, checked 2026-10-11).
 
+## Scoring (when the Mac is free) — weights already copied
+Finished runs are copied to the Mac (git-ignored) as `models/dev_v0_stream_s0.pt` and `models/dev_c0_original_s0.pt`
+(sha256 checked against the phone; raw copies + `segments.jsonl`/`log.txt`/`config.json` in `models/device_stream/<run>/`).
+
+**⚠️ Cache trap, found 2026-10-12 before any scoring:** `scripts/track_eval.py` caches the noise sweep and injection
+scores under `results/track_w64/`, which was **not keyed by weights** — so `--weights <device run>` would have silently
+re-read `cnn_w64`'s cached scores and returned the baseline for every run (and a "golden gate" re-run would pass by
+reading its own cache). `track_eval.py` now refuses any non-default weights without `--cache-key`. Commands:
+```bash
+.venv/bin/python scripts/track_eval.py --window-sec 64 --weights cnn_w64 --cache-key golden   # FRESH recompute; must give 0.407/0.457/0.476
+.venv/bin/python scripts/track_eval.py --window-sec 64 --weights dev_v0_stream_s0 --cache-key dev_v0_stream_s0
+.venv/bin/python scripts/track_eval.py --window-sec 64 --weights dev_c0_original_s0 --cache-key dev_c0_original_s0
+```
+Primary statistic `max`; injections are seeded identically across runs (paired). Decision rule: PREREGISTRATION.md.
+
 ## Not committed (large or device-specific)
 - `bank/` (6.2 GB, 600 npz) — rebuild on the Mac with `build_bank.py`, then check against `bank.md5`. `bank_test/`,
   `rs_*/`, `runs_smoke/` are reproducibility/smoke outputs (18–156 MB each), kept in the device folder.

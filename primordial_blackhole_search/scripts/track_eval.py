@@ -157,6 +157,9 @@ def main() -> None:
     ap.add_argument("--window-sec", type=int, default=C.WINDOW_SEC)
     ap.add_argument("--selftest", action="store_true")
     ap.add_argument("--smoke", action="store_true", help="8 injections/segment")
+    ap.add_argument("--cache-key", default=None,
+                    help="separate cache + output names (results/<base>_<key>/); required for any weights other than "
+                         "cnn/cnn_w64, whose committed caches are NOT keyed by weights")
     args = ap.parse_args()
     weights = args.weights or args.arch
 
@@ -168,6 +171,11 @@ def main() -> None:
     test_segs = manifest["H1"]["test"]
 
     base = f"track_w{args.window_sec}" if is_short else "track"
+    if args.cache_key is None and weights not in ("cnn", "cnn_w64"):
+        sys.exit(f"refusing: results/{base}/ caches hold cnn/cnn_w64 scores and are not keyed by weights, so "
+                 f"--weights {weights} would silently re-read them; pass --cache-key")
+    if args.cache_key:
+        base = f"{base}_{args.cache_key}"
     cache_dir = C.RESULTS_DIR / base
     cache_dir.mkdir(parents=True, exist_ok=True)
 
