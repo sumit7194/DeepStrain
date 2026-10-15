@@ -452,6 +452,12 @@ signal developing dense inter-peak power in place of a discrete frequency comb
 [arXiv:2604.06053](https://arxiv.org/abs/2604.06053), *Probing Kerr Symmetry Breaking with LISA EMRIs*,
 **[S]** — pointer only, abstract not read).
 
+> **Correction (The Bridge, 2026-10-15; abstract read on arXiv):** arXiv:2604.06053 is Muguruza & Sopuerta, Phys. Rev. D
+> 114, 064010 (2026). It is about LISA constraints on the primary's mass multipoles, including NON-axisymmetric
+> quadrupole/octupole, in an analytic-kludge PN model. It is **not** a non-integrability or glitch paper, so it does
+> not support the sentence above. For the glitch observable, cite Destounis, Suvorov & Kokkotas, PRL 126, 141102
+> (2021) (= arXiv:2103.05643, checked), and Destounis & Kokkotas, PRD 104, 064023 (2021) (arXiv:2108.02782).
+
 **What our own number does and does not say about such a proof.** If the metric is the second-order-in-spin
 one — as every sGB QNM paper checked above is — then the object differs from the physical one by **18.9%** at
 χ = 0.90 (measured, and externally validated). But the *direction* of a non-existence result makes it robust
