@@ -2175,3 +2175,41 @@ unfinished and the numbers unseen:
 6. **Recorded prediction:** I expect the low-mass bin to still be climbing at 3,235 templates, because it
    only crossed its detection floor between 649 and 1,619 — a bin that has just switched on is the least
    likely to have saturated one doubling later.
+
+
+---
+
+# Noise-variety experiment (phone compute node) — INTERIM scores, 4 of 7 runs (2026-10-17). NOT the verdict.
+
+Pre-registration, code and amendments: [device_stream/](device_stream/README.md). Primary metric: `track_eval.py
+--window-sec 64`, statistic `max`, sensitive-distance fraction per mass bin on the 6 fixed O3a test segments, identical
+(paired) injections for every run. **The decision rule needs C seeds 0–4 (sd over 5 controls); with C0, C1 only, no z
+is computed and none should be quoted.**
+
+**Golden gate PASSED (required before any scoring):** a fresh-cache recompute of `cnn_w64` reproduces the committed
+0.4072 / 0.4569 / 0.4757 exactly, threshold 1.817 — twice (Oct 13 and Oct 15). This also exercises the cache guard
+added in c80c0ea (track_eval's caches were not keyed by weights; without it every device run would have silently
+returned the baseline).
+
+| Run | Arm / seed | low | mid | high | mean | zero-FA threshold |
+|---|---|---|---|---|---|---|
+| `cnn_w64` (Mac, committed) | reference | 0.4072 | 0.4569 | 0.4757 | 0.4466 | 1.817 |
+| C0 | control s0 | 0.3990 | 0.4593 | 0.4825 | 0.4469 | 1.501 |
+| C1 | control s1 | 0.3978 | 0.4549 | 0.4751 | 0.4426 | 1.932 |
+| V0 | fresh noise s0 | 0.4061 | 0.4530 | 0.4757 | 0.4449 | 2.157 |
+| V1 | fresh noise s1 | 0.3967 | 0.4471 | 0.4571 | 0.4337 | 2.206 |
+
+- **Paired (same seed, same injections): V0 − C0 = −0.0020, V1 − C1 = −0.0089** (mean over bins). Both small and both
+  negative; no sign that ~600 h of fresh noise beats recycling the original 18 h. Preview only.
+- **The phone reproduces the Mac recipe:** C0 (trained entirely on the phone) 0.4469 vs the Mac `cnn_w64` 0.4466.
+- **Observation for the stats audit, not a claim:** the zero-FA thresholds spread 1.50–2.21 across runs that score
+  within ±0.007 of each other — the max-of-384 threshold moves a lot while the distance barely does. How much of the
+  metric's run-to-run scatter is threshold noise is the question put to the outside audit (fable brief PROMPT_1).
+- **V1 re-checked:** re-scored from the sha256-verified `final.pt` → per-injection parquet **byte-identical** to the Oct 15 run.
+
+**Provenance (recorded because three sessions ran these):** golden + V0 + C0 — the user's other-account BlackHole
+session (transcript 919e7153), 2026-10-13 ~07:34–07:47 UTC, at the user's request; second golden + V1 — The Bridge,
+2026-10-15 21:03/21:17 IST, weights sha256-verified from the phone; C1 + V1 re-check — this session, 2026-10-17,
+`results/device_scoring/run_c1_v1.sh` (nice 10). Weights: `models/dev_*.pt` (git-ignored; sha256 match the phone's
+`runs/<run>/final.pt`).
+Environment: Mac · primordial_blackhole_search/.venv = ENVIRONMENT/mac_pbh_requirements.lock · torch 2.12.0 MPS, Python 3.12.13 · git e0943c3 (scoring code at c80c0ea). Training: phone · ENVIRONMENT/phone_pbh_requirements.lock.
