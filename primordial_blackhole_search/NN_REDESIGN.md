@@ -176,4 +176,5 @@ If false, the CNN already knows more physics than the occlusion probe suggested 
 | Exchange with `tabula-geometrica` | ✅ two rounds; they adopted the encoding audit, the three-tier yardstick, decoy worlds and nuisance-matching (in SpaceTime `curvature/notes/cartographer_design.md`) |
 | §5 decoy experiment | ⏳ not started — waiting on the user's go and their own ideas (Ludo input-encoding experience) |
 | #8 more real noise (phone experiment, `device_stream/`) | ✅ done 2026-10-23 — **pre-registered NULL**, z = −0.15, effect within ≈ ±2.7%: 600 h of fresh noise ≈ 18 h recycled ⇒ noise quantity is not the bottleneck; supports §3 (the input encoding is) |
+| §5 decoy test (cnn_w64) | ✅ done 2026-10-23 — **it DISCRIMINATES sweep direction** (reversed chirps r ≈ 0.01, envelope-matched too) and half-accepts a wrong-law rising sweep (r 0.59, confounded by band). My "power shortcut" prediction was WRONG; #1 (reversed-chirp hard negatives) loses most of its motivation |
 | Everything else | 💤 proposed |

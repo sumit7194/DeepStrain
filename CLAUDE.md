@@ -576,6 +576,13 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   cannot be quietly re-inflated. **Bank deliberately NOT built** (~162 h for no speed gain) ⇒ *does a CNN still
   tie a matched filter once the bank is adequate?* stays OPEN, and needs a genuinely cheaper filter.
   Artifacts: bank_ratio_{golden,diag,mcscan,chunked,regime,realcost}.json.
+- **DECOY TEST DONE (2026-10-23): cnn_w64 has learned that a chirp RISES — not a band-power detector.** Pre-registered
+  (scripts/decoy_test.py). At matched SNR and position, time-reversed chirps (identical power spectrum, D1) and
+  envelope-matched reversed sweeps (D2) are detected at r ≈ 0.01 of the real chirp, even at SNR 26. A wrong-law
+  (linear) rising sweep is detected at r 0.59, ~1.25× SNR penalty, confounded by its extra power above 224 Hz. **My
+  prediction (all fooled) was WRONG**, and it corrects the 09-02 "honestly fooled by band power" reading: the
+  occlusion probe measured WHERE (73–224 Hz), the decoys measure WHAT (an upward track). G0 failed first on a gate
+  indexing bug (2,048-sample offset); fixed, re-run seeded and identical. Artifact: results/decoy_test.json.
 - **NOISE-VARIETY EXPERIMENT DONE (2026-10-23): pre-registered verdict NO DETECTABLE EFFECT, z = −0.15.** cnn_w64
   retrained from scratch on a flashed Redmi phone (OpenBLAS CPU, 8 threads; first use of the phone as a compute
   node) on ~600 h of fresh, never-repeated O3a noise (2 seeds) vs the original 18 h recycled (5 seeds), identical

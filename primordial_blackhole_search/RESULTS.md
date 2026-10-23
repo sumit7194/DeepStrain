@@ -2277,3 +2277,50 @@ near 110 Hz? Full pre-registration, families, gates and readings are in the docs
 - **Prediction (before running):** all three r ≥ 0.7 (~60%). The likeliest alternative is D1 below D2/D3.
 - **Construction check:** on a synthetic chirp, all four families have equal energy, D1 has an identical |FFT|, and the
   frequency/envelope directions are as designed.
+
+## Decoy test — RESULT (2026-10-23): the CNN has learned that a chirp RISES. My prediction was WRONG.
+
+**Gates:**
+- **G0** passed (max |Δ| 1.2e-7), but only after an amendment. As first written, G0 failed (1.06) because the *gate* indexed
+  windows 2,048 samples off per window (it used 262,144 instead of the grid hop of 260,096). The scorer was right; only the
+  gate's indexing was fixed. The full run was repeated, and the seeded re-run is identical to run 1 (kept as
+  `decoy_test_run1_gatefail.json`).
+- **G1** passed (real chirp 0.15 / 0.77 / 0.995 / 1.00 at in-window SNR 14 / 18 / 22 / 26).
+- **G2** passed (noise-only 0.3%).
+
+600 chirps (100 per test segment) × 4 SNRs × 4 families, at threshold 1.817.
+
+| Family (matched SNR + position) | det @14 | @18 | @22 | @26 | r (pooled 18–26) | pre-registered reading |
+|---|---|---|---|---|---|---|
+| R real chirp | 0.152 | 0.772 | 0.995 | 1.000 | 1 | — |
+| D1 pure time reversal (same power spectrum) | 0.005 | 0.005 | 0.007 | 0.010 | **0.008** | **DISCRIMINATES** |
+| D2 reversed sweep, envelope kept | 0.005 | 0.007 | 0.005 | 0.005 | **0.006** | **DISCRIMINATES** |
+| D3 rising, wrong (linear) law, envelope kept | 0.015 | 0.122 | 0.583 | 0.938 | **0.594** | PARTIAL |
+
+Mean scores: R +6.53, D3 +2.41, D1 −0.61, D2 −0.77, noise −0.88. The result is flat across chirp-mass terciles
+(D1/D2 ≤ 0.02 in every tercile; D3 0.52 / 0.62 / 0.64).
+
+**What it shows:**
+- **The CNN rejects falling sweeps almost completely,** even at SNR 26, with identical power per frequency (D1) or an
+  identical envelope (D2). It scores them barely above pure noise. So it is NOT a band-power detector: **sweep direction
+  is decisive,** and D2 rules out the envelope as the cue.
+- **A rising sweep with the wrong law is accepted, but as a weaker signal.** D3's 50% point sits at in-window SNR ≈ 21–22,
+  against ≈ 17 for R (~1.25× SNR).
+- **That D3 penalty is CONFOUNDED.** A linear sweep spends relatively more time above ~224 Hz, where the response probe
+  found almost no sensitivity, so this test cannot separate "knows the law" from "less power in its band".
+
+**Pre-registered prediction:** all r ≥ 0.7, at ~60%. **Wrong.** The pre-run was correct only that D1 would sit below D3.
+
+**What this corrects:** our 2026-09-02 reading that the CNN is "honestly fooled by band-limited noise power" was too
+strong. The occlusion probe measured WHERE it looks (73–224 Hz), not WHAT SHAPE it wants. The two together say: it
+looks in that band for an upward-sloping track.
+
+**Open hypothesis (unmeasured):** its false alarms are noise stretches that happen to form rising-track-like
+structure there, not plain excess power.
+
+**Consequence for NN_REDESIGN:** direction #1 (time-reversed hard negatives) loses most of its motivation, since the
+model already rejects them. The redesign diagnosis (phase / second detector / chirp duration discarded by the input)
+is untouched.
+
+Artifacts: decoy_test.json, decoy_test_rows.parquet (+ `_run1_gatefail` copies).
+Environment: Mac · ENVIRONMENT/mac_pbh_requirements.lock · torch 2.12.0 MPS, Python 3.12.13 · git 80452ba.

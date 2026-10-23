@@ -41,6 +41,12 @@ Prediction (mine, before running): D1, D2, D3 all r >= 0.7 (~60%). The likeliest
 if the CNN keys on the envelope or the loud end's position.
 Secondary (reported, not decisive): per-chirp-mass tercile; mean scores.
 Output: results/decoy_test.json.
+
+AMENDMENT 2026-10-23 (after the first run, before any reading): G0 FAILED as written (max |diff| 1.06) because the
+GATE indexed window k at CROP + k*262144, but the cached sweep steps windows by 127 frames = 260,096 samples
+(GRID.win_hop_samp) - a bug in the gate, not in the scorer: at the correct offsets the per-window scores match the
+cache to 1.2e-7 on 3 segments. Only the gate's indexing changed; the measurement code is untouched. The full run is
+repeated so the gate passes on the record. The first run's numbers are kept in decoy_test_run1_gatefail.json.
 """
 from __future__ import annotations
 
@@ -109,7 +115,7 @@ def main() -> int:
         if cache.exists():
             ref = np.load(cache)[:8]
             mine = score_windows(model, device, np.stack(
-                [model_in(w[CROP + k * WIN: CROP + (k + 1) * WIN]) for k in range(8)]))
+                [model_in(w[CROP + k * GRID.win_hop_samp: CROP + k * GRID.win_hop_samp + WIN]) for k in range(8)]))
             g0.append(float(np.max(np.abs(mine - ref))))
         lo, hi = CROP, len(w) - CROP - WIN
         wins, meta = [], []
