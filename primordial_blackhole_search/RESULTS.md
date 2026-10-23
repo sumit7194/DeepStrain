@@ -2324,3 +2324,38 @@ is untouched.
 
 Artifacts: decoy_test.json, decoy_test_rows.parquet (+ `_run1_gatefail` copies).
 Environment: Mac · ENVIRONMENT/mac_pbh_requirements.lock · torch 2.12.0 MPS, Python 3.12.13 · git 80452ba.
+
+
+---
+
+# Noise-variety verdict — POST-HOC threshold check (2026-10-23). Labelled post hoc; it cannot change the verdict.
+
+`device_stream/posthoc_threshold_check.py`, with its reading declared and committed before running. It uses only saved
+scores. **G0:** recomputing every run's metric from saved scores reproduces the committed jsons exactly (|Δ| = 0).
+
+**A. Does the verdict survive less extreme thresholds?** The threshold is the k-th largest of the 384 noise scores.
+k = 1 is the pre-registered zero-FA threshold.
+
+| k | Δ (V − C) | sd(C) | z | exploratory 95% interval | half-width / mean C | paired s0, s1 |
+|---|---|---|---|---|---|---|
+| 1 (pre-registered) | −0.0008 | 0.0051 | −0.15 | [−0.013, +0.011] | ±2.7% | −0.002, −0.009 |
+| 2 | −0.0079 | 0.0115 | −0.68 | [−0.035, +0.019] | ±5.9% | −0.009, −0.007 |
+| 4 (declared headline) | −0.0060 | 0.0076 | −0.79 | [−0.024, +0.012] | ±3.7% | −0.004, +0.001 |
+| 8 | +0.0091 | 0.0121 | +0.75 | [−0.019, +0.037] | ±5.6% | +0.014, +0.006 |
+
+**Result:**
+- **The null is robust.** |z| ≤ 0.79 at every threshold, and the sign of Δ wanders (−, −, −, +) at the size of the
+  seed scatter.
+- **The declared reading is "BOUND HONEST"**, because at k = 4 the half-width is 3.7%, inside the 4% bar.
+- **That pass is narrow, and the ±2.7% was the optimistic end.** At k = 2 and k = 8 the interval is ±5.6–5.9%. ⇒ The
+  honest quote is: **any effect of 33× more training noise on sensitive distance is within about ±6%, with no sign of
+  one.**
+
+**B. How much of the seed scatter is threshold noise? Instrument FAILED; not read.** Bootstrapping the 384 noise
+windows gave a within-run variance of the zero-FA metric **5.2×** the between-seed variance. That is impossible if it
+were a component of it. It is the known failure of the ordinary bootstrap for a sample MAXIMUM: inconsistent for
+extremes (Bickel & Freedman 1981, as summarised in [arXiv:1809.04016](https://arxiv.org/pdf/1809.04016); the remedy is
+the m-out-of-n bootstrap, [Bickel & Sakov 2008](https://www.stat.berkeley.edu/users/bickel/BS2008SS.pdf)). Recorded as
+an instrument failure, not a finding. A, which uses no bootstrap, carries the conclusion.
+Artifact: results/device_stream_posthoc.json.
+Environment: Mac · ENVIRONMENT/mac_pbh_requirements.lock · Python 3.12.13 (no torch used) · git 35482e5.
