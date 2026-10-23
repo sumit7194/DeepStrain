@@ -11,6 +11,16 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-10-23 — A phone trained seven networks, and more noise did not help
+
+The first experiment from the NN redesign plan ran entirely on a flashed Redmi phone: does the subsolar CNN get better
+if it trains on 600 hours of fresh real noise instead of recycling the same 18? Pre-registered, frozen by hash, run
+for 16 days (two fresh-noise seeds, five control seeds), scored on the Mac with the decision code committed before the
+last three controls were scored. Answer: no — z = −0.15, the effect is within about ±3%. The noise pool was never the
+bottleneck, which is what the redesign diagnosis predicted. Along the way: a scoring cache that would have silently
+returned the baseline for every model, a download socket that hung forever, and a kernel memory leak that only showed
+after twelve days of uptime — each caught and fixed without touching a result.
+
 ## 2026-10-06 — Why every network hit the same wall: a first-principles brainstorm
 
 The user asked whether maths or architecture could get more out of data we were "always short on". The maths

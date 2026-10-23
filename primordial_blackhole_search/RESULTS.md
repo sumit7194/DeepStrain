@@ -2213,3 +2213,44 @@ session (transcript 919e7153), 2026-10-13 ~07:34–07:47 UTC, at the user's requ
 `results/device_scoring/run_c1_v1.sh` (nice 10). Weights: `models/dev_*.pt` (git-ignored; sha256 match the phone's
 `runs/<run>/final.pt`).
 Environment: Mac · primordial_blackhole_search/.venv = ENVIRONMENT/mac_pbh_requirements.lock · torch 2.12.0 MPS, Python 3.12.13 · git e0943c3 (scoring code at c80c0ea). Training: phone · ENVIRONMENT/phone_pbh_requirements.lock.
+
+
+---
+
+# Noise-variety experiment — FINAL, pre-registered verdict (2026-10-23): NO DETECTABLE VARIETY EFFECT (z = −0.15)
+
+All 7 runs trained on the phone (queue finished 2026-10-23 03:09 UTC) and scored on the Mac with the committed
+protocol (golden gate passed). Decision code `device_stream/verdict.py` was committed (99d1a2e) **before** C2–C4 were
+scored; it fixed sd(C) as the sample sd (ddof=1), which the prereg had left unspecified.
+
+| Run | low | mid | high | mean | zero-FA thr |
+|---|---|---|---|---|---|
+| V0 (fresh, s0) | 0.4061 | 0.4530 | 0.4757 | 0.4449 | 2.157 |
+| V1 (fresh, s1) | 0.3967 | 0.4471 | 0.4571 | 0.4337 | 2.206 |
+| C0 | 0.3990 | 0.4593 | 0.4825 | 0.4469 | 1.501 |
+| C1 | 0.3978 | 0.4549 | 0.4751 | 0.4426 | 1.932 |
+| C2 | 0.4015 | 0.4454 | 0.4545 | 0.4338 | 3.266 |
+| C3 | 0.4015 | 0.4530 | 0.4660 | 0.4402 | 2.550 |
+| C4 | 0.3960 | 0.4494 | 0.4651 | 0.4368 | 3.257 |
+
+**Primary:** mean V 0.4393, mean C 0.4401, **Δ = −0.0008, sd(C) = 0.0051, z = −0.15 ⇒ |z| < 2 ⇒ NO DETECTABLE
+VARIETY EFFECT.** (Sensitivity, ddof=0: z = −0.17.) Paired (same seed, same injections): V0−C0 −0.0020, V1−C1 −0.0089.
+**Pre-registered prediction met** (60% no effect / 35% helps / 5% hurts).
+
+**What it licenses (secondary, exploratory — not part of the decision rule):** treating V and C seeds as independent
+draws with the control spread, Δ's 95% interval is about **[−0.012, +0.011]** (t₄), i.e. ~**±2.7%** of the mean
+distance fraction. ⇒ Training on ~600 h of fresh, never-repeated O3a noise (33× the 18 h) changes the CNN's zero-FA
+sensitive distance by less than a few percent either way. **The 18-h noise pool was not the bottleneck** — consistent
+with L6 (the SSL pool saturates by 2,500 spectrograms) and with the NN_REDESIGN diagnosis that the limit is what the
+INPUT discards (phase, the second detector, most of the chirp), not how much noise the network has seen.
+
+**Observation for the stats audit, not a claim:** the zero-FA threshold swings 1.50–3.27 across the five controls
+(a ×2 range) while their distance fractions span only 0.434–0.447 — the max-of-384 threshold is very noisy but the
+distance metric absorbs it. This is the variance question put to fable brief PROMPT_1.
+
+**Scope:** one architecture (cnn_w64), H1 only, O3a, 64-s windows, zero-FA over 6.8 h; 2 V seeds vs 5 C seeds. The
+phone node was a proof of concept and has been released (all outputs needed for reproduction kept: final weights +
+per-segment logs in `models/device_stream/` (git-ignored, sha256 = phone), queue/netwatch logs in the device folder;
+the 6.3 GB bank is rebuildable via `device_stream/build_bank.py` against `bank.md5`).
+Provenance: C2–C4 scored by this session 2026-10-23 08:40–09:33 IST (`results/device_scoring/run_c2_c4.sh`, nice 10, Bridge notified).
+Environment: Mac · ENVIRONMENT/mac_pbh_requirements.lock · torch 2.12.0 MPS, Python 3.12.13 · git 99d1a2e. Training: phone · ENVIRONMENT/phone_pbh_requirements.lock (OpenBLAS, 8 threads).

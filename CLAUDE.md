@@ -576,6 +576,16 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   cannot be quietly re-inflated. **Bank deliberately NOT built** (~162 h for no speed gain) ⇒ *does a CNN still
   tie a matched filter once the bank is adequate?* stays OPEN, and needs a genuinely cheaper filter.
   Artifacts: bank_ratio_{golden,diag,mcscan,chunked,regime,realcost}.json.
+- **NOISE-VARIETY EXPERIMENT DONE (2026-10-23): pre-registered verdict NO DETECTABLE EFFECT, z = −0.15.** cnn_w64
+  retrained from scratch on a flashed Redmi phone (OpenBLAS CPU, 8 threads; first use of the phone as a compute
+  node) on ~600 h of fresh, never-repeated O3a noise (2 seeds) vs the original 18 h recycled (5 seeds), identical
+  injections per seed. Mean distance fraction V 0.4393 vs C 0.4401, Δ −0.0008, sd(C) 0.0051; exploratory 95% bound
+  ≈ ±2.7%. ⇒ **the 18-h noise pool was never the bottleneck** — fits L6 and the NN_REDESIGN diagnosis (the INPUT
+  discards phase / 2nd detector / most of the chirp). Prediction (60% null) met. Infra lessons: track_eval caches
+  were not keyed by weights (would have returned the baseline for every run — guard added, c80c0ea); a dead GWOSC
+  socket hung a run 78 min (stall watchdog, Amendment 3); a 12-day kernel slab leak (257 MB unreclaimable) caused
+  OOM kills, cleared by a checkpoint reboot. Code + prereg: `primordial_blackhole_search/device_stream/`; verdict
+  code committed before C2–C4 were scored. Phone released 2026-10-23. Artifact: results/device_stream_verdict.json.
 - **Resource accounting on this box (measured 2026-09-04): RSS under-reports an MPS job by ~1.3x, and a
   SINGLE `free` sample is not a state.** Metal allocations live in unified memory and do not fully land in
   RSS, so `ps` under-counts a torch/MPS job — but by **1.33x** (footprint 1.00 GB against RSS 754 MB),
