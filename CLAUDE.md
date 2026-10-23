@@ -587,7 +587,8 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   retrained from scratch on a flashed Redmi phone (OpenBLAS CPU, 8 threads; first use of the phone as a compute
   node) on ~600 h of fresh, never-repeated O3a noise (2 seeds) vs the original 18 h recycled (5 seeds), identical
   injections per seed. Mean distance fraction V 0.4393 vs C 0.4401, Δ −0.0008, sd(C) 0.0051; exploratory 95% bound
-  ≈ ±2.7%. ⇒ **the 18-h noise pool was never the bottleneck** — fits L6 and the NN_REDESIGN diagnosis (the INPUT
+  ≈ ±2.7% — ⚠️ the optimistic end: a POST-HOC threshold check (k-th largest noise score, k=2/4/8) keeps the null
+  (|z| ≤ 0.79 everywhere) but widens the honest bound to **≈ ±6%** (device_stream_posthoc.json). ⇒ **the 18-h noise pool was never the bottleneck** — fits L6 and the NN_REDESIGN diagnosis (the INPUT
   discards phase / 2nd detector / most of the chirp). Prediction (60% null) met. Infra lessons: track_eval caches
   were not keyed by weights (would have returned the baseline for every run — guard added, c80c0ea); a dead GWOSC
   socket hung a run 78 min (stall watchdog, Amendment 3); a 12-day kernel slab leak (257 MB unreclaimable) caused
