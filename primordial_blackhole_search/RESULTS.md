@@ -2254,3 +2254,26 @@ per-segment logs in `models/device_stream/` (git-ignored, sha256 = phone), queue
 the 6.3 GB bank is rebuildable via `device_stream/build_bank.py` against `bank.md5`).
 Provenance: C2–C4 scored by this session 2026-10-23 08:40–09:33 IST (`results/device_scoring/run_c2_c4.sh`, nice 10, Bridge notified).
 Environment: Mac · ENVIRONMENT/mac_pbh_requirements.lock · torch 2.12.0 MPS, Python 3.12.13 · git 99d1a2e. Training: phone · ENVIRONMENT/phone_pbh_requirements.lock (OpenBLAS, 8 threads).
+
+
+---
+
+# Decoy test — PRE-REGISTERED 2026-10-23, before any decoy is scored (NN_REDESIGN §5, first step)
+
+**Question:** does `cnn_w64` respond to the physics of a chirp (its sweep law and direction), or only to band power
+near 110 Hz? Full pre-registration, families, gates and readings are in the docstring of `scripts/decoy_test.py`
+(committed with this entry).
+- **Families, matched in-window SNR and position:**
+  - **R:** the real chirp.
+  - **D1:** pure time reversal (identical power spectrum).
+  - **D2:** reversed sweep with the envelope kept.
+  - **D3:** a linear, wrong-law rising sweep with the envelope kept.
+- **Metric:** detection at the committed zero-FA threshold 1.817, giving r = det(D)/det(R), pooled over in-window SNR 18/22/26.
+- **Readings:** r ≥ 0.7 ⇒ the CNN is blind to the broken property; r ≤ 0.3 ⇒ it discriminates.
+- **Gates:**
+  - **G0 golden:** reproduces the cached noise scores to < 1e-3.
+  - **G1:** the real chirp's detection rises with SNR and is ≥ 0.5 at SNR 22.
+  - **G2:** noise-only windows exceed the threshold ≤ 2%.
+- **Prediction (before running):** all three r ≥ 0.7 (~60%). The likeliest alternative is D1 below D2/D3.
+- **Construction check:** on a synthetic chirp, all four families have equal energy, D1 has an identical |FFT|, and the
+  frequency/envelope directions are as designed.
