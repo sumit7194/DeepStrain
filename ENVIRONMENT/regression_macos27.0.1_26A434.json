@@ -1,0 +1,14 @@
+{
+ "mps": {
+  "n": 384,
+  "max_abs_diff": 0.0,
+  "bit_identical": 384,
+  "max_vs_thr": 0.0
+ },
+ "cpu": {
+  "n": 384,
+  "max_abs_diff": 4.410743713378906e-06,
+  "bit_identical": 25,
+  "max_vs_thr": 4.410743713378906e-06
+ }
+}

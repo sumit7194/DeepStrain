@@ -49,3 +49,15 @@ cd /root/pbhcode && sha256sum -c FROZEN.sha256 && ./run_queue.sh
 ```
 Device setup (custom init, Wi-Fi, SSH) is deliberately not in the repo. Any aarch64 Linux box with the same lock is
 expected to reproduce the phone's weights bit-for-bit (untested off the phone); the Mac agrees to ~7 decimals (measured).
+
+## OS-update regression: macOS 27.0.1 (26A434), checked 2026-10-24
+Packages unchanged (numpy 2.4.6, scipy 1.17.1, torch 2.12.0; pure wheels, nothing compiled locally). Re-ran known
+results against pre-update outputs, single-threaded:
+- **MPS** (cnn_w64 scoring all 384 O3a test noise windows vs the pre-update `results/track_w64/` cache, itself made on
+  MPS): **bit-identical, 384/384**; zero-FA threshold 1.8170 unchanged.
+- **numpy/pandas** (`device_stream/verdict.py`, `posthoc_threshold_check.py`): output JSONs **bit-identical** to the
+  committed ones.
+- **CPU torch** vs the same MPS cache: max |Δ| 4.4e-6 (25/384 bit-equal). That is a cross-DEVICE difference with no
+  pre-update CPU reference, so it is not attributable to the OS. It is 2e-6 of the threshold, so it does not matter.
+Peak RSS: scoring 3.1 GB, verdict 35 MB, post-hoc 126 MB. Details: `regression_macos27.0.1_26A434.json`.
+New results from here are tagged `macOS 27.0.1 (26A434)` in their Environment line.
