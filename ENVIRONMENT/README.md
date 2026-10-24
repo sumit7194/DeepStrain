@@ -13,11 +13,11 @@ plus a stamp of what affects numerics. Re-stamp with `python tools/envstamp.py E
 | Mac, ringdown package (`.venv311`, deleted) | `ringdown_spectroscopy/requirements-lock-py311.txt` | — | Python 3.11, jax 0.4.35 x64 |
 | Google Cloud L4 GPU VM `alphaludo-l4` (Build C, C-2, 2026-06-20) | **not recorded** — VM deleted | — | CUDA; exact versions unrecoverable. Results from it are gated on saved artifacts only |
 
-## Known numerics hazard (2026-10-11)
-A vendor numerical-library defect is under responsible disclosure; details are withheld until the vendor resolves
-it. **Audit of our code: not affected.** General note: on the Mac, torch's CPU linear algebra uses the same vendor
-library as numpy/scipy (`LAPACK_INFO=accelerate`), so switching to torch is not an independent cross-check there; an
-OpenBLAS environment (the phone, or a Linux venv) is.
+## Known numerics hazard (2026-10-11; resolved)
+A vendor numerical-library defect, reported by the fleet and (per the vendor) fixed in macOS 27.0.1. **Audit of our
+code: not affected; regression on 27.0.1: identical** (see the OS-update regression section below). General note: on the
+Mac, torch's CPU linear algebra uses the same vendor library as numpy/scipy (`LAPACK_INFO=accelerate`), so switching to
+torch is not an independent cross-check there; an OpenBLAS environment (the phone, or a Linux venv) is.
 
 ## Back-fill policy for finished results
 Results committed before 2026-10-11 carry no environment line. Back-filled rule: **unless an entry says otherwise, a

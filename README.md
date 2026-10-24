@@ -107,3 +107,11 @@ python tools/envstamp.py                  # record the environment you actually 
 
 ## Data & credits
 Built entirely on public data from the [Gravitational Wave Open Science Center (GWOSC)](https://gwosc.org/), produced by the LIGO/Virgo/KAGRA collaborations (not affiliated). All SNRs are band-limited to [50, 1024] Hz; whitening is normalized so whitened-domain energy equals matched-filter SNR². Stack: Python · PyTorch · `gwpy` · `gwosc` · `pycbc` · `sbi` · the Isi/Farr `ringdown` package. If you use this work, see [`CITATION.cff`](CITATION.cff).
+
+**Acknowledgement (GWOSC):** This research has made use of data or software obtained from the Gravitational Wave Open Science Center (gwosc.org), a service of the LIGO Scientific Collaboration, the Virgo Collaboration, and KAGRA. *Funding acknowledgements: see [gwosc.org/acknowledgement](https://gwosc.org/acknowledgement/) for the full text.* GWOSC data are released under CC BY 4.0 (per GWOSC).
+
+**Data papers to cite:**
+- LIGO Scientific and Virgo Collaborations, "Open data from the first and second observing runs of Advanced LIGO and Advanced Virgo", *SoftwareX* **13** (2021) 100658.
+- LIGO Scientific, Virgo and KAGRA Collaborations, "Open Data from the Third Observing Run of LIGO, Virgo, KAGRA, and GEO", *ApJS* **267**, 29 (2023), [arXiv:2302.03676](https://arxiv.org/abs/2302.03676) — we use O3a strain.
+- O4 data (O4a/O4b strain is also used here): "Open Data from LIGO, Virgo, and KAGRA through the First Part of the Fourth Observing Run", [arXiv:2508.18079](https://arxiv.org/abs/2508.18079), and "…through the Second Part of the Fourth Observing Run", [arXiv:2605.27090](https://arxiv.org/abs/2605.27090).
+
