@@ -1106,6 +1106,12 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
   `requirements-lock*.txt` (commit 26b63b0), each with its Python version and the one-line `uv` rebuild command.
   **`./verify.sh` needs them** — rebuild before running the gate or any script. Also deleted: 10 O4b strain
   segments (results cached) and `data/waveform_pool` (rebuild: `scripts/build_waveform_pool.py`, ~17 min).
+- **⚠️ DISK CLEANUP 2026-10-28 (user's call, 8.4 GB freed; repo 13 → 4.3 GB): deleted the raw GWOSC strain
+  (`primordial_blackhole_search/data/noise` 6.1 GB, `echoes/data` 1.1 GB, `ringdown_spectroscopy/data` 0.16 GB incl.
+  the regenerable O4 noise pools), the pbh `.venv` again (rebuild from requirements-lock.txt), and the superseded
+  `models/*_ckpt.pt`.** KEPT: training shards (4.0 GB, user's Oct 3 directive), final models, results, code. All
+  deleted data re-downloads via each sub-project's fetch scripts (manifests committed); only needed again for the
+  ML-benchmark contribution (#2) or re-runs — not for the METRICS errata or the time-slide note.
 - **Reproducibility (fleet policy, 2026-10-11):** every RESULTS / lab-notebook entry from now on ends with one line
   `Environment: <where> · <lock file> · <stamp or key versions> · git <commit>` — run `python tools/envstamp.py` and
   cite it. Pinned environments + stamps + reproduce commands live in `ENVIRONMENT/` (Mac pbh venv, phone node; the
