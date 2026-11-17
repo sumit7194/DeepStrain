@@ -61,3 +61,12 @@ results against pre-update outputs, single-threaded:
   pre-update CPU reference, so it is not attributable to the OS. It is 2e-6 of the threshold, so it does not matter.
 Peak RSS: scoring 3.1 GB, verdict 35 MB, post-hoc 126 MB. Details: `regression_macos27.0.1_26A434.json`.
 New results from here are tagged `macOS 27.0.1 (26A434)` in their Environment line.
+
+## OS-update regression: macOS 27.2 (26B123), 2026-11-17 — PARTIAL
+- Python environment rebuilt from `primordial_blackhole_search/requirements-lock.txt`; `uv pip freeze` identical to the lock.
+- **numpy/pandas path** (`device_stream/verdict.py`, `posthoc_threshold_check.py`): output JSONs **bit-identical** to the committed ones.
+- **MPS/CPU torch path: NOT RUN — blocked on data.** The 6 O3a test segments (deleted in the Oct 28 cleanup) could
+  not be re-downloaded. GWOSC's API answers (HTTP 200, 0.8 s), but every 4096-s strain file transfer is cut short
+  (`ContentTooShortError`: 5.5 of 41.7 MB received), on all 6 segments, after 3–8 min each. That is a server-side
+  transfer failure, not ours. The check script is ready (`ENVIRONMENT/regress_check.py`, fetch: `fetch_test_segments.py`);
+  re-run when GWOSC transfers complete.
