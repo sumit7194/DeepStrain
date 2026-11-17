@@ -53,10 +53,10 @@ def coincident(t0, t1, n, exclude):
                 ev.append(datasets.event_gps(e))
             except ValueError:
                 pass
-    out, margin = [], 256
-    for s, e in h1:
-        t = s + margin
-        while t + C.SEGMENT_LEN + margin <= e:
+    out = []
+    for s, e in h1:  # segments = whole GWOSC files (GPS multiples of 4096), so each is ONE download
+        t = -(-s // C.SEGMENT_LEN) * C.SEGMENT_LEN
+        while t + C.SEGMENT_LEN <= e:
             g = int(t)
             if (g not in exclude and any(ls <= g and le >= g + C.SEGMENT_LEN for ls, le in l1)
                     and not any(g - 64 <= x <= g + C.SEGMENT_LEN + 64 for x in ev)):
@@ -91,17 +91,58 @@ def regression_fetch_running():
     return any("fetch_test_segments.py" in ln and "grep" not in ln for ln in ps.splitlines())
 
 
+def download(url, dest):
+    """curl with resume. GWOSC drops long transfers mid-file (2026-11-17: gwpy reported 'failed to get data from
+    any source' for every file while 1 MB ranged reads worked), so a dropped connection that made progress is
+    resumed, not counted as a failure. Only a pass with no new bytes raises. The transfer is interrupted (and later
+    resumed from the partial file) on PAUSE or while the 27.2 regression fetch runs: one GWOSC transfer at a time."""
+    while True:
+        before = dest.stat().st_size if dest.exists() else 0
+        p = subprocess.Popen(["curl", "-sfL", "-C", "-", "--connect-timeout", "60", "--speed-limit", "2000",
+                              "--speed-time", "300", "-o", str(dest), url])
+        while p.poll() is None:
+            if PAUSE.exists() or regression_fetch_running():
+                p.terminate(); p.wait()
+                if PAUSE.exists():
+                    raise SystemExit(log("PAUSE flag present: transfer interrupted, partial file kept for resume"))
+                log("yielding mid-file: 27.2 regression fetch is running (partial file kept)")
+                while regression_fetch_running() and not PAUSE.exists():
+                    time.sleep(60)
+                break
+            time.sleep(15)
+        if p.returncode == 0:
+            return
+        if p.returncode < 0:  # we interrupted it to yield; resume from the partial file
+            continue
+        r = p
+        after = dest.stat().st_size if dest.exists() else 0
+        if after <= before:
+            raise RuntimeError(f"curl exit {r.returncode}, no progress at {after} B")
+        log(f"  resumed transfer: {before} -> {after} B (curl exit {r.returncode})")
+        time.sleep(30)
+
+
 def fetch_one(ifo, gps):
-    from gwpy.timeseries import TimeSeries
-    ts = TimeSeries.fetch_open_data(ifo, gps, gps + C.SEGMENT_LEN, sample_rate=C.SAMPLE_RATE,
-                                    cache=False, timeout=3600)
-    x = np.asarray(ts.value, dtype=np.float32)
+    import h5py
+    from gwosc.locate import get_urls
+    urls = [u for u in get_urls(ifo, gps, gps + C.SEGMENT_LEN, sample_rate=C.SAMPLE_RATE)
+            if u.endswith(f"-{gps}-{C.SEGMENT_LEN}.hdf5")]
+    assert len(urls) == 1 and f"-{gps}-{C.SEGMENT_LEN}.hdf5" in urls[0], urls
+    raw = DATA / urls[0].rsplit("/", 1)[1]
+    download(urls[0], raw)
+    raw_sha = hashlib.sha256(raw.read_bytes()).hexdigest()
+    with h5py.File(raw, "r") as f:
+        assert int(f["meta/GPSstart"][()]) == gps, f["meta/GPSstart"][()]
+        x = np.asarray(f["strain/Strain"][()], dtype=np.float32)
+        dq = np.asarray(f["quality/simple/DQmask"][()])
     assert x.size == C.SEGMENT_LEN * C.SAMPLE_RATE and np.isfinite(x).all(), (x.size, np.isfinite(x).mean())
+    assert (dq & 1).all(), "DATA bit not set over the whole file"
     out = DATA / f"{ifo}_{gps}.npy"
     tmp = DATA / f"{ifo}_{gps}.tmp.npy"
     np.save(tmp, x)
     os.replace(tmp, out)
-    return hashlib.sha256(out.read_bytes()).hexdigest()
+    raw.unlink()
+    return {"gwosc_url": urls[0], "gwosc_sha256": raw_sha, "npy_sha256": hashlib.sha256(out.read_bytes()).hexdigest()}
 
 
 def fetch():

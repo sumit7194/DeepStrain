@@ -1,0 +1,61 @@
+{
+ "E1": {
+  "v_true": 113096811.93045695,
+  "mc_se": 2703322.1670879675,
+  "res": {
+   "1/day": {
+    "reachable": true,
+    "threshold": 9.997534477111657,
+    "found_fraction": 1.0,
+    "chirp_volume_mpc3": 110974320.85379334,
+    "chirp_distance_mpc": 298.11097311388204
+   },
+   "1/week": {
+    "reachable": true,
+    "threshold": 9.999619067353882,
+    "found_fraction": 1.0,
+    "chirp_volume_mpc3": 110974320.85379334,
+    "chirp_distance_mpc": 298.11097311388204
+   },
+   "1/month": {
+    "reachable": false,
+    "why": "background supports 0.90 events (<1)"
+   }
+  }
+ },
+ "E3": {
+  "allowed": 27,
+  "above": 27
+ },
+ "E2": {
+  "1/day": {
+   "reachable": true,
+   "threshold": 9.997534477111657,
+   "found_fraction": 0.0,
+   "chirp_volume_mpc3": 0.0,
+   "chirp_distance_mpc": 0.0
+  },
+  "1/week": {
+   "reachable": true,
+   "threshold": 9.999619067353882,
+   "found_fraction": 0.0,
+   "chirp_volume_mpc3": 0.0,
+   "chirp_distance_mpc": 0.0
+  },
+  "1/month": {
+   "reachable": false,
+   "why": "background supports 0.90 events (<1)"
+  }
+ },
+ "E4": [
+  [
+   100.3,
+   5.0
+  ],
+  [
+   105.0,
+   3.0
+  ]
+ ],
+ "pass": true
+}
