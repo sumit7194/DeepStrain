@@ -62,11 +62,23 @@ results against pre-update outputs, single-threaded:
 Peak RSS: scoring 3.1 GB, verdict 35 MB, post-hoc 126 MB. Details: `regression_macos27.0.1_26A434.json`.
 New results from here are tagged `macOS 27.0.1 (26A434)` in their Environment line.
 
-## OS-update regression: macOS 27.2 (26B123), 2026-11-17 — PARTIAL
+## OS-update regression: macOS 27.2 (26B123), 2026-11-17/18 — PASS (identical to 27.0.1)
 - Python environment rebuilt from `primordial_blackhole_search/requirements-lock.txt`; `uv pip freeze` identical to the lock.
 - **numpy/pandas path** (`device_stream/verdict.py`, `posthoc_threshold_check.py`): output JSONs **bit-identical** to the committed ones.
-- **MPS/CPU torch path: NOT RUN — blocked on data.** The 6 O3a test segments (deleted in the Oct 28 cleanup) could
-  not be re-downloaded. GWOSC's API answers (HTTP 200, 0.8 s), but every 4096-s strain file transfer is cut short
-  (`ContentTooShortError`: 5.5 of 41.7 MB received), on all 6 segments, after 3–8 min each. That is a server-side
-  transfer failure, not ours. The check script is ready (`ENVIRONMENT/regress_check.py`, fetch: `fetch_test_segments.py`);
-  re-run when GWOSC transfers complete.
+- **MPS torch:** 384/384 noise-window scores **bit-identical** to the committed cache (max |Δ| 0.0), the same as on 27.0.1.
+- **CPU torch:** max |Δ| 4.41e-6, 25/384 bit-equal. That is **exactly** the 27.0.1 record, so the OS update changed
+  nothing. It is a cross-device difference (CPU vs the MPS-made cache), as recorded for 27.0.1.
+- **Fetch route changed (gwpy → `curl -C -`), and why.** On 2026-11-17 GWOSC was up, but it dropped long transfers
+  mid-file. gwpy's `fetch_open_data` reports a dropped transfer as "failed to get data from any source" and restarts
+  from zero, so every gwpy attempt failed 6/6. That included attempt 1 of `retry_27.2.sh`, which was then stopped by
+  verified PID on The Bridge's instruction. `fetch_regression_curl.py` downloads the 7 underlying GWOSC files with a
+  resumable curl, one at a time.
+- **Integrity checks.** GWOSC publishes no checksum, so each file must:
+  - match both the API's `filesize_bytes` and the HTTP Content-Length;
+  - open as HDF5 with the expected GPS start and a 4096-s duration;
+  - reproduce the API's published min/max/mean/stdev of the strain to 1e-6.
+
+  All 7 files passed every check. The 6 segments were then cut out exactly as gwpy would cut them, and checked
+  finite. Record: `fetch_regression_curl.json`.
+- Run 2026-11-18 01:07 IST, `regress_check.py` as registered. Details: `regression_macos27.2_26B123.json`, log
+  `retry_27.2.log`.

@@ -1,0 +1,149 @@
+{
+ "files": {
+  "1242185728": {
+   "checks": {
+    "size_api": true,
+    "size_http": true,
+    "gps": true,
+    "duration": true,
+    "stats": true
+   },
+   "bytes": 41723654,
+   "content_length": 41723654,
+   "stats_rel_err": {
+    "min_strain": 0.0,
+    "max_strain": 0.0,
+    "mean_strain": 6.661338147750939e-16,
+    "stdev_strain": 2.220446049250313e-16
+   }
+  },
+  "1242189824": {
+   "checks": {
+    "size_api": true,
+    "size_http": true,
+    "gps": true,
+    "duration": true,
+    "stats": true
+   },
+   "bytes": 129707157,
+   "content_length": 129707157,
+   "stats_rel_err": {
+    "min_strain": 0.0,
+    "max_strain": 0.0,
+    "mean_strain": 4.196643033083092e-14,
+    "stdev_strain": 8.881784197001252e-16
+   }
+  },
+  "1242193920": {
+   "checks": {
+    "size_api": true,
+    "size_http": true,
+    "gps": true,
+    "duration": true,
+    "stats": true
+   },
+   "bytes": 129704080,
+   "content_length": 129704080,
+   "stats_rel_err": {
+    "min_strain": 0.0,
+    "max_strain": 0.0,
+    "mean_strain": 7.771561172376096e-15,
+    "stdev_strain": 3.3306690738754696e-16
+   }
+  },
+  "1242198016": {
+   "checks": {
+    "size_api": true,
+    "size_http": true,
+    "gps": true,
+    "duration": true,
+    "stats": true
+   },
+   "bytes": 129718837,
+   "content_length": 129718837,
+   "stats_rel_err": {
+    "min_strain": 0.0,
+    "max_strain": 0.0,
+    "mean_strain": 2.220446049250313e-16,
+    "stdev_strain": 3.3306690738754696e-16
+   }
+  },
+  "1242202112": {
+   "checks": {
+    "size_api": true,
+    "size_http": true,
+    "gps": true,
+    "duration": true,
+    "stats": true
+   },
+   "bytes": 129728791,
+   "content_length": 129728791,
+   "stats_rel_err": {
+    "min_strain": 0.0,
+    "max_strain": 0.0,
+    "mean_strain": 4.6629367034256575e-15,
+    "stdev_strain": 2.220446049250313e-16
+   }
+  },
+  "1242206208": {
+   "checks": {
+    "size_api": true,
+    "size_http": true,
+    "gps": true,
+    "duration": true,
+    "stats": true
+   },
+   "bytes": 129723189,
+   "content_length": 129723189,
+   "stats_rel_err": {
+    "min_strain": 0.0,
+    "max_strain": 0.0,
+    "mean_strain": 2.220446049250313e-16,
+    "stdev_strain": 2.220446049250313e-16
+   }
+  },
+  "1242210304": {
+   "checks": {
+    "size_api": true,
+    "size_http": true,
+    "gps": true,
+    "duration": true,
+    "stats": true
+   },
+   "bytes": 129701751,
+   "content_length": 129701751,
+   "stats_rel_err": {
+    "min_strain": 0.0,
+    "max_strain": 0.0,
+    "mean_strain": 1.1102230246251565e-15,
+    "stdev_strain": 8.881784197001252e-16
+   }
+  }
+ },
+ "segments": {
+  "1242189634": {
+   "samples": 16777216,
+   "finite": true
+  },
+  "1242193730": {
+   "samples": 16777216,
+   "finite": true
+  },
+  "1242197826": {
+   "samples": 16777216,
+   "finite": true
+  },
+  "1242201922": {
+   "samples": 16777216,
+   "finite": true
+  },
+  "1242206018": {
+   "samples": 16777216,
+   "finite": true
+  },
+  "1242210114": {
+   "samples": 16777216,
+   "finite": true
+  }
+ }
+}

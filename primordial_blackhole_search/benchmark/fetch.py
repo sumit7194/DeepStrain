@@ -91,7 +91,7 @@ def regression_fetch_running():
     return any("fetch_test_segments.py" in ln and "grep" not in ln for ln in ps.splitlines())
 
 
-def download(url, dest):
+def download(url, dest, honour_pause=True):
     """curl with resume. GWOSC drops long transfers mid-file (2026-11-17: gwpy reported 'failed to get data from
     any source' for every file while 1 MB ranged reads worked), so a dropped connection that made progress is
     resumed, not counted as a failure. Only a pass with no new bytes raises. The transfer is interrupted (and later
@@ -101,7 +101,7 @@ def download(url, dest):
         p = subprocess.Popen(["curl", "-sfL", "-C", "-", "--connect-timeout", "60", "--speed-limit", "2000",
                               "--speed-time", "300", "-o", str(dest), url])
         while p.poll() is None:
-            if PAUSE.exists() or regression_fetch_running():
+            if honour_pause and (PAUSE.exists() or regression_fetch_running()):
                 p.terminate(); p.wait()
                 if PAUSE.exists():
                     raise SystemExit(log("PAUSE flag present: transfer interrupted, partial file kept for resume"))

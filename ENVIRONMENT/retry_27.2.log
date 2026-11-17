@@ -1,0 +1,23 @@
+Tue Nov 17 20:32:31 IST 2026 launched; first attempt in 2 h
+Tue Nov 17 22:32:31 IST 2026 attempt 1
+1242189634 FAIL GetExceptionGroup failed to get data from any source (1 sub-exception) 140 s
+1242193730 FAIL GetExceptionGroup failed to get data from any source (1 sub-exception) 304 s
+1242197826 FAIL GetExceptionGroup failed to get data from any source (1 sub-exception) 320 s
+1242201922 FAIL GetExceptionGroup failed to get data from any source (1 sub-exception) 347 s
+1242206018 FAIL GetExceptionGroup failed to get data from any source (1 sub-exception) 364 s
+1242210114 FAIL GetExceptionGroup failed to get data from any source (1 sub-exception) 540 s
+Tue Nov 17 23:06:07 IST 2026 attempt 1: 0/6 segments on disk
+Wed Nov 18 00:00:14 IST 2026 STOPPED by verified PID (pgid 32429) on Bridge's instruction: fetch route changes gwpy -> curl -C (GWOSC drops long transfers; gwpy restarts from zero)
+Wed Nov 18 01:07:30 IST 2026 curl fetch complete + integrity verified (ENVIRONMENT/fetch_regression_curl.json); running regress_check
+/Users/sumit/Github/BlackHole/primordial_blackhole_search/.venv/lib/python3.12/site-packages/pycbc/tmpltbank/calc_moments.py:333: SyntaxWarning: invalid escape sequence '\i'
+  \int funct(x) * (psd_x)**(-7./3.) * delta_x / PSD(x)
+/Users/sumit/Github/BlackHole/primordial_blackhole_search/.venv/lib/python3.12/site-packages/pycbc/tmpltbank/option_utils.py:177: SyntaxWarning: invalid escape sequence '\i'
+  "space metric:  integrals of the form \int F(f) df "
+/Users/sumit/Github/BlackHole/primordial_blackhole_search/.venv/lib/python3.12/site-packages/pycbc/tmpltbank/option_utils.py:178: SyntaxWarning: invalid escape sequence '\s'
+  "are approximated as \sum F(f) delta_f.  REQUIRED. "
+/Users/sumit/Github/BlackHole/primordial_blackhole_search/.venv/lib/python3.12/site-packages/pycbc/waveform/nltides.py:12: SyntaxWarning: invalid escape sequence '\p'
+  Delta Psi(f) = 2 \pi f Delta t(f) - Delta phi(f)
+mps {'n': 384, 'max_abs_diff': 0.0, 'bit_identical': 384}
+cpu {'n': 384, 'max_abs_diff': 4.410743713378906e-06, 'bit_identical': 25}
+Wed Nov 18 01:07:57 IST 2026 REGRESSION DONE (exit 0)
+started fetch pid 74641
