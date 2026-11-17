@@ -36,8 +36,10 @@ of your paper and of Pierini & Gualtieri (link below).
 **3. The truncated fitting polynomials (Eq. `METRICS_fitting_polynomials`) and the comparison with PG.**
 - The printed w_j are coefficients of a degree-8 least-squares fit over the spin range. They are not the
   small-spin Taylor coefficients.
-- Truncated at a⁴ as printed, the polar 022 polynomial departs from your own Appendix-B table by 16% at a = 0.1 and
-  by 383% at a = 0.2 (021P: 2% / 61%; 033P: 1% / 21%).
+- Truncated at a⁴ as printed, the polar 022 polynomial departs from your own Appendix-B table of 022 frequencies by 16%
+  at a = 0.1 and by 383% at a = 0.2 (021P: 2% / 61%; 033P: 1% / 21%). Here the relative difference is
+  |ω_fit − ω_table| / |ω_table| on the complex frequency. Split by part, 022P is Re 16.0% / Im 11.7% at a = 0.1 and
+  Re 382% / Im 400% at a = 0.2.
 - Its w₁ and w₂ (−2.518 − 0.411i, 48.47 + 9.60i) are also far from PG's (−0.335 + 0.001i, −0.320 + 0.304i). The text
   says that "the w_{j=0,1,2} of our fitting polynomials are close to the coefficient shown above"; that holds for w₀
   only.
@@ -60,4 +62,13 @@ With thanks and best regards,
 - All three points were reported CONFIRMED.
 - The earlier full analyses (`38_sgb_supplement.py`, `39_sgb_qnm_truncation.py`) re-ran on the same sources and
   reproduced their committed results byte for byte.
+- **Bridge cross-check (V18, TheBridge 571c1a0) — reconciled 2026-11-17:**
+  - E1 and E2 were confirmed independently.
+  - E3 was confirmed in substance, but with 9.3% / 431%. Those are exactly what the 022P fit gives against the
+    **021** table (computed: 9.3% / 431.5%).
+  - The Bridge's suspected "Tables 1 and 2 swapped" is NOT in main.tex. Each `table*` carries its own caption and
+    label AFTER its tabular: 022 → a=0.005 polar −0.2266−0.0752i, 033 → −0.8787−0.1150i, 021 → −0.2258−0.0753i,
+    consistent with PG at a = 0 and with the fits' w₀.
+  - A reader pairing each caption with the NEXT table (easy in a rendered view where the caption sits below the data)
+    sees exactly the reported offset. ⇒ No fourth erratum; our E3 numbers stand, now with the measure stated.
 - Scope: text errata only. Our measured truncation errors (the companion note) are a separate item.
