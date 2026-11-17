@@ -2382,3 +2382,37 @@ Point 1 is close to a direct consequence of the counting, so it is modest.
 **Verdict: NOT arXiv-grade as a standalone note.** At most a short public technical write-up in this repo. That is
 the user's call. Not started.
 Environment: literature only · git acb7943.
+
+
+---
+
+# Contribution item (2) — public benchmark for ML on long subsolar chirps: PRIOR-ART CHECK (2026-11-17)
+About six searches plus abstract reads. "Not found" means not found in that sweep; it is not proof of absence.
+
+**Closest existing work:**
+- **MLGWSC-1** ([arXiv:2209.11146](https://arxiv.org/abs/2209.11146)) found ML searches "struggle to identify long
+  duration signals" and *recommended* future challenges with longer signals, naming subsolar BHs. No MLGWSC-2 or
+  other long-signal ML challenge was found.
+- **Andrés-Carcasona et al., O3 NN search for mass-asymmetric binaries** ([arXiv:2212.02829](https://arxiv.org/abs/2212.02829)):
+  CNN on time-frequency images, real O3 data, masses 0.01–20 M☉, multi-detector, upper limits.
+  ⇒ **"an ML subsolar-range search on real LIGO data" is already published.** That is a search with upper limits,
+  not an open benchmark.
+- **BNS early-warning ML** papers (e.g. [arXiv:2409.05068](https://arxiv.org/abs/2409.05068),
+  [arXiv:2010.09751](https://arxiv.org/abs/2010.09751)) mostly use simulated or Gaussian noise, with no shared
+  benchmark.
+
+**What would be new:** an OPEN, reproducible benchmark for minutes-long subsolar chirps in REAL noise, with an
+honest yardstick:
+- ML vs an adequate matched-filter bank on identical injections;
+- a zero-false-alarm threshold and a deep time-slide background with its known limits;
+- code plus manifests (no data redistribution needed, since GWOSC hosts the strain).
+Not found in the sweep, and it directly answers MLGWSC-1's stated recommendation.
+
+**Verdict: plausibly new and useful, but a modest-audience deliverable.**
+Cost: about 1–2 weeks, heavy, about 8 GB re-download.
+Gated on:
+- (a) the user's go;
+- (b) the torch/MPS regression passing (Bridge rule);
+- (c) the Bridge's disk check before downloading.
+Not started.
+Environment: literature only · git e2e4108.
