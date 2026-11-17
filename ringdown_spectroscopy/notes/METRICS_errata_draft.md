@@ -1,8 +1,10 @@
 # DRAFT — note to the authors of arXiv:2406.11986 (METRICS, scalar-Gauss-Bonnet case)
 
-*Status: draft for Sumit to read. Not sent. Sending needs Sumit's direct word; The Bridge verifies the three points
-independently first. All three points were checked against arXiv **v2** (the latest version, last revised
-7 Sep 2024); the published PRD version (PRD 110, 064019) was not available to us and was **not** checked.*
+*Status: **SENT 2026-11-17 21:54 IST** to A. K.-W. Chung (Cambridge), from Sumit's Gmail — per The Bridge, sent by a
+bridge mistake (a keystroke in compose taken as Send) BEFORE Sumit had reviewed the final email; Sumit informed. Content =
+this draft (4089b28) adapted to Sumit's voice, with an AI-assistance disclosure and the script link. Any reply: record it
+here. All three points were checked against arXiv **v2** (last revised 7 Sep 2024); the published PRD version
+(PRD 110, 064019) was **not** checked.*
 
 ---
 
