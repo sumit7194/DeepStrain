@@ -1284,3 +1284,28 @@ lighter, slower-spinning remnant — the deviation is absorbed into the Kerr par
 different questions; the second needs far more ringdown SNR. No contradiction, and consistent with v4's tone-count
 and 13's per-event findings. **v5 stacking stays at n = 1 (GW250114 only).** Gated (64).
 Artifacts: `results/41_gw231028_npe.json`, weights `results/41_npe_weights.pt` (gitignored, regenerable).
+
+## 2026-11-17 — Item (4) "sGB slow-rotation accuracy note": prior-art check says NOT NEW; plus a correction to our own framing
+
+**Prior art, verified at full text.** Chung & Yunes, *Ringing out General Relativity* (arXiv:2405.12280, the PRL
+companion of METRICS), state that METRICS frequencies agree with the Pierini–Gualtieri small-spin expansion only for
+a ≲ 0.3, that at a = 0.4 the damping-time modification can differ by ≥ 40%, and that small-spin expansions are
+inaccurate at larger spins. Khoo, Blázquez-Salcedo, Kleihaus & Kunz (arXiv:2412.09377, 2407.20760) give
+non-perturbative spectra and compare with perturbative results. ⇒ **The headline of a standalone note ("O(a²) sGB
+QNMs fail at astrophysical spins") is already published by the METRICS authors themselves. Item (4) is dropped as
+a separate contribution.**
+
+**Our numbers reproduce the published statement**, which is a useful cross-check of script 39. Relative error of
+PG's O(a²) series against METRICS, split by part:
+- a = 0.3, damping (Im): 41% (022P), 34% (033P), 7% (021P).
+- a = 0.4, damping (Im): 642% (022P), 1144% (033P), 20% (021P). The large ratios are blow-ups, because Im ω⁽¹⁾
+  passes near zero around a = 0.4.
+- Real parts: ≤ 3.5% to a = 0.5.
+This is consistent with "≥ 40% at a = 0.4".
+
+**Correction to our own framing.** Our committed headline "O(a²) is off by 12.4% / 15.4% / 9.8% at a = 0.69" used the
+complex modulus |Δω⁽¹⁾|/|ω⁽¹⁾|. That metric is dominated by the real part and HIDES the damping-time failure
+(Im off by 50–95% at a = 0.7). The numbers are correct as defined, but they are the wrong summary for a ringdown
+test, where the damping time matters. Quote real and imaginary parts separately.
+
+Environment: Mac · pbh venv (mpmath only) · macOS 27.2 (26B123) · git 5499fc6.

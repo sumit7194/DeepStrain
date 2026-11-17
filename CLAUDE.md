@@ -992,7 +992,10 @@ tone-count model selection, hierarchical stacking). See `ringdown_spectroscopy/R
   a 3-epoch smoke net scored 0.824, passing the project's 0.88 'informative' bar; on 09 the trained no-signal floor
   is 0.921 (P10 0.886) so GW250114's 0.82 survives, but the bar is per-network ⇒ R0 now measures it. Gated (64).
 - **sGB QNM CORRECTION TRUNCATION MEASURED (2026-09-22): O(a²) is off by 12.4% (022P), 15.4% (033P), 9.8%
-  (021P) at a = 0.69 — ~2× Kerr's own 6.36%.** `39_sgb_qnm_truncation.py` evaluates Pierini & Gualtieri's published
+  (021P) at a = 0.69 — ~2× Kerr's own 6.36%.** ⚠️ **2026-11-17: that headline is the complex MODULUS, dominated by the real part — it hides the
+  damping-time failure (Im off 34–41% already at a = 0.3, 50–95% at 0.7); quote Re/Im separately. Same conclusion is
+  already published (Chung & Yunes arXiv:2405.12280: PG valid only a ≲ 0.3, ≥40% damping-time error at 0.4) ⇒ item (4)
+  dropped as a standalone note (lab notebook 2026-11-17).** `39_sgb_qnm_truncation.py` evaluates Pierini & Gualtieri's published
   O(a²) series against METRICS' tabulated non-perturbative ω⁽¹⁾ at tabulated spins — no fit. Pre-registered (022P
   NOT blind; 033P/021P blind, prediction 5–20% met). **G1 FAILED first run on 033P and was right: METRICS' reprint
   of PG has a SIGN ERROR (033P linear imaginary term −0.05664; PG's tables give +0.05664)** — series rebuilt from
