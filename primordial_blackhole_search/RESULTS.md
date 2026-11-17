@@ -2359,3 +2359,26 @@ the m-out-of-n bootstrap, [Bickel & Sakov 2008](https://www.stat.berkeley.edu/us
 an instrument failure, not a finding. A, which uses no bootstrap, carries the conclusion.
 Artifact: results/device_stream_posthoc.json.
 Environment: Mac · ENVIRONMENT/mac_pbh_requirements.lock · Python 3.12.13 (no torch used) · git 35482e5.
+
+
+---
+
+# Contribution item (3) — time-slide note: PRIOR-ART CHECK (2026-11-17)
+**Known already:**
+- **Was et al. 2009** ([arXiv:0906.2120](https://arxiv.org/abs/0906.2120)) show the time-slide false-alarm estimate's
+  error SATURATES with the number of slides. That is the precision half of our L2/estimator-audit findings
+  ("livetime ≠ independent samples").
+- **Ashton, Thrane & Smith 2019** ([arXiv:1909.11872](https://arxiv.org/abs/1909.11872)) call this "known for a decade".
+- **Capano et al. 2017** ([arXiv:1708.06710](https://arxiv.org/abs/1708.06710)) treat the zero-lag-inclusion question.
+- **Correlated noise** breaking the independence assumption is known (co-located H1H2 pairs, [arXiv:0908.2085](https://arxiv.org/abs/0908.2085)).
+- Was et al. explicitly leave open whether time-shifted data stay "representative of the zero lag data" ("further work").
+
+**What is ours:**
+1. The framing: the independence assumption can only be *tested* empirically down to a false-alarm rate of about
+   1/T_zero-lag, so every factor of depth gained by sliding moves the threshold further past where its own
+   assumption can be checked.
+2. A population test that does check it, to the 99.98th percentile, on 801 h of O4b.
+Point 1 is close to a direct consequence of the counting, so it is modest.
+**Verdict: NOT arXiv-grade as a standalone note.** At most a short public technical write-up in this repo. That is
+the user's call. Not started.
+Environment: literature only · git acb7943.
