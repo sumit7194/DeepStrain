@@ -25,7 +25,9 @@ from pbh import config as C  # noqa: E402
 SEED = 20261117
 K = 8
 SPACING_S, EDGE_S, JITTER_S = 480, 400, 60
-DC_LO, DC_HI = 5.0, 300.0  # Mpc, chirp distance; DC_HI set so the faintest injections are below SNR ~4 (checked)
+DC_LO, DC_HI = 5.0, 500.0  # Mpc, chirp distance. DC_HI measured, not guessed: on segment 1249001472 the largest
+# network SNR x d_c was ~2,200 Mpc (SNR 8 at d_c = 272), so with a 300 Mpc cap a good pipeline would still find
+# injections at the edge and the volume would be truncated. At 500 Mpc the best-oriented source is below SNR ~6.
 MC_BNS = 1.4 * 2 ** -0.2
 TABLE = B / "injections.csv"
 FIELDS = ["id", "realization", "segment", "t_geo", "mass1", "mass2", "ra", "dec", "psi", "inclination",

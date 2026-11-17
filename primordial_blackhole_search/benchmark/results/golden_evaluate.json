@@ -1,21 +1,21 @@
 {
  "E1": {
-  "v_true": 113096811.93045695,
-  "mc_se": 2703322.1670879675,
+  "v_true": 523598251.9995232,
+  "mc_se": 12612131.066004366,
   "res": {
    "1/day": {
     "reachable": true,
     "threshold": 9.997534477111657,
     "found_fraction": 1.0,
-    "chirp_volume_mpc3": 110974320.85379334,
-    "chirp_distance_mpc": 298.11097311388204
+    "chirp_volume_mpc3": 513706277.03004915,
+    "chirp_distance_mpc": 496.8310782060205
    },
    "1/week": {
     "reachable": true,
     "threshold": 9.999619067353882,
     "found_fraction": 1.0,
-    "chirp_volume_mpc3": 110974320.85379334,
-    "chirp_distance_mpc": 298.11097311388204
+    "chirp_volume_mpc3": 513706277.03004915,
+    "chirp_distance_mpc": 496.8310782060205
    },
    "1/month": {
     "reachable": false,
