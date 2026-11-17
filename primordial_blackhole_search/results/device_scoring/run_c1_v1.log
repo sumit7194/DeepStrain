@@ -1,0 +1,143 @@
+Sat Oct 17 02:56:12 IST 2026 start dev_c1_original_s1 (cache-key dev_c1_original_s1)
+/Users/sumit/Github/BlackHole/primordial_blackhole_search/.venv/lib/python3.12/site-packages/pycbc/tmpltbank/calc_moments.py:333: SyntaxWarning: invalid escape sequence '\i'
+  \int funct(x) * (psd_x)**(-7./3.) * delta_x / PSD(x)
+/Users/sumit/Github/BlackHole/primordial_blackhole_search/.venv/lib/python3.12/site-packages/pycbc/tmpltbank/option_utils.py:177: SyntaxWarning: invalid escape sequence '\i'
+  "space metric:  integrals of the form \int F(f) df "
+/Users/sumit/Github/BlackHole/primordial_blackhole_search/.venv/lib/python3.12/site-packages/pycbc/tmpltbank/option_utils.py:178: SyntaxWarning: invalid escape sequence '\s'
+  "are approximated as \sum F(f) delta_f.  REQUIRED. "
+/Users/sumit/Github/BlackHole/primordial_blackhole_search/.venv/lib/python3.12/site-packages/pycbc/waveform/nltides.py:12: SyntaxWarning: invalid escape sequence '\p'
+  Delta Psi(f) = 2 \pi f Delta t(f) - Delta phi(f)
+[A] 1242189634: 64 noise windows
+[A] 1242193730: 64 noise windows
+[A] 1242197826: 64 noise windows
+[A] 1242201922: 64 noise windows
+[A] 1242206018: 64 noise windows
+[A] 1242210114: 64 noise windows
+thresholds: {'max': 1.9322, 'sum_track': np.float64(0.661)}
+[B] 1242189634: 50/250
+[B] 1242189634: 100/250
+[B] 1242189634: 150/250
+[B] 1242189634: 200/250
+[B] 1242189634: 250/250
+[B] 1242189634: wrote inj_1242189634.parquet
+[B] 1242193730: 50/250
+[B] 1242193730: 100/250
+[B] 1242193730: 150/250
+[B] 1242193730: 200/250
+[B] 1242193730: 250/250
+[B] 1242193730: wrote inj_1242193730.parquet
+[B] 1242197826: 50/250
+[B] 1242197826: 100/250
+[B] 1242197826: 150/250
+[B] 1242197826: 200/250
+[B] 1242197826: 250/250
+[B] 1242197826: wrote inj_1242197826.parquet
+[B] 1242201922: 50/250
+[B] 1242201922: 100/250
+[B] 1242201922: 150/250
+[B] 1242201922: 200/250
+[B] 1242201922: 250/250
+[B] 1242201922: wrote inj_1242201922.parquet
+[B] 1242206018: 50/250
+[B] 1242206018: 100/250
+[B] 1242206018: 150/250
+[B] 1242206018: 200/250
+[B] 1242206018: 250/250
+[B] 1242206018: wrote inj_1242206018.parquet
+[B] 1242210114: 50/250
+[B] 1242210114: 100/250
+[B] 1242210114: 150/250
+[B] 1242210114: 200/250
+[B] 1242210114: 250/250
+[B] 1242210114: wrote inj_1242210114.parquet
+{
+  "max": {
+    "0.17-0.35": 0.3978194831675752,
+    "0.35-0.55": 0.4548630449091185,
+    "0.55-0.88": 0.47512038523274475
+  },
+  "sum_track": {
+    "0.17-0.35": 0.4013823541657992,
+    "0.35-0.55": 0.45830311820159536,
+    "0.55-0.88": 0.47571493418066274
+  },
+  "oracle": {
+    "0.17-0.35": 0.4013823541657992,
+    "0.35-0.55": 0.4599092284417549,
+    "0.55-0.88": 0.47571493418066274
+  }
+}
+wrote eval_dev_c1_original_s1_track_w64_dev_c1_original_s1.json + efficiency_dev_c1_original_s1_track_w64_dev_c1_original_s1.png
+Sat Oct 17 03:14:35 IST 2026 end dev_c1_original_s1
+Sat Oct 17 03:14:35 IST 2026 start dev_v1_stream_s1 (cache-key dev_v1_stream_s1_recheck)
+/Users/sumit/Github/BlackHole/primordial_blackhole_search/.venv/lib/python3.12/site-packages/pycbc/tmpltbank/calc_moments.py:333: SyntaxWarning: invalid escape sequence '\i'
+  \int funct(x) * (psd_x)**(-7./3.) * delta_x / PSD(x)
+/Users/sumit/Github/BlackHole/primordial_blackhole_search/.venv/lib/python3.12/site-packages/pycbc/tmpltbank/option_utils.py:177: SyntaxWarning: invalid escape sequence '\i'
+  "space metric:  integrals of the form \int F(f) df "
+/Users/sumit/Github/BlackHole/primordial_blackhole_search/.venv/lib/python3.12/site-packages/pycbc/tmpltbank/option_utils.py:178: SyntaxWarning: invalid escape sequence '\s'
+  "are approximated as \sum F(f) delta_f.  REQUIRED. "
+/Users/sumit/Github/BlackHole/primordial_blackhole_search/.venv/lib/python3.12/site-packages/pycbc/waveform/nltides.py:12: SyntaxWarning: invalid escape sequence '\p'
+  Delta Psi(f) = 2 \pi f Delta t(f) - Delta phi(f)
+[A] 1242189634: 64 noise windows
+[A] 1242193730: 64 noise windows
+[A] 1242197826: 64 noise windows
+[A] 1242201922: 64 noise windows
+[A] 1242206018: 64 noise windows
+[A] 1242210114: 64 noise windows
+thresholds: {'max': 2.2058, 'sum_track': np.float64(1.357)}
+[B] 1242189634: 50/250
+[B] 1242189634: 100/250
+[B] 1242189634: 150/250
+[B] 1242189634: 200/250
+[B] 1242189634: 250/250
+[B] 1242189634: wrote inj_1242189634.parquet
+[B] 1242193730: 50/250
+[B] 1242193730: 100/250
+[B] 1242193730: 150/250
+[B] 1242193730: 200/250
+[B] 1242193730: 250/250
+[B] 1242193730: wrote inj_1242193730.parquet
+[B] 1242197826: 50/250
+[B] 1242197826: 100/250
+[B] 1242197826: 150/250
+[B] 1242197826: 200/250
+[B] 1242197826: 250/250
+[B] 1242197826: wrote inj_1242197826.parquet
+[B] 1242201922: 50/250
+[B] 1242201922: 100/250
+[B] 1242201922: 150/250
+[B] 1242201922: 200/250
+[B] 1242201922: 250/250
+[B] 1242201922: wrote inj_1242201922.parquet
+[B] 1242206018: 50/250
+[B] 1242206018: 100/250
+[B] 1242206018: 150/250
+[B] 1242206018: 200/250
+[B] 1242206018: 250/250
+[B] 1242206018: wrote inj_1242206018.parquet
+[B] 1242210114: 50/250
+[B] 1242210114: 100/250
+[B] 1242210114: 150/250
+[B] 1242210114: 200/250
+[B] 1242210114: 250/250
+[B] 1242210114: wrote inj_1242210114.parquet
+{
+  "max": {
+    "0.17-0.35": 0.39674315321983716,
+    "0.35-0.55": 0.4470826697553206,
+    "0.55-0.88": 0.45714285714285713
+  },
+  "sum_track": {
+    "0.17-0.35": 0.3978194831675752,
+    "0.35-0.55": 0.44646310203714534,
+    "0.55-0.88": 0.45714285714285713
+  },
+  "oracle": {
+    "0.17-0.35": 0.39751552795031053,
+    "0.35-0.55": 0.44690488173125315,
+    "0.55-0.88": 0.45714285714285713
+  }
+}
+wrote eval_dev_v1_stream_s1_track_w64_dev_v1_stream_s1_recheck.json + efficiency_dev_v1_stream_s1_track_w64_dev_v1_stream_s1_recheck.png
+Sat Oct 17 03:30:59 IST 2026 end dev_v1_stream_s1
+Sat Oct 17 03:30:59 IST 2026 ALL DONE

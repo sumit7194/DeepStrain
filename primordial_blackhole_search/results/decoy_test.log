@@ -1,0 +1,76 @@
+/Users/sumit/Github/BlackHole/primordial_blackhole_search/.venv/lib/python3.12/site-packages/pycbc/tmpltbank/calc_moments.py:333: SyntaxWarning: invalid escape sequence '\i'
+  \int funct(x) * (psd_x)**(-7./3.) * delta_x / PSD(x)
+/Users/sumit/Github/BlackHole/primordial_blackhole_search/.venv/lib/python3.12/site-packages/pycbc/tmpltbank/option_utils.py:177: SyntaxWarning: invalid escape sequence '\i'
+  "space metric:  integrals of the form \int F(f) df "
+/Users/sumit/Github/BlackHole/primordial_blackhole_search/.venv/lib/python3.12/site-packages/pycbc/tmpltbank/option_utils.py:178: SyntaxWarning: invalid escape sequence '\s'
+  "are approximated as \sum F(f) delta_f.  REQUIRED. "
+/Users/sumit/Github/BlackHole/primordial_blackhole_search/.venv/lib/python3.12/site-packages/pycbc/waveform/nltides.py:12: SyntaxWarning: invalid escape sequence '\p'
+  Delta Psi(f) = 2 \pi f Delta t(f) - Delta phi(f)
+1242189634: 1700 windows scored
+1242193730: 1700 windows scored
+1242197826: 1700 windows scored
+1242201922: 1700 windows scored
+1242206018: 1700 windows scored
+1242210114: 1700 windows scored
+{
+  "gates": {
+    "G0_max_abs_diff": 1.1920928955078125e-07,
+    "G0": true,
+    "G1": true,
+    "G2_noise_rate": 0.0033333333333333335,
+    "G2": true
+  },
+  "efficiency": {
+    "D1": {
+      "14.0": 0.005,
+      "18.0": 0.005,
+      "22.0": 0.006666666666666667,
+      "26.0": 0.01
+    },
+    "D2": {
+      "14.0": 0.005,
+      "18.0": 0.006666666666666667,
+      "22.0": 0.005,
+      "26.0": 0.005
+    },
+    "D3": {
+      "14.0": 0.015,
+      "18.0": 0.12166666666666667,
+      "22.0": 0.5833333333333334,
+      "26.0": 0.9383333333333334
+    },
+    "R": {
+      "14.0": 0.15166666666666667,
+      "18.0": 0.7716666666666666,
+      "22.0": 0.995,
+      "26.0": 1.0
+    }
+  },
+  "r_primary": {
+    "D1": 0.007831325301204818,
+    "D2": 0.006024096385542168,
+    "D3": 0.5939759036144578
+  },
+  "reading": {
+    "D1": "DISCRIMINATES (r<=0.3)",
+    "D2": "DISCRIMINATES (r<=0.3)",
+    "D3": "PARTIAL"
+  },
+  "r_by_mass_tercile": {
+    "0": {
+      "D1": 0.001788908765652952,
+      "D2": 0.0,
+      "D3": 0.522361359570662
+    },
+    "1": {
+      "D1": 0.0213903743315508,
+      "D2": 0.017825311942959,
+      "D3": 0.6167557932263814
+    },
+    "2": {
+      "D1": 0.0,
+      "D2": 0.0,
+      "D3": 0.6444444444444444
+    }
+  }
+}
