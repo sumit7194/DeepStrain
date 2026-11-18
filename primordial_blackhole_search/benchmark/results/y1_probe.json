@@ -1,0 +1,39 @@
+{
+ "segment": 1245888512,
+ "peak_mb_after_whiten": 1347,
+ "bank_size": 3235,
+ "s_per_template_gen": 0.9027002652486166,
+ "s_per_template_numpy": 4.582913716634114,
+ "peak_mb_after_numpy": 3321,
+ "s_per_template_mps": 3.121250629425049,
+ "mps_driver_mb": 2824,
+ "peak_mb_after_mps": 3367,
+ "agreement": [
+  {
+   "mc": 0.173,
+   "max_ref": 7.607698172050189,
+   "max_mps": 7.607675372882462,
+   "rel_err_of_max": 2.996854923997816e-06,
+   "max_abs_diff": 0.00016602509065410942,
+   "argmax_same": true
+  },
+  {
+   "mc": 0.38817908238337623,
+   "max_ref": 7.740027788752833,
+   "max_mps": 7.739996822464954,
+   "rel_err_of_max": 4.000798023540142e-06,
+   "max_abs_diff": 0.00019660751372629903,
+   "argmax_same": true
+  },
+  {
+   "mc": 0.871,
+   "max_ref": 9.066250581156165,
+   "max_mps": 9.066202576198117,
+   "rel_err_of_max": 5.29490748335526e-06,
+   "max_abs_diff": 0.0004346948066475953,
+   "argmax_same": true
+  }
+ ],
+ "projected_noise_hours_numpy": 236.61281641854177,
+ "projected_noise_hours_mps": 173.5664152569241
+}
