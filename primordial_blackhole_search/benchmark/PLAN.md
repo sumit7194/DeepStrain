@@ -62,7 +62,7 @@ the waveform phase (the echoes L4 bug: never draw it per detector).
   instead of the planned circular 600-s shifts, which put a wrap-around discontinuity inside every slide.)
 
 Each slide is one more background "observing run" that a pipeline processes like real data. With S = 23 that is
-about 26 days (27 with zero lag) of background, reaching a FAR of about 1/month. **Known limit, recorded in this repo:** time slides add
+about 26 days (27.3 with zero lag) of background, which reaches 1/day and 1/week but NOT 1/month (that needs >= 30.4 days; 27.3 d supports 0.90 events — corrected 2026-11-18 after the Y2 run; reaching it needs more segments or a second slide family). **Known limit, recorded in this repo:** time slides add
 background livetime, but not independent noise samples or a way to verify the independence they assume
 (L2, ESTIMATOR AUDIT, ZERO-LAG POPULATION entries in RESULTS.md). The README will say so.
 
