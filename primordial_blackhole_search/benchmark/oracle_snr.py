@@ -6,6 +6,7 @@ pipeline. Resumable: one checkpoint file per segment in benchmark/state/oracle/.
 Writes benchmark/results/oracle_snr.csv when all segments are done.
 """
 import csv
+import hashlib
 import json
 import os
 import sys
@@ -37,15 +38,17 @@ def main():
     with open(I.TABLE) as f:
         rows = [{k: (float(v) if k not in ("id", "realization", "segment") else int(v)) for k, v in r.items()}
                 for r in csv.DictReader(f)]
+    tag = hashlib.sha256(I.TABLE.read_bytes()).hexdigest()  # a checkpoint counts only for the table it was made from
     segs = [int(a) for a in sys.argv[1:]] or json.loads((B / "manifest.json").read_text())["test"]
     for g in segs:
         ck = CK / f"{g}.json"
-        if ck.exists() or not all((B / "data" / f"{d}_{g}.npy").exists() for d in ("H1", "L1")):
+        if (ck.exists() and json.loads(ck.read_text()).get("table_sha256") == tag) or not all((B / "data" / f"{d}_{g}.npy").exists() for d in ("H1", "L1")):
             continue
         res = segment(g, [r for r in rows if r["segment"] == g])
-        tmp = ck.with_suffix(".tmp"); tmp.write_text(json.dumps(res)); os.replace(tmp, ck)
+        tmp = ck.with_suffix(".tmp"); tmp.write_text(json.dumps({"table_sha256": tag, **res})); os.replace(tmp, ck)
         print(g, "done", len(res), flush=True)
-    done = {int(k): v for p in CK.glob("*.json") for k, v in json.loads(p.read_text()).items()}
+    cks = [json.loads(p.read_text()) for p in CK.glob("*.json")]
+    done = {int(k): v for c in cks if c.get("table_sha256") == tag for k, v in c.items() if k != "table_sha256"}
     if len(done) == len(rows):
         (B / "results").mkdir(exist_ok=True)
         with open(B / "results" / "oracle_snr.csv", "w", newline="") as f:

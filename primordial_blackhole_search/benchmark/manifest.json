@@ -47,5 +47,326 @@
   1248477184,
   1248993280
  ],
- "sha256": {}
+ "sha256": {
+  "H1_1249001472": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1248854016/H-H1_GWOSC_O3a_4KHZ_R1-1249001472-4096.hdf5",
+   "gwosc_sha256": "4e26da9d5ccb21969c33de67088f6052e9cbcb72df289785f818df57852e90c7",
+   "npy_sha256": "8dedb63b48319e627a922a30ac6d1b6a42d0b636e9635ab95c5583b07febada7"
+  },
+  "L1_1249001472": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1248854016/L-L1_GWOSC_O3a_4KHZ_R1-1249001472-4096.hdf5",
+   "gwosc_sha256": "6072f7337c469f9f757ebe7cfaa312e62468458297fd3fc9ba3d29d329ff3672",
+   "npy_sha256": "cca0aab33e8e45fa0b1ccc502b42ccf6ea9ef463734d6a5d1e3975d07276fbdb"
+  },
+  "H1_1249280000": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1248854016/H-H1_GWOSC_O3a_4KHZ_R1-1249280000-4096.hdf5",
+   "gwosc_sha256": "8e29f6d1d725b898b7441dfba4c0d05e7b13bdb8a5fb8c224f0ada8a6ace3d20",
+   "npy_sha256": "fe36bee5f8efcb50af95d6ae9696a86bdd3176a7725a8b7cdaa1839f8e8ca41e"
+  },
+  "L1_1249280000": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1248854016/L-L1_GWOSC_O3a_4KHZ_R1-1249280000-4096.hdf5",
+   "gwosc_sha256": "60e5b1332961dd4ca2e83f58c9483b65b1716775b0e73c208b1e6273485ac529",
+   "npy_sha256": "c58ea06e3d8b9e771afdc03c03187d17380b14fab5fe58e80a9d663490dd0612"
+  },
+  "H1_1249501184": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1248854016/H-H1_GWOSC_O3a_4KHZ_R1-1249501184-4096.hdf5",
+   "gwosc_sha256": "80010b8efd4277f168686841f314a84fc6f737132be753c50b7b532b85a2b254",
+   "npy_sha256": "b70b6a8b0f19466388b74ce42a321d66f3db2ac0e057e94eb8663acd8bed894e"
+  },
+  "L1_1249501184": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1248854016/L-L1_GWOSC_O3a_4KHZ_R1-1249501184-4096.hdf5",
+   "gwosc_sha256": "2c6f3bc9cddc623cd26afc0bdb0c08bcd5fc04102eae37be10a2fac611296ee7",
+   "npy_sha256": "f46c26927100d4295abce12313ef806b234f00cf1d33ab709077dae9bc7e14c3"
+  },
+  "H1_1249689600": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1248854016/H-H1_GWOSC_O3a_4KHZ_R1-1249689600-4096.hdf5",
+   "gwosc_sha256": "b3f2c2bc08472527b64262df4d452c9fa0c61fd9091d7253bcba48557f069f46",
+   "npy_sha256": "3f44f4e02e1fc6c66f96e268e0357f3c713a95305e81a87a57f5b06fe1c7a4c7"
+  },
+  "L1_1249689600": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1248854016/L-L1_GWOSC_O3a_4KHZ_R1-1249689600-4096.hdf5",
+   "gwosc_sha256": "294a00056af0bf14bce6f42d3b2d42e4b45465a464d0dfcaecd47b19fd83992f",
+   "npy_sha256": "637f060f9824e6131afdf68daca8d39af4b06927be25a48618cfc72b18f88e12"
+  },
+  "H1_1250041856": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1249902592/H-H1_GWOSC_O3a_4KHZ_R1-1250041856-4096.hdf5",
+   "gwosc_sha256": "c451113054f9e28b17173ae6d0df6ee3f4058d87dcb2b98b9a7e12075ba4397a",
+   "npy_sha256": "d3063d960e3fff80e1e553e639d429f694f6339eda8335efec23bb90a45961ca"
+  },
+  "L1_1250041856": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1249902592/L-L1_GWOSC_O3a_4KHZ_R1-1250041856-4096.hdf5",
+   "gwosc_sha256": "e999aee61fe5fe35286fd68c553d80376d695e1117795a9ee479c9cd315cbd42",
+   "npy_sha256": "527517745591d02a4fc90ffc865ab87374b155e5d79faca748e326951c81f97f"
+  },
+  "H1_1250197504": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1249902592/H-H1_GWOSC_O3a_4KHZ_R1-1250197504-4096.hdf5",
+   "gwosc_sha256": "3c66e7af58a5d3f1ab6932bb2dd29cdc0b0d6f0e20d80a630c059744951c73ef",
+   "npy_sha256": "f95b46993834fecf7cbea4cb40703f8755a9b87d636d08b3db058265a63aa662"
+  },
+  "L1_1250197504": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1249902592/L-L1_GWOSC_O3a_4KHZ_R1-1250197504-4096.hdf5",
+   "gwosc_sha256": "ef50b058b78696e109dd0ee5f76aa84cec4c0f912372647971c7a8a216c709de",
+   "npy_sha256": "652323e5a40b2b87a5567dd5107b975c4099211269a9e3ec33579a539b8ab0f2"
+  },
+  "H1_1250422784": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1249902592/H-H1_GWOSC_O3a_4KHZ_R1-1250422784-4096.hdf5",
+   "gwosc_sha256": "0b543dca0ea28c8b8154776d961b88d0a9ad1e0ceefaf7219a68b6380f2e0ec5",
+   "npy_sha256": "6ce03cb4c634a288c39385f5053afc222ed023632cf6b8a9951f868fc5c65d6a"
+  },
+  "L1_1250422784": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1249902592/L-L1_GWOSC_O3a_4KHZ_R1-1250422784-4096.hdf5",
+   "gwosc_sha256": "6172e1966756750964e3695f4938a3e0857bf2fe2a742c39a9cf3f5575e2206a",
+   "npy_sha256": "bc16338294bd66606f2b1b99c76716c1a180022838d1f52b4b87ed59a4937478"
+  },
+  "H1_1250607104": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1249902592/H-H1_GWOSC_O3a_4KHZ_R1-1250607104-4096.hdf5",
+   "gwosc_sha256": "786b9ed30c4de73a436b76a57cfa08caebc94072c0a607d4b3d443763fbadd1c",
+   "npy_sha256": "f97ffc0c0a5760d63bf5f5f66dd0f27b0caf4606eec4ec7a34c3b9a5f5795432"
+  },
+  "L1_1250607104": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1249902592/L-L1_GWOSC_O3a_4KHZ_R1-1250607104-4096.hdf5",
+   "gwosc_sha256": "342c37b29f077923265ac121b0e712983428c51cd52f42b90b542a769b2e8fba",
+   "npy_sha256": "d3780fe0a9906c67c620fe1af0db7277568d9a09f9587995d5fdbf332df806dc"
+  },
+  "H1_1250762752": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1249902592/H-H1_GWOSC_O3a_4KHZ_R1-1250762752-4096.hdf5",
+   "gwosc_sha256": "eb1567647b8d5d8ec5c01d8060716821f23a560737db2af92f5ef886e92a1565",
+   "npy_sha256": "fc4f80bd829ffd57f1de584d89bce298a8171f88b9f9e514dcccfae1f0f54b20"
+  },
+  "L1_1250762752": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1249902592/L-L1_GWOSC_O3a_4KHZ_R1-1250762752-4096.hdf5",
+   "gwosc_sha256": "e6c30a229ceb65197c693b55a955e57011c55f8892f9333d408bc1c461f43588",
+   "npy_sha256": "1ef5598d31aa90848d62068ead323c08906655c1ccfcc2e7727963d4f10f583f"
+  },
+  "H1_1250918400": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1249902592/H-H1_GWOSC_O3a_4KHZ_R1-1250918400-4096.hdf5",
+   "gwosc_sha256": "ce0709d33067d8167e3176702265bca13731efd31c874fe11d37ea35786887ae",
+   "npy_sha256": "86ed4f1496c60486dda7eedafe4a6a0ab0024fe240758131707914e8f87b71ae"
+  },
+  "L1_1250918400": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1249902592/L-L1_GWOSC_O3a_4KHZ_R1-1250918400-4096.hdf5",
+   "gwosc_sha256": "12b36dc3d239e67c3311466c965fa060fce10c6976f3193001f112f923a0e3c7",
+   "npy_sha256": "f3a64775d951d935a81d40f1bb9a5a76ee92ffd7a96844f4a8cbab6f331207e1"
+  },
+  "H1_1251250176": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1250951168/H-H1_GWOSC_O3a_4KHZ_R1-1251250176-4096.hdf5",
+   "gwosc_sha256": "056e1b86dc8826b1b2ccc9d36d7bf7f8fe1bfc982de84eb7d28f449879402486",
+   "npy_sha256": "5ead2c868e33a6f35d6dc25d209c2eb6bbe6e271a92dc5c69e10c770a8bcbb9a"
+  },
+  "L1_1251250176": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1250951168/L-L1_GWOSC_O3a_4KHZ_R1-1251250176-4096.hdf5",
+   "gwosc_sha256": "ddca83db503eca9e8ef798761a4918141cf1dfb24f9de460ff00651c0ce69bb5",
+   "npy_sha256": "e0ea697ac244c607bd81b53a31620ecb327f1f2dc25b2d40b8ca0d9861e67f5a"
+  },
+  "H1_1251479552": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1250951168/H-H1_GWOSC_O3a_4KHZ_R1-1251479552-4096.hdf5",
+   "gwosc_sha256": "895ae473fc2380678a63072b72c6b0d4eca4ceeb24e39102ecd3ddf958cbf3c4",
+   "npy_sha256": "0c64d3d4fbfcb75ae28b65ed88693cfefd0578b593c557754e2ec16053a7c7e7"
+  },
+  "L1_1251479552": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1250951168/L-L1_GWOSC_O3a_4KHZ_R1-1251479552-4096.hdf5",
+   "gwosc_sha256": "732cf1808f25a1fab8bd6778385c17962e9543e8a426395edfccbe330c4666ee",
+   "npy_sha256": "d308c3f65eb23f3712657924610c5d6cd1c101f1c70c50ce810ce2b0e2991199"
+  },
+  "H1_1251713024": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1250951168/H-H1_GWOSC_O3a_4KHZ_R1-1251713024-4096.hdf5",
+   "gwosc_sha256": "0e18e8475bad35b2924c75200be09b57a88e01d4b444a37a44157ef105b630c8",
+   "npy_sha256": "c66de7946e7a4db1991336ce62730a8acefb4c1f9aa11b599cd39deb24c41a13"
+  },
+  "L1_1251713024": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1250951168/L-L1_GWOSC_O3a_4KHZ_R1-1251713024-4096.hdf5",
+   "gwosc_sha256": "9c1d85c16265b84a876ed96a6a1a7b80dcbf28aceaa7523f798a34ddf0869861",
+   "npy_sha256": "8c4931a85fc51237b118c1a652682c00b9c041ea216da8d2c9464884808c4034"
+  },
+  "H1_1251934208": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1250951168/H-H1_GWOSC_O3a_4KHZ_R1-1251934208-4096.hdf5",
+   "gwosc_sha256": "314375e73bdbbb008a0408814117a9e05378d275def126b1dcd5669a16f75be7",
+   "npy_sha256": "c7cd6fa5cab666cbc369b36ea3db246dabfc60d9cc4df9d6698e57e33f79c3f3"
+  },
+  "L1_1251934208": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1250951168/L-L1_GWOSC_O3a_4KHZ_R1-1251934208-4096.hdf5",
+   "gwosc_sha256": "6822cddab1f22dbfe6cdfb045ecdc5fd3c384f38e2b6dd04aa60bd604d4e3930",
+   "npy_sha256": "f66d87e8a1c066b290e287c2415930e138bd0037a574333f5a0aca590b4f1cd2"
+  },
+  "H1_1252098048": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1251999744/H-H1_GWOSC_O3a_4KHZ_R1-1252098048-4096.hdf5",
+   "gwosc_sha256": "6470e132dea7e362ab8c5fb19c33bff3649b610d7aa731cdcb31190628b3d9fe",
+   "npy_sha256": "5263fc925aa5a200d37527105a7310c5c61a4354efe4f2fd063a1268d7f3f8c6"
+  },
+  "L1_1252098048": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1251999744/L-L1_GWOSC_O3a_4KHZ_R1-1252098048-4096.hdf5",
+   "gwosc_sha256": "4199eae063a01b90ef51b6a21f23856669ba8f0693d5b829b69397741363c43e",
+   "npy_sha256": "179a694445bb295493f686556c4b92569e9852cd89cb5d55f10c8f9c8f8fdbc8"
+  },
+  "H1_1252397056": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1251999744/H-H1_GWOSC_O3a_4KHZ_R1-1252397056-4096.hdf5",
+   "gwosc_sha256": "0df96b5e5ed82cba101e5f77a2d3ea4fe7638bdbe156c5b6835f6a630fea6ad7",
+   "npy_sha256": "53a0d7ae4e0776747714efc07a9dc02fb8bd0704d611d72784e1a7650da60de8"
+  },
+  "L1_1252397056": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1251999744/L-L1_GWOSC_O3a_4KHZ_R1-1252397056-4096.hdf5",
+   "gwosc_sha256": "7144c9f60ea285fe50453b78a66247f044243e7e91057351def69ef239e9e56e",
+   "npy_sha256": "06c14b08a3c7962067ea2bf932bd9f94f7f9d1fc5bf21702e57e2fd154975fbf"
+  },
+  "H1_1252589568": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1251999744/H-H1_GWOSC_O3a_4KHZ_R1-1252589568-4096.hdf5",
+   "gwosc_sha256": "6506462f40aa358571b40b1e423dc3bf75b451b3e20351d4b129b3308b5a2451",
+   "npy_sha256": "7fad10cfbaa22072685f8c718051500e5613d3ad0ac6ca30763be9cde8f169b2"
+  },
+  "L1_1252589568": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1251999744/L-L1_GWOSC_O3a_4KHZ_R1-1252589568-4096.hdf5",
+   "gwosc_sha256": "ca57b01ec133a5b12a36da90797ba87a162e42e502fc0d2d3809da182aa6bdd4",
+   "npy_sha256": "7c7af480fd5a0d88363f90240fa81071372fdd8abf0b41a58bb43a05d7d6a910"
+  },
+  "H1_1252851712": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1251999744/H-H1_GWOSC_O3a_4KHZ_R1-1252851712-4096.hdf5",
+   "gwosc_sha256": "4bee916519c10234a5d3138f3c255226989a53837e46e2ec94d0d14125837d96",
+   "npy_sha256": "16f5b37ddc643e7b6c9a7082744be58d1693edd9f04270a15fbfd4d78aac07c0"
+  },
+  "L1_1252851712": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1251999744/L-L1_GWOSC_O3a_4KHZ_R1-1252851712-4096.hdf5",
+   "gwosc_sha256": "5539c02138d57e4cc6b337c8a534d7ffddd99fd64ff05e5a94a0bfd179e0afc5",
+   "npy_sha256": "f15be3d8c1244c73116eea8a517bdbf7af6f7d645d5003fc1f3f290f78586f3a"
+  },
+  "H1_1253011456": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1251999744/H-H1_GWOSC_O3a_4KHZ_R1-1253011456-4096.hdf5",
+   "gwosc_sha256": "a1f4a1f2f709e0febdfe58cba840fac25d092dfbfce5e6f2f347e35dd8fc6eb2",
+   "npy_sha256": "1f6fdd7264d514c9bdf4f5ee42f504f2631cbeedb2cbbd5b203e7b224ff021e0"
+  },
+  "L1_1253011456": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1251999744/L-L1_GWOSC_O3a_4KHZ_R1-1253011456-4096.hdf5",
+   "gwosc_sha256": "9ac22b1c2291ab288f377d04ebf4ddda9379dc38aade8c3202891bbea42a2718",
+   "npy_sha256": "7aacd1a5e76ededfe3fcd18dc53bcc953418f9913f063f67add6d7ef04ad15df"
+  },
+  "H1_1253212160": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1253048320/H-H1_GWOSC_O3a_4KHZ_R1-1253212160-4096.hdf5",
+   "gwosc_sha256": "0c37c7cc9ae3a21a67a1175deb0ec6e683f7d9ef3a85b56dcaa7609779ca3d6b",
+   "npy_sha256": "034587e6ea217a5242ada38d6211d0b8578905fa372a1f0c71df0a2f3f6a24be"
+  },
+  "L1_1253212160": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1253048320/L-L1_GWOSC_O3a_4KHZ_R1-1253212160-4096.hdf5",
+   "gwosc_sha256": "d15690b51d6a6cb5610216a4d5ab21a26f4d7728d1359b1d91ceecdf30f972c1",
+   "npy_sha256": "57737aa76cdded993280a2a426d92de775f92079559f2453d846a2ff2ca43f4c"
+  },
+  "H1_1253421056": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1253048320/H-H1_GWOSC_O3a_4KHZ_R1-1253421056-4096.hdf5",
+   "gwosc_sha256": "93d21abf28891bc25dbfb3ec8088af6e07696ca86857215e51367559955e4697",
+   "npy_sha256": "ef7007990a9e1ce3f5572705826ff45c8c9004ce3e40e9ebbf5dbddadf8e1e2f"
+  },
+  "L1_1253421056": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1253048320/L-L1_GWOSC_O3a_4KHZ_R1-1253421056-4096.hdf5",
+   "gwosc_sha256": "8fbeb10c81ceda587332fb3864dcd896d126eea9816a9d51111c3fa14cdf0b4a",
+   "npy_sha256": "d4bf0029a007b6ebc1810504ba0bc6d2c9375f843d4b0178a1c566f5ab0462a0"
+  },
+  "H1_1253617664": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1253048320/H-H1_GWOSC_O3a_4KHZ_R1-1253617664-4096.hdf5",
+   "gwosc_sha256": "28a9c32ae00061b8c3d76eace8ec55fe81565a09c9b961b2c62b688627e3a8e0",
+   "npy_sha256": "a5497a0ec95578a8beb136b54287e5da412502f91866d4e65ec8c259f5eebff5"
+  },
+  "L1_1253617664": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1253048320/L-L1_GWOSC_O3a_4KHZ_R1-1253617664-4096.hdf5",
+   "gwosc_sha256": "60f583c73578c8e8da342edc6f677f2ac359f26edd7b6801902c3811dab517a6",
+   "npy_sha256": "572d04ad91a61f9193fb284ca07c1b8e32dae26be250eb550824cc2759cbb4c4"
+  },
+  "H1_1253748736": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1253048320/H-H1_GWOSC_O3a_4KHZ_R1-1253748736-4096.hdf5",
+   "gwosc_sha256": "b14aebd8fec5344498fe4a0ce5c1091b551c4c9260d8cd9400337af9c6ca9660",
+   "npy_sha256": "725e9eb5a63dbc7183299e9fd26d0922008c057579ae83e389dff289733180b8"
+  },
+  "L1_1253748736": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1253048320/L-L1_GWOSC_O3a_4KHZ_R1-1253748736-4096.hdf5",
+   "gwosc_sha256": "19e39540a6dd294dcb41dff78455c166a22e213c1c36c262972cc40c58dc2620",
+   "npy_sha256": "e4c5964629348da3e8c8d53c08148ccec85411b5008a8a1f23b338b067807768"
+  },
+  "H1_1253961728": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1253048320/H-H1_GWOSC_O3a_4KHZ_R1-1253961728-4096.hdf5",
+   "gwosc_sha256": "b209715e5ea47c6b581985a646114c7516604dc364d96e286650746d2b2adb81",
+   "npy_sha256": "596c9a5e81637e4f1a2a7d70fff6221a714a674268ab8545413165346afb12f2"
+  },
+  "L1_1253961728": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1253048320/L-L1_GWOSC_O3a_4KHZ_R1-1253961728-4096.hdf5",
+   "gwosc_sha256": "dfa373f22b3ca0242dac9533793dfe53bc6a11bf0d30b22e0f2d56a4050f5ffa",
+   "npy_sha256": "ab379424263a93bdf76c8797d7d35008d5338bee64f2cc045ce1f3a335d19be4"
+  },
+  "H1_1245888512": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1245708288/H-H1_GWOSC_O3a_4KHZ_R1-1245888512-4096.hdf5",
+   "gwosc_sha256": "0e6b08a4da5486e644bf0d85217898da80b5b8947940a009cdd65c9edc72e16c",
+   "npy_sha256": "3faf5b143dc4b866e4fa7e90a0055e540956725dd8146b939bb4786656da049a"
+  },
+  "L1_1245888512": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1245708288/L-L1_GWOSC_O3a_4KHZ_R1-1245888512-4096.hdf5",
+   "gwosc_sha256": "01f8321e2f1f9dcd650c178dfc3594cbcb70ff56d2a76d483d0498bcd06e092e",
+   "npy_sha256": "fee968ca03a6e909331f4f65a80c05adc2ccce31288cfb987f58a58015504b43"
+  },
+  "H1_1246216192": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1245708288/H-H1_GWOSC_O3a_4KHZ_R1-1246216192-4096.hdf5",
+   "gwosc_sha256": "2fa51ca92801138e1043c42bd7da37d0ed8603ee3a0f61d84f4730b68a2dc3bd",
+   "npy_sha256": "1e07fd83d772596d764fad7a5b57c673117530e8fe659b4b8215338b4b837669"
+  },
+  "L1_1246216192": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1245708288/L-L1_GWOSC_O3a_4KHZ_R1-1246216192-4096.hdf5",
+   "gwosc_sha256": "84c2f127428c4f2e56dffd2be076141cb014ceb528f95657cff482c59c3d5c66",
+   "npy_sha256": "760ce809393f0cd10549a5d3157baf133a2d686977427eaa8b19bb8dd675e91d"
+  },
+  "H1_1246531584": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1245708288/H-H1_GWOSC_O3a_4KHZ_R1-1246531584-4096.hdf5",
+   "gwosc_sha256": "54602203e9e721e9c8da0e382b8b9c1914a45fcde4b6079b85b598624d9b3be2",
+   "npy_sha256": "9374e7a1001b9b84525017b63ca02e45b533ed5ff43b9c3e0b3be089dc63969a"
+  },
+  "L1_1246531584": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1245708288/L-L1_GWOSC_O3a_4KHZ_R1-1246531584-4096.hdf5",
+   "gwosc_sha256": "a74b71aa6fab587e9032776b314dcbc3de584e30d2ab816a1d2bbe77ca142e6f",
+   "npy_sha256": "4a458d26191e3a2464b84ebb32f5923978fd59e88ca5e1600647f35c0404cbb1"
+  },
+  "H1_1246879744": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1246756864/H-H1_GWOSC_O3a_4KHZ_R1-1246879744-4096.hdf5",
+   "gwosc_sha256": "00950e5f06cc0a830bbb205bceefe5815d8d961e0f47035e9d64f9539ab2a7e0",
+   "npy_sha256": "ddb74d31a5b13fc72316e7da7f188517017a7c53b21e5b4b615cb7db613e0dec"
+  },
+  "L1_1246879744": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1246756864/L-L1_GWOSC_O3a_4KHZ_R1-1246879744-4096.hdf5",
+   "gwosc_sha256": "9102e5f186da8766c57b4db4908390b325fdd3376f15afd53717594fd28eb39d",
+   "npy_sha256": "26ef4b965e97e13e448ceb283a2acc441ca0c35d6df8dd69d4cbbd40646cc689"
+  },
+  "H1_1247674368": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1246756864/H-H1_GWOSC_O3a_4KHZ_R1-1247674368-4096.hdf5",
+   "gwosc_sha256": "b3e8f9cdcc46d97ef2c2296d0aed561e4c068a3e44499302a3a41fbeff4a8eba",
+   "npy_sha256": "44d4ea64037efb6733555d7296bb259026bab732753d403e894759f53da73396"
+  },
+  "L1_1247674368": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1246756864/L-L1_GWOSC_O3a_4KHZ_R1-1247674368-4096.hdf5",
+   "gwosc_sha256": "6411723255a15b1ce329cad7190e0e2ffd3f3b3564e29cc44770b4ace420d1fc",
+   "npy_sha256": "d0eb9ff0623b357d3ae629751f1fc5d6d4176ce0055983356d223073af3c3d2a"
+  },
+  "H1_1248182272": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1247805440/H-H1_GWOSC_O3a_4KHZ_R1-1248182272-4096.hdf5",
+   "gwosc_sha256": "2da9fd731e177d1addb24924bd6844f03dda44ff131f81585b87ee3340c94dc2",
+   "npy_sha256": "4e2aba111b095378f2aa901a5cfe431bee90b156872d846e4406d7965875bbf0"
+  },
+  "L1_1248182272": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1247805440/L-L1_GWOSC_O3a_4KHZ_R1-1248182272-4096.hdf5",
+   "gwosc_sha256": "1b3bcb435691344642b9f3eefad267708eb378ea68125f7516b33dc017fbcad6",
+   "npy_sha256": "7bdc8a5ec0d28ac1a82db65d397a5a1d4c187e1a8216bccd4d6cd11d107cbbac"
+  },
+  "H1_1248477184": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1247805440/H-H1_GWOSC_O3a_4KHZ_R1-1248477184-4096.hdf5",
+   "gwosc_sha256": "4504705105b5d1bc2be8ae93ffa18cffebf4e67aa38d440234d448a43a7a6347",
+   "npy_sha256": "f901c16b0dd09f2b4f7e281269936dce2d583de5cc103394140653d8c998b0ec"
+  },
+  "L1_1248477184": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1247805440/L-L1_GWOSC_O3a_4KHZ_R1-1248477184-4096.hdf5",
+   "gwosc_sha256": "3dbcd9be69f47da0836a9a14ed3b57ff9231e8eec89619ef4277ba267f8218a4",
+   "npy_sha256": "063e4191634a47a01470a7e899fe5410917fa0bab796a68fb6d8afd56113ee59"
+  },
+  "H1_1248993280": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1248854016/H-H1_GWOSC_O3a_4KHZ_R1-1248993280-4096.hdf5",
+   "gwosc_sha256": "2b171a85dbd9763498ef745e6acd09853ba30c11a5e9853ae27c799e0e7f3fe9",
+   "npy_sha256": "003b037dd27c62146a1007377acaa07ed6e76bda9837aebf9c99952b2b21b811"
+  },
+  "L1_1248993280": {
+   "gwosc_url": "https://gwosc.org/archive/data/O3a_4KHZ_R1/1248854016/L-L1_GWOSC_O3a_4KHZ_R1-1248993280-4096.hdf5",
+   "gwosc_sha256": "c2651d152fc2d42bce3acabfba2d6743c0c4e610463f3158ba72a547b8e60ef1",
+   "npy_sha256": "a9a18c5033560367d806cd0ef243712bd8e37f524555497641928eaa6ae2fd59"
+  }
+ }
 }

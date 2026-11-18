@@ -11,14 +11,16 @@ nohup perl -MPOSIX -e 'setsid(); exec @ARGV' nice -n 15 .venv/bin/python -u "$@"
 PID=$!; echo $PID > $S/$NAME.pid
 # watchdog: sum RSS over the job's process group; TERM the group (never STOP) above the cap or below the disk floor
 nohup bash -c "
-  sleep 5; PG=\$(ps -o pgid= -p $PID | tr -d ' ')
+  sleep 5; PG=\$(ps -o pgid= -p $PID | tr -d ' '); PEAK=0
   while kill -0 $PID 2>/dev/null; do
     RSS=\$(ps -axo pgid=,rss= | awk -v g=\$PG '\$1==g{s+=\$2}END{print s+0}')
     FREE=\$(df -g / | awk 'NR==2{print \$4}')
+    [ \"\$RSS\" -gt \"\$PEAK\" ] && PEAK=\$RSS
     if [ \"\$RSS\" -gt 4194304 ] || [ \"\$FREE\" -lt 5 ]; then
       echo \"\$(date) WATCHDOG: rss=\${RSS}KB free=\${FREE}GB -> TERM pgid \$PG\" >> $S/$NAME.log
       kill -TERM -- -\$PG; break
     fi
     sleep 30
-  done" >/dev/null 2>&1 &
+  done
+  echo \"\$(date) WATCHDOG: process-group RSS peak \$((PEAK/1024)) MB (sampled every 30 s)\" >> $S/$NAME.log" >/dev/null 2>&1 &
 echo "started $NAME pid $PID"

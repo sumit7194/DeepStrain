@@ -1,0 +1,1030 @@
+{
+ "n_files": 64,
+ "all_pass": true,
+ "files": {
+  "H1_1245888512": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 3.782850388489578e-08,
+    "max_strain": 3.246923008237701e-08,
+    "stdev_strain": 1.4062084829902233e-11
+   },
+   "mean_err_in_stdev": 2.068556572959119e-12,
+   "filesize_bytes": 129423927
+  },
+  "H1_1246216192": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 1.6757574883285997e-08,
+    "max_strain": 3.135032722312303e-08,
+    "stdev_strain": 1.555366946348613e-11
+   },
+   "mean_err_in_stdev": 7.416182945913628e-12,
+   "filesize_bytes": 129431063
+  },
+  "H1_1246531584": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 4.181564894345513e-08,
+    "max_strain": 4.4341740057518564e-08,
+    "stdev_strain": 5.4434234897371425e-12
+   },
+   "mean_err_in_stdev": 7.551383078877954e-12,
+   "filesize_bytes": 129352336
+  },
+  "H1_1246879744": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 1.623666079364483e-08,
+    "max_strain": 3.604305964799437e-08,
+    "stdev_strain": 3.005373727660299e-10
+   },
+   "mean_err_in_stdev": 2.0094538058937771e-13,
+   "filesize_bytes": 129325281
+  },
+  "H1_1247674368": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 1.5349635784644988e-08,
+    "max_strain": 9.01913843609492e-09,
+    "stdev_strain": 4.5220271971402326e-11
+   },
+   "mean_err_in_stdev": 6.475089996088372e-12,
+   "filesize_bytes": 129202138
+  },
+  "H1_1248182272": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 1.231867274853471e-09,
+    "max_strain": 2.3057281417493414e-08,
+    "stdev_strain": 7.876588270505636e-12
+   },
+   "mean_err_in_stdev": 3.981402000427881e-12,
+   "filesize_bytes": 129812300
+  },
+  "H1_1248477184": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 2.4206905369084097e-08,
+    "max_strain": 7.675288071773423e-09,
+    "stdev_strain": 1.4207079956918278e-11
+   },
+   "mean_err_in_stdev": 1.1948049876003639e-12,
+   "filesize_bytes": 129528028
+  },
+  "H1_1248993280": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 4.076569970479227e-09,
+    "max_strain": 1.1550442602370481e-08,
+    "stdev_strain": 2.1707302622075986e-11
+   },
+   "mean_err_in_stdev": 7.613927893339798e-13,
+   "filesize_bytes": 130405099
+  },
+  "H1_1249001472": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 5.6228277589553954e-08,
+    "max_strain": 4.3135146565731475e-09,
+    "stdev_strain": 1.2897016787860593e-10
+   },
+   "mean_err_in_stdev": 1.0047973488052612e-11,
+   "filesize_bytes": 129815746
+  },
+  "H1_1249280000": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 1.569569141324223e-09,
+    "max_strain": 2.224949757767547e-08,
+    "stdev_strain": 8.303058240954897e-11
+   },
+   "mean_err_in_stdev": 8.448694025053493e-13,
+   "filesize_bytes": 129858537
+  },
+  "H1_1249501184": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 1.4302930395615476e-08,
+    "max_strain": 1.4974820272684042e-09,
+    "stdev_strain": 6.344702541127845e-11
+   },
+   "mean_err_in_stdev": 6.662816989021858e-13,
+   "filesize_bytes": 129824950
+  },
+  "H1_1249689600": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 3.264749570686121e-08,
+    "max_strain": 8.18555534465304e-09,
+    "stdev_strain": 6.704126143119993e-11
+   },
+   "mean_err_in_stdev": 2.6322388190550782e-12,
+   "filesize_bytes": 129670678
+  },
+  "H1_1250041856": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 3.203873055745987e-08,
+    "max_strain": 2.0825442592631305e-08,
+    "stdev_strain": 1.1060263815920734e-11
+   },
+   "mean_err_in_stdev": 1.6912982167552366e-12,
+   "filesize_bytes": 129687487
+  },
+  "H1_1250197504": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 9.355622054840751e-09,
+    "max_strain": 1.9183152177859597e-08,
+    "stdev_strain": 1.4206369414182518e-10
+   },
+   "mean_err_in_stdev": 9.03283808595558e-12,
+   "filesize_bytes": 129665813
+  },
+  "H1_1250422784": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 2.1409892414503418e-08,
+    "max_strain": 1.6556622739472004e-09,
+    "stdev_strain": 1.352884471117477e-11
+   },
+   "mean_err_in_stdev": 1.3008125143570223e-12,
+   "filesize_bytes": 129323894
+  },
+  "H1_1250607104": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 1.2895629675213627e-08,
+    "max_strain": 8.26432189349191e-09,
+    "stdev_strain": 1.140298966362252e-11
+   },
+   "mean_err_in_stdev": 5.9512911327812396e-12,
+   "filesize_bytes": 129288177
+  },
+  "H1_1250762752": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 2.0985695181607866e-08,
+    "max_strain": 1.2708923025073204e-08,
+    "stdev_strain": 3.1870062144889744e-12
+   },
+   "mean_err_in_stdev": 5.0931308056315714e-12,
+   "filesize_bytes": 129222278
+  },
+  "H1_1250918400": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 1.2836245621983267e-08,
+    "max_strain": 1.5910561756982133e-10,
+    "stdev_strain": 6.305911348647442e-11
+   },
+   "mean_err_in_stdev": 4.3651311250847075e-12,
+   "filesize_bytes": 129298760
+  },
+  "H1_1251250176": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 2.5839808293071087e-08,
+    "max_strain": 1.9909949244834024e-09,
+    "stdev_strain": 2.107070073975592e-11
+   },
+   "mean_err_in_stdev": 4.812656816021404e-12,
+   "filesize_bytes": 129367175
+  },
+  "H1_1251479552": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 1.2634609469763802e-08,
+    "max_strain": 3.6657266999640115e-08,
+    "stdev_strain": 7.914646715789786e-11
+   },
+   "mean_err_in_stdev": 7.201368114118374e-12,
+   "filesize_bytes": 129527942
+  },
+  "H1_1251713024": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 1.1432281121770416e-08,
+    "max_strain": 1.9672960815952933e-08,
+    "stdev_strain": 2.524869202602531e-12
+   },
+   "mean_err_in_stdev": 3.2993350786675867e-12,
+   "filesize_bytes": 129503596
+  },
+  "H1_1251934208": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 3.361431821780059e-08,
+    "max_strain": 3.5216220717337876e-08,
+    "stdev_strain": 3.553157768010351e-12
+   },
+   "mean_err_in_stdev": 1.012634316500327e-12,
+   "filesize_bytes": 129509519
+  },
+  "H1_1252098048": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 3.088152467078942e-08,
+    "max_strain": 9.389922839275755e-09,
+    "stdev_strain": 1.592881382350697e-11
+   },
+   "mean_err_in_stdev": 1.5270633961921717e-12,
+   "filesize_bytes": 129514624
+  },
+  "H1_1252397056": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 2.232172091609641e-08,
+    "max_strain": 7.799466628100049e-09,
+    "stdev_strain": 1.644862024363647e-11
+   },
+   "mean_err_in_stdev": 2.953263427215564e-12,
+   "filesize_bytes": 129526491
+  },
+  "H1_1252589568": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 3.027146266987302e-08,
+    "max_strain": 2.7069364971765708e-08,
+    "stdev_strain": 2.454036973631446e-12
+   },
+   "mean_err_in_stdev": 7.223886823486766e-13,
+   "filesize_bytes": 129525477
+  },
+  "H1_1252851712": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 3.173216933660683e-08,
+    "max_strain": 2.576634883233453e-08,
+    "stdev_strain": 4.4642067820177544e-12
+   },
+   "mean_err_in_stdev": 3.92411247663117e-12,
+   "filesize_bytes": 129462105
+  },
+  "H1_1253011456": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 3.1224944851970804e-08,
+    "max_strain": 1.7052472545131536e-08,
+    "stdev_strain": 7.108980071279802e-12
+   },
+   "mean_err_in_stdev": 9.04412861518997e-12,
+   "filesize_bytes": 129450895
+  },
+  "H1_1253212160": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 4.697431998934576e-09,
+    "max_strain": 2.7795683088527312e-08,
+    "stdev_strain": 8.316458632862123e-12
+   },
+   "mean_err_in_stdev": 2.362672394977001e-12,
+   "filesize_bytes": 129592277
+  },
+  "H1_1253421056": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 2.694700729222177e-08,
+    "max_strain": 2.6150044796224847e-08,
+    "stdev_strain": 1.1185496973098452e-12
+   },
+   "mean_err_in_stdev": 6.108507806044153e-12,
+   "filesize_bytes": 129531792
+  },
+  "H1_1253617664": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 9.460742189659754e-09,
+    "max_strain": 2.4208847593243377e-08,
+    "stdev_strain": 1.8418599978531347e-11
+   },
+   "mean_err_in_stdev": 8.86909058934013e-12,
+   "filesize_bytes": 129589186
+  },
+  "H1_1253748736": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 7.72962471806693e-09,
+    "max_strain": 3.3945208421926054e-08,
+    "stdev_strain": 5.01521046913922e-12
+   },
+   "mean_err_in_stdev": 5.918516621155594e-12,
+   "filesize_bytes": 129559686
+  },
+  "H1_1253961728": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 3.482736765647587e-09,
+    "max_strain": 8.427249786890911e-09,
+    "stdev_strain": 5.650702128434659e-12
+   },
+   "mean_err_in_stdev": 1.2254462484934182e-14,
+   "filesize_bytes": 129457956
+  },
+  "L1_1245888512": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 3.288559047298634e-08,
+    "max_strain": 3.8771407195881125e-09,
+    "stdev_strain": 1.934996607388939e-11
+   },
+   "mean_err_in_stdev": 6.531150585614653e-12,
+   "filesize_bytes": 129868169
+  },
+  "L1_1246216192": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 2.219918648904695e-08,
+    "max_strain": 3.3029160073638764e-08,
+    "stdev_strain": 5.6199489506525424e-12
+   },
+   "mean_err_in_stdev": 4.081045854525829e-12,
+   "filesize_bytes": 129884440
+  },
+  "L1_1246531584": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 4.731714531303055e-08,
+    "max_strain": 4.357915395214462e-08,
+    "stdev_strain": 1.2411183192284625e-11
+   },
+   "mean_err_in_stdev": 4.8113711334016975e-12,
+   "filesize_bytes": 130147304
+  },
+  "L1_1246879744": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 6.267379282220986e-09,
+    "max_strain": 1.8464884066204945e-08,
+    "stdev_strain": 1.2140954908090862e-11
+   },
+   "mean_err_in_stdev": 3.4502713692061406e-12,
+   "filesize_bytes": 130103953
+  },
+  "L1_1247674368": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 5.0682218422082315e-08,
+    "max_strain": 4.576154455371295e-09,
+    "stdev_strain": 1.3273826482418372e-12
+   },
+   "mean_err_in_stdev": 2.373124689689226e-12,
+   "filesize_bytes": 129997273
+  },
+  "L1_1248182272": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 7.300940962906566e-09,
+    "max_strain": 2.745887028865468e-08,
+    "stdev_strain": 4.601652392466349e-12
+   },
+   "mean_err_in_stdev": 3.766423827386609e-12,
+   "filesize_bytes": 129984051
+  },
+  "L1_1248477184": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 1.7111665417957056e-09,
+    "max_strain": 2.3266427229273745e-08,
+    "stdev_strain": 7.993605777301127e-15
+   },
+   "mean_err_in_stdev": 5.417731120761627e-12,
+   "filesize_bytes": 129972954
+  },
+  "L1_1248993280": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 3.0511084325723914e-08,
+    "max_strain": 1.3849883240268923e-08,
+    "stdev_strain": 1.0233591751784843e-11
+   },
+   "mean_err_in_stdev": 2.6335729529380257e-12,
+   "filesize_bytes": 130022602
+  },
+  "L1_1249001472": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 3.6071962083994435e-08,
+    "max_strain": 3.092080946842657e-08,
+    "stdev_strain": 1.5547563236850692e-12
+   },
+   "mean_err_in_stdev": 6.217684799671842e-12,
+   "filesize_bytes": 130007891
+  },
+  "L1_1249280000": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 2.2253056952692418e-08,
+    "max_strain": 5.276857795166734e-08,
+    "stdev_strain": 2.124633802225162e-11
+   },
+   "mean_err_in_stdev": 3.5584121111963254e-12,
+   "filesize_bytes": 130043094
+  },
+  "L1_1249501184": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 1.167916718891604e-08,
+    "max_strain": 1.095549706509047e-08,
+    "stdev_strain": 9.795164679360369e-12
+   },
+   "mean_err_in_stdev": 9.213798733724314e-12,
+   "filesize_bytes": 129888173
+  },
+  "L1_1249689600": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 4.330250691353399e-08,
+    "max_strain": 5.50266989751691e-08,
+    "stdev_strain": 1.8464341167145903e-11
+   },
+   "mean_err_in_stdev": 9.314884462129117e-12,
+   "filesize_bytes": 129892909
+  },
+  "L1_1250041856": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 2.0886744667159007e-08,
+    "max_strain": 4.3892557366476126e-08,
+    "stdev_strain": 6.5251137826294325e-12
+   },
+   "mean_err_in_stdev": 3.905859796708932e-12,
+   "filesize_bytes": 129861120
+  },
+  "L1_1250197504": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 3.4231976919762985e-08,
+    "max_strain": 3.61402550108636e-08,
+    "stdev_strain": 1.0287437568479163e-11
+   },
+   "mean_err_in_stdev": 1.4754547087861711e-12,
+   "filesize_bytes": 129851744
+  },
+  "L1_1250422784": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 1.2586274023007604e-08,
+    "max_strain": 3.23588662531904e-08,
+    "stdev_strain": 4.64539517963658e-12
+   },
+   "mean_err_in_stdev": 6.705512122493172e-13,
+   "filesize_bytes": 129853927
+  },
+  "L1_1250607104": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 1.5096995653607337e-08,
+    "max_strain": 1.7597712731465265e-08,
+    "stdev_strain": 1.4158785255347084e-11
+   },
+   "mean_err_in_stdev": 4.28162839419108e-12,
+   "filesize_bytes": 129860260
+  },
+  "L1_1250762752": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 1.1221761520019413e-08,
+    "max_strain": 2.3924864089863718e-08,
+    "stdev_strain": 2.0880297491032707e-11
+   },
+   "mean_err_in_stdev": 1.4153830267935038e-12,
+   "filesize_bytes": 129856011
+  },
+  "L1_1250918400": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 1.3344849780771995e-08,
+    "max_strain": 1.3406036836194346e-08,
+    "stdev_strain": 2.0069390593846492e-11
+   },
+   "mean_err_in_stdev": 8.126342472306467e-12,
+   "filesize_bytes": 129864278
+  },
+  "L1_1251250176": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 1.870934507319788e-08,
+    "max_strain": 9.734186567911252e-09,
+    "stdev_strain": 1.4949375071182658e-11
+   },
+   "mean_err_in_stdev": 6.266453116590224e-12,
+   "filesize_bytes": 129866824
+  },
+  "L1_1251479552": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 8.670501649987727e-09,
+    "max_strain": 1.6805978830802815e-10,
+    "stdev_strain": 4.801714581503802e-13
+   },
+   "mean_err_in_stdev": 7.444702346500727e-13,
+   "filesize_bytes": 129845989
+  },
+  "L1_1251713024": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 7.728967466036352e-09,
+    "max_strain": 2.775773677576865e-08,
+    "stdev_strain": 2.2235546737192635e-12
+   },
+   "mean_err_in_stdev": 1.01440502885599e-14,
+   "filesize_bytes": 129802853
+  },
+  "L1_1251934208": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 1.3323475656079609e-09,
+    "max_strain": 1.992888742918808e-09,
+    "stdev_strain": 1.0016432128168162e-12
+   },
+   "mean_err_in_stdev": 2.117744268498535e-12,
+   "filesize_bytes": 129832215
+  },
+  "L1_1252098048": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 3.588119312780691e-08,
+    "max_strain": 1.732535004350666e-08,
+    "stdev_strain": 9.845457782375888e-12
+   },
+   "mean_err_in_stdev": 1.272608291649191e-12,
+   "filesize_bytes": 129856502
+  },
+  "L1_1252397056": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 9.328174899181363e-10,
+    "max_strain": 2.6906911587687432e-08,
+    "stdev_strain": 1.0237144465463643e-11
+   },
+   "mean_err_in_stdev": 1.0528664665305668e-11,
+   "filesize_bytes": 129861605
+  },
+  "L1_1252589568": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 5.167868355471228e-09,
+    "max_strain": 1.9925916472374183e-10,
+    "stdev_strain": 1.7684964603859044e-11
+   },
+   "mean_err_in_stdev": 3.217097909365746e-12,
+   "filesize_bytes": 129794748
+  },
+  "L1_1252851712": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 7.227087817085476e-10,
+    "max_strain": 1.5812549047922175e-08,
+    "stdev_strain": 1.6472712083270835e-11
+   },
+   "mean_err_in_stdev": 6.981998243968624e-12,
+   "filesize_bytes": 129866140
+  },
+  "L1_1253011456": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 1.428606788422826e-08,
+    "max_strain": 3.959773631212471e-08,
+    "stdev_strain": 1.3735124149150124e-11
+   },
+   "mean_err_in_stdev": 2.3483740174641252e-12,
+   "filesize_bytes": 129820703
+  },
+  "L1_1253212160": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 2.2620449735555326e-08,
+    "max_strain": 2.51708209830781e-08,
+    "stdev_strain": 1.553068784687639e-11
+   },
+   "mean_err_in_stdev": 6.724628576862358e-12,
+   "filesize_bytes": 129787088
+  },
+  "L1_1253421056": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 3.238368018187998e-08,
+    "max_strain": 3.588063268722408e-08,
+    "stdev_strain": 6.276756892020785e-12
+   },
+   "mean_err_in_stdev": 8.995528552567946e-13,
+   "filesize_bytes": 129843272
+  },
+  "L1_1253617664": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 2.3197639698047112e-08,
+    "max_strain": 2.292025236272366e-08,
+    "stdev_strain": 1.8570700532904993e-11
+   },
+   "mean_err_in_stdev": 1.0314346251206791e-11,
+   "filesize_bytes": 129868921
+  },
+  "L1_1253748736": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 1.882749822712526e-08,
+    "max_strain": 3.514791535597084e-08,
+    "stdev_strain": 4.907851902657967e-12
+   },
+   "mean_err_in_stdev": 7.75860791555522e-12,
+   "filesize_bytes": 129858447
+  },
+  "L1_1253961728": {
+   "checks": {
+    "gps": true,
+    "samples": true,
+    "size_api_vs_http": true,
+    "stats": true,
+    "mean": true
+   },
+   "stats_rel_err": {
+    "min_strain": 4.878379233907992e-08,
+    "max_strain": 7.994849671177917e-09,
+    "stdev_strain": 7.394973522423243e-12
+   },
+   "mean_err_in_stdev": 7.73754969093272e-12,
+   "filesize_bytes": 129848887
+  }
+ }
+}

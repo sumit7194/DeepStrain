@@ -50,17 +50,19 @@ about 3 GB, one file at a time. Every file's sha256 is recorded in the manifest.
 - K = 8 injection realizations of the test set;
 - in each segment, mergers at least 480 s apart (longer than the longest signal) and 400 s or more from the segment
   edges, so about 7 per segment, about 170 per realization and about 1,350 in all;
-- distances uniform in [d_min, d_max], with the volume weighting computed as in MLGWSC-1.
+- chirp distance d_c uniform in [5, 500] Mpc, d = d_c (Mc/Mc_BNS)^(5/6), volume weighting as in MLGWSC-1. (The cap
+  was first 300 Mpc; measured on real strain, SNR 8 is still reached at d_c = 272 Mpc, so it was raised to 500.)
 
 Injections are projected with antenna patterns and the inter-detector delay (pycbc `Detector`). Both detectors share
 the waveform phase (the echoes L4 bug: never draw it per detector).
 
 **Background:**
 - the same test noise with no injections, at zero lag;
-- plus S time slides: L1 shifted by k × 600 s, k = 1…S, circular within each segment.
+- plus S = 23 cross-segment slides: H1 of test[i] paired with L1 of test[(i+k) mod 24], k = 1…23. (Built this way
+  instead of the planned circular 600-s shifts, which put a wrap-around discontinuity inside every slide.)
 
-Each slide is one more background "observing run" that a pipeline processes like real data. With S = 20 that is
-about 22 days of background, reaching a FAR of about 1/month. **Known limit, recorded in this repo:** time slides add
+Each slide is one more background "observing run" that a pipeline processes like real data. With S = 23 that is
+about 26 days (27 with zero lag) of background, reaching a FAR of about 1/month. **Known limit, recorded in this repo:** time slides add
 background livetime, but not independent noise samples or a way to verify the independence they assume
 (L2, ESTIMATOR AUDIT, ZERO-LAG POPULATION entries in RESULTS.md). The README will say so.
 
