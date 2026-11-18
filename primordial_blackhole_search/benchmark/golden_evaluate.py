@@ -6,6 +6,8 @@ E2 blind detector (no foreground triggers): found 0, V = 0.
 E3 FAR threshold: background of known stats; at 1/day exactly floor(rate * T) triggers lie strictly above the
    threshold.
 E4 clustering: triggers 0.3 s apart collapse to the loudest.
+E5 tolerance: a trigger 30 s from every injection is found with var 40 s and not with var 20 s; var > VAR_MAX is
+   rejected.
 """
 import csv
 import json
@@ -23,7 +25,7 @@ import injections as I  # noqa: E402
 
 def write(path, rows):
     with open(path, "w", newline="") as f:
-        w = csv.writer(f); w.writerow(["time", "stat"]); w.writerows(rows)
+        w = csv.writer(f); w.writerow(["time", "stat", "var"]); w.writerows(rows)
 
 
 def main():
@@ -38,9 +40,9 @@ def main():
             t = np.concatenate([g + np.sort(rng.uniform(10, 4086, 200)) for g in segs])
             st = rng.uniform(0, 10, len(t))
             bg_stat[k] = st
-            write(d / f"bg_k{k}.csv", zip(t, st))
+            write(d / f"bg_k{k}.csv", zip(t, st, np.ones_like(t)))
         for r in range(I.K):
-            write(d / f"fg_r{r}.csv", [(x["t_h1"] + 0.2, 100.0) for x in inj if x["realization"] == r])
+            write(d / f"fg_r{r}.csv", [(x["t_h1"] + 0.2, 100.0, 1.0) for x in inj if x["realization"] == r])
         res = E.evaluate(d)
         dc = np.array([x["chirp_distance"] for x in inj])
         v_true = 4 * np.pi / 3 * (I.DC_HI ** 3 - I.DC_LO ** 3)
@@ -60,13 +62,25 @@ def main():
         res0 = E.evaluate(d)
         ok &= all(v.get("chirp_volume_mpc3", 0) == 0 for v in res0["at_far"].values() if v["reachable"])
         out["E2"] = res0["at_far"]
-    c = E.cluster(np.array([[100.0, 1.0], [100.3, 5.0], [100.6, 2.0], [105.0, 3.0]]))
+        e5 = {}
+        for var in (40.0, 20.0):
+            for r in range(I.K):
+                write(d / f"fg_r{r}.csv", [(x["t_h1"] - 30.0, 100.0, var) for x in inj if x["realization"] == r])
+            e5[var] = E.evaluate(d)["at_far"]["1/day"]["found_fraction"]
+        write(d / "fg_r0.csv", [(inj[0]["t_h1"], 100.0, E.VAR_MAX + 1)])
+        try:
+            E.evaluate(d); e5["rejects_big_var"] = False
+        except ValueError:
+            e5["rejects_big_var"] = True
+        ok &= e5[40.0] == 1.0 and e5[20.0] == 0.0 and e5["rejects_big_var"]
+        out["E5"] = e5
+    c = E.cluster(np.array([[100.0, 1.0, 1], [100.3, 5.0, 1], [100.6, 2.0, 1], [105.0, 3.0, 1]]))
     ok &= sorted(c[:, 1].tolist()) == [3.0, 5.0]
     out["E4"] = c.tolist()
     out["pass"] = bool(ok)
     (B / "results").mkdir(exist_ok=True)
     (B / "results" / "golden_evaluate.json").write_text(json.dumps(out, indent=1))
-    print(json.dumps({k: out[k] for k in ("E3", "E4", "pass")}), "\nE1 1/day:", out["E1"]["res"]["1/day"], out["E1"]["v_true"], out["E1"]["mc_se"])
+    print(json.dumps({k: out[k] for k in ("E3", "E4", "E5", "pass")}), "\nE1 1/day:", out["E1"]["res"]["1/day"], out["E1"]["v_true"], out["E1"]["mc_se"])
     print("GOLDEN", "PASS" if ok else "FAIL")
     return 0 if ok else 1
 

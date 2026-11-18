@@ -20,7 +20,7 @@ nohup bash -c "
       echo \"\$(date) WATCHDOG: rss=\${RSS}KB free=\${FREE}GB -> TERM pgid \$PG\" >> $S/$NAME.log
       kill -TERM -- -\$PG; break
     fi
-    sleep 30
+    sleep 5
   done
-  echo \"\$(date) WATCHDOG: process-group RSS peak \$((PEAK/1024)) MB (sampled every 30 s)\" >> $S/$NAME.log" >/dev/null 2>&1 &
+  echo \"\$(date) WATCHDOG: process-group RSS peak \$((PEAK/1024)) MB (sampled every 5 s)\" >> $S/$NAME.log" >/dev/null 2>&1 &
 echo "started $NAME pid $PID"

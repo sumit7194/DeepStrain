@@ -7,6 +7,7 @@
     "reachable": true,
     "threshold": 9.997534477111657,
     "found_fraction": 1.0,
+    "chance_found_bound": 2.3148148148148147e-05,
     "chirp_volume_mpc3": 513706277.03004915,
     "chirp_distance_mpc": 496.8310782060205
    },
@@ -14,6 +15,7 @@
     "reachable": true,
     "threshold": 9.999619067353882,
     "found_fraction": 1.0,
+    "chance_found_bound": 3.3069688442720614e-06,
     "chirp_volume_mpc3": 513706277.03004915,
     "chirp_distance_mpc": 496.8310782060205
    },
@@ -32,6 +34,7 @@
    "reachable": true,
    "threshold": 9.997534477111657,
    "found_fraction": 0.0,
+   "chance_found_bound": 0.0,
    "chirp_volume_mpc3": 0.0,
    "chirp_distance_mpc": 0.0
   },
@@ -39,6 +42,7 @@
    "reachable": true,
    "threshold": 9.999619067353882,
    "found_fraction": 0.0,
+   "chance_found_bound": 0.0,
    "chirp_volume_mpc3": 0.0,
    "chirp_distance_mpc": 0.0
   },
@@ -47,14 +51,21 @@
    "why": "background supports 0.90 events (<1)"
   }
  },
+ "E5": {
+  "40.0": 1.0,
+  "20.0": 0.0,
+  "rejects_big_var": true
+ },
  "E4": [
   [
    100.3,
-   5.0
+   5.0,
+   1.0
   ],
   [
    105.0,
-   3.0
+   3.0,
+   1.0
   ]
  ],
  "pass": true

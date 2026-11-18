@@ -1,0 +1,12 @@
+{
+ "file": "benchmark/data/H1_1245888512.npy",
+ "n_psd_bins": 8388609,
+ "ref_bins": 8388609,
+ "psd_max_rel_diff_in_band": 4.666490527327483e-10,
+ "whitened_max_abs_diff": 4.547473508864641e-12,
+ "whitened_rms": 2.293186623622726,
+ "peak_rss_mb_after_load": 228,
+ "peak_rss_mb_lowmem": 1022,
+ "peak_rss_mb_with_reference": 2102,
+ "pass": true
+}

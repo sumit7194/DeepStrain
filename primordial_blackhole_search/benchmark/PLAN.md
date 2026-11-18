@@ -66,8 +66,11 @@ about 26 days (27 with zero lag) of background, reaching a FAR of about 1/month.
 background livetime, but not independent noise samples or a way to verify the independence they assume
 (L2, ESTIMATOR AUDIT, ZERO-LAG POPULATION entries in RESULTS.md). The README will say so.
 
-**Submissions:** a trigger list per file: (GPS time, ranking statistic). A trigger is "found" if it lies within
-±Δt = 1 s of an injection's merger time in H1.
+**Submissions:** a trigger list per file: (GPS time, ranking statistic, var), MLGWSC-1's format. An injection is
+"found" if a trigger lies within ±var of its merger time in H1 (MLGWSC-1's rule, |t − t_c| ≤ var), with var capped
+at 60 s. (Changed 2026-11-18 from a fixed ±1 s: the cnn_w64 probe showed a long-window learned detector localises a
+merger only to tens of seconds, so ±1 s would score timing rather than detection. Injections are ≥ 480 s apart, so
+60 s stays unambiguous, and the evaluator prints the chance-match bound 2·var·FAR beside every found fraction.)
 
 **Evaluator outputs:**
 - FAR(stat) from the background;
