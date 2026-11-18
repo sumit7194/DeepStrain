@@ -21,7 +21,9 @@ An injection is found at threshold x if a foreground trigger with stat > x lies 
 tolerance) of its H1 merger time. Sensitive chirp-volume (MLGWSC-1 convention; d_c uniform on [lo, hi]) is
 V(x) = (hi - lo) * mean_i[ 4 pi d_c,i^2 * found_i(x) ], and the sensitive chirp-distance is (3 V / 4 pi)^(1/3).
 
-  python benchmark/evaluate.py <submission dir> [--out results/<name>.json]
+  python benchmark/evaluate.py <submission dir> [--fixed-var S] [--out results/<name>.json]
+  --fixed-var S replaces every trigger's tolerance with S seconds (e.g. 1.0, the original fixed window), so a
+  submission's sensitivity can also be reported under a tight rule beside its own.
 """
 import argparse
 import csv
@@ -41,7 +43,7 @@ FARS_PER_YEAR = {"1/day": 365.25, "1/week": 52.18, "1/month": 12.0}
 YEAR_S = 365.25 * 86400
 
 
-def read_triggers(path):
+def read_triggers(path, fixed_var=None):
     if not path.exists():
         return np.zeros((0, 3))
     with open(path) as f:
@@ -49,6 +51,8 @@ def read_triggers(path):
     tr = np.array(rows).reshape(-1, 3)
     if len(tr) and not ((tr[:, 2] > 0) & (tr[:, 2] <= VAR_MAX)).all():
         raise ValueError(f"{path.name}: var must lie in (0, {VAR_MAX}] s")
+    if fixed_var is not None:
+        tr[:, 2] = fixed_var
     return cluster(tr)
 
 
@@ -82,7 +86,7 @@ def injection_table():
     return rows
 
 
-def evaluate(sub, n_test_segments=24, seg_len=4096):
+def evaluate(sub, n_test_segments=24, seg_len=4096, fixed_var=None):
     bg = [read_triggers(sub / f"bg_k{k}.csv") for k in range(N_SLIDES + 1)]
     n_runs = sum(1 for k in range(N_SLIDES + 1) if (sub / f"bg_k{k}.csv").exists())
     t_bg = n_runs * n_test_segments * seg_len
@@ -91,7 +95,7 @@ def evaluate(sub, n_test_segments=24, seg_len=4096):
     loudest = np.full(len(inj), -np.inf)
     var_used = 0.0
     for r in sorted({x["realization"] for x in inj}):
-        fg = read_triggers(sub / f"fg_r{r}.csv")
+        fg = read_triggers(sub / f"fg_r{r}.csv", fixed_var)
         if len(fg) == 0:
             continue
         var_used = max(var_used, float(fg[:, 2].max()))
@@ -104,7 +108,7 @@ def evaluate(sub, n_test_segments=24, seg_len=4096):
             if ok.any():
                 loudest[i] = fsx[lo:hi][ok].max()
     dc = np.array([x["chirp_distance"] for x in inj])
-    res = {"background_livetime_days": t_bg / 86400, "n_background_runs": n_runs, "n_injections": len(inj),
+    res = {"fixed_var_s": fixed_var, "background_livetime_days": t_bg / 86400, "n_background_runs": n_runs, "n_injections": len(inj),
            "max_var_s": var_used, "at_far": {}}
     for name, per_year in FARS_PER_YEAR.items():
         n_allowed = per_year * t_bg / YEAR_S  # background events allowed at this FAR
@@ -124,9 +128,10 @@ def evaluate(sub, n_test_segments=24, seg_len=4096):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("submission", type=Path)
+    ap.add_argument("--fixed-var", type=float)
     ap.add_argument("--out", type=Path)
     a = ap.parse_args()
-    res = evaluate(a.submission)
+    res = evaluate(a.submission, fixed_var=a.fixed_var)
     print(json.dumps(res, indent=1))
     if a.out:
         a.out.write_text(json.dumps(res, indent=1))
