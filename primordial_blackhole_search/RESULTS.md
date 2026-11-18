@@ -2110,6 +2110,33 @@ on q≈0.33), not isolated here. The CNN's 0% at network SNR 16 (~11 per detecto
 change (retry pass, stall rule, `--only`, the swap-rule bug fix, the trigger_segments refactor — proven identical
 against the registered commit, 1d397ee) was committed before any score existed. Artifacts: results/o4a_ssm/.
 
+**⚠️ ADDENDUM 2026-11-18: the trigger windows were placed 5 s off our own convention. Re-scored at the correct
+placement, the verdict is UNCHANGED: all four looks UNINFORMATIVE.** (The text above is left exactly as committed.)
+*What was wrong.* pycbc's time-domain TaylorF2 returns 5.000 s of samples AFTER coalescence for every mass we use
+(measured 2026-11-18, 0.2–1.0 M☉, f_lower 50 Hz, 4096 Hz), and `pbh.waveforms` keeps them. So in every whitened
+injection, training shard and bank template in this repo the merger sits 5.000 s BEFORE the end of the array, not at
+it, as `projected_waveform`'s docstring wrongly said (docstring now corrected). M11's injections and templates both
+come from those helpers, so its thresholds and sensitivity ε are internally consistent. But `score` placed each
+TRIGGER window to END at the reported GPS time, i.e. at the true merger: the CNN saw each trigger 5 s later in its
+window than any training or injection signal, and the bank templates were aligned 5 s early, far outside their ±0.5 s
+scan. Found while building the LongChirp benchmark, where the bank recovered nothing until templates were cut at t_c.
+*Re-score* (`scripts/o4a_ssm_shift_check.py`, results/o4a_ssm/shift_check.json; no committed number changed). Shift 0
+reproduces the committed scores exactly (max |diff| 0.0) before shift +5 s is reported. FAR from the cached background,
+ε unchanged (it comes from consistently placed injections), the same pre-registered verdict rule (4 looks):
+
+| trigger | stat | committed (shift 0): H1 / L1 / X, FAR /yr | **+5 s**: H1 / L1 / X, FAR /yr | ε(ρ_T) | verdict |
+|---|---|---|---|---|---|
+| 2023-07-19 | CNN | −0.995 / −0.062 / −1.057, 1.41×10⁵ | −0.973 / +0.047 / −0.926, 1.20×10⁵ | 0.000 | UNINFORMATIVE |
+| 2023-07-19 | bank | 5.833 / 6.525 / 12.359, 3.33×10⁵ | 5.743 / 5.922 / 11.665, 4.78×10⁵ | 0.062 | UNINFORMATIVE |
+| 2023-08-10 | CNN | −0.245 / −0.488 / −0.733, 9.42×10⁴ | +0.130 / −1.498 / −1.368, 2.05×10⁵ | 0.000 | UNINFORMATIVE |
+| 2023-08-10 | bank | 6.607 / 6.524 / 13.131, 7.04×10⁴ | 5.904 / 6.409 / 12.313, 3.80×10⁵ | 0.077 | UNINFORMATIVE |
+
+At the correct placement every score stays noise-like (FAR 1.2×10⁵–4.8×10⁵ /yr, 4×FAR ≫ 1/yr) and ε < 0.1, so the
+conclusion — **our instruments cannot test triggers this weak** — stands. What changed is that the original numbers
+were not measured at the alignment the pipeline was built for, so they should not be quoted. The +5-s numbers above
+replace them. **Not re-checked:** the out-of-domain CNN FARs (Sep 14, Oct 14) above share the same placement and are
+not re-scored here; treat them as unverified.
+
 
 ### ✅ THE DENSE BANK IS ADEQUATE — and once it is, the matched filter BEATS the CNN by 6% (2026-09-23)
 

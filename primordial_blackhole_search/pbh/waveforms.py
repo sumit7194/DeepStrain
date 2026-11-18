@@ -57,7 +57,11 @@ def sample_params(rng: np.random.Generator) -> InjectionParams:
 def projected_waveform(p: InjectionParams, ifo: str, t_gps: float) -> np.ndarray:
     """Detector-frame time-domain waveform at REF_DISTANCE_MPC.
 
-    Returns an array whose LAST sample is (approximately) the merger.
+    The merger (coalescence, t_c) is 5.000 s BEFORE the last sample, not at it: pycbc's TD TaylorF2 carries 5.000 s
+    of samples after t_c (measured 2026-11-18 for every mass in [0.2, 1.0] Msun at f_lower 50 Hz, 4096 Hz; amplitude
+    peaks -0.7 to -21 ms from t_c and is < 3% of peak after +10 ms). Everything built on these helpers (training shards,
+    injections, bank templates) shares that offset, so it is self-consistent; only a time from OUTSIDE (a published
+    trigger GPS, a true merger time) must be shifted by it. See RESULTS.md, M11 addendum 2026-11-18.
     """
     from pycbc.detector import Detector
     from pycbc.waveform import get_td_waveform
@@ -86,7 +90,7 @@ def whiten_waveform(h: np.ndarray, psd) -> np.ndarray:
     if len(h) > n_buf:
         h = h[-n_buf:]
     buf = np.zeros(n_buf)
-    buf[-len(h) :] = h  # merger at the end of the buffer
+    buf[-len(h) :] = h  # buffer ends 5.000 s after the merger (see projected_waveform)
 
     df_buf = C.SAMPLE_RATE / n_buf
     psd_i = psd_interpolate(psd, df_buf)
@@ -106,8 +110,7 @@ def make_whitened_injection(
 ) -> tuple[np.ndarray, float]:
     """Returns (whitened waveform at 1 Mpc, optimal SNR at 1 Mpc).
 
-    Trailing whitening corruption is trimmed; the merger sits at the array end
-    minus a small pad.
+    The merger sits 5.000 s before the array end (pycbc's post-merger samples; see projected_waveform).
     """
     h = projected_waveform(p, ifo, t_gps)
     h_w = whiten_waveform(h, psd)
@@ -124,14 +127,15 @@ def inject_into_window(
     merger_idx: int,
 ) -> tuple[np.ndarray, float]:
     """Add a whitened waveform (scaled to target_snr) into a whitened-noise
-    window so the merger lands at merger_idx. Returns (window, in_window_snr).
+    window so its last sample lands at merger_idx (the true merger is 5.000 s earlier; see projected_waveform).
+    Returns (window, in_window_snr).
     """
     scale = target_snr / snr_ref
     sig = h_w * scale
 
     out = window.copy()
     n_win = len(window)
-    # h_w's merger is at its last sample; align it to merger_idx
+    # aligns h_w's LAST sample to merger_idx, so the true merger lands 5.000 s earlier (see projected_waveform)
     sig_end = merger_idx + 1
     sig_start = sig_end - len(sig)
     src_lo = max(0, -sig_start)

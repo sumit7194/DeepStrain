@@ -491,6 +491,9 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   noise-like (bank 12.36/13.13 vs bg median ~12.6). Neither support nor refutation — it measures the gap: LVK ranked
   them at SNR ~9.5, our bank's 50% point at 1/yr is ~12–13 (~1.3×, cause likely semi-coherent + equal-mass, not isolated). Survived a reboot + 2-day GWOSC degradation (~6 KB/s); every amendment
   committed before any score, refactor proven identical to the registered commit. Artifacts: results/o4a_ssm/.
+  **⚠️ ADDENDUM 2026-11-18: trigger windows were placed 5 s off our convention (pycbc TD TaylorF2 carries 5.000 s
+  after t_c, so repo templates/injections end 5 s AFTER the merger); re-scored at +5 s, all 4 looks still UNINFORMATIVE
+  (bank X 11.67/12.31, FAR 4.8e5/3.8e5 /yr). Out-of-domain CNN FARs not re-checked. RESULTS.md M11 addendum.**
   **Resource lessons (2026-09-24, from `bridge`):** a SIGSTOPped process frees NOTHING on macOS (compressed pages keep
   migrating to swap on disk) — guards must terminate; size jobs by top's MEM incl. CMPRS (ours 3.2 GB vs RSS 1.95 GB,
   1.65×); after a reboot vm.swapusage reads total=free=0, which a naive 'free swap < X' guard reads as FULL.
