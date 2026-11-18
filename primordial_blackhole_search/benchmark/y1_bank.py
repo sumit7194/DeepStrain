@@ -61,6 +61,7 @@ NF = 1 << 24                  # series FFT length (power of two: 5x faster on MP
 NW = 1 << 19                  # foreground window FFT length
 BIN = 256
 SCAN_S, VAR_S, CLUSTER_S = 2.0, 1.0, 1.0
+LOUD_SNR, MIN_REC = 10.0, 0.7    # golden G4: optimal network SNR that counts as loud; minimum stat / optimal SNR
 DEV = "mps"
 STATE = B / "state" / "y1"
 SUB = B / "submissions" / "y1"
@@ -381,10 +382,15 @@ def submit():
 
 
 # ---------------------------------------------------------------- golden (dev data only)
-def golden(n_inj_segments=2, step=1):
+def golden(inj_segments=None, step=1, tag=""):
     """G1 template whitening == pbh.waveforms.whiten_waveform. G2 GPU binned series == float64 numpy reference.
     G3 window statistic == whole-series statistic at the same positions. G4 on dev injections: recovered time vs H1
-    merger, and the +-48-neighbour shortcut vs the full bank (how often and by how much it differs)."""
+    merger, and the +-48-neighbour shortcut vs the full bank (how often and by how much it differs).
+    G4 pass rule (2026-11-18, second version): every injection whose OPTIMAL network SNR (true template, the oracle's
+    arithmetic) is >= LOUD_SNR must be recovered within VAR_S with stat >= MIN_REC x optimal, and there must be >= 3
+    such injections. The first version used chirp distance < 70 Mpc as 'loud' and failed on dev[:2] because d_c
+    ignores orientation (its d_c 58 Mpc injection has optimal SNR 5.9); that verdict is still reported as G4_dc_proxy.
+    The rule was changed AFTER that failure, so it is confirmed on dev segments it was not tuned on (`golden confirm`)."""
     import y2_cnn as Y2
     from pbh.waveforms import whiten_waveform
     from pycbc.types import FrequencySeries
@@ -428,7 +434,19 @@ def golden(n_inj_segments=2, step=1):
     del Dt, full, wc
     log("golden: G3 done")
     # G4
-    rows = [r for r in Y2.dev_rows() if r["realization"] == 0 and r["segment"] in MAN["dev"][:n_inj_segments]]
+    inj_segments = inj_segments or MAN["dev"][:2]
+    rows = [r for r in Y2.dev_rows() if r["realization"] == 0 and r["segment"] in inj_segments]
+    opt = {}
+    for gs in inj_segments:
+        for d in ("H1", "L1"):
+            xs = np.load(B / "data" / f"{d}_{gs}.npy").astype(np.float64)
+            ps = estimate_psd(xs)
+            for j, r in enumerate(rows):
+                if r["segment"] == gs:
+                    sig, t0 = I.detector_signal(r, d)
+                    opt.setdefault(j, {})[d] = float(np.sqrt(np.sum(whiten(I.add_signal(np.zeros_like(xs), gs, sig, t0), ps) ** 2)))
+            del xs, ps
+    log("golden: optimal SNRs computed")
     for r in rows:
         r["t_h1"] = h1_time(r)
     wins, filters = build_windows(rows)
@@ -441,7 +459,8 @@ def golden(n_inj_segments=2, step=1):
         tf, sf, kf = network_trigger(fb[(j, "H1")].numpy(), fb[(j, "L1")].numpy(), i0, r["segment"])
         g4.append(dict(mc=I.chirp_mass(r["mass1"], r["mass2"]), d_c=r["chirp_distance"], neigh_stat=sn,
                        full_stat=sf, full_minus_neigh=sf - sn, full_tid_in_neigh=bool(abs(kf - neighbours([r])[0]) <= NEIGH),
-                       neigh_dt_s=tn - r["t_h1"], full_dt_s=tf - r["t_h1"]))
+                       neigh_dt_s=tn - r["t_h1"], full_dt_s=tf - r["t_h1"],
+                       opt_net=float(np.hypot(opt[j]["H1"], opt[j]["L1"]))))
     res["G4_injections"] = g4
     loud = [x for x in g4 if x["d_c"] < 70]          # optimal network SNR >~ 20 at these distances
     res["G4_summary"] = dict(n=len(g4), n_differ=int(sum(x["full_minus_neigh"] > 1e-6 for x in g4)),
@@ -449,12 +468,20 @@ def golden(n_inj_segments=2, step=1):
                              n_loud_dc_lt70=len(loud), loud_min_neigh_stat=min((x["neigh_stat"] for x in loud), default=None),
                              loud_max_abs_dt_s=max((abs(x["neigh_dt_s"]) for x in loud), default=None))
     # a loud injection must be recovered loudly and on time; the first version of this check passed vacuously
-    # (no injection exceeded its bar) while every injection was 5 s off -- so it now requires loud cases to exist
-    ok &= len(loud) >= 3 and all(abs(x["neigh_dt_s"]) <= VAR_S and x["neigh_stat"] > 12 for x in loud)
+    # (no injection exceeded its bar) while every injection was 5 s off -- so it requires loud cases to exist
+    res["G4_dc_proxy"] = dict(pass_=bool(len(loud) >= 3 and all(abs(x["neigh_dt_s"]) <= VAR_S and x["neigh_stat"] > 12
+                                                                  for x in loud)), superseded="d_c ignores orientation")
+    louds = [x for x in g4 if x["opt_net"] >= LOUD_SNR]
+    res["G4_snr_rule"] = dict(loud_snr=LOUD_SNR, min_recovery=MIN_REC, n_loud=len(louds),
+                              recovery=[x["neigh_stat"] / x["opt_net"] for x in louds],
+                              abs_dt_s=[abs(x["neigh_dt_s"]) for x in louds])
+    ok &= len(louds) >= 3 and all(abs(x["neigh_dt_s"]) <= VAR_S and x["neigh_stat"] >= MIN_REC * x["opt_net"]
+                                  for x in louds)
     res["peak_rss_mb"] = peak_mb()
     res["template_step"] = step
     res["pass"] = bool(ok)
-    (B / "results" / ("y1_golden.json" if step == 1 else "y1_golden_smoke.json")).write_text(json.dumps(res, indent=1))
+    res["inj_segments"] = [int(x) for x in inj_segments]
+    (B / "results" / (f"y1_golden{tag}.json" if step == 1 else "y1_golden_smoke.json")).write_text(json.dumps(res, indent=1))
     log(f"golden: {'PASS' if ok else 'FAIL'} {json.dumps(res['G4_summary'])}")
 
 
@@ -471,5 +498,6 @@ def _series_numpy(wc, chunks, D):
 
 if __name__ == "__main__":
     cmd = sys.argv[1]
-    {"golden": lambda: golden(step=int(sys.argv[2]) if len(sys.argv) > 2 else 1), "noise": noise, "submit": submit,
+    {"golden": lambda: golden(step=int(sys.argv[2]) if len(sys.argv) > 2 else 1),
+     "confirm": lambda: golden(inj_segments=MAN["dev"][2:4], tag="_confirm"), "noise": noise, "submit": submit,
      "fg": lambda: fg(int(sys.argv[2]) if len(sys.argv) > 2 else 2)}[cmd]()
