@@ -319,7 +319,7 @@ def win_path(reals, part=None):
     return STATE / f"win_{'_'.join(map(str, reals))}{'' if part is None else f'_p{part}'}.npz"
 
 
-WIN_PARTS = 6      # 4 segments per child build: pycbc waveform generation leaks ~50 MB per distinct-length waveform (measured 2026-11-20), so each child must stay small
+WIN_PARTS = 6      # 4 segments per child build: pycbc waveform generation retains memory per new waveform length, never returned (measured 2026-11-20), so each child must stay small
 
 
 def fgwin(reals, part=None):

@@ -17,7 +17,7 @@ Fetched + verified 64 GWOSC files (curl resume; GWOSC drops long transfers), mac
 golden tests, Y0 oracle, Y2 (CNN, dev-calibrated timing), Y1 (3,235-template bank on GPU, 28 h background + 4.5 h
 foreground). Headline: Y1 57.5 Mpc vs Y2 48.4 Mpc at 1/day (1.19×, CI [1.10,1.29]); both ~1/3 of the 155-Mpc oracle.
 Three tooling findings: pycbc TD TaylorF2's 5-s post-merger tail (led to the public M11 addendum, verdict unchanged),
-pycbc's per-length waveform memory leak, pycbc PSD's 1.6 GB footprint. Handed to Deepstrain-personal for the Y1
+pycbc's per-length retained waveform memory, pycbc PSD's 1.6 GB footprint. Handed to Deepstrain-personal for the Y1
 golden (which first passed vacuously, then failed on a bad loudness proxy, then passed held-out under a rule declared
 in advance) and back. Details: primordial_blackhole_search/benchmark/RESULTS.md.
 

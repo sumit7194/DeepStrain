@@ -662,8 +662,8 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   Mpc at 1/day / 1/week (var 1 s = the tight rule). Y2 cnn_w64 48.4 / 46.2 Mpc at its own dev-calibrated 20-s var,
   25.5 / 25.4 at ±1 s. Y1/Y2 = 1.19 [1.10,1.29] / 1.12 [1.05,1.20] (paired bootstrap over injections).** Both ~1/3 of
   ideal. Found on the way: **pycbc TD TaylorF2 carries 5.000 s after t_c** (repo helpers' "last sample = merger" was
-  wrong; harmless where shared, M11 addendum 4df3fc4); **pycbc waveform generation leaks memory per distinct-length
-  waveform** (→ Y1 fg builds in child processes, y1_fgdrive.py); pycbc PSD estimate +1.6 GB/segment (→ lowmem_psd.py,
+  wrong; harmless where shared, M11 addendum 4df3fc4); **pycbc waveform generation retains memory per new waveform
+  length, never returned (2–3 GB; repro benchmark/pycbc_leak_repro.py)** (→ Y1 fg builds in child processes, y1_fgdrive.py); pycbc PSD estimate +1.6 GB/segment (→ lowmem_psd.py,
   identical to 5e-10). Memory record honest in RESULTS.md (declared 3.6 GB, fg peaked 4.06, watchdog stopped it 3×).
   Not published (no release/DOI) — needs Sumit. Open: README for outsiders; 1/month needs more segments or a 2nd slide
   family (Sumit's call).

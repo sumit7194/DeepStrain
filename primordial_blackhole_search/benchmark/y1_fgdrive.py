@@ -1,7 +1,8 @@
 """Light driver for Y1's foreground (imports nothing heavy, so it adds ~nothing to the watchdog's process-group RSS).
 
-pycbc's waveform generation leaks memory with every distinct-length waveform (measured 2026-11-20: 30 random-mass
-TaylorF2 waveforms take a process from 0.2 to 2.0 GB, numpy and default FFT backends alike), so injection windows are
+pycbc's waveform generation retains memory that grows with each new waveform length and is never returned (measured
+2026-11-20: 30 random-mass TaylorF2 waveforms take a process from 0.2 to 2.0 GB, numpy and default FFT backends alike;
+see pycbc_leak_repro.py), so injection windows are
 built in short-lived children of 4 segments each, one at a time; then each realization is filtered in its own process,
 which only reads the saved windows. Usage: benchmark/run.sh y1fg benchmark/y1_fgdrive.py
 """
