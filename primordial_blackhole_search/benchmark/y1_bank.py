@@ -29,6 +29,7 @@ full-bank background, so Y1's sensitivity is conservative; the golden measures h
   python benchmark/y1_bank.py submit             # -> submissions/y1/
 """
 import csv
+import gc
 import importlib.util
 import json
 import os
@@ -314,7 +315,47 @@ def test_rows():
     return rows
 
 
-def fg(group=2):
+def win_path(reals, part=None):
+    return STATE / f"win_{'_'.join(map(str, reals))}{'' if part is None else f'_p{part}'}.npz"
+
+
+WIN_PARTS = 6      # 4 segments per child build: pycbc waveform generation leaks ~50 MB per distinct-length waveform (measured 2026-11-20), so each child must stay small
+
+
+def fgwin(reals, part=None):
+    """Child-process step: build one pass's windows and filters (optionally only segment group `part`) and save them.
+    pycbc's waveform generation keeps ~1.4 GB after the first injections and never returns it (measured 2026-11-20),
+    so building inside the long-lived job pushed it past the 4 GB watchdog; a child process gives it back on exit."""
+    sub = [r for r in test_rows() if r["realization"] in reals]
+    if part is not None:
+        segs = sorted({r["segment"] for r in sub})[part::WIN_PARTS]
+        sub = [r for r in sub if r["segment"] in segs]
+    wins, filters = build_windows(sub)
+    kw = {}
+    for r, w in zip(sub, wins):
+        for d in ("H1", "L1"):
+            kw[f"i0_{r['id']}_{d}"] = np.int64(w[d][0]); kw[f"w_{r['id']}_{d}"] = w[d][1]
+    for (g, d), f in filters.items():
+        kw[f"f_{g}_{d}"] = f
+    atomic_npz(win_path(reals, part), **kw)
+    log(f"fgwin {reals} part {part}: saved")
+
+
+def load_windows(reals, sub):
+    import subprocess
+    zs = []
+    for part in range(WIN_PARTS):
+        p = win_path(reals, part)
+        if not p.exists():
+            subprocess.run([sys.executable, "-u", __file__, "fgwin", ",".join(map(str, reals)), str(part)], check=True)
+        zs.append(np.load(p))
+    get = lambda k: next(z[k] for z in zs if k in z.files)
+    wins = [{d: (int(get(f"i0_{r['id']}_{d}")), get(f"w_{r['id']}_{d}")) for d in ("H1", "L1")} for r in sub]
+    filters = {(r["segment"], d): get(f"f_{r['segment']}_{d}") for r in sub for d in ("H1", "L1")}
+    return wins, filters
+
+
+def fg(group=2, one_pass=False):
     STATE.mkdir(parents=True, exist_ok=True)
     rows = test_rows()
     for r0 in range(0, I.K, group):
@@ -323,7 +364,7 @@ def fg(group=2):
         if out.exists():
             continue
         sub = [r for r in rows if r["realization"] in reals]
-        wins, filters = build_windows(sub)
+        wins, filters = load_windows(reals, sub)
         log(f"fg realizations {reals}: {len(sub)} windows built")
         res, _ = fg_windows(sub, wins, filters, range(len(MCS)))
         trig = []
@@ -334,10 +375,27 @@ def fg(group=2):
                              dt=t - r["t_h1"]))
         tmp = out.with_suffix(".tmp"); tmp.write_text(json.dumps(trig)); os.replace(tmp, out)
         log(f"fg realizations {reals} done")
+        for part in range(WIN_PARTS):
+            win_path(reals, part).unlink(missing_ok=True)
+        if one_pass:
+            return
+        # free this pass before the next builds its windows: holding them pushed the second build to 4.4 GB and the
+        # watchdog stopped the run (2026-11-20); identical arithmetic, only the lifetime changes
+        del wins, filters, res, trig
+        gc.collect()
+        torch.mps.empty_cache()
     log("Y1 FOREGROUND COMPLETE")
 
 
 # ---------------------------------------------------------------- submission
+def fgloop():
+    """One foreground pass per fresh process (python's and MPS's retained memory is returned between passes)."""
+    import subprocess
+    while len(list(STATE.glob("fg_*.json"))) < I.K:
+        subprocess.run([sys.executable, "-u", __file__, "fg", "1", "one"], check=True)
+    log("Y1 FOREGROUND COMPLETE (fgloop)")
+
+
 def series_triggers(h, l, g):
     """Network bins of one (H1 series, L1 series) pair -> clustered triggers (time, stat)."""
     lv = np.maximum.reduce([np.pad(l["val"], 1, mode="edge")[s:s + len(l["val"])] for s in (0, 1, 2)])
@@ -500,4 +558,6 @@ if __name__ == "__main__":
     cmd = sys.argv[1]
     {"golden": lambda: golden(step=int(sys.argv[2]) if len(sys.argv) > 2 else 1),
      "confirm": lambda: golden(inj_segments=MAN["dev"][2:4], tag="_confirm"), "noise": noise, "submit": submit,
-     "fg": lambda: fg(int(sys.argv[2]) if len(sys.argv) > 2 else 2)}[cmd]()
+     "fgwin": lambda: fgwin([int(v) for v in sys.argv[2].split(",")], int(sys.argv[3]) if len(sys.argv) > 3 else None),
+     "fg": lambda: fg(int(sys.argv[2]) if len(sys.argv) > 2 else 2, one_pass=len(sys.argv) > 3 and sys.argv[3] == "one"),
+     "fgloop": fgloop}[cmd]()

@@ -1,0 +1,50 @@
+{
+ "1/day y1/y2_own": {
+  "distance_ratio": 1.189,
+  "ci90": [
+   1.103,
+   1.288
+  ],
+  "n_found": [
+   111,
+   96
+  ],
+  "both": 93
+ },
+ "1/day y1/y2_fixed1": {
+  "distance_ratio": 2.25,
+  "ci90": [
+   1.857,
+   3.099
+  ],
+  "n_found": [
+   111,
+   11
+  ],
+  "both": 11
+ },
+ "1/week y1/y2_own": {
+  "distance_ratio": 1.118,
+  "ci90": [
+   1.048,
+   1.2
+  ],
+  "n_found": [
+   101,
+   90
+  ],
+  "both": 88
+ },
+ "1/week y1/y2_fixed1": {
+  "distance_ratio": 2.035,
+  "ci90": [
+   1.687,
+   2.784
+  ],
+  "n_found": [
+   101,
+   10
+  ],
+  "both": 10
+ }
+}

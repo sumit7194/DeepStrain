@@ -1,0 +1,29 @@
+{
+ "fixed_var_s": null,
+ "background_livetime_days": 27.30666666666667,
+ "n_background_runs": 24,
+ "n_injections": 1344,
+ "max_var_s": 1.0,
+ "at_far": {
+  "1/day": {
+   "reachable": true,
+   "threshold": 16.77688,
+   "found_fraction": 0.08258928571428571,
+   "chance_found_bound": 2.3148148148148147e-05,
+   "chirp_volume_mpc3": 795270.7558355446,
+   "chirp_distance_mpc": 57.47453519740948
+  },
+  "1/week": {
+   "reachable": true,
+   "threshold": 17.86624,
+   "found_fraction": 0.07514880952380952,
+   "chance_found_bound": 3.3069688442720614e-06,
+   "chirp_volume_mpc3": 578247.7191735302,
+   "chirp_distance_mpc": 51.68229290299025
+  },
+  "1/month": {
+   "reachable": false,
+   "why": "background supports 0.90 events (<1)"
+  }
+ }
+}

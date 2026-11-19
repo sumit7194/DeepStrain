@@ -655,6 +655,19 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   `pkill -f dashboard.py`** — that matches other repos' dashboards in other sessions. build_dataset.py + train.py also heartbeat
   (per-segment / intra-epoch loss) so build and train show live, not just eval.
 
+- **LONGCHIRP BENCHMARK (item 2) — all three yardsticks scored (2026-11-20).** `benchmark/` (PLAN.md = charter +
+  design, RESULTS.md = numbers). 24 O3a H1×L1 test segs, 1,344 TaylorF2 injections (0.2–1.0 M☉, d_c 5–500 Mpc),
+  27.3-d cross-segment-slide background (reaches 1/day, 1/week; NOT 1/month), MLGWSC-1 trigger format (time,stat,var;
+  var ≤ 60 s; chance-match bound printed). **Y0 oracle 155/124/104 Mpc at SNR 8/10/12. Y1 adequate bank 57.5 / 51.7
+  Mpc at 1/day / 1/week (var 1 s = the tight rule). Y2 cnn_w64 48.4 / 46.2 Mpc at its own dev-calibrated 20-s var,
+  25.5 / 25.4 at ±1 s. Y1/Y2 = 1.19 [1.10,1.29] / 1.12 [1.05,1.20] (paired bootstrap over injections).** Both ~1/3 of
+  ideal. Found on the way: **pycbc TD TaylorF2 carries 5.000 s after t_c** (repo helpers' "last sample = merger" was
+  wrong; harmless where shared, M11 addendum 4df3fc4); **pycbc waveform generation leaks memory per distinct-length
+  waveform** (→ Y1 fg builds in child processes, y1_fgdrive.py); pycbc PSD estimate +1.6 GB/segment (→ lowmem_psd.py,
+  identical to 5e-10). Memory record honest in RESULTS.md (declared 3.6 GB, fg peaked 4.06, watchdog stopped it 3×).
+  Not published (no release/DOI) — needs Sumit. Open: README for outsiders; 1/month needs more segments or a 2nd slide
+  family (Sumit's call).
+
 ## Sub-project: `echoes/`
 A real-data project searching LIGO public strain for post-merger **gravitational-wave
 echoes** (quantum structure at horizons → `bang…beep…beep…` at predicted spacing
