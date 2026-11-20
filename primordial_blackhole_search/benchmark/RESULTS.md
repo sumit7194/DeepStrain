@@ -32,6 +32,54 @@ Our earlier window-based comparison had the bank ~6% ahead (RESULTS.md 2026-09-2
 the per-detector trials factor make the gap larger here. Both baselines reach only ~1/3 of the ideal (Y0) distance:
 the room a better method could take.
 
+## Idealised two-stage cascade (2026-11-20): ROOM, an upper bound only
+
+Pre-registered in `idealised_cascade.py` (commit c9f323a, before any run); result `results/idealised_cascade.json`.
+- **Stage 1 (real):** the Y1/Y2 submissions keep candidates at one per hour or one per minute.
+- **Stage 2 (idealised):** each caught injection scores its true-template optimal network SNR. The background pays a
+  Gaussian chi-square(4) trials penalty for N_eff = 1e2–1e8 independent trials per candidate.
+
+**Verdict by the committed rule: ROOM.**
+
+| stage 1 | candidates | caught | 1/day (gain vs Y1 57.47) | 1/week (gain vs Y1 51.68) | stage-2 threshold rho* (N_eff 1e2 → 1e8) |
+|---|---|---|---|---|---|
+| Y1, 1/hour | 655 | 9.7% | 67.2 Mpc (+17%) | 67.2 Mpc (+30%) | 4.5 → 7.1 (1/day) |
+| Y1, 1/minute | 39,321 | 16.2% | 109.3 → 108.5 Mpc (+90% → +89%) | 109.3 → 108.5 Mpc (+111% → +110%) | 5.4 → 7.6 |
+| Y2, 1/hour | 655 | 8.5% | 58.8 Mpc (+2%) | 58.8 Mpc (+14%) | as Y1 |
+| Y2, 1/minute | **degenerate, excluded** | 53.9% | (179 → 136 Mpc) | (166 → 133 Mpc) | |
+
+**How to read it:**
+- **Y2 at one per minute is degenerate.** Y2 has fewer than one clustered trigger per minute, so its stage-1 threshold
+  is −∞ and selects nothing. With var = 20.2 s, about 49% of injections have a trigger nearby by chance, so its
+  "caught" 54% is mostly coincidence. The pre-registration did not anticipate this case. The verdict does not depend
+  on it: Y1 alone (±1 s, chance coincidence ≈ 3% at one per minute) meets the ROOM criterion at every N_eff.
+- **Where the gain comes from.** Y1's own 1/day threshold (network newSNR 16.8) is set by searching 3,235 templates
+  over all 27 days. A second look restricted to a few thousand candidates pays a far smaller trials penalty. The
+  injections Y1 catches at one per minute (stage-1 statistic > 10.65) are loud in true SNR. So the cascade's distance
+  is set almost entirely by stage-1 recall: it is flat in N_eff and equals the recall ceiling.
+- **Why it is only an upper bound.** Three idealisations, each optimistic:
+  - the stage-2 background is Gaussian, whereas real noise has heavier tails, which raises rho*;
+  - every caught injection is refined to its true template, which is exactly the hard part, given coherent subsolar
+    template density;
+  - each injection scores its expected optimal SNR, ignoring noise fluctuation.
+
+  ROOM licenses a real test, not a claim.
+- **The decisive next measurement.** Run the coherent statistic on REAL background around Y1's one-per-minute
+  candidates (local coherent template neighbourhood, real noise), and check whether its tail stays below the caught
+  injections' SNRs.
+
+**Why it matters (digest-first).** The question: on minutes-long subsolar chirps, is the matched filter's shortfall
+caused by the first stage missing signals, or by the final statistic and its trials penalty? This test says, with the
+caveats above, that it is mostly the final statistic. Y1 already ranks about twice as many injections above a
+one-per-minute line as pass its own 1/day threshold. A careful coherent re-examination of only those candidates could,
+at best, roughly double Y1's reach on this benchmark.
+
+That matters to anyone building ML or fast matched-filter searches for long signals: it points effort at the
+second-look step rather than at a better first-stage network. For the benchmark, it means LongChirp's yardsticks leave
+real headroom. The test does NOT show that a learned refiner beats a classical coherent follow-up; the prior-art check
+says the classical cascade is established (CW hierarchical follow-up; Soni & Nitz 2024 for subsolar). It does not
+measure real-noise stage-2 tails, and it is not a detection result.
+
 ## Caveats
 
 - **Y1 foreground shortcut.** Foreground uses only the ±48 chirp-mass-neighbour templates of each injection; the
