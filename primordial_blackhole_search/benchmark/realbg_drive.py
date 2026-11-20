@@ -33,7 +33,11 @@ if not (STATE / "caught.json").exists():
 for g in SEGS:
     if not (STATE / f"fg_{g}.json").exists():
         step("fg", g)
-if not (STATE / "g3.json").exists():
-    step("g3")
+if not (STATE / "g3.json").exists():          # fix F2: one injection-detector pair per process
+    for i in range(5):
+        for det in ("H1", "L1"):
+            if not (STATE / f"g3_{i}_{det}.json").exists():
+                step("g3", i, det)
+    step("g3merge")
 step("combine")
 print("REALBG CASCADE COMPLETE", flush=True)

@@ -217,3 +217,17 @@ The fix gives the foreground and null statistics in M3 the same trial form as th
 the merger, plus the maximum over L1 bins b−1..b+1. This is what section 3's "agree with background trials" intends.
 No threshold, gate or verdict rule changed. Bridge reviewed it and asked that it be recorded as a pre-run
 implementation fix. The code is in ccb4e4a.
+
+### Pre-verdict implementation fix F2 (2026-11-21, after the stop and before any verdict was computed)
+
+The first full run was stopped by the pressure guard at 23:56:39 (kernel pressure level 2, warn) during G3. Its
+process-group peak was 3.77 GB, above the declared 3.6 GB; the Bridge's own browser load contributed to the
+pressure.
+
+- **Completed and kept (resumable):** gates for all 48 series, all 144 binned series, stage-1 candidates, all 24
+  foreground segments.
+- **The fix:** G3 runs one injection–detector pair per short-lived process, and combine runs in its own process. The
+  all-in-one G3 stacked PyCBC's glitch detector (about 3.1 GB) on top of retained waveform memory.
+- **Unchanged:** no rule, threshold, gate or input.
+
+The Bridge reviewed it and gave the go-ahead.

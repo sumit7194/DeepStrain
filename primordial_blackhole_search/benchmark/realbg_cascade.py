@@ -284,9 +284,12 @@ def fg_segment(gps):
     log(f"fg {gps}: {len(rows)} caught injections")
 
 
-def g3():
+def g3(only_i=None, only_det=None):
     """Linearity check: really inject, detect gates on the INJECTED strain, gate, whiten, filter; compare the binned
-    gated network value per detector with the shortcut (noise spectrum + gated signal spectrum)."""
+    gated network value per detector with the shortcut (noise spectrum + gated signal spectrum).
+    Fix F2: called with (i, det) it does ONE injection-detector pair in this process and writes g3_<i>_<det>.json, so
+    pycbc's glitch detector (~3.1 GB peak) and its retained waveform memory never stack (the all-in-one version
+    reached 3.77 GB and was stopped by the pressure guard on 2026-11-20)."""
     import torch
     import injections as I
     from pycbc.strain.strain import detect_loud_glitches
@@ -298,7 +301,9 @@ def g3():
                  for r in csv.DictReader(f)}
     picks = [r for r in st["rows"] if r["caught"]][:5]
     out = []
-    for r in picks:
+    for i, r in enumerate(picks):
+        if only_i is not None and i != only_i:
+            continue
         row = table[r["id"]]; gps = r["segment"]
         fg = json.loads((STATE / f"fg_{gps}.json").read_text())[str(r["id"])]
         bH = None
@@ -316,11 +321,21 @@ def g3():
             Y = torch.tensor((np.fft.rfft(xg) * w * w).astype(np.complex64), device=dev)
             w_t = torch.tensor(w.astype(np.float32), device=dev)
             direct = float(_binned_at(z2_series(Y, w_t, h, dev), bH, 0 if det == "H1" else 1).max())
+            if only_det is not None and det != only_det:
+                continue
             short = fg[f"{det}_gated"]["z2"]
             out.append(dict(id=r["id"], det=det, direct=direct, shortcut=short,
                             rel=abs(np.sqrt(short) / np.sqrt(direct) - 1)))
             log(f"g3 {r['id']} {det}: direct {direct:.2f} shortcut {short:.2f}")
+    if only_i is not None:
+        atomic_json(STATE / f"g3_{only_i}_{only_det}.json", out)
+        return
     atomic_json(STATE / "g3.json", out)
+
+
+def g3_merge():
+    parts = [json.loads((STATE / f"g3_{i}_{d}.json").read_text()) for i in range(5) for d in ("H1", "L1")]
+    atomic_json(STATE / "g3.json", [x for p in parts for x in p])
 
 
 # ------------------------------------------------------------------ combine
@@ -506,7 +521,9 @@ if __name__ == "__main__":
     elif cmd == "fg":
         fg_segment(int(sys.argv[2]))
     elif cmd == "g3":
-        g3()
+        g3(int(sys.argv[2]), sys.argv[3]) if len(sys.argv) > 3 else g3()
+    elif cmd == "g3merge":
+        g3_merge()
     elif cmd == "combine":
         combine()
     elif cmd == "probe":
