@@ -86,12 +86,15 @@ def injection_table():
     return rows
 
 
-def evaluate(sub, n_test_segments=24, seg_len=4096, fixed_var=None):
+def background(sub, n_test_segments=24, seg_len=4096):
+    """(background stats sorted loudest first, background livetime in s, number of background runs)."""
     bg = [read_triggers(sub / f"bg_k{k}.csv") for k in range(N_SLIDES + 1)]
     n_runs = sum(1 for k in range(N_SLIDES + 1) if (sub / f"bg_k{k}.csv").exists())
-    t_bg = n_runs * n_test_segments * seg_len
-    bg_stats = np.sort(np.concatenate([b[:, 1] for b in bg]))[::-1]
-    inj = injection_table()
+    return np.sort(np.concatenate([b[:, 1] for b in bg]))[::-1], n_runs * n_test_segments * seg_len, n_runs
+
+
+def injection_loudest(sub, inj, fixed_var=None):
+    """Per injection, the loudest foreground trigger within its own tolerance of the H1 merger (-inf if none)."""
     loudest = np.full(len(inj), -np.inf)
     var_used = 0.0
     for r in sorted({x["realization"] for x in inj}):
@@ -107,6 +110,13 @@ def evaluate(sub, n_test_segments=24, seg_len=4096, fixed_var=None):
             ok = np.abs(ft[lo:hi] - x["t_h1"]) <= fv[lo:hi]
             if ok.any():
                 loudest[i] = fsx[lo:hi][ok].max()
+    return loudest, var_used
+
+
+def evaluate(sub, n_test_segments=24, seg_len=4096, fixed_var=None):
+    bg_stats, t_bg, n_runs = background(sub, n_test_segments, seg_len)
+    inj = injection_table()
+    loudest, var_used = injection_loudest(sub, inj, fixed_var)
     dc = np.array([x["chirp_distance"] for x in inj])
     res = {"fixed_var_s": fixed_var, "background_livetime_days": t_bg / 86400, "n_background_runs": n_runs, "n_injections": len(inj),
            "max_var_s": var_used, "at_far": {}}
