@@ -668,6 +668,11 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   **PUBLISHED 2026-11-20 (Sumit's word in chat): GitHub release `longchirp-v1.0.0`, Zenodo DOI 10.5281/zenodo.24399603
   (concept 10.5281/zenodo.24399602), author Sumit Pal (ORCID 0009-0000-9541-2793, Independent researcher), Claude as
   disclosed assistant not author. Outsider README benchmark/README.md. pycbc memory report: gwastro/pycbc#5554.**
+  **Cascade follow-ups (2026-11-20/21):** idealised two-stage cascade (Y1 1/min + perfect coherent 2nd look) said
+  ROOM (≤109 Mpc, upper bound, Gaussian stage-2); the REAL-background test (PREREG_realbg_cascade.md, PyCBC-default
+  gating) ended NO VERDICT (G2 KS clause ill-posed, G4 failed: gated coherent tail at candidate times ρ²≈1,254 @1e-3 vs
+  twin 33); exploratory 7.8/6.1 Mpc = 0.13× Y1 ⇒ the ROOM was the Gaussian assumption; a plain coherent SNR needs a χ²
+  consistency test (Y1's newSNR is why Y1 survives). Follow-up prereg = Sumit's call. RESULTS.md has both.
   Note: an unrelated Zenodo record 'ZahraZali/DeepStrain' (GFZ Potsdam) shares the repo name. Open: 1/month needs more
   segments or a 2nd slide family (Sumit's call).
 

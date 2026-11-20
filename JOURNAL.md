@@ -25,6 +25,11 @@ in advance) and back. Details: primordial_blackhole_search/benchmark/RESULTS.md.
 (Sumit Pal, ORCID, Independent researcher), GitHub release longchirp-v1.0.0, Zenodo DOI 10.5281/zenodo.24399603.
 pycbc memory-retention report filed as gwastro/pycbc#5554 (part of it reproduces in lalsimulation directly).
 
+**Late 2026-11-20/21:** NN-landscape survey (7 notes + report, verified ids; copy in ~/Downloads), Gemini Neon comparison,
+two prior-art checks, idealised cascade ROOM, then the real-background cascade: NO VERDICT (G2/G4), exploratory 0.13× Y1
+— the idealised headroom was a Gaussian-background artefact. Guard stopped the run 3× (memory); fixes F1–F3 recorded
+pre-verdict.
+
 ## 2026-10-23 — A phone trained seven networks, and more noise did not help
 
 The first experiment from the NN redesign plan ran entirely on a flashed Redmi phone: does the subsolar CNN get better
