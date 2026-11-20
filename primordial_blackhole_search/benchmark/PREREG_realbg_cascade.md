@@ -167,3 +167,39 @@ Three definitions the original text left implicit, fixed now while designing the
 
 Without (2), the test would mainly measure the absence of gating, which no production search omits, rather than the
 cascade idea.
+
+### A2 status and fixed parameters (2026-11-20; labelled POST-PROBE; adoption pending Sumit's word)
+
+The Bridge reviewed A2 and accepted it with four conditions, recorded here verbatim in substance. They are binding
+if A2 is adopted.
+
+1. **Gate parameters come from PyCBC's documented defaults, read at the source, and are fixed now, before any further
+   look at real data.** No tuning; a change needs a new labelled amendment. Source: PyCBC **2.10.0** (the pinned
+   environment), `pycbc/strain/strain.py`:
+   - **Glitch detection:** `detect_loud_glitches(strain, psd_duration=4., psd_stride=2., psd_avg_method='median',
+     low_freq_cutoff=30., threshold=50., cluster_window=5., corrupt_time=4.)` (lines 62–64), called with its own
+     defaults. A glitch is a whitened-magnitude excursion above 50 under that function's own 4-s median PSD and
+     30-Hz low cut.
+   - **Gate application:** CLI defaults (lines 632–648):
+     - `--autogating-max-iterations` 1;
+     - `--autogating-width` 0.25 s (half-width of the zeroed window);
+     - `--autogating-taper` 0.25 s;
+     - `--gating-method` taper.
+
+     Each detected time is applied with `strain.gate(t, window=0.25, method='taper', taper_width=0.25)`, as in
+     lines 382–398.
+   - **Note:** the CLI's `--autogating-threshold` has **no** default (gating is off unless set). The value 50 is the
+     glitch-detection function's own documented default, not a production configuration file. This is the only
+     judgement in the choice, and it is recorded rather than hidden.
+   - **Order of operations:** gate the raw strain, then estimate the PSD and whiten with the benchmark's `lowmem_psd`.
+     Background series and foreground data are treated identically. In M3 the gate comes from the noise series (an
+     injection is far below 50σ), and the signal term uses the gated signal, ⟨g·s, h⟩.
+2. **The probe segment (1249001472) has been seen, through one unconditional single-template statistic.** The final
+   verdict is reported both with and without that segment, and any difference is stated.
+3. **Twin PSD.** The twin is Gaussian noise drawn from each series' PSD as estimated by `lowmem_psd.estimate_psd`.
+   That is a median-averaged Welch (16-s segments, 8-s stride, median-bias corrected; identical to
+   `pbh.data.estimate_psd` to 5×10⁻¹⁰), so it is robust to glitches by construction, and it is computed on the gated
+   strain.
+4. **Unchanged:** the pass rule (SURVIVES / SHRINKS / DIES), G2 and G4. G3 is extended to the gated case.
+
+**Primary statistic:** gated. **Secondary:** ungated, under the original rule.
