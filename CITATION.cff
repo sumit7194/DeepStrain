@@ -8,6 +8,9 @@ abstract: >-
   simulation-based-inference ringdown spectroscopy (a no-hair test), cross-validated against
   the field-standard ringdown pipeline. Sensitivity from injections, significance from measured
   backgrounds, and null results reported as results. A regression gate asserts every headline.
+  Includes LongChirp (primordial_blackhole_search/benchmark/), a benchmark for searches of minutes-long
+  subsolar-mass inspirals in real O3a H1+L1 noise: fixed segments and injections, an MLGWSC-1-format evaluator,
+  and three scored yardsticks (ideal SNR, a semi-coherent matched-filter bank, a CNN).
 authors:
   - given-names: Sumit
     alias: sumit7194   # replace with your full name/ORCID before archival
@@ -24,3 +27,4 @@ keywords:
   - matched filtering
   - simulation-based inference
   - machine learning
+  - benchmark
