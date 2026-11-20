@@ -10,7 +10,24 @@ is the standard ML-versus-matched-filter comparison, but its signals last at mos
 learned searches are least tested. LongChirp uses MLGWSC-1's submission format and scoring conventions on that
 regime, on real detector noise.
 
+**Why it matters, and for whom.** It answers one question: *on minutes-long subsolar-mass chirps in real noise, how
+far does a new search method reach at a fixed false-alarm rate, compared with a matched filter and a CNN scored the
+same way?* It is for groups developing ML or fast matched-filter searches that want a fixed, reproducible
+comparison before running on full observing runs.
+
+**What it does NOT do.**
+- It is not a search for real signals and claims no detection.
+- It does not measure astrophysical rate limits.
+- It does not reach the false-alarm rates of a production search: 1/week at best, not 1/year.
+- It does not test spinning or eccentric binaries, Virgo, or any noise era other than O3a.
+- Its matched-filter yardstick is not the field's best (see caveat 5).
+
 Design, charter and every decision with its reason: [PLAN.md](PLAN.md). All numbers: [RESULTS.md](RESULTS.md).
+
+**Authorship and AI use.** Author: Sumit Pal, independent, non-academic work by a software engineer. Developed with
+substantial assistance from Anthropic's Claude AI models (several versions), which wrote most of the code and ran
+most of the analyses under the author's direction. The author chose the questions, directed and reviewed the
+work, and takes responsibility for its content.
 
 ---
 
@@ -100,6 +117,11 @@ second. Both reach only about **one third of the ideal distance**: that is the r
    equivalent, identical to 5×10⁻¹⁰. pycbc's waveform generation keeps memory per new waveform length and does not
    return it (standalone reproduction: `pycbc_leak_repro.py`), so build many injections in short-lived processes.
    Exact peaks of our own runs are in RESULTS.md.
+9. **Validated range and what is not checked.** The numbers hold for this population (non-spinning TaylorF2,
+   0.2–1.0 M☉, d_c 5–500 Mpc), O3a H1×L1, at FAR 1/day and 1/week. They were produced on one machine (macOS arm64,
+   Apple GPU). Not checked: results on Linux or other GPUs (expect agreement to float32 precision, not bitwise);
+   sensitivity to the choice of the 24 test segments beyond the bootstrap; and any signal model other than the one
+   injected.
 
 ## How to use it
 
