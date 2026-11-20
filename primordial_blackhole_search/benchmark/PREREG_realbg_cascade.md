@@ -203,3 +203,7 @@ if A2 is adopted.
 4. **Unchanged:** the pass rule (SURVIVES / SHRINKS / DIES), G2 and G4. G3 is extended to the gated case.
 
 **Primary statistic:** gated. **Secondary:** ungated, under the original rule.
+
+**A2 ADOPTED 2026-11-20 by Sumit (his word, in DeepStrain's chat), with the Bridge's four conditions above.** From here
+on, the design is frozen: the twin is drawn from the PSD, the primary statistic is gated (ungated is secondary), the
+gate parameters are fixed from PyCBC 2.10.0 source, and the verdict is reported with and without the probe segment.
