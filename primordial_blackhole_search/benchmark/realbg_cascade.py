@@ -284,7 +284,7 @@ def fg_segment(gps):
     log(f"fg {gps}: {len(rows)} caught injections")
 
 
-def g3(only_i=None, only_det=None):
+def g3(only_i=None, only_det=None, detect_only=False):
     """Linearity check: really inject, detect gates on the INJECTED strain, gate, whiten, filter; compare the binned
     gated network value per detector with the shortcut (noise spectrum + gated signal spectrum).
     Fix F2: called with (i, det) it does ONE injection-detector pair in this process and writes g3_<i>_<det>.json, so
@@ -308,25 +308,34 @@ def g3(only_i=None, only_det=None):
         fg = json.loads((STATE / f"fg_{gps}.json").read_text())[str(r["id"])]
         bH = None
         for det in ("H1", "L1"):
+            if only_det is not None and det != only_det:
+                if det == "H1":                                  # L1 pass needs only the H1 merger bin
+                    bH = _injection_template(row, "H1", gps)[3] // BIN
+                continue
             x = np.load(B / "data" / f"{det}_{gps}.npy").astype(np.float64)
             s, s0, h, merger = _injection_template(row, det, gps)
             if det == "H1":
                 bH = merger // BIN
             I.add_signal(x, gps, s, s0)
+            gfile = STATE / f"g3gates_{i}_{det}.json"            # fix F2b: detection in its own process
+            if detect_only:
+                atomic_json(gfile, [float(t) for t in detect_loud_glitches(TimeSeries(x, delta_t=1.0 / FS, epoch=gps))])
+                log(f"g3 gates {i} {det}")
+                continue
             ts = TimeSeries(x, delta_t=1.0 / FS, epoch=gps)
-            for t in detect_loud_glitches(ts):
+            for t in json.loads(gfile.read_text()):
                 ts = ts.gate(t, window=0.25, method="taper", copy=False, taper_width=0.25)
             xg = ts.numpy().copy()
             w = whiten_filter(estimate_psd(xg))
             Y = torch.tensor((np.fft.rfft(xg) * w * w).astype(np.complex64), device=dev)
             w_t = torch.tensor(w.astype(np.float32), device=dev)
             direct = float(_binned_at(z2_series(Y, w_t, h, dev), bH, 0 if det == "H1" else 1).max())
-            if only_det is not None and det != only_det:
-                continue
             short = fg[f"{det}_gated"]["z2"]
             out.append(dict(id=r["id"], det=det, direct=direct, shortcut=short,
                             rel=abs(np.sqrt(short) / np.sqrt(direct) - 1)))
             log(f"g3 {r['id']} {det}: direct {direct:.2f} shortcut {short:.2f}")
+    if detect_only:
+        return
     if only_i is not None:
         atomic_json(STATE / f"g3_{only_i}_{only_det}.json", out)
         return
@@ -522,6 +531,8 @@ if __name__ == "__main__":
         fg_segment(int(sys.argv[2]))
     elif cmd == "g3":
         g3(int(sys.argv[2]), sys.argv[3]) if len(sys.argv) > 3 else g3()
+    elif cmd == "g3gates":
+        g3(int(sys.argv[2]), sys.argv[3], detect_only=True)
     elif cmd == "g3merge":
         g3_merge()
     elif cmd == "combine":

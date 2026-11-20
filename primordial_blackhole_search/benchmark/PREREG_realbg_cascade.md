@@ -231,3 +231,14 @@ pressure.
 - **Unchanged:** no rule, threshold, gate or input.
 
 The Bridge reviewed it and gave the go-ahead.
+
+### Pre-verdict implementation fix F2b (2026-11-21)
+
+F2 was not enough. A single G3 injection–detector pair in one process still reached 3.76 GB, and the guard stopped
+the relaunch at 23:58:02. The free memory on the box had also fallen from 79% to 66%.
+
+- **The fix:** each pair is now split into (a) glitch detection on the injected strain in its own process, which
+  saves the gate times, and (b) gating, whitening and filtering in a second process that never loads the detector.
+  A non-matching detector is skipped before any work.
+- **Clean-up:** the one pair completed under F2 was deleted, so all ten pairs use the same path.
+- **Unchanged:** no rule, threshold, gate or input.

@@ -36,6 +36,8 @@ for g in SEGS:
 if not (STATE / "g3.json").exists():          # fix F2: one injection-detector pair per process
     for i in range(5):
         for det in ("H1", "L1"):
+            if not (STATE / f"g3gates_{i}_{det}.json").exists():    # fix F2b: detection alone
+                step("g3gates", i, det)
             if not (STATE / f"g3_{i}_{det}.json").exists():
                 step("g3", i, det)
     step("g3merge")
