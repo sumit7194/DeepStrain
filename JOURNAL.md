@@ -21,6 +21,10 @@ pycbc's per-length retained waveform memory, pycbc PSD's 1.6 GB footprint. Hande
 golden (which first passed vacuously, then failed on a bad loudness proxy, then passed held-out under a rule declared
 in advance) and back. Details: primordial_blackhole_search/benchmark/RESULTS.md.
 
+**Published 2026-11-20:** outsider README (why-it-matters, does-NOT-do, caveats, AI-use disclosure), CITATION.cff
+(Sumit Pal, ORCID, Independent researcher), GitHub release longchirp-v1.0.0, Zenodo DOI 10.5281/zenodo.24399603.
+pycbc memory-retention report filed as gwastro/pycbc#5554 (part of it reproduces in lalsimulation directly).
+
 ## 2026-10-23 — A phone trained seven networks, and more noise did not help
 
 The first experiment from the NN redesign plan ran entirely on a flashed Redmi phone: does the subsolar CNN get better

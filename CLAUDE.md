@@ -665,8 +665,11 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   wrong; harmless where shared, M11 addendum 4df3fc4); **pycbc waveform generation retains memory per new waveform
   length, never returned (2–3 GB; repro benchmark/pycbc_leak_repro.py)** (→ Y1 fg builds in child processes, y1_fgdrive.py); pycbc PSD estimate +1.6 GB/segment (→ lowmem_psd.py,
   identical to 5e-10). Memory record honest in RESULTS.md (declared 3.6 GB, fg peaked 4.06, watchdog stopped it 3×).
-  Not published (no release/DOI) — needs Sumit. Open: README for outsiders; 1/month needs more segments or a 2nd slide
-  family (Sumit's call).
+  **PUBLISHED 2026-11-20 (Sumit's word in chat): GitHub release `longchirp-v1.0.0`, Zenodo DOI 10.5281/zenodo.24399603
+  (concept 10.5281/zenodo.24399602), author Sumit Pal (ORCID 0009-0000-9541-2793, Independent researcher), Claude as
+  disclosed assistant not author. Outsider README benchmark/README.md. pycbc memory report: gwastro/pycbc#5554.**
+  Note: an unrelated Zenodo record 'ZahraZali/DeepStrain' (GFZ Potsdam) shares the repo name. Open: 1/month needs more
+  segments or a 2nd slide family (Sumit's call).
 
 ## Sub-project: `echoes/`
 A real-data project searching LIGO public strain for post-merger **gravitational-wave
