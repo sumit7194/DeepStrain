@@ -1,5 +1,10 @@
 # LongChirp: a benchmark for searches of long subsolar-mass inspirals in real LIGO noise
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24399602.svg)](https://doi.org/10.5281/zenodo.24399602)
+
+Release `longchirp-v1.0.0`: DOI [10.5281/zenodo.24399603](https://doi.org/10.5281/zenodo.24399603) (this version);
+[10.5281/zenodo.24399602](https://doi.org/10.5281/zenodo.24399602) resolves to the latest version.
+
 **In one line:** a fixed set of real LIGO O3a data with known simulated signals hidden in it, a fixed way of
 measuring false alarms, and a scoring script — so that a new search method (machine learning or otherwise) can be
 compared like-for-like against a matched filter and a CNN on signals that last **minutes**, not seconds.
@@ -175,7 +180,8 @@ file boundaries. GWOSC publishes no checksum, so each file was checked three way
 - **Code and benchmark definition** (scripts, injections.csv, manifest.json): MIT ([../../LICENSE](../../LICENSE)).
 - **Strain data** are not redistributed here; they are fetched from GWOSC, whose data are licensed under
   **Creative Commons Attribution 4.0 International** ([gwosc.org/acknowledgement](https://gwosc.org/acknowledgement/)).
-- If you use LongChirp, please cite this repository ([../../CITATION.cff](../../CITATION.cff)). Also cite the GWOSC
+- If you use LongChirp, please cite this repository: Sumit Pal, *DeepStrain* (LongChirp benchmark),
+  Zenodo, doi:[10.5281/zenodo.24399603](https://doi.org/10.5281/zenodo.24399603) (v1.0.0; see [../../CITATION.cff](../../CITATION.cff)). Also cite the GWOSC
   O3 data release: R. Abbott et al. (LIGO Scientific Collaboration, Virgo Collaboration and KAGRA Collaboration),
   "Open data from the third observing run of LIGO, Virgo, KAGRA and GEO", ApJS 267, 29 (2023). And include GWOSC's
   acknowledgement, reproduced verbatim as GWOSC requires:
