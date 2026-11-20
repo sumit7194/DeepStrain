@@ -242,3 +242,16 @@ the relaunch at 23:58:02. The free memory on the box had also fallen from 79% to
   A non-matching detector is skipped before any work.
 - **Clean-up:** the one pair completed under F2 was deleted, so all ten pairs use the same path.
 - **Unchanged:** no rule, threshold, gate or input.
+
+### Pre-verdict implementation fix F3 (2026-11-21)
+
+With F2b, G3 completed: all 10 injection–detector pairs, gate detection peaking at 3.5–4.0 GB in its own process
+each time, and filtering at 1.8–2.4 GB. The guard then stopped the run during `combine` at 00:07:32 (group RSS 3.93
+GB). No verdict had been computed.
+
+- **The fix:** survival histograms are computed one series pair at a time and 8 templates at a time, each
+  (mode, label) in its own process and saved to `hist_*.npz`. The final combine step reads only those files.
+- **Side effect:** the KS background sample now draws 3 values per candidate per template chunk instead of 20 per
+  candidate over all templates. This is still a uniform random sample of background trials. No KS result had been
+  computed under the earlier sampling, so nothing is being re-chosen.
+- **Unchanged:** no rule, threshold, gate or input.

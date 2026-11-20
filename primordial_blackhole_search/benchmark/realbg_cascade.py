@@ -365,8 +365,9 @@ def _lmax3(L):
 
 
 def survival(mode, cands, exclude=None):
-    """Conditional (candidate windows) and unconditional histograms of the binned network statistic."""
-    data = _load_bins(mode)
+    """Conditional (candidate windows) and unconditional histograms of the binned network statistic.
+    Fix F3: one pair of series at a time, 8 templates at a time (the all-at-once version reached ~3.9 GB in combine
+    and was stopped by the pressure guard on 2026-11-21)."""
     valid = np.zeros(NB, bool)
     valid[int(np.ceil(EDGE_LO / BIN)):EDGE_HI // BIN] = True
     cond = np.zeros(len(EDGES) - 1, np.int64); unc = np.zeros_like(cond)
@@ -378,21 +379,38 @@ def survival(mode, cands, exclude=None):
         gh, gl = SEGS[i], SEGS[(i + k) % 24]
         if exclude is not None and exclude in (gh, gl):
             continue
-        Hb = data[("H1", gh)]["bins"].astype(np.float32)
-        Lb = _lmax3(data[("L1", gl)]["bins"].astype(np.float32))
-        net = Hb + Lb
-        unc += np.histogram(net[:, valid].ravel(), EDGES)[0]
+        Hz = np.load(STATE / f"bins_{mode}_H1_{gh}.npz")["bins"]
+        Lz = np.load(STATE / f"bins_{mode}_L1_{gl}.npz")["bins"]
+        sels = []
         for b in bl:
-            lo, hi = b - WIN_BINS, b + WIN_BINS + 1
-            sel = np.arange(lo, hi)
+            sel = np.arange(b - WIN_BINS, b + WIN_BINS + 1)
             sel = sel[(sel >= 0) & (sel < NB)]
             sel = sel[valid[sel]]
             n_excl += (2 * WIN_BINS + 1) - len(sel)
-            v = net[:, sel].ravel()
-            cond += np.histogram(v, EDGES)[0]
-            if len(v):
-                ks_sample.append(rng.choice(v, size=min(20, len(v)), replace=False))
+            sels.append(sel)
+        for r0 in range(0, Hz.shape[0], 8):
+            net = Hz[r0:r0 + 8].astype(np.float32) + _lmax3(Lz[r0:r0 + 8].astype(np.float32))
+            unc += np.histogram(net[:, valid].ravel(), EDGES)[0]
+            for sel in sels:
+                v = net[:, sel].ravel()
+                cond += np.histogram(v, EDGES)[0]
+                if len(v):
+                    ks_sample.append(rng.choice(v, size=min(3, len(v)), replace=False))
+            del net
+        del Hz, Lz
     return cond, unc, (np.concatenate(ks_sample) if ks_sample else np.zeros(0)), n_excl
+
+
+def survive_cached(mode, label):
+    """Child step: compute and save one (mode, label) survival so combine never holds them all."""
+    p = STATE / f"hist_{mode}_{label}.npz"
+    if p.exists():
+        return
+    st = json.loads((STATE / "caught.json").read_text())
+    cond, unc, ks, n_excl = survival(mode, st["candidates"], PROBE_SEG if label == "without_probe_segment" else None)
+    tmp = p.with_suffix(".tmp.npz")
+    np.savez(tmp, cond=cond, unc=unc, ks=ks, n_excl=n_excl); os.replace(tmp, p)
+    log(f"survival {mode} {label} saved")
 
 
 def sf_from_hist(counts):
@@ -422,7 +440,9 @@ def distance(found, dc):
 
 
 def evaluate_variant(mode, st, fg, exclude=None):
-    cond, unc, ks, n_excl = survival(mode, st["candidates"], exclude)
+    label = "without_probe_segment" if exclude is not None else "all_segments"
+    z = np.load(STATE / f"hist_{mode}_{label}.npz")
+    cond, unc, ks, n_excl = z["cond"], z["unc"], z["ks"], int(z["n_excl"])
     rows = [r for r in st["rows"] if exclude is None or r["segment"] != exclude]
     dc = np.array([r["chirp_distance"] for r in rows])
     fgkey = "ungated" if mode == "ungated" else "gated"
@@ -535,6 +555,8 @@ if __name__ == "__main__":
         g3(int(sys.argv[2]), sys.argv[3], detect_only=True)
     elif cmd == "g3merge":
         g3_merge()
+    elif cmd == "survive":
+        survive_cached(sys.argv[2], sys.argv[3])
     elif cmd == "combine":
         combine()
     elif cmd == "probe":

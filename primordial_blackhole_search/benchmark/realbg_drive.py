@@ -41,5 +41,9 @@ if not (STATE / "g3.json").exists():          # fix F2: one injection-detector p
             if not (STATE / f"g3_{i}_{det}.json").exists():
                 step("g3", i, det)
     step("g3merge")
+for label in ("all_segments", "without_probe_segment"):        # fix F3: one survival per process
+    for mode in ("gated", "ungated", "twin"):
+        if not (STATE / f"hist_{mode}_{label}.npz").exists():
+            step("survive", mode, label)
 step("combine")
 print("REALBG CASCADE COMPLETE", flush=True)
