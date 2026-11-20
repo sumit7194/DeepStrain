@@ -80,6 +80,49 @@ real headroom. The test does NOT show that a learned refiner beats a classical c
 says the classical cascade is established (CW hierarchical follow-up; Soni & Nitz 2024 for subsolar). It does not
 measure real-noise stage-2 tails, and it is not a detection result.
 
+## Cascade against REAL background (2026-11-21): NO VERDICT by the frozen rule (gates G2 and G4 failed)
+
+Pre-registered in `PREREG_realbg_cascade.md`: 0a849d7, amendments A1/A2 (A2 adopted by Sumit, gate parameters fixed
+from PyCBC 2.10.0 source), pre-run/pre-verdict implementation fixes F1, F2, F2b and F3, none changing a rule. Code
+`realbg_cascade.py` / `realbg_drive.py`; result `results/realbg_cascade.json`. The run was stopped three times by the
+pressure guard (3.77, 3.38 and 3.93 GB) and finished at 00:19 with a peak of 151 MB per survival process.
+
+**Gates**
+| gate | result | value |
+|---|---|---|
+| G1 statistic calibration (twin, χ²₄) | PASS | 1.06× expected at P = 10⁻³; 1.17× at 10⁻⁵ (n = 1.1×10⁷) |
+| G2 must-fail null | **FAIL (KS clause)** | null pass fraction **0.0%** (≤ 1% required), but KS p = 1.6×10⁻⁶ |
+| G3 linearity (gated, 10 pairs) | PASS | max deviation 0.22% (bar 2%) |
+| G4 positive control | **FAIL** | 4.3% of caught injections with ρ_opt ≥ 15 pass at N_eff 1e6, 1/day (≥ 90% required) |
+
+**What the failures show:**
+- **G4.** At Y1's one-per-minute candidate times, the **gated** coherent statistic (384-s templates, PyCBC-default
+  autogating at 50σ) has a real-noise tail that dwarfs the Gaussian twin: S = 10⁻³ at ρ² ≈ 1,254 (twin 33), and
+  10⁻⁵ at ≈ 5,400 (twin 44). The fitted exponential slope is −0.0011 per unit ρ², against −0.5 for Gaussian noise.
+  Extrapolated thresholds are ρ² ≈ 9,500–17,600 (ρ ≈ 97–133), far above the caught injections. The cause is
+  transients below the 50σ gate, accumulated over minutes-long coherent templates. This fails G4 as written, but it
+  is a property of the noise, not broken machinery. The pre-registration's reading of G4 ("machinery broken") assumed
+  otherwise.
+- **G2.** The must-fail property itself held: noise-only "injections" pass **0%**. The KS clause compared null values
+  at unselected times with background trials at stage-1-selected times. Those populations differ by construction,
+  and the data confirm it: the conditional tail is far heavier than the unconditional one (ρ² 1,254 vs 163 at
+  S = 10⁻³). The clause was ill-posed in the pre-registration. That is recorded here, not fixed after the fact.
+- **Ungated:** the background tail reaches ρ² ≈ 6×10⁴; every threshold is above 10⁵ and the cascade finds nothing.
+- **Without the probe segment:** everything is the same (gates, tails within a few percent).
+
+**Exploratory reading only.** It cannot be the pre-registered verdict, because gates failed. At N_eff = 1e6 the gated
+cascade reaches **7.8 / 6.1 Mpc**, against Y1's 57.5 / 51.7 (1/day / 1/week). That is 0.135 / 0.118 of Y1, where the
+idealised bound was 109 Mpc. Even at N_eff = 1e4 it is 0.20 / 0.18. Under passing gates that would have read DIES.
+
+**Lesson.** The idealised ROOM came almost entirely from assuming a Gaussian stage-2 background. A plain coherent SNR
+with standard gating cannot use that room on real O3a noise, because sub-threshold transients over 384-s templates
+dominate. Y1 survives the same noise because its statistic carries a χ² consistency test (newSNR); the stage-2
+statistic here had none.
+
+**Next step, not started:** a new pre-registration with a consistency-tested coherent statistic (chunk-χ²-reweighted,
+like Y1's newSNR, but coherent across chunks). It would carry G2 reworded as "null pass fraction ≤ 1%" without the
+KS clause, and G4 judged against a Gaussian-twin threshold as well as the real one.
+
 ## Caveats
 
 - **Y1 foreground shortcut.** Foreground uses only the ±48 chirp-mass-neighbour templates of each injection; the
