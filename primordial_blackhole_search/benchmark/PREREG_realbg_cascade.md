@@ -136,3 +136,34 @@ Three definitions the original text left implicit, fixed now while designing the
   therefore uses the fitted tail and is reported as extrapolated.
   - The same fit is applied to the Gaussian twin, and its implied threshold is compared with the twin's own measured
     shape. The verdict carries this extrapolation caveat whatever it is.
+
+## 9. Amendment A2: PROPOSED, NOT YET ADOPTED (2026-11-20). Written after the one-segment cost probe, before any M1–M3 number or any gate
+
+**What the probe showed.** It ran on segment 1249001472, H1: 64 templates in 5 s per series, peak 2.2 GB.
+
+- **The statistic is calibrated.** Gaussian noise drawn from the estimated PSD gives |z|² with mean 2.00. P(>9.21) is
+  0.0100–0.0100 and P(>13.8) is 0.00098–0.00099, against χ²₂'s 0.0100 and 0.0010, for three templates.
+- **The twin in section 3/M2 is ill-defined on glitchy data.** "Same amplitude spectrum, random phases" keeps the
+  glitch energy, smeared into stationary noise. Whitened by the robust (median-Welch) PSD, that twin had mean |z|² of
+  about 145, not about 2. "Same amplitude spectrum" and "same PSD, glitch-free" contradict each other here.
+- **Real data are dominated by loud transients under long coherent templates.** On this segment, one template, all
+  times: 4.7% of samples have |z|² > 13.8 and 4.0% have |z|² > 100 (maximum 4.6×10⁴); the whitened series has
+  standard deviation 2.6× its band-limited Gaussian value. With 384-s templates, one loud transient raises the
+  statistic over the whole span of templates that overlap it.
+- **Disclosure.** This is an unconditional, single-template, single-segment look at real data, the kind of quantity
+  M1 measures. It is disclosed here so it can be weighed.
+
+**Proposed changes (need sign-off before any M1–M3 run):**
+1. **Twin.** Gaussian noise drawn from each series' own estimated PSD, which is unit-variance white noise in the band
+   after whitening. This replaces phase randomisation and is what "same PSD, glitch-free" means.
+2. **Gating, as standard practice in production searches.** Before filtering, zero the whitened data with a tapered
+   window around any sample whose whitened amplitude exceeds a threshold. The same gate is applied to background and
+   foreground data, and signals inside a gate are lost (that is counted, not hidden). The parameters must be taken
+   from PyCBC's documented autogating defaults, to be verified at the source before adoption, not recalled.
+   - **Primary verdict:** the gated statistic.
+   - **Also reported:** the ungated statistic, under the original rule, as a secondary.
+3. **G3 extended.** The linearity check must hold with gating: shortcut z on gated noise plus the gated signal,
+   against the real injected-and-gated strain, within 2%.
+
+Without (2), the test would mainly measure the absence of gating, which no production search omits, rather than the
+cascade idea.
