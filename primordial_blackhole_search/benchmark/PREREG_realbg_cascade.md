@@ -207,3 +207,13 @@ if A2 is adopted.
 **A2 ADOPTED 2026-11-20 by Sumit (his word, in DeepStrain's chat), with the Bridge's four conditions above.** From here
 on, the design is frozen: the twin is drawn from the PSD, the primary statistic is gated (ungated is secondary), the
 gate parameters are fixed from PyCBC 2.10.0 source, and the verdict is reported with and without the probe segment.
+
+### Pre-run implementation fix F1 (2026-11-20, found in code review, before any M1–M3 run)
+
+As first coded, G2's KS test compared **single-sample** null values against **binned** background trials. A bin takes
+the maximum over 102 samples, and over L1 bins b−1..b+1. That comparison fails by construction whatever the data.
+
+The fix gives the foreground and null statistics in M3 the same trial form as the background: the H1 bin containing
+the merger, plus the maximum over L1 bins b−1..b+1. This is what section 3's "agree with background trials" intends.
+No threshold, gate or verdict rule changed. Bridge reviewed it and asked that it be recorded as a pre-run
+implementation fix. The code is in ccb4e4a.
