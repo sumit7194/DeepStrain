@@ -114,3 +114,25 @@ a real refiner. It is not a sensitivity claim.
   are computed.
 
 The slot request will quote one segment's measured time and peak, not this estimate.
+
+## 8. Amendment A1 (2026-11-20, written before any code was run and before any number existed)
+
+Three definitions the original text left implicit, fixed now while designing the code:
+
+- **A trial is one 25-ms bin of one template.** Each bin is 102 samples, and the network value per bin takes its
+  maximum over samples and over δ. N_eff counts such trials per candidate.
+  - This is harsher than the idealised test, where a trial was a single χ²₄ sample, so at equal N_eff the real
+    threshold is conservative by construction.
+  - G1 stays sample-level, unbinned, because it checks the statistic's calibration, not the trial definition.
+- **Template length.** Coherent templates (the 64 stage-2 templates and the true templates in M3) are cut at t_c and
+  keep the last 384 s. This makes every template fit inside the data for mergers at least 400 s from a segment start
+  (the injection edge), with 8 s left for the whitening edge.
+  - Background bins whose merger time is within 392 s of a segment start, or 8 s of its end, are excluded. The excluded
+    fraction is reported.
+  - ρ_opt in M3 is the norm of this truncated true template, so foreground and background use the same statistic. The
+    full-length oracle SNR is kept as a cross-check only.
+- **Depth of the verdict cells.** The required per-trial probabilities (≈ 7×10⁻⁸ at N_eff 1e4; 7×10⁻¹⁰ at 1e6;
+  1/day) lie below the measurable depth (≈ 5×10⁻⁷ with ≥ 100 exceedances in ≈ 2×10⁸ trials). Every verdict cell
+  therefore uses the fitted tail and is reported as extrapolated.
+  - The same fit is applied to the Gaussian twin, and its implied threshold is compared with the twin's own measured
+    shape. The verdict carries this extrapolation caveat whatever it is.
