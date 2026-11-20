@@ -52,8 +52,8 @@ the room a better method could take.
 - Y1 foreground: declared 3.6 GB, **exceeded**: peak 4.06 GB in-process while building injection windows; the
   watchdog stopped the run three times (4.38, 4.24 and 4.94 GB group RSS). Cause measured: memory retained by
   pycbc's TaylorF2 waveform generation, which grows whenever a waveform of a new (larger) length appears and is not
-  returned after gc (30 random-mass TD waveforms: 0.2 → 2.0 GB; 30 near-identical ones: flat at 0.6 GB; numpy and
-  default FFT backends alike; standalone repro benchmark/pycbc_leak_repro.py). Not shown to be unbounded — it tracks
+  returned after gc (30 random-mass TD waveforms: 0.2 → 2.0 GB; 30 near-identical ones: flat at 0.6 GB; also seen calling lalsimulation's
+  FD TaylorF2 directly, 0.04 → 0.82 GB, while numpy's FFT alone on the same lengths stays flat; standalone repro benchmark/pycbc_leak_repro.py). Not shown to be unbounded — it tracks
   the set of lengths seen — but it reached 2–3 GB in our injection builds. Fix: windows built in short-lived child
   processes of 4 segments each (peak 2.7–3.2 GB), run by a driver that imports nothing heavy
   (y1_fgdrive.py); filtering in its own process. Arithmetic unchanged. Total foreground ≈ 4.5 h.

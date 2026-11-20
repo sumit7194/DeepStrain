@@ -3,6 +3,7 @@
     python pycbc_leak_repro.py td      # pycbc.waveform.get_td_waveform, random masses   -> RSS grows
     python pycbc_leak_repro.py td-same # same call, nearly fixed masses (fixed length) -> RSS flat
     python pycbc_leak_repro.py fd      # pycbc.waveform.get_fd_waveform, random masses   -> (tells TD conversion vs FD)
+    python pycbc_leak_repro.py lalsim  # lalsimulation.SimInspiralChooseFDWaveform directly, no pycbc
 
 Needs only numpy and pycbc. Prints RSS (MB, from `ps`) every 5 waveforms after gc.collect().
 
@@ -11,8 +12,12 @@ Observed 2026-11-20 (macOS 27.2 arm64, Python 3.12.13, pycbc 2.10.0, lal 7.7.1, 
   td-same  207 -> 603 MB, flat from 5 to 30
   fd       204 -> 1299 (5) -> 1421 (15) -> 1698 MB (25-30)
 Reading: memory is retained per new waveform size and not released after the arrays are deleted and gc runs; it
-plateaus while sizes repeat. It is not shown to be unbounded. Same with pycbc's numpy and default FFT backends.
-Where it lives (pycbc FFT plans/caches, lalsimulation, or the allocator) is not isolated here.
+plateaus while sizes repeat. It is not shown to be unbounded. Only pycbc's numpy FFT backend is installed in this
+environment (an earlier note claiming 'numpy and default backends alike' compared numpy with itself; withdrawn).
+Isolation (same day): lalsimulation.SimInspiralChooseFDWaveform(TaylorF2) called directly, 30 random-mass waveforms,
+38 -> 822 MB; numpy.fft.irfft alone on lengths 2^19-2^22, flat at ~220 MB. So at least part of it is below pycbc;
+whether lalsimulation holds it or the system allocator keeps freed blocks (consistent with the plateaus) is not
+determined.
 """
 import gc
 import os
@@ -35,6 +40,18 @@ def main(mode, n=30):
             m1, m2 = 0.3, 0.25 + 0.001 * i
         else:
             m1, m2 = np.exp(rng.uniform(np.log(0.2), np.log(1.0), 2))
+        if mode == "lalsim":
+            import lal
+            import lalsimulation as ls
+            hp, hc = ls.SimInspiralChooseFDWaveform(m1 * lal.MSUN_SI, m2 * lal.MSUN_SI, 0, 0, 0, 0, 0, 0,
+                                                    10e6 * lal.PC_SI, 0, 0, 0, 0, 0, 1 / 1024, 50, 0, 50, None,
+                                                    ls.GetApproximantFromString("TaylorF2"))
+            n_samp = hp.data.length
+            del hp, hc
+            gc.collect()
+            if i % 5 == 4:
+                print(f"{mode}: {i + 1} waveforms (last length {n_samp}), RSS {rss_mb()} MB", flush=True)
+            continue
         if mode == "fd":
             hp, hc = get_fd_waveform(approximant="TaylorF2", mass1=m1, mass2=m2, delta_f=1 / 1024, f_lower=50,
                                      distance=10)
