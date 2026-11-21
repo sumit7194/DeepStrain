@@ -290,6 +290,9 @@ work), and re-examine the parked **v4 tone-count negative** and the **δ wall**.
 possibly overturning our own parked negative — the highest-value outcome available in the ringdown arc.
 *Prereq:* the ROC test result.
 
+**⚠️ RETRACTED 2026-08-22: the "HELPS (1.12×, 3.2σ)" below is 0.96σ under a paired bootstrap (gain CI
+[0.93, 1.48] spans 1), so the first rung is UNDERPOWERED, not a gain. The injection-convention finding stands.
+Detail: echoes lab notebook, artifact 24_l4_significance_stress.json.** — *original entry follows* —
 **L4 — Coherent network echo search. 🟡 FIRST RUNG DONE 2026-08-15 — coherent network combination HELPS
 (1.12×, 3.2σ).** Measured on physically-injected echoes (H1/L1 geometry derived from the merger: −6.59 ms,
 sign −1). **My prediction that the network axis would buy ~nothing was wrong.** Bigger finding: the injection

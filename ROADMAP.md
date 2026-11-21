@@ -34,7 +34,9 @@ already have on the same data**, plus the one guardrail on a parked thread.
   sensitivity-curve harness `06`; this generalizes it to a per-Δt efficiency → λ map.)
 - **Status:** ✅ **DONE (2026-06-20, v6).** `scripts/11_upper_limits.py`: per-Δt exclusion
   curve at N=300. **GW150914: exclude amplitude ≥ A90=1.65σ** at predicted Δt (A50 1.33σ);
-  GW151226: ≥1.55σ at its canonical Δt=0.0579 s. Smooth across all spacings; stress-tested
+  GW151226: ≥1.61σ at Δt=0.1013 s (**corrected 2026-06-25**: this line originally said ≥1.55σ at
+  0.0579 s, which was the wrong spacing; the re-run at Abedi's 0.1013 s is in the echoes lab notebook and is
+  still a clean null). Smooth across all spacings; stress-tested
   (statistic verified, threshold not glitch-driven). (γ=0.7 fixed.) **Update (E1, 2026-06-25): the ML
   scorer does NOT tighten this — through the honest production path A90 ML≈comb (0.98×); v5's ~1.2× edge
   is a 50%-point effect that vanishes at the 90%-exclusion level. The comb UL stands. See PLAN.md E1 /

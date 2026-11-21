@@ -70,6 +70,10 @@ applied to spacetime itself.
 **v2 directions:** sharper δ via Bayesian likelihood; neural model selection for tone
 count; hierarchical stacking across events; extend the NPE to (M, χ, δ) to make IT the
 no-hair test; SXS waveform injections (full merger, not just analytic tones).
+*Status (2026-11-21):* the (M, χ, δ) NPE is done (v2/v3, calibrated). The Bayesian likelihood came via the
+`ringdown` package, which detects the GW250114 overtone (R2 v2). ML tone-count is parked as information-limited.
+Multi-event stacking is parked: only GW250114 is informative, and GW231028 was checked 2026-09-23 and is not.
+SXS / full-merger injections are still open (ROADMAP M12). Detail is in the lab notebook.
 
 ## Environment
 

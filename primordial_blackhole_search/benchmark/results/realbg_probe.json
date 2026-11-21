@@ -1,0 +1,12 @@
+{
+ "segment": 1249001472,
+ "template_s": 17.36257028579712,
+ "series_s": {
+  "real": 5.305966138839722,
+  "twin": 4.6657938957214355
+ },
+ "peak_rss_mb": 1680,
+ "mps_driver_mb": 1548,
+ "twin_single_det_mean_z2": 144.78538513183594,
+ "note": "twin |z|^2 per detector should average ~2 (chi^2 with 2 dof); this is a sanity check, not gate G1"
+}

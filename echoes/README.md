@@ -126,9 +126,11 @@ echoes/
 5. ✅ **Background estimation** — identical statistic on event-free segment pairs;
    p-value = rank. *No detection claim ever comes from anything but this.*
 6. ✅ **Sensitivity curve** — blind < 1σ, 50% at 1.5σ, 100% ≥ 2σ (p < 0.01).
-7. ⬜ **v2:** the ML scorer (noise-trained anomaly model through the *identical*
+7. 🟡 **v2:** the ML scorer (noise-trained anomaly model through the *identical*
    harness), independent background blocks, full O3/O4 catalog with Δt from catalog
    mass+spin, raw-strain injection, cross-event stacking. See lab notebook.
+   *Status (2026-11-21):* done: the ML scorer (v2/v5), independent ±hour backgrounds, raw-strain injection (v4),
+   a 4-event stack, and Δt from mass+spin (14_echo_spacing). Open: the full O3/O4 catalog harvest (ROADMAP M9).
 
 ## 5. Ground rules (so we never fool ourselves)
 
