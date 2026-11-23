@@ -114,3 +114,39 @@ step is expected to take seconds to a few minutes. Anything longer stops and is 
    assumption 1.
 3. **Hierarchical (secondary) is not attempted in this pass.** Only the joint (primary) is run; K1c is reported as
    "not attempted". This is a scope reduction, declared before any number.
+
+## 9. Run 1 result (2026-11-24): NO VERDICT by the frozen rule
+
+Result file: `results/pseob_prior_run1_NOVERDICT.json`. The O4b files name their cosmology 'Planck15_LAL', which in
+bilby is the same H0 = 67.90 / Om0 = 0.3065 as the O1–O4a files. The family check was widened to accept both
+spellings; no prior changed.
+
+**Gates:**
+- K1a **PASS**: 98.125%.
+- **K1b FAIL**: baseline 95.46% vs 98.1 ± 1.5; δτ̂ median 0.060 vs 0.070 ± 0.01.
+- **F1 FAIL**: the ψ null moved Q2D by +2.36 points, against 2 σ_MC = 1.53.
+- P1 PASS: −7.5 points.
+- V2 ESS 183 < 200.
+
+**Variant numbers, read only as instrument diagnostics, not results:** V1 97.1, V2 98.7, V3 93.6, V4 96.6, V5 95.5
+(31 events). The 29-event subset: base 96.7, V3 84.7. Both are within the run's demonstrated noise (F1), so nothing
+is resolved.
+
+**Exploratory diagnosis, after run 1:**
+- The same baseline using **all** posterior samples instead of 3,000 resampled draws per event gives Q2D 98.38% and a
+  δτ̂ median 0.062. That is inside both K1b tolerances.
+- The 3,000-draw subsample was an implementation choice not in §2. It widens every KDE through Scott's n^(−1/6)
+  bandwidth, and adds resampling noise. That is consistent with both failures.
+
+## 10. Amendment A2 (2026-11-24, after run 1; NOT blind, because run-1 variant numbers were seen)
+
+**Changes, dictated by the failed known-answer and null gates, not by any variant outcome:**
+1. **All posterior samples, weights entering scipy `gaussian_kde(weights=…)` directly** (deterministic). This
+   replaces weighted resampling to 3,000 draws.
+2. **σ_MC is unchanged in definition:** 20 bootstrap resamplings of each event's posterior samples.
+
+Everything else in §2–5 is unchanged: gates, bars, variants and the verdict rule. The A2 verdict is reported as
+"post-amendment, non-blind" beside run 1's NO VERDICT. Both results are kept.
+
+**Cost:** ~40 s per joint × ~33 joints ≈ 20–25 min on one core at nice 12. That exceeds "a few minutes", so it waits
+for a slot from the Bridge.
