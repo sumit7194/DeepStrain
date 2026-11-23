@@ -190,3 +190,12 @@ not depend on assumption A1.
   depends on the component-spin prior.
 - **Scope:** nuisance-prior reweighting only, the joint method only (no hierarchical), and non-blind. Kyutoku's
   likelihood-geometry half is untouched.
+
+**Weight-validity check (requested by the Bridge, 2026-11-24, after the verdict).**
+- **V3 (volumetric spins):** ESS min 1,670 (GW250114, ESS/N 0.041), median 4,555, max 8,427. **No event is below
+  200**, so the ESS cut drops nothing and the result is unchanged.
+- **Pareto k̂** (generalised-Pareto fit to the top weights): max 0.18 (GW250114), median −0.37, none > 0.7. The largest
+  single weight is 0.44% of its event's total.
+- **V4:** ESS min 10,723, k̂ max −0.01.
+- **Why expected:** V3 weights a₁²a₂² are bounded (≤ 0.98²), so their variance is finite by construction.
+- ⇒ **The −10-point move is not an importance-sampling artefact.** Artifact: `results/pseob_prior_A2_khat.json`.
