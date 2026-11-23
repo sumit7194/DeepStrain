@@ -1,0 +1,29 @@
+K1a {'Q2D_released': 0.98125, 'dtau_median_released': 0.06966966966966959, 'target': 0.981, 'pass': True} 2s
+base {'Q2D': 0.9837637621921053, 'dtau_median': 0.0621237913595936, 'Q2D_flat_in_rate': 0.9838000119566501} 41s
+sigma_MC 0.0048902404328572974 803s
+V1 {'Q2D': 0.9864704196171244, 'dtau_median': 0.0649571855712042, 'min_ess': 10426.76419239502} 842s
+V2 {'Q2D': 0.9799224355936553, 'dtau_median': 0.0727865444777219, 'min_ess': 182.72870397614167} 881s
+V3 {'Q2D': 0.8855103802409993, 'dtau_median': 0.0690621073399554, 'min_ess': 1669.9985752295618} 919s
+V4 {'Q2D': 0.9678056936602379, 'dtau_median': 0.062302170145778914, 'min_ess': 10722.838304254801} 957s
+F1 {'Q2D': 0.9855438730338152, 'dtau_median': 0.0641092210577601, 'min_ess': 9734.931609594896} 995s
+P1 {'Q2D': 0.9060592461498583, 'dtau_median': 0.029523796160220588, 'min_ess': 10842.493238863763} 1033s
+29-event {'base': 0.9731, 'V1': 0.9748, 'V2': 0.9733, 'V3': 0.8892, 'V4': 0.959, 'V5': 0.9732} 1246s
+VERDICT PRIOR-SENSITIVE 1246s
+     1248.04 real      1219.41 user         2.19 sys
+          1047035904  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+               76761  page reclaims
+                   1  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   0  messages sent
+                   0  messages received
+                   0  signals received
+                 123  voluntary context switches
+              282740  involuntary context switches
+      22029547114652  instructions retired
+       3789102558508  cycles elapsed
+          1013794160  peak memory footprint

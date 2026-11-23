@@ -150,3 +150,43 @@ Everything else in §2–5 is unchanged: gates, bars, variants and the verdict r
 
 **Cost:** ~40 s per joint × ~33 joints ≈ 20–25 min on one core at nice 12. That exceeds "a few minutes", so it waits
 for a slot from the Bridge.
+
+## 11. A2 result (2026-11-24): PRIOR-SENSITIVE by the rule, post-amendment and non-blind
+
+**Run facts:** started after a 39-s exploratory look at the full-sample baseline. Wall time 20.8 min on one core at
+nice 12; peak RSS 1.05 GB, slightly over the declared < 1 GB. Result file `results/pseob_prior_A2.json`.
+
+**Gates:**
+- K1a PASS: 98.125%.
+- K1b PASS: 98.38% and δτ̂ median 0.062, against 98.1 ± 1.5 and 0.070 ± 0.01.
+- F1 PASS: +0.18 points, against 2 σ_MC = 0.98.
+- P1 PASS: −7.8 points.
+- ESS: V2 183 < 200 (V2 does not decide the verdict; all others ≥ 1,670).
+
+**Joint Q2D, 31 events (29-event subset in brackets):**
+
+| variant | Q2D |
+|---|---|
+| base | 98.38 (97.31) |
+| V1 uniform d_L | 98.65 (97.48) |
+| V2 flat amplitude (extreme) | 97.99 (97.33) |
+| **V3 volumetric spins** | **88.55 (88.92)** |
+| V4 flat (Mc, q) | 96.78 (95.90) |
+| V5 flat in damping rate | 98.38 (97.32) |
+
+**Verdict by the frozen rule: PRIOR-SENSITIVE.** It is driven by V3 alone and holds in the 29-event subset, so it does
+not depend on assumption A1.
+
+**My prediction (ROBUST, V5 the largest mover) was WRONG on both counts.** V5 moves nothing, and V3 moves ~10 points.
+
+**Exploratory diagnostics, after the verdict** (`results/pseob_prior_A2_diagnostics.json`):
+- **The sensitivity lives in δf̂, not δτ̂.** At baseline the joint sits at +1.34σ in δf̂ and +2.04σ in δτ̂. Under V3
+  the δf̂ offset vanishes (−0.10σ), while δτ̂ stays at +1.92σ.
+- **The joint δτ̂ median is stable across every variant:** 0.062–0.073.
+- **Reading.** The headline "longer damping" offset (~2σ) is robust to every nuisance prior tried, including
+  Kyutoku's amplitude channel (V1, V2: no movement). The *2-D* GR quantile is not: it moves ~10 points with the spin
+  prior, through the frequency deviation.
+- **Plausible mechanism, not tested here:** the 220 frequency depends strongly on remnant spin, and remnant spin
+  depends on the component-spin prior.
+- **Scope:** nuisance-prior reweighting only, the joint method only (no hierarchical), and non-blind. Kyutoku's
+  likelihood-geometry half is untouched.

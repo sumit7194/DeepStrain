@@ -1,0 +1,9 @@
+{
+ "label": "EXPLORATORY, post-verdict diagnostics (not pre-registered)",
+ "joint_moments": {
+  "base": {"Q2D": 0.9838, "df_mean": 0.0118, "df_sd": 0.0088, "dtau_mean": 0.0716, "dtau_sd": 0.0352, "corr": -0.27, "df_offset_sigma": 1.34, "dtau_offset_sigma": 2.04},
+  "V3_volumetric_spin": {"Q2D": 0.8855, "df_mean": -0.0010, "df_sd": 0.0101, "dtau_mean": 0.0770, "dtau_sd": 0.0401, "corr": -0.24, "df_offset_sigma": -0.10, "dtau_offset_sigma": 1.92}
+ },
+ "per_event_V3": "largest dtau-median shift GW200311_115853 +0.227 (corr(a1*a2, dtau) +0.30); shifts span -0.052..+0.227; GW250114 -0.014 (ESS 1670, the minimum)",
+ "joint_dtau_median_by_variant": {"base": 0.0621, "V1": 0.0650, "V2": 0.0728, "V3": 0.0691, "V4": 0.0623, "F1": 0.0641}
+}
