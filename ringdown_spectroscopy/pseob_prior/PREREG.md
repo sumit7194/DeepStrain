@@ -94,3 +94,23 @@ quantiles are not invariant under reparameterisation.
 
 Short scripts at nice 12: reading 31 HDF5 files (~1 GB extracted, scratchpad only) and numpy/scipy KDEs on a grid. Each
 step is expected to take seconds to a few minutes. Anything longer stops and is reported to the Bridge first.
+
+## 8. Amendment A1 (2026-11-24, after a structural crash in data loading, before any variant or baseline number existed)
+
+**What happened.** The first run stopped while loading files.
+- **2 of the 31 events, GW240705_053215 and GW250119_025138 (both labelled `pseob-rd`), store NO prior:**
+  `priors/analytic` is absent and `priors/samples` is an empty dataset.
+- Their config shows the same `default-prior = BBHPriorDict` as the 29 events that do document a prior.
+- The run printed only K1a (LVK's released joint, a published known answer) before crashing. No baseline, bootstrap
+  or variant number existed.
+
+**Changes:**
+1. **For these two events, assume the same prior family as the 29 documented events.** That family is asserted
+   identical across all 29 by the script: UniformSourceFrame d_L with H0 = 67.9, Om0 = 0.3065; UniformInComponents
+   chirp mass. Reweighting uses only the prior *shape* within the support, so unknown bounds do not matter as long as
+   the posterior lies inside them.
+2. **Robustness addition:** the verdict quantities are also reported with these two events excluded (29 events). If
+   the 29-event result changes the verdict, both are reported and the 31-event verdict is labelled conditional on
+   assumption 1.
+3. **Hierarchical (secondary) is not attempted in this pass.** Only the joint (primary) is run; K1c is reported as
+   "not attempted". This is a scope reduction, declared before any number.
