@@ -11,6 +11,22 @@ sub-project's `notes/lab_notebook.md`.*
 
 ---
 
+## 2026-11-21 → 11-24 — fleet ideas inventory, next-step plan + two outside reviews, pSEOBNR prior test
+
+- **Fleet-ideas inventory:** written to ~/Downloads/fleet_ideas_parts/BlackHole.md. Doc-only fixes from it in 0ef19d0.
+- **Next-step plan** (reports/PLAN_next_2026-11-23.md): a χ²-tested coherent second look for LongChirp.
+  - **Neon review 1:** verified, mostly accepted (fresh segments, v_s, gate fixes). It recommended the GWTC-4 ringdown
+    tension instead.
+  - **Neon review 2:** verified. Two corrections: the tension is NOT stale (GWTC-5 is still at 98%), and LVK's own GR mocks
+    already contain Kyutoku-type bias.
+- **pSEOBNR prior test**, with Sumit's go:
+  - downloaded LVK's GWTC-5 per-event pSEOBNR posteriors;
+  - pre-registered;
+  - run 1 NO VERDICT (subsampling);
+  - A2 (non-blind) PRIOR-SENSITIVE via the spin prior, with the sensitivity in df220 and the dtau220 ~2σ offset robust.
+  - Details in CLAUDE.md and pseob_prior/PREREG.md §9–11.
+
+
 ## 2026-11-17 → 11-20 — LongChirp benchmark built and all three yardsticks scored; M11 corrected
 
 Fetched + verified 64 GWOSC files (curl resume; GWOSC drops long transfers), macOS 27.2 regression PASS, evaluator +

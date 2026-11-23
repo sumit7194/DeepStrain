@@ -676,6 +676,26 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   Note: an unrelated Zenodo record 'ZahraZali/DeepStrain' (GFZ Potsdam) shares the repo name. Open: 1/month needs more
   segments or a 2nd slide family (Sumit's call).
 
+- **pSEOBNR PRIOR-SENSITIVITY TEST DONE (2026-11-24): the GWTC-5 2-D tension moves ~10 points with the SPIN prior,
+  and the move is in the frequency, not the damping time.** Follow-up to Neon's plan review (reports/PLAN_next_2026-11-23*,
+  reports/ringdown_bias_check_2026-11-24.md).
+  - **Data:** LVK's public per-event posteriors, Zenodo 21454847 pSEOB.tar.gz (711 MB, 33 files; 31 events used, exactly
+    the release notebook's list).
+  - **Method:** pre-registered (ringdown_spectroscopy/pseob_prior/PREREG.md, 395ea44) nuisance-prior reweighting of the
+    joint (df220, dtau220) result.
+  - **Run 1: NO VERDICT.** The known-answer gate failed because my 3,000-draw subsampling widened the KDEs.
+  - **A2, non-blind, after a 39-s exploratory look:** all samples, weighted KDE. Every gate passes: LVK's 98.1% reproduced
+    as 98.38%; psi null +0.18; must-move −7.8.
+  - **Verdict PRIOR-SENSITIVE:** volumetric spin prior Q2D 98.4 → 88.6% (29 events: 88.9). Uniform d_L 98.7,
+    flat-amplitude 98.0, flat (Mc, q) 96.8, flat damping rate 98.4.
+  - **Diagnostic:** at baseline the joint sits at df +1.34σ and dtau +2.04σ; under the spin prior df goes to −0.10σ while
+    dtau stays +1.92σ. So **the ~2σ "longer damping" offset is robust to every prior tried, including Kyutoku's
+    amplitude channel; the 2-D quantile is not.**
+  - **My prediction (ROBUST) was wrong.**
+  - **Scope:** joint method only (hierarchical not attempted); nuisance priors only; Kyutoku's likelihood-geometry half
+    untouched.
+  - Data in scratchpad only, not committed. Artifacts: ringdown_spectroscopy/pseob_prior/results/.
+
 ## Sub-project: `echoes/`
 A real-data project searching LIGO public strain for post-merger **gravitational-wave
 echoes** (quantum structure at horizons → `bang…beep…beep…` at predicted spacing
