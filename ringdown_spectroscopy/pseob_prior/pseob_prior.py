@@ -24,7 +24,7 @@ LO, HI = -0.8, 2.0
 N_SUB, N_GRID, N_BOOT, SEED = 3000, 120, 20, 20261124
 FIELDS = ["domega220", "dtau220", "luminosity_distance", "a_1", "a_2", "chirp_mass", "mass_ratio", "psi",
           "network_matched_filter_snr"]
-OUT = Path(__file__).resolve().parent / "results" / "pseob_prior.json"
+OUT = Path(__file__).resolve().parent / "results" / "pseob_prior_A2.json"
 
 
 def label(i):
@@ -100,19 +100,18 @@ def ess(w):
 
 
 def subsample(d, w, rng, boot):
+    """PREREG A2: all posterior samples, weights passed to the KDE (run 1 resampled to N_SUB draws)."""
     n = len(w)
     idx = rng.integers(0, n, n) if boot else np.arange(n)
-    p = w[idx] / w[idx].sum()
-    pick = idx[rng.choice(n, N_SUB, replace=True, p=p)]
-    return np.vstack([d["domega220"][pick], d["dtau220"][pick]])
+    return np.vstack([d["domega220"][idx], d["dtau220"][idx]]), w[idx]
 
 
 def joint_logL(samples, grid):
     """Sum over events of log 2-D KDE (scipy gaussian_kde, as utils_o3b.multiply_likelihoods), on grid + at (0,0)."""
     pts = np.column_stack([grid, [0.0, 0.0]])
     tot = np.zeros(pts.shape[1])
-    for s in samples:
-        tot += np.log(np.maximum(gaussian_kde(s)(pts), 1e-300))
+    for s, w in samples:
+        tot += np.log(np.maximum(gaussian_kde(s, weights=w)(pts), 1e-300))
     return tot[:-1], tot[-1]
 
 
@@ -124,7 +123,7 @@ def q2d(logL, logL0, jac=None):
 
 
 def make_grid(samples):
-    allpts = np.hstack(samples)
+    allpts = np.hstack([s for s, _ in samples])
     lo = np.maximum(np.percentile(allpts, 0.5, axis=1) - 0.05, LO)
     hi = np.minimum(np.percentile(allpts, 99.5, axis=1) + 0.05, HI)
     lo, hi = np.minimum(lo, -0.05), np.maximum(hi, 0.05)
@@ -180,7 +179,8 @@ def main():
     t0 = time.time()
     mdir, rel = sys.argv[1], sys.argv[2]
     rng = np.random.default_rng(SEED)
-    res = {"prereg": "PREREG.md @ 395ea44", "n_events": len(EVENTS), "n_sub": N_SUB, "n_grid": N_GRID}
+    res = {"prereg": "PREREG.md @ 395ea44 + A1 57cbbbd + A2 52f2ca5 (non-blind)", "n_events": len(EVENTS),
+           "samples": "all, weighted KDE (A2)", "n_grid": N_GRID}
     k1a_q, k1a_med = released_q2d(rel)
     res["K1a"] = {"Q2D_released": k1a_q, "dtau_median_released": k1a_med, "target": 0.981,
                   "pass": abs(k1a_q - 0.981) <= 0.010}
