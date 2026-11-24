@@ -695,6 +695,12 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   - **Scope:** joint method only (hierarchical not attempted); nuisance priors only; Kyutoku's likelihood-geometry half
     untouched.
   - Data in scratchpad only, not committed. Artifacts: ringdown_spectroscopy/pseob_prior/results/.
+  - **⚠️ PRIOR-ART CORRECTION, same day.** GWTC-5.0 TGR (2607.19293) already reweights to the GWTC-4 astrophysical
+    population and reports the same split: df moves toward GR, dtau stays. Its numbers: Q2D 99.7%, hier 97.0%; it also
+    flags selection effects favouring positive dtau.
+  - ⇒ Ours is an independent replication with a volumetric bracket (88.6 / 98.4 / 99.7%), **not a new result**. The
+    note idea is withdrawn.
+  - I missed this on my first read of that paper. Neon's T60 also missed it ("no prior art").
 
 ## Sub-project: `echoes/`
 A real-data project searching LIGO public strain for post-merger **gravitational-wave
