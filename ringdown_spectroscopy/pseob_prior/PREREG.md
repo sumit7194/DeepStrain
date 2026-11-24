@@ -199,3 +199,51 @@ not depend on assumption A1.
 - **V4:** ESS min 10,723, k̂ max −0.01.
 - **Why expected:** V3 weights a₁²a₂² are bounded (≤ 0.98²), so their variance is finite by construction.
 - ⇒ **The −10-point move is not an importance-sampling artefact.** Artifact: `results/pseob_prior_A2_khat.json`.
+
+## 12. Prior-art correction and verification of Neon's T60 review (2026-11-24; reading and seconds-scale checks only)
+
+**PRIOR ART: the core of our finding is already in the GWTC-5.0 TGR paper (arXiv:2607.19293, pSEOBNR section).** I
+missed this on my first read.
+- LVK reweights each event's posterior to the GWTC-4.0 *astrophysical population*. Its words: "the joint posterior
+  distribution on δf̂₂₂₀ shifts slightly towards negative values … while the posterior distribution on δτ̂₂₂₀ narrows
+  while peaking at approximately the same value". Numbers: Q2D = **99.7%**, hierarchical μ_δτ̂ 97.0%, Q4D 67.8%.
+- It explains: "δf̂₂₂₀ is correlated with the total mass … δτ̂₂₂₀ is less strongly correlated with the binary
+  parameters". It cites Payne et al. 2023 on priors.
+- It also flags **selection effects favouring positive δτ̂**, and reports a 5-highest-SNR subset with Q2D 69.6%.
+
+⇒ "Nuisance priors move the 2-D quantile through δf̂, while δτ̂ is robust" is **LVK's own published statement**. Our
+run is an independent replication from public data with a different prior, and it brackets the other side:
+- volumetric spins: 88.6%;
+- LVK's realistic population: 99.7%;
+- LVK's analysis prior: 98.4%.
+
+**That is not a new result.**
+
+**Neon's citations:**
+
+| Claim | Verdict |
+|---|---|
+| Wu & Rong, PLB 882, 141022 (2026) = arXiv:2605.04579 | ✓ — spin priors vs the inspiral δφ̂₃: generally robust, larger shifts in low-information events; χ_p is prior-sensitive. No ringdown. |
+| Vitale et al. 1707.04637 | ✓ — prior impact on BBH parameters |
+| Chatziioannou et al. 1903.06742 | Exists, but it is a GW170729 waveform / higher-mode paper. Calling it "spin-prior effects" is loose. |
+| Vehtari et al. 1507.02646 | ✓ PSIS |
+| Berti, Cardoso & Will gr-qc/0512160 | ✓ The QNM fits are from this line of work. With those fits, at χ ≈ 0.7, d ln(M f)/dχ ≈ 0.80 vs d ln(τ/M)/dχ ≈ 0.51, i.e. f is more spin-sensitive (my arithmetic). |
+| 2611.15721 | Roy, Haney & Janquart, *Highly spinning BBH: promise and pitfalls for parameterized tests* (inspiral PN tests, SXS injections) |
+| Chiaramello χ_eff–δf̂ anticorrelation | **Not in the abstract of 2511.19593; unverified.** |
+
+**Physics check against our V3 per-event shifts** (`results/pseob_prior_V3_per_event.json`):
+- χ_f rises (median +0.014, range −0.006…+0.048) ✓.
+- δf̂ shifts negative in 23 of 31 events (median −0.16 per-event σ), while δτ̂ does not (16 of 31, median 0.00 σ) ✓.
+- **BUT** M_f rises slightly (median +0.14 M☉) rather than falling, as Neon's "reinforce in f, cancel in τ" story
+  needs.
+- The cross-event correlation of Δχ_f with Δδf̂ is **+0.38**, opposite in sign to the naive "higher χ_f ⇒ higher f_GR
+  ⇒ lower δf̂".
+- ⇒ The *direction* of the aggregate effect fits the qualitative story, but the event-level mechanism is **not
+  confirmed**. LVK's own explanation runs through the total-mass correlation.
+
+**Ringdown SNR:** not stored. LVK's cut is SNR ≥ 8 in the inspiral and post-inspiral parts separately. Obtaining it
+would mean regenerating pSEOBNRv5PHM waveforms (pyseobnr, not installed) against the PSDs stored in each file. That is
+a new toolchain, hours of work, not seconds.
+
+**Low-spin bracket:** Neon predicted the quantile would go UP. LVK has effectively already measured it: population
+reweighting gives 99.7%.
