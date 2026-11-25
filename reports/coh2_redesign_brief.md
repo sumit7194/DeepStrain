@@ -31,7 +31,9 @@ segments) unless marked. Full record: `primordial_blackhole_search/benchmark/PRE
   | L_max 384 s | 465 | 7,669 | 12,067 | 2,497 | 457 | 14 |
 
   The median over real candidates is 2,654–3,565 at one per minute.
-- **Per-template correlation:** **3.36 ms** (Mac MPS, 2²¹-sample complex correlation, warm median).
+- **Per-template correlation:** **3.36 ms** (Mac MPS, 2²¹-sample complex correlation, warm median, **batch 64**).
+  That batch's real memory footprint is ~5–6 GB (see House rule 3), so the timing at a < 2 GB batch size must be
+  re-measured.
 - **Stage-2 total at one per minute:** **584 h** (L_max 128) to **703 h** (384). That is background plus a Gaussian
   twin, 600 decoys and the foreground; the background alone is 289–348 h.
 
@@ -115,8 +117,16 @@ segments) unless marked. Full record: `primordial_blackhole_search/benchmark/PRE
      correlation) was measured on MPS, warm median, batches of 64. A redesign must be timed on the same device, the
      same way, and its speed-up quoted against that number.
    - Memory is unified and shared with the fleet (about half free tonight).
-   - Declare a peak for any MPS run and keep it **under 2 GB**. A batch of 64 snippets of 2²¹ complex64 values is
-     ~1 GB on the device; the baseline measurement peaked at 1.31 GB RSS, and RSS under-reports MPS by ~1.3×.
+   - Declare a peak for any MPS run and keep it **under 2 GB**, measured as **memory footprint** (`top` MEM /
+     `footprint`), **never RSS**.
+   - **⚠️ Correction (2026-11-26, measured in this round, unverified by DeepStrain):** the baseline's own call, a
+     64 × 2²¹ complex64 batch, holds **~5.8 GB of footprint while RSS reads tens of MB**. My earlier "~1 GB on device"
+     counted only the input.
+     - The working set is template spectra 0.54 + product 0.54 + padded array 1.07 + transform output 1.07 + magnitudes
+       0.54 GB ≈ 3.8 GB before allocator caching.
+     - So the stored T-cost run's "1.31 GB" was RSS. Its true peak was not measured and was likely ~5–6 GB.
+     - **A batch of 64 cannot meet the < 2 GB rule.** Use batch 8–16 (≈ 0.5–1 GB working set by the same arithmetic),
+       and re-measure the per-template time at that batch size, because the 3.36 ms baseline was measured at batch 64.
    - No long MPS job without the Bridge's OK.
 4. **No job-ending caps:** no timeout, alarm or step limits. Pause on pressure (`job_guard.sh` does this) and
    checkpoint anything over ~10 min.

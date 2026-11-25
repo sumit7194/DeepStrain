@@ -13,7 +13,9 @@
 #            OR free disk < GUARD_DISK_PAUSE_GB (5)
 #   RESUME   level 1 AND swap <= baseline + grow AND free disk >= GUARD_DISK_RESUME_GB (6)
 #   CRITICAL level >= 4 OR free disk < 2 GB: pause (as above) plus a CRITICAL alert
-#   INFORM   process-group RSS > BENCH_RSS_CAP_KB (4 GB): log and alert once, NO action
+#   INFORM   process-group MEMORY FOOTPRINT (top MEM = phys_footprint; NOT RSS, which misses Metal/MPS unified memory:
+#            a 64x2^21 MPS batch showed ~5.8 GB footprint at tens of MB RSS, 2026-11-26) > BENCH_RSS_CAP_KB (4 GB):
+#            log and alert once, NO action
 # Alerts go to GUARD_INBOX (default: the Bridge's inbox directory).
 # Test hooks: GUARD_SWAP_OVERRIDE_FILE / GUARD_FREE_OVERRIDE_FILE (read every poll), GUARD_INTERVAL_S.
 cd "$(dirname "$0")" || exit 1
@@ -46,16 +48,20 @@ free_gb() {
   df -g / | awk 'NR==2{print $4}'
 }
 
+group_mem_kb() {  # sum of top's MEM (= phys_footprint, includes Metal/MPS unified memory) over the job's process group
+  top -l 1 -stats pgrp,mem 2>/dev/null | awk -v g="$PG" '$1==g{v=$2; sub(/[+-]$/,"",v); u=substr(v,length(v)); n=v+0;
+    if(u=="G")n*=1048576; else if(u=="M")n*=1024; else if(u=="B")n/=1024; s+=n} END{printf "%d", s}'
+}
 BASE=$(sysctl -n vm.swapusage | awk '{for(i=1;i<=NF;i++) if($i=="used") {v=$(i+2); sub("M","",v); print int(v)}}')
-say "armed: swap baseline ${BASE}MB (pause above +${GROW}), disk pause < ${DPAUSE} GB / resume >= ${DRESUME} GB, RSS inform > ${CAP} KB"
+say "armed: swap baseline ${BASE}MB (pause above +${GROW}), disk pause < ${DPAUSE} GB / resume >= ${DRESUME} GB, footprint (top MEM) inform > ${CAP} KB"
 PAUSED=0; INFORMED=0; PEAK=0
 while kill -0 "$PID" 2>/dev/null; do
   LVL=$(sysctl -n kern.memorystatus_vm_pressure_level); SWAP=$(swap_used); FREE=$(free_gb)
-  RSS=$(ps -axo pgid=,rss= | awk -v g="$PG" '$1==g{s+=$2}END{print s+0}')
+  RSS=$(group_mem_kb)
   [ "$RSS" -gt "$PEAK" ] && PEAK=$RSS
   if [ "$RSS" -gt "$CAP" ] && [ $INFORMED -eq 0 ]; then
-    INFORMED=1; say "INFORM: group RSS ${RSS} KB > ${CAP} KB (no action taken)"
-    alert inform "RSS ${RSS} KB passed the ${CAP} KB guide value; NO action taken (inform only)"
+    INFORMED=1; say "INFORM: group footprint ${RSS} KB > ${CAP} KB (no action taken)"
+    alert inform "memory footprint ${RSS} KB passed the ${CAP} KB guide value; NO action taken (inform only)"
   fi
   if [ "$LVL" -ge 2 ] || [ "$SWAP" -gt $((BASE + GROW)) ] || [ "$FREE" -lt "$DPAUSE" ]; then
     if [ $PAUSED -eq 0 ]; then
@@ -71,4 +77,4 @@ while kill -0 "$PID" 2>/dev/null; do
   fi
   sleep "$INTERVAL"
 done
-say "job exited; process-group RSS peak $((PEAK/1024)) MB (sampled every ${INTERVAL} s)"
+say "job exited; process-group footprint peak $((PEAK/1024)) MB (sampled every ${INTERVAL} s)"

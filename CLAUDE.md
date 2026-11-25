@@ -599,7 +599,9 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   OOM kills, cleared by a checkpoint reboot. Code + prereg: `primordial_blackhole_search/device_stream/`; verdict
   code committed before C2–C4 were scored. Phone released 2026-10-23. Artifact: results/device_stream_verdict.json.
 - **Resource accounting on this box (measured 2026-09-04): RSS under-reports an MPS job by ~1.3x, and a
-  SINGLE `free` sample is not a state.** Metal allocations live in unified memory and do not fully land in
+  SINGLE `free` sample is not a state.** ⚠️ **2026-11-26: the 1.3× is NOT general.** A 64×2²¹ complex64 MPS
+  FFT batch showed ~5.8 GB footprint at tens of MB RSS (Fable round, unverified). For any torch/MPS job, measure
+  FOOTPRINT (top MEM / `footprint`), never RSS; job_guard.sh now does. The T-cost 1.31 GB was RSS (PREREG_coherent2 §11). Metal allocations live in unified memory and do not fully land in
   RSS, so `ps` under-counts a torch/MPS job — but by **1.33x** (footprint 1.00 GB against RSS 754 MB),
   measured as the difference between two **medians of 8 samples**. ⚠️ **An earlier entry here said 2.19x;
   that was one instantaneous `free` read before a kill against one after.** `free` oscillates by >1 GB on
