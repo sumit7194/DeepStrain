@@ -5,6 +5,11 @@
 cd "$(dirname "$0")/.." || exit 1
 NAME=$1; shift
 S=benchmark/state; mkdir -p $S
+# RSS cap of the job's process group, KB. Default 4 GB (PLAN.md); override per launch with BENCH_RSS_CAP_KB
+# (2026-11-25, fleet hard-limit audit). Validated here so a typo cannot silently disable or zero the cap.
+CAP=${BENCH_RSS_CAP_KB:-4194304}
+case "$CAP" in ''|*[!0-9]*) echo "refusing BENCH_RSS_CAP_KB='$CAP' (positive integer KB)"; exit 2;; esac
+[ "$CAP" -gt 0 ] || { echo "refusing BENCH_RSS_CAP_KB=0"; exit 2; }
 [ -f $S/$NAME.pid ] && kill -0 "$(cat $S/$NAME.pid)" 2>/dev/null && { echo "$NAME already running (pid $(cat $S/$NAME.pid))"; exit 1; }
 export OMP_NUM_THREADS=2 VECLIB_MAXIMUM_THREADS=2 OPENBLAS_NUM_THREADS=2 MKL_NUM_THREADS=2
 nohup perl -MPOSIX -e 'setsid(); exec @ARGV' nice -n 15 .venv/bin/python -u "$@" >> $S/$NAME.log 2>&1 &
@@ -16,11 +21,11 @@ nohup bash -c "
     RSS=\$(ps -axo pgid=,rss= | awk -v g=\$PG '\$1==g{s+=\$2}END{print s+0}')
     FREE=\$(df -g / | awk 'NR==2{print \$4}')
     [ \"\$RSS\" -gt \"\$PEAK\" ] && PEAK=\$RSS
-    if [ \"\$RSS\" -gt 4194304 ] || [ \"\$FREE\" -lt 5 ]; then
+    if [ \"\$RSS\" -gt $CAP ] || [ \"\$FREE\" -lt 5 ]; then
       echo \"\$(date) WATCHDOG: rss=\${RSS}KB free=\${FREE}GB -> TERM pgid \$PG\" >> $S/$NAME.log
       kill -TERM -- -\$PG; break
     fi
     sleep 5
   done
   echo \"\$(date) WATCHDOG: process-group RSS peak \$((PEAK/1024)) MB (sampled every 5 s)\" >> $S/$NAME.log" >/dev/null 2>&1 &
-echo "started $NAME pid $PID"
+echo "started $NAME pid $PID (RSS cap ${CAP} KB)"
