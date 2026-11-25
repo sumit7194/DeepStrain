@@ -43,7 +43,9 @@ def box(det, gps, inj, mc_star, l_max, n_sub=None):
     import y1_bank as Y1
     dev = L.pick_dev()
     sign = json.loads((L.OUT / "E1_phase_model.json").read_text())["sign"]
-    hw = json.loads((B / "results" / "coh2" / "T1_mc_bias.json").read_text())["all"]["p99"]
+    import os
+    hw = float(os.environ.get("COH2C_HALF_WIDTH") or
+               json.loads((B / "results" / "coh2" / "T1_mc_bias.json").read_text())["all"]["p99"])   # D5: 0.022
     st = json.loads((B / "state" / "realbg" / "caught.json").read_text())
     segs = json.loads((B / "manifest.json").read_text())["test"]
     inj_ids = () if inj is None else tuple(inj)
@@ -98,7 +100,7 @@ def box(det, gps, inj, mc_star, l_max, n_sub=None):
         f_own = L.f_start(mc, l_max)
         own[k] = bf[k] if abs(f_own - refs[j][2]) < 1e-9 else peak(L.fd_template(mc, q, f_own))
     rel = np.abs(loc / bf - 1)
-    out = dict(check="V1/V2/V3/D2", det=det, segment=gps, injection=inj, mc_star=mc_star, l_max=l_max, device=dev,
+    out = dict(check="V1/V2/V3/D2", half_width=hw, det=det, segment=gps, injection=inj, mc_star=mc_star, l_max=l_max, device=dev,
                n_templates=len(pts), n_grid_full=gsum["n_grid"], n_refs=len(refs), lattice_worst_dtau=lat_worst,
                v3_worst_assigned_dtau=float(v3_worst), dtau_rule=L.dtau_max(4.0), v3_pass=bool(v3_worst <= L.dtau_max(4.0)),
                box_max_local=float(loc.max()), box_max_brute=float(bf.max()),
@@ -112,7 +114,7 @@ def box(det, gps, inj, mc_star, l_max, n_sub=None):
                seconds_local=round(t_loc, 1), seconds_total=round(time.time() - t0, 1),
                peak_footprint_mb=L.peak_footprint_mb(), model="Claude Opus 5.5 (DeepStrain verification)")
     OUT.mkdir(parents=True, exist_ok=True)
-    tag = f"{det}_{gps}_{'i%d' % inj if inj is not None else 'noise'}_mc{mc_star:.3f}_L{l_max}_{dev}" + \
+    tag = (f"hw{hw:.4f}_" if abs(hw - 0.021510884647971934) > 1e-9 else "") + f"{det}_{gps}_{'i%d' % inj if inj is not None else 'noise'}_mc{mc_star:.3f}_L{l_max}_{dev}" + \
           (f"_sub{n_sub}" if n_sub else "")
     (OUT / f"box_{tag}.json").write_text(json.dumps(dict(out, env=L.stamp()), indent=1))
     print(json.dumps(out), flush=True)
