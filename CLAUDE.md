@@ -676,6 +676,15 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   Note: an unrelated Zenodo record 'ZahraZali/DeepStrain' (GFZ Potsdam) shares the repo name. Open: 1/month needs more
   segments or a 2nd slide family (Sumit's call).
 
+- **COHERENT SECOND LOOK ON FRESH SEGMENTS (2026-11-25): G0 NOT PASSED IN PROJECTION; redesign (c) pending.**
+  - Pre-registered and frozen (benchmark/PREREG_coherent2.md, 715a0b3), with the review fixes and a staged go/no-go
+    gate G0 on the tuning set (≥1.15×, CI_lo > 1, all gates, cost ≤ 120 h).
+  - **Tuning part 1:** stage-1 chirp-mass bias p99 ~2%. The coherent grid needs ~14–12,000 templates per candidate, at
+    3.36 ms each. Stage 2 costs 17.5–21 h at one per hour vs 584–703 h at one per minute, so one per hour is forced.
+    Its idealised ceiling, 1.169×, leaves 1.6% of headroom against the 1.15 bar.
+  - **Decision:** fresh segments unopened. Sumit picked (c), a new design to make one-per-minute affordable, for later.
+    Brief: reports/coh2_redesign_brief.md.
+
 - **pSEOBNR PRIOR-SENSITIVITY TEST DONE (2026-11-24): the GWTC-5 2-D tension moves ~10 points with the SPIN prior,
   and the move is in the frequency, not the damping time.** Follow-up to Neon's plan review (reports/PLAN_next_2026-11-23*,
   reports/ringdown_bias_check_2026-11-24.md).

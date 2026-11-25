@@ -251,3 +251,14 @@ met at one per hour.
 at 1/day is 67.2 / 57.47 = **1.169**: Gaussian stage-2 noise, the true template every time, and expected SNR. G0
 clause 1 needs R_tune ≥ 1.15. So the whole real-world loss budget (grid mismatch up to 3% in SNR, real-noise tails,
 χ² and v_s penalties) must fit inside **1.6%** of distance. I expect G0 clause 1 to fail.
+
+## 10. Status (2026-11-25): G0 NOT PASSED IN PROJECTION at the affordable rate; redesign (c) pending
+
+- **The forced rate cannot clear the bar.** At the only affordable rate (one per hour, forced by cost), the
+  idealised upper bound at 1/day is **1.169**, against G0's **1.15**.
+- **Formal G0 not evaluated.** The refiner, χ², v_s and decoys were not built.
+- **Fresh segments: unfetched and unopened.**
+- **Sumit's decision (via the Bridge):** option (c), a new design to make one-per-minute affordable (e.g. a
+  hierarchical coarse→fine refiner), to be explored later. It will be a new amendment, or a new pre-registration
+  that inherits this one's gates and G0.
+- **Brief for the redesign:** `reports/coh2_redesign_brief.md`.
