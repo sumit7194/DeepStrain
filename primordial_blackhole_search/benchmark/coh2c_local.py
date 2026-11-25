@@ -51,6 +51,14 @@ def peak_footprint_mb():
     return round(footprint_mb()[1])
 
 
+def pick_dev():
+    """MPS by default; COH2C_DEV=cpu runs the same engine code on the CPU (exactness gates then need ~1 GB of
+    footprint instead of ~2 GB: a 2^21-sample FFT on MPS alone holds ~1.1 GB of driver memory)."""
+    import os
+    import torch
+    return os.environ.get("COH2C_DEV") or ("mps" if torch.backends.mps.is_available() else "cpu")
+
+
 def stamp():
     import envstamp
     return envstamp.stamp(str(B.parent.parent))
@@ -378,7 +386,7 @@ def e2():
     one), each with the box centred on the nearest Y1 bank template."""
     import torch
     import y1_bank as Y1
-    dev = "mps" if torch.backends.mps.is_available() else "cpu"
+    dev = pick_dev()
     sign = json.loads((OUT / "E1_phase_model.json").read_text())["sign"]
     half_width = json.loads((B / "results" / "coh2" / "T1_mc_bias.json").read_text())["all"]["p99"]
     segs = json.loads((B / "manifest.json").read_text())["test"]
@@ -393,7 +401,7 @@ def e2():
             ("noise, forced box", g0, (), None, 0.26), ("noise, forced box", g0, (), None, 0.86),
             ("signal", g0, (676,), 676, None), ("signal, lowest Mc caught", 1253212160, (471, 473), 471, None),
             ("signal, q = 0.25", 1253212160, (471, 473), 473, None)]
-    res = dict(gate="E2", det="H1", half_width=half_width, bars=E2_BARS, configs=[list(c) for c in E2_CONFIGS],
+    res = dict(gate="E2", det="H1", device=dev, half_width=half_width, bars=E2_BARS, configs=[list(c) for c in E2_CONFIGS],
                cases=[])
     t0 = time.time()
     for label, gps, inj_ids, inj, mc_star in plan:
@@ -521,6 +529,142 @@ def chi2_at_peak(eng, ytil, dcoef, sign, lag, edges):
     rot = 2 * np.pi * k.unsqueeze(0) * lag.unsqueeze(1).to(t.float32) / eng.m
     zt = zt * t.complex(t.cos(rot), t.sin(rot)) / eng.m
     return t.stack([(zt * e.unsqueeze(0)).sum(dim=1) for e in edges], dim=1)
+
+
+# ------------------------------------------------------------------ gate E3: Allen chi^2 pieces at the peak
+def chi2_fine(t, p0, dcoef, sign, n0, kedges, basis_fine, k_idx):
+    """EXACT route: band sums at the snippet's full frequency resolution, heterodyned.
+    p0 = Y conj(H0) on the band bins [nb]; dcoef [n, NK]; n0 [n] int64 snippet sample of each template's peak;
+    kedges = p (start, stop) index pairs into the band bins. Returns z_j, [n, p] (unnormalised, as Engine.z)."""
+    ph = (dcoef @ basis_fine) * float(-sign)
+    lag = ((k_idx.unsqueeze(0) * n0.unsqueeze(1)) % NS).to(t.float32) * (2 * np.pi / NS)   # exact integer phase
+    ph = ph + lag
+    zt = p0.unsqueeze(0) * t.complex(t.cos(ph), t.sin(ph))
+    return t.stack([zt[:, a:b].sum(dim=1) for a, b in kedges], dim=1) * (2.0 / NS)
+
+
+def e3():
+    """chi^2 pieces z_j (p equal-SNR frequency bands) at each template's peak lag: the exact fine-resolution route and
+    the cheap coarse-mask route, both against brute force (pycbc template, float64, the full 2^21-sample spectrum).
+    Bars, written before the first run: fine route |z_j - brute| <= 1e-3 * max(|z|, 1) in every band and chi^2 within
+    1e-3 (relative, where chi^2 >= 1). The coarse route is EXPECTED to miss these (band edges are blurred by the
+    window's ~1/8-Hz resolution, my estimate ~0.05 per band); it is measured to say by how much."""
+    import torch
+    import y1_bank as Y1
+    dev = pick_dev()
+    sign = json.loads((OUT / "E1_phase_model.json").read_text())["sign"]
+    half_width = json.loads((B / "results" / "coh2" / "T1_mc_bias.json").read_text())["all"]["p99"]
+    segs = json.loads((B / "manifest.json").read_text())["test"]
+    st = json.loads((B / "state" / "realbg" / "caught.json").read_text())
+    rng = np.random.default_rng(20261127)
+    eng = Engine(dev, 4.0, 1)
+    f_fine = np.arange(NS // 2 + 1) * (FS / NS)
+    kb = np.where((f_fine >= F_LO - 12) & (f_fine <= F_HI))[0]            # band bins (covers every start frequency)
+    basis_fine = torch.tensor(basis(f_fine[kb]).astype(np.float32), device=dev)
+    k_idx = torch.tensor(kb, device=dev, dtype=torch.int64)
+    g0 = segs[0]
+    bins = np.load(B / "results" / "y1_bins" / f"noise_{g0}.npz")
+    cand = [b for b in st["candidates"]["0_0"] if (PRE + 1) * FS < b * 102 < C.SEGMENT_LEN * FS - 65 * FS][0] * 102
+    mc_y1 = float(Y1.MCS[bins["H1_tid"][min(cand // Y1.BIN, len(bins["H1_tid"]) - 1)]])
+    plan = [("noise, Y1 box", g0, (), None, mc_y1, 384), ("signal", g0, (676,), 676, None, 384),
+            ("signal, q = 0.25", 1253212160, (471, 473), 473, None, 384),
+            ("signal, lowest Mc caught", 1253212160, (471, 473), 471, None, 384),
+            ("signal, lowest Mc caught", 1253212160, (471, 473), 471, None, 128)]
+    res = dict(gate="E3", device=dev, bars=dict(fine_band_err=1e-3, fine_chi2_rel=1e-3), cases=[])
+    t0 = time.time()
+    i_s = PRE * FS
+    t_fine = None
+    for label, gps, inj_ids, inj, mc_star, l_max in plan:
+        y, w_snip, rows = load_ww("H1", gps, inj_ids)
+        if inj is None:
+            i_c, truth = cand, None
+        else:
+            i_c, truth = rows[inj]["merger"] + int(rng.integers(-800, 800)), (rows[inj]["mc"], rows[inj]["q"])
+            mc_star = float(Y1.MCS[np.argmin(np.abs(np.log(Y1.MCS / truth[0])))])
+        ysn = snippet_spectrum(y, i_c)
+        kappa = 1.0 / np.median(np.abs(ysn[NS // 2048: NS // 8]))
+        ysn_t = torch.tensor((ysn * kappa).astype(np.complex64), device=dev)
+        qr = q_range(mc_star)
+        refs, _ = reference_lattice(mc_star, half_width, l_max, dtau_max(eng.tw))
+        tpl = []
+        for k in range(8):
+            mc, q = truth if (truth is not None and k == 0) else (
+                mc_star * float(np.exp(rng.uniform(-half_width, half_width))), float(rng.uniform(*qr)))
+            c = coeffs(mc, q)
+            tpl.append((mc, q, c, assign(c, refs)[0]))
+        rows_out = []
+        for j, (mc_r, q_r, f_lo, c_r) in enumerate(refs):
+            mine = [x for x in tpl if x[3] == j]
+            if not mine:
+                continue
+            h0 = fd_template(mc_r, q_r, f_lo)
+            pw = np.abs(h0 * w_snip) ** 2
+            sig0 = np.sqrt(2 * pw.sum() / NS)
+            h0c = torch.tensor(np.conj(h0).astype(np.complex64), device=dev)
+            ytil = eng.window(analytic_corr(torch, ysn_t, h0c), i_s)
+            p0 = (ysn_t * h0c)[k_idx]
+            cum = np.cumsum(pw[kb]) / pw[kb].sum()
+            P = np.zeros(NS, complex)
+            for mc, q, c, _ in mine:
+                h = fd_template(mc, q, f_lo)
+                sig = np.sqrt(2 * np.sum(np.abs(h * w_snip) ** 2) / NS)
+                prod = ysn * np.conj(h)
+                P[: NS // 2 + 1] = prod
+                zf = 2 * np.fft.ifft(P) / sig
+                n0 = int(i_s - FS + np.argmax(np.abs(zf[i_s - FS: i_s + FS + 1]) ** 2))
+                z_tot = zf[n0]
+                dco = torch.tensor((c - c_r).astype(np.float32), device=dev).unsqueeze(0)
+                for p_bins in (4, 8, 16):
+                    ke = np.searchsorted(cum, np.arange(1, p_bins) / p_bins)
+                    ke = np.concatenate([[0], ke, [len(kb)]])
+                    kedges = [(int(a), int(b)) for a, b in zip(ke[:-1], ke[1:])]
+                    rot = np.exp(2j * np.pi * ((kb.astype(np.int64) * n0) % NS) / NS)
+                    zj_bf = np.array([2 * np.sum(prod[kb[a:b]] * rot[a:b]) / NS for a, b in kedges]) / sig
+                    n0_t = torch.tensor([n0], device=dev, dtype=torch.int64)
+                    zj_f = chi2_fine(torch, p0, dco, sign, n0_t, kedges, basis_fine, k_idx)[0].cpu().numpy() \
+                        .astype(np.complex128) / (sig0 * kappa)
+                    # coarse route: masks on the window's own frequency bins, the lag as a window sample
+                    f_edge = [f_fine[kb[a]] for a, _ in kedges] + [f_fine[kb[-1]] + 1.0]
+                    masks = [torch.tensor(((eng.f_abs >= lo) & (eng.f_abs < hi)).astype(np.float32), device=dev)
+                             for lo, hi in zip(f_edge[:-1], f_edge[1:])]
+                    lag_w = torch.tensor([n0 - (i_s - eng.nw // 2)], device=dev)
+                    zj_c = chi2_at_peak(eng, ytil, dco, sign, lag_w, masks)[0].cpu().numpy().astype(np.complex128) \
+                        / (sig0 * kappa)
+
+                    def chi2(zj):
+                        return float(p_bins * np.sum(np.abs(zj - zj.sum() / p_bins) ** 2))
+                    scale = max(abs(z_tot), 1.0)
+                    rows_out.append(dict(mc=mc, q=q, p=p_bins, z_abs=float(abs(z_tot)),
+                                         closure_bf=float(abs(zj_bf.sum() - z_tot) / scale),
+                                         fine_band_err=float(np.abs(zj_f - zj_bf).max() / scale),
+                                         coarse_band_err=float(np.abs(zj_c - zj_bf).max() / scale),
+                                         coarse_band_err_abs=float(np.abs(zj_c - zj_bf).max()),
+                                         chi2_bf=chi2(zj_bf), chi2_fine=chi2(zj_f), chi2_coarse=chi2(zj_c)))
+                if t_fine is None:                                   # P3 input: 5 templates, p = 16, warm median
+                    dco5 = dco.repeat(5, 1)
+                    n05 = torch.tensor([n0] * 5, device=dev, dtype=torch.int64)
+                    t_fine = _warm_median(lambda: chi2_fine(torch, p0, dco5, sign, n05, kedges, basis_fine, k_idx),
+                                          torch, dev)[0]
+            del ytil, p0, h0c
+        fe = max(r["fine_band_err"] for r in rows_out)
+        fc = max(abs(r["chi2_fine"] / r["chi2_bf"] - 1) for r in rows_out if r["chi2_bf"] >= 1)
+        ce = max(r["coarse_band_err_abs"] for r in rows_out)
+        cc = max(abs(r["chi2_coarse"] / r["chi2_bf"] - 1) for r in rows_out if r["chi2_bf"] >= 1)
+        summ = dict(case=label, segment=gps, injection=inj, l_max=l_max, mc_star=mc_star, n_refs=len(refs),
+                    fine_band_err_max=fe, fine_chi2_rel_max=fc, coarse_band_err_abs_max=ce, coarse_chi2_rel_max=cc,
+                    closure_bf_max=max(r["closure_bf"] for r in rows_out),
+                    passed=bool(fe <= 1e-3 and fc <= 1e-3), rows=rows_out)
+        res["cases"].append(summ)
+        print(f"E3 {label} Mc* {mc_star:.3f} L {l_max}: FINE band err {fe:.1e}, chi2 rel {fc:.1e} -> "
+              f"{'PASS' if summ['passed'] else 'FAIL'} | coarse band err {ce:.3f} (abs), chi2 rel {cc:.2f} | closure "
+              f"{summ['closure_bf_max']:.1e} | {time.time()-t0:.0f} s | footprint {peak_footprint_mb()} MB", flush=True)
+        del ysn_t
+    res["passed"] = bool(all(c["passed"] for c in res["cases"]))
+    res["chi2_fine_top5_p16_s"] = t_fine
+    res["seconds"] = round(time.time() - t0)
+    write("E3_chi2.json", res)
+    print(f"E3 {'PASS' if res['passed'] else 'FAIL'} (fine route); fine chi^2 for 5 templates, p = 16: {t_fine*1e3:.2f} ms",
+          flush=True)
 
 
 SCALE = np.array([500, 50, 300, 200, 100, 50, 30, 10, 20, 10], dtype=np.float32)   # realistic |dcoef| sizes
@@ -729,6 +873,22 @@ def cost():
     assert ok
     mc_pts = np.geomspace(0.175, 0.868, 12)
     t_snip = ov.get("snippet_read_transfer_rfft_s", ov["snippet_rfft_mps_s"])
+    # chi^2 at 5 peaks: the exact fine-resolution route if gate E3 has timed it, else the coarse one
+    e3p = OUT / "E3_chi2.json"
+    t_chi2 = json.loads(e3p.read_text())["chi2_fine_top5_p16_s"] if e3p.exists() else ov["chi2_coarse_top5_p16_s"]
+    res["inputs"]["chi2_s"] = t_chi2
+    # constructed grids (coh2c_grid.py): the accepted (last) row per box; counts per candidate by the same log-log
+    # interpolation over the six chirp-mass points that the old model used for its estimate
+    built, gp = {}, OUT / "G_grids.json"
+    if gp.exists():
+        for r in json.loads(gp.read_text())["rows"]:
+            built[(r["l_max"], r["mc_star"])] = r["n_grid"]
+    GRID_BUILD_S = 8.0          # per distinct box, measured upper value incl. the Monte Carlo (G_grids.json: 62 s / 14)
+
+    def n_built(mcs, l_max):
+        gm = np.array(sorted(m for (l, m) in built if l == l_max))
+        gn = np.array([built[(l_max, m)] for m in gm])
+        return np.exp(np.interp(np.log(mcs), np.log(gm), np.log(gn)))
     for cfg in tm["configs"]:
         t_loc, tw, dec = cfg["per_template_s"], cfg["tw"], cfg["dec"]
         for l_max in CC.L_OPTS:
@@ -739,7 +899,7 @@ def cost():
             for lab, mcs in cands.items():
                 n = n_each(mcs, l_max)
                 n_ref = np.interp(np.log(mcs), np.log(mc_pts), res["lattices"][key])
-                per_cd = n * t_loc + n_ref * ov["reference_corr_and_window_s"] + t_snip + ov["chi2_coarse_top5_p16_s"]
+                per_cd = n * t_loc + n_ref * ov["reference_corr_and_window_s"] + t_snip + t_chi2
                 bg_h = 2 * per_cd.sum() / 3600
                 passes = 2 + 900 / len(mcs)
                 # one-off, shared by every pass: coefficient tables per distinct box, reference templates per lattice
@@ -756,17 +916,30 @@ def cost():
                                                    references=float(2 * (n_ref * ov["reference_corr_and_window_s"]).sum()
                                                                     / 3600 * passes),
                                                    snippets=float(2 * len(mcs) * t_snip / 3600 * passes),
-                                                   chi2=float(2 * len(mcs) * ov["chi2_coarse_top5_p16_s"] / 3600 * passes),
+                                                   chi2=float(2 * len(mcs) * t_chi2 / 3600 * passes),
                                                    one_off_tables=float(once_h)),
                                         s2_total_hours=float(total), old_model_hours=old, speedup=float(old / total),
                                         total_if_n_tmpl_x2p5=float(total + 1.5 * 2 * (n * t_loc).sum() / 3600 * passes)))
+                if (l_max, 0.35) in built:      # the same total with CONSTRUCTED grid counts, plus building the grids
+                    nb_ = n_built(mcs, l_max)
+                    r = res["rows"][-1]
+                    grid_h = len(boxes) * GRID_BUILD_S / 3600
+                    r["constructed"] = dict(
+                        median_n_tmpl=float(np.median(nb_)), sum_ratio_to_estimate=float(nb_.sum() / n.sum()),
+                        grid_build_hours=float(grid_h), n_distinct_boxes=int(len(boxes)),
+                        s2_total_hours=float(total + 2 * ((nb_ - n) * t_loc).sum() / 3600 * passes + grid_h +
+                                             (n_built(boxes, l_max) - n_each(boxes, l_max)).sum() * ov["coeffs_cpu_s"] / 3600))
+                    r["constructed"]["speedup"] = float(old / r["constructed"]["s2_total_hours"])
                 if lab == "1/min":
                     r = res["rows"][-1]
                     print(f"1/min L_max {l_max} tw {tw:.0f} dec {dec} (M {cfg['m']}): {r['s2_total_hours']:.1f} h "
                           f"(templates {r['hours']['templates']:.1f}, references {r['hours']['references']:.1f}, snippets "
                           f"{r['hours']['snippets']:.1f}, chi2 {r['hours']['chi2']:.2f}, one-off {r['hours']['one_off_tables']:.2f})"
-                          f" | old {old:.0f} h | {r['speedup']:.0f}x | at 2.5x N_tmpl: {r['total_if_n_tmpl_x2p5']:.1f} h",
-                          flush=True)
+                          f" | old {old:.0f} h | {r['speedup']:.0f}x | at 2.5x N_tmpl: {r['total_if_n_tmpl_x2p5']:.1f} h"
+                          + (f" | CONSTRUCTED grids: {r['constructed']['s2_total_hours']:.1f} h "
+                             f"({r['constructed']['sum_ratio_to_estimate']:.2f}x the templates, "
+                             f"{r['constructed']['grid_build_hours']:.1f} h to build {r['constructed']['n_distinct_boxes']} grids)"
+                             if "constructed" in r else ""), flush=True)
     write("P3_cost.json", res)
 
 
@@ -779,4 +952,4 @@ if __name__ == "__main__":
     elif cmd == "tlocal":
         tlocal(float(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4]))
     else:
-        {"e1": e1, "e2": e2, "tovh": tovh, "time": timeall, "cost": cost}[cmd]()
+        {"e1": e1, "e2": e2, "e3": e3, "tovh": tovh, "time": timeall, "cost": cost}[cmd]()
