@@ -5,8 +5,10 @@
 
 Each unit is one detector-segment, saved as float32 .npy and written atomically. State is in
 benchmark/state/fetch_state.json. Touch benchmark/state/PAUSE to stop cleanly between units, and re-run to resume.
-Rules (PLAN.md): free disk >= 5 GB, retry backoff 10/30/60 min, skip a file after 3 failures, stop after 3
-consecutive failed files, and yield while the macOS 27.2 regression fetch is running.
+Rules (PLAN.md, amended 2026-11-25 by the fleet rule "no hard cap may end a job"): below 5 GB free disk the fetch
+WAITS and alerts the Bridge, resuming at >= 6 GB; failed files are retried indefinitely with backoff 10/30/60 min
+(then every 60 min), never skipped, and the Bridge is alerted after 3 consecutive failures; it also yields while the
+macOS 27.2 regression fetch is running.
 """
 import hashlib
 import json
@@ -29,7 +31,8 @@ N_TEST, N_DEV = 24, 8
 TEST_FROM, O3A_END = 1249000000, 1253977218
 DEV_FROM = C.SCAN_START + C.SCAN_DAYS * 86400  # after the baselines' training scan window
 BACKOFF_S = (600, 1800, 3600)
-MIN_FREE_GB = 5.0
+MIN_FREE_GB, RESUME_FREE_GB = 5.0, 6.0
+INBOX = Path(os.environ.get("GUARD_INBOX", "/Users/sumit/Github/.claude-coordination/inbox/bridge"))
 
 
 def log(*a):
@@ -80,6 +83,12 @@ def discover():
                            "GWTC-2.1-marginal"], "event_pad_s": 64, "test": test, "dev": dev, "sha256": {}})
     log(f"test {len(test)} ({test[0]}..{test[-1]}), dev {len(dev)} ({dev[0]}..{dev[-1]}); "
         f"events excluded in windows: {n_ev_t}/{n_ev_d}")
+
+
+def alert(tag, text):
+    INBOX.mkdir(parents=True, exist_ok=True)
+    (INBOX / f"{time.strftime('%Y-%m-%d_%H%M%S')}_deepstrain_fetch_{tag}.md").write_text(
+        f"# deepstrain -> Bridge: benchmark fetch {tag} at {time.strftime('%Y-%m-%d %H:%M:%S')}\n- {text}\n")
 
 
 def free_gb():
@@ -153,13 +162,18 @@ def fetch():
     consecutive = 0
     for ifo, g in units:
         key = f"{ifo}_{g}"
-        if key in man["sha256"] or key in st["skipped"]:
+        if key in man["sha256"]:  # files skipped under the old 3-failure rule are retried now (never skip)
             continue
         while True:
             if PAUSE.exists():
                 log("PAUSE flag present: stopping cleanly"); return 0
             if free_gb() < MIN_FREE_GB:
-                log(f"STOP: free disk {free_gb():.1f} GB < {MIN_FREE_GB}"); return 3
+                log(f"WAIT: free disk {free_gb():.1f} GB < {MIN_FREE_GB}; paused until >= {RESUME_FREE_GB}")
+                alert("disk_wait", f"fetch waiting (not stopped): free disk {free_gb():.1f} GB < {MIN_FREE_GB} GB")
+                while free_gb() < RESUME_FREE_GB and not PAUSE.exists():
+                    time.sleep(60)
+                log(f"resumed: free disk {free_gb():.1f} GB"); alert("disk_resumed", f"free disk {free_gb():.1f} GB")
+                continue
             if regression_fetch_running():
                 log("yielding: 27.2 regression fetch is running"); time.sleep(300); continue
             t = time.time()
@@ -169,13 +183,11 @@ def fetch():
                 n = st["failures"].get(key, 0) + 1
                 st["failures"][key] = n
                 log(f"FAIL {key} attempt {n}: {type(e).__name__} {str(e)[:160]} ({time.time() - t:.0f} s)")
-                if n >= len(BACKOFF_S):
-                    st["skipped"].append(key); atomic_json(STATE_F, st); consecutive += 1
-                    if consecutive >= 3:
-                        log("STOP: 3 consecutive files failed; GWOSC likely degraded"); return 2
-                    break
+                consecutive += 1
+                if consecutive == 3:
+                    alert("gwosc_failing", f"3 consecutive failed attempts (latest {key}); still retrying with backoff, nothing skipped")
                 atomic_json(STATE_F, st)
-                for _ in range(BACKOFF_S[n - 1] // 30):
+                for _ in range(BACKOFF_S[min(n, len(BACKOFF_S)) - 1] // 30):
                     if PAUSE.exists():
                         break
                     time.sleep(30)

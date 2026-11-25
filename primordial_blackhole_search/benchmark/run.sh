@@ -1,12 +1,12 @@
 #!/bin/bash
-# Launch one benchmark step detached, under the Bridge limits (PLAN.md): nice 15, 2 threads, process-tree RSS cap
-# ~4 GB, free-disk floor 5 GB. Usage: benchmark/run.sh <name> <python args...>   e.g. benchmark/run.sh fetch benchmark/fetch.py fetch
+# Launch one benchmark step detached, under the Bridge limits (PLAN.md): nice 15, 2 threads, a pause-and-alert guard
+# (job_guard.sh: never kills; RSS > ~4 GB is inform only; disk < 5 GB or memory pressure pauses, then auto-resumes). Usage: benchmark/run.sh <name> <python args...>   e.g. benchmark/run.sh fetch benchmark/fetch.py fetch
 # Writes state/<name>.pid and state/<name>.log. Stop with benchmark/stop.sh <name> (or touch state/PAUSE).
 cd "$(dirname "$0")/.." || exit 1
 NAME=$1; shift
 S=benchmark/state; mkdir -p $S
-# RSS cap of the job's process group, KB. Default 4 GB (PLAN.md); override per launch with BENCH_RSS_CAP_KB
-# (2026-11-25, fleet hard-limit audit). Validated here so a typo cannot silently disable or zero the cap.
+# RSS guide value of the job's process group, KB (INFORM only since 2026-11-25). Default 4 GB; override with
+# BENCH_RSS_CAP_KB. Validated here so a typo cannot silently disable or zero it.
 CAP=${BENCH_RSS_CAP_KB:-4194304}
 case "$CAP" in ''|*[!0-9]*) echo "refusing BENCH_RSS_CAP_KB='$CAP' (positive integer KB)"; exit 2;; esac
 [ "$CAP" -gt 0 ] || { echo "refusing BENCH_RSS_CAP_KB=0"; exit 2; }
@@ -14,18 +14,7 @@ case "$CAP" in ''|*[!0-9]*) echo "refusing BENCH_RSS_CAP_KB='$CAP' (positive int
 export OMP_NUM_THREADS=2 VECLIB_MAXIMUM_THREADS=2 OPENBLAS_NUM_THREADS=2 MKL_NUM_THREADS=2
 nohup perl -MPOSIX -e 'setsid(); exec @ARGV' nice -n 15 .venv/bin/python -u "$@" >> $S/$NAME.log 2>&1 &
 PID=$!; echo $PID > $S/$NAME.pid
-# watchdog: sum RSS over the job's process group; TERM the group (never STOP) above the cap or below the disk floor
-nohup bash -c "
-  sleep 5; PG=\$(ps -o pgid= -p $PID | tr -d ' '); PEAK=0
-  while kill -0 $PID 2>/dev/null; do
-    RSS=\$(ps -axo pgid=,rss= | awk -v g=\$PG '\$1==g{s+=\$2}END{print s+0}')
-    FREE=\$(df -g / | awk 'NR==2{print \$4}')
-    [ \"\$RSS\" -gt \"\$PEAK\" ] && PEAK=\$RSS
-    if [ \"\$RSS\" -gt $CAP ] || [ \"\$FREE\" -lt 5 ]; then
-      echo \"\$(date) WATCHDOG: rss=\${RSS}KB free=\${FREE}GB -> TERM pgid \$PG\" >> $S/$NAME.log
-      kill -TERM -- -\$PG; break
-    fi
-    sleep 5
-  done
-  echo \"\$(date) WATCHDOG: process-group RSS peak \$((PEAK/1024)) MB (sampled every 5 s)\" >> $S/$NAME.log" >/dev/null 2>&1 &
-echo "started $NAME pid $PID (RSS cap ${CAP} KB)"
+# guard: PAUSE + ALERT under box pressure, auto-RESUME; RSS above the cap is INFORM only. Never kills (fleet rule
+# 2026-11-25: no hard cap may end a job). See benchmark/job_guard.sh.
+BENCH_RSS_CAP_KB=$CAP nohup benchmark/job_guard.sh "$NAME" >/dev/null 2>&1 &
+echo "started $NAME pid $PID (RSS inform above ${CAP} KB; pause-and-alert guard)"
