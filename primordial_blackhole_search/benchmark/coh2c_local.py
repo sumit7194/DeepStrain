@@ -45,6 +45,12 @@ def peak_mb():
     return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss // 2 ** 20
 
 
+def peak_footprint_mb():
+    """Lifetime-peak physical footprint (top's MEM), the number peaks are declared in: RSS hides MPS memory."""
+    from footprint import footprint_mb
+    return round(footprint_mb()[1])
+
+
 def stamp():
     import envstamp
     return envstamp.stamp(str(B.parent.parent))
@@ -52,9 +58,10 @@ def stamp():
 
 def write(name, obj):
     OUT.mkdir(parents=True, exist_ok=True)
-    obj = dict(obj, model="Fable 5.2", status="UNVERIFIED", peak_rss_mb=peak_mb(), env=stamp())
+    obj = dict(obj, model="Fable 5.2", status="UNVERIFIED", peak_rss_mb=peak_mb(),
+               peak_footprint_mb=peak_footprint_mb(), env=stamp())
     (OUT / name).write_text(json.dumps(obj, indent=1))
-    print(f"wrote results/coh2c/{name} | peak RSS {peak_mb()} MB", flush=True)
+    print(f"wrote results/coh2c/{name} | peak footprint {peak_footprint_mb()} MB (RSS {peak_mb()} MB)", flush=True)
 
 
 # ------------------------------------------------------------------ masses and the phase model
@@ -78,8 +85,31 @@ def f_start(mc, l_max):
     return max(F_LO, f_at(mc, l_max))
 
 
+_LAL = None
+_K8 = np.arange(8)
+
+
 def coeffs(mc, q):
     """Float64 phase coefficients: Psi(f) = sum_j coeffs[j] * basis_j(f / F0)."""
+    global _LAL
+    if _LAL is None:
+        import lal
+        import lalsimulation as ls
+        _LAL = (ls.SimInspiralTaylorF2AlignedPhasing, lal.CreateDict())
+    m1, m2 = masses(mc, q)
+    pfa = _LAL[0](m1, m2, 0.0, 0.0, _LAL[1])
+    v, vl = np.array(pfa.v[:8]), np.array(pfa.vlogv[:8])
+    v0 = (np.pi * (m1 + m2) * G_SUN * F0) ** (1.0 / 3.0)
+    c = np.empty(NK)
+    c[:8] = (v + vl * np.log(v0)) * v0 ** (_K8 - 5.0)
+    c[8] = vl[5] / 3.0
+    c[9] = vl[6] * v0 / 3.0
+    return c
+
+
+def coeffs_reference(mc, q):
+    """The first, slow implementation (the one gates E1 and E2 ran with); kept to check coeffs() against. It also
+    asserts that lalsimulation has no log terms other than the two the basis carries."""
     import lal
     import lalsimulation as ls
     m1, m2 = masses(mc, q)
@@ -166,8 +196,18 @@ def e1():
         print(f"E1 {i:2d} mc {mc:.3f} q {q0:.2f}->{q1:.2f} dMc {mc1/mc-1:+.4f}: sign {best:+d} "
               f"max err {errs[sign]:.2e} rad over a {np.ptp(dpsi):.0f}-rad span", flush=True)
     worst = max(r["max_phase_err_rad"] for r in rows)
-    ok = worst <= 1e-3 and len({r["sign"] for r in rows}) == 1
-    write("E1_phase_model.json", dict(gate="E1", bar_rad=1e-3, worst_rad=worst, sign=sign, passed=bool(ok), rows=rows))
+    def rel(a, b):                       # entries that are exactly zero in the reference must be exactly zero
+        nz = b != 0
+        return float(np.max(np.abs(a[nz] / b[nz] - 1))) if np.all(a[~nz] == 0) else np.inf
+    same = max(rel(coeffs(r["mc"], r["q"]), coeffs_reference(r["mc"], r["q"])) for r in rows)
+    t0 = time.perf_counter()
+    for i in range(5000):
+        coeffs(0.3 + 1e-5 * i, 0.5)
+    us = (time.perf_counter() - t0) / 5000 * 1e6
+    print(f"coeffs() vs the first implementation: largest relative difference {same:.1e}; {us:.1f} us per call", flush=True)
+    ok = worst <= 1e-3 and len({r["sign"] for r in rows}) == 1 and same <= 1e-13
+    write("E1_phase_model.json", dict(gate="E1", bar_rad=1e-3, worst_rad=worst, sign=sign, passed=bool(ok),
+                                      coeffs_fast_vs_reference_max_rel=same, coeffs_us_per_call=us, rows=rows))
     print(f"E1 {'PASS' if ok else 'FAIL'}: worst phase error {worst:.2e} rad, h ~ exp({sign:+d} i Psi)", flush=True)
 
 
@@ -483,46 +523,50 @@ def chi2_at_peak(eng, ytil, dcoef, sign, lag, edges):
     return t.stack([(zt * e.unsqueeze(0)).sum(dim=1) for e in edges], dim=1)
 
 
-def timing():
-    import torch
-    import coh2_cost
-    dev = "mps" if torch.backends.mps.is_available() else "cpu"
-    res = dict(prediction="P1", stored_baseline_s=json.loads((B / "results" / "coh2" / "T_cost.json").read_text())
-               ["per_template_s"], device=dev, load_avg=list(__import__("os").getloadavg()), configs=[])
-    def baseline():
-        v = coh2_cost.per_template_seconds()[0]
-        if dev == "mps":                       # release the baseline's ~1 GB batch so the GPU peaks do not add
-            torch.mps.empty_cache()
-        return v
-    res["baseline_before_s"] = baseline()
-    print(f"baseline (paired, before): {res['baseline_before_s']*1e3:.2f} ms per template", flush=True)
-    rng = np.random.default_rng(0)
-    scale = np.array([500, 50, 300, 200, 100, 50, 30, 10, 20, 10], dtype=np.float32)   # realistic |dcoef| sizes
-    for tw, dec in CONFIGS:
-        eng = Engine(dev, tw, dec)
-        ytil = torch.tensor((rng.standard_normal(eng.m) + 1j * rng.standard_normal(eng.m)).astype(np.complex64),
-                            device=dev)
-        for total in (2 ** 22, 2 ** 24):
-            nb = total // eng.m
-            dco = torch.tensor(rng.uniform(-1, 1, (nb, NK)).astype(np.float32) * scale, device=dev)
+SCALE = np.array([500, 50, 300, 200, 100, 50, 30, 10, 20, 10], dtype=np.float32)   # realistic |dcoef| sizes
+MEM_BAR_MB = 1900                                  # a child is not launched if its predicted footprint is above this
 
-            def step():
-                z = eng.z(ytil, dco, -1)
-                top, arg = (z.real ** 2 + z.imag ** 2).max(dim=1)
-                return top, arg
-            med, ts = _warm_median(step, torch, dev)
-            row = dict(tw=tw, dec=dec, m=eng.m, batch=nb, per_template_s=med / nb, all_reps_s=[x / nb for x in ts])
-            res["configs"].append(row)
-            print(f"M {eng.m:5d} batch {nb:5d}: {med/nb*1e6:7.2f} us per template "
-                  f"({res['stored_baseline_s']/(med/nb):.0f}x vs stored 3.36 ms)", flush=True)
-            del dco
-            if dev == "mps":
-                torch.mps.empty_cache()
-        if (tw, dec) == (4.0, 2):              # alternate: the baseline again in the middle of the local timings
-            res["baseline_middle_s"] = baseline()
-            print(f"baseline (paired, middle): {res['baseline_middle_s']*1e3:.2f} ms per template", flush=True)
-    # the costs the old model left out
-    eng = Engine(dev)
+
+def _child_report(d):
+    import torch
+    d.update(peak_footprint_mb=peak_footprint_mb(), peak_rss_mb=peak_mb(),
+             mps_driver_mb=round(torch.mps.driver_allocated_memory() / 2 ** 20) if torch.backends.mps.is_available()
+             else None, load_avg=list(__import__("os").getloadavg()))
+    print("RESULT " + json.dumps(d), flush=True)
+
+
+def tbase(n_batch):
+    """Child: the OLD baseline, coh2_cost.per_template_seconds, at a given batch (the stored 3.36 ms used 64, which
+    needs ~5.8 GB of unified memory and cannot be repeated under the 2-GB rule)."""
+    import coh2_cost
+    s, dev = coh2_cost.per_template_seconds(n_batch=n_batch)
+    _child_report(dict(kind="baseline", batch=n_batch, samples_per_batch=n_batch * NS, per_template_s=s, device=dev))
+
+
+def tlocal(tw, dec, total):
+    """Child: the local engine at one window setting and one batch (total = samples per batch)."""
+    import torch
+    dev = "mps" if torch.backends.mps.is_available() else "cpu"
+    rng = np.random.default_rng(0)
+    eng = Engine(dev, tw, dec)
+    nb = total // eng.m
+    ytil = torch.tensor((rng.standard_normal(eng.m) + 1j * rng.standard_normal(eng.m)).astype(np.complex64), device=dev)
+    dco = torch.tensor(rng.uniform(-1, 1, (nb, NK)).astype(np.float32) * SCALE, device=dev)
+
+    def step():
+        z = eng.z(ytil, dco, -1)
+        return (z.real ** 2 + z.imag ** 2).max(dim=1)
+    med, ts = _warm_median(step, torch, dev)
+    _child_report(dict(kind="local", tw=tw, dec=dec, m=eng.m, batch=nb, samples_per_batch=nb * eng.m,
+                       per_template_s=med / nb, all_reps_s=[x / nb for x in ts], device=dev))
+
+
+def tovh():
+    """Child: the costs the old model left out."""
+    import torch
+    dev = "mps" if torch.backends.mps.is_available() else "cpu"
+    rng = np.random.default_rng(0)
+    eng = Engine(dev, 4.0, 1)
     ysn = torch.tensor((rng.standard_normal(NS // 2 + 1) + 1j * rng.standard_normal(NS // 2 + 1)).astype(np.complex64),
                        device=dev)
     h0 = torch.tensor((rng.standard_normal(NS // 2 + 1) + 1j * rng.standard_normal(NS // 2 + 1)).astype(np.complex64),
@@ -531,10 +575,6 @@ def timing():
     ov["reference_corr_and_window_s"] = _warm_median(lambda: eng.window(analytic_corr(torch, ysn, h0), PRE * FS),
                                                      torch, dev)[0]
     snip = rng.standard_normal(NS)
-    t0 = time.perf_counter()
-    for _ in range(5):
-        np.fft.rfft(snip)
-    ov["snippet_rfft_numpy_s"] = (time.perf_counter() - t0) / 5
     snip_t = torch.tensor(snip.astype(np.float32), device=dev)
     ov["snippet_rfft_mps_s"] = _warm_median(lambda: torch.fft.rfft(snip_t), torch, dev)[0]
     ww = sorted(STATE.glob("ww_*.npy"))
@@ -545,40 +585,110 @@ def timing():
             lambda: torch.fft.rfft(torch.tensor(np.ascontiguousarray(mm[(o := next(offs)): o + NS]), device=dev)),
             torch, dev)[0]
     t0 = time.perf_counter()
-    for i in range(5):
-        fd_template(0.3 + 0.01 * i, 0.6, F_LO)
-    ov["reference_template_pycbc_s"] = (time.perf_counter() - t0) / 5
-    t0 = time.perf_counter()
     for i in range(2000):
         coeffs(0.3 + 1e-5 * i, 0.5)
     ov["coeffs_cpu_s"] = (time.perf_counter() - t0) / 2000
+    t0 = time.perf_counter()
+    for i in range(5):
+        fd_template(0.3 + 0.01 * i, 0.6, F_LO)
+    ov["reference_template_pycbc_s"] = (time.perf_counter() - t0) / 5
     ytil = torch.tensor((rng.standard_normal(eng.m) + 1j * rng.standard_normal(eng.m)).astype(np.complex64), device=dev)
-    dco5 = torch.tensor(rng.uniform(-1, 1, (5, NK)).astype(np.float32) * scale, device=dev)
+    dco5 = torch.tensor(rng.uniform(-1, 1, (5, NK)).astype(np.float32) * SCALE, device=dev)
     lag = torch.tensor([eng.m // 2 + 3, eng.m // 2 - 7, eng.m // 2, eng.m // 2 + 100, eng.m // 2 - 50], device=dev)
     order = np.argsort(eng.f_abs)
     edges = []
     for j in range(16):
         e = np.zeros(eng.m, np.float32); e[order[j * eng.m // 16:(j + 1) * eng.m // 16]] = 1
         edges.append(torch.tensor(e, device=dev))
-    ov["chi2_top5_p16_s"] = _warm_median(lambda: chi2_at_peak(eng, ytil, dco5, -1, lag, edges), torch, dev)[0]
-    res["overheads"] = ov
-    for k, v in ov.items():
-        print(f"overhead {k}: {v*1e3:.3f} ms", flush=True)
-    del ytil, dco5, ysn, h0, snip_t
-    if dev == "mps":
-        torch.mps.empty_cache()
-    res["baseline_after_s"] = baseline()
-    print(f"baseline (paired, after): {res['baseline_after_s']*1e3:.2f} ms per template", flush=True)
-    prim = [c for c in res["configs"] if c["m"] == 8192]
-    best = min(c["per_template_s"] for c in prim)
-    res["p1"] = dict(primary_m=8192, per_template_s=best, interval_s=[10e-6, 70e-6], point_s=25e-6,
-                     grade="HIT" if 10e-6 <= best <= 70e-6 else ("MISS-fast" if best < 10e-6 else "MISS-slow"),
-                     speedup_vs_stored=res["stored_baseline_s"] / best,
-                     speedup_vs_paired=float(np.median([res["baseline_before_s"], res["baseline_middle_s"],
-                                                        res["baseline_after_s"]])) / best)
+    ov["chi2_coarse_top5_p16_s"] = _warm_median(lambda: chi2_at_peak(eng, ytil, dco5, -1, lag, edges), torch, dev)[0]
+    _child_report(dict(kind="overheads", overheads=ov, device=dev))
+
+
+LOCAL_CONFIGS = ((2.0, 4), (4.0, 4), (4.0, 2), (2.0, 1), (4.0, 1))   # (half-width s, decimation): M = 4096 ... 32768
+
+
+def timeall():
+    """Driver (no torch here): short children, ONE at a time, baseline and local engine alternated so they see the
+    same load. A child is only launched if its footprint, predicted from smaller runs already measured, is under
+    MEM_BAR_MB. Headline speed-up is quoted against the STORED 3.36 ms (batch 64); the fresh baselines at small batch
+    are secondary and probably slower per template than batch 64 would be (so ratios against them flatter us)."""
+    import subprocess
+    stored = json.loads((B / "results" / "coh2" / "T_cost.json").read_text())["per_template_s"]
+    res = dict(prediction="P1", stored_baseline_s=stored, stored_baseline_batch=64, mem_bar_mb=MEM_BAR_MB, runs=[],
+               skipped=[])
+
+    def child(*args):
+        out = subprocess.run([sys.executable, "-u", __file__, *map(str, args)], capture_output=True, text=True)
+        line = [x for x in out.stdout.splitlines() if x.startswith("RESULT ")]
+        if not line:
+            print(out.stdout[-2000:], out.stderr[-2000:], flush=True)
+            raise RuntimeError(f"child {args} gave no result")
+        r = json.loads(line[-1][7:])
+        res["runs"].append(r)
+        tag = (f"baseline batch {r['batch']}" if r["kind"] == "baseline" else
+               f"local M {r['m']} batch {r['batch']}" if r["kind"] == "local" else "overheads")
+        t = f"{r['per_template_s']*1e6:9.1f} us per template | " if "per_template_s" in r else ""
+        print(f"{tag:28s} {t}footprint peak {r['peak_footprint_mb']} MB (MPS driver {r['mps_driver_mb']} MB, RSS "
+              f"{r['peak_rss_mb']} MB) | load {r['load_avg'][0]:.1f}", flush=True)
+        return r
+
+    def predicted(kind, samples, **match):
+        """Linear extrapolation in samples-per-batch from the two largest runs of this kind already measured."""
+        runs = sorted((r["samples_per_batch"], r["peak_footprint_mb"]) for r in res["runs"]
+                      if r["kind"] == kind and all(r.get(k) == v for k, v in match.items()))
+        runs = sorted({a: b for a, b in runs}.items())
+        if len(runs) < 2:
+            return None
+        (s1, f1), (s2, f2) = runs[-2], runs[-1]
+        return f2 + (samples - s2) * (f2 - f1) / (s2 - s1)
+
+    def base_round():
+        for nb in (2, 4, 8, 16):
+            pred = predicted("baseline", nb * NS)
+            if pred is not None and pred > MEM_BAR_MB:
+                res["skipped"].append(dict(kind="baseline", batch=nb, predicted_footprint_mb=round(pred)))
+                print(f"baseline batch {nb}: SKIPPED, predicted footprint {pred:.0f} MB > {MEM_BAR_MB}", flush=True)
+                continue
+            child("tbase", nb)
+
+    base_round()
+    for i, (tw, dec) in enumerate(LOCAL_CONFIGS):
+        for total in (2 ** 20, 2 ** 22, 2 ** 24):
+            pred = predicted("local", total, tw=tw, dec=dec)
+            if pred is not None and pred > MEM_BAR_MB:
+                res["skipped"].append(dict(kind="local", tw=tw, dec=dec, samples_per_batch=total,
+                                           predicted_footprint_mb=round(pred)))
+                print(f"local tw {tw} dec {dec} total 2^{int(np.log2(total))}: SKIPPED, predicted {pred:.0f} MB", flush=True)
+                continue
+            child("tlocal", tw, dec, total)
+        if i in (1, 3):
+            base_round()
+    child("tovh")
+    base_round()
+    res["overheads"] = [r for r in res["runs"] if r["kind"] == "overheads"][0]["overheads"]
+    base = {}
+    for r in res["runs"]:
+        if r["kind"] == "baseline":
+            base.setdefault(r["batch"], []).append(r["per_template_s"])
+    res["baseline_fresh"] = {str(k): dict(median_s=float(np.median(v)), all_s=v) for k, v in sorted(base.items())}
+    res["configs"] = []
+    for tw, dec in LOCAL_CONFIGS:
+        rows = [r for r in res["runs"] if r["kind"] == "local" and (r["tw"], r["dec"]) == (tw, dec)]
+        best = min(rows, key=lambda r: r["per_template_s"])
+        matched = [r for r in rows if r["samples_per_batch"] == 8 * NS]          # same samples per batch as baseline-8
+        res["configs"].append(dict(tw=tw, dec=dec, m=best["m"], per_template_s=best["per_template_s"],
+                                   batch=best["batch"], peak_footprint_mb=best["peak_footprint_mb"],
+                                   matched_batch8_per_template_s=matched[0]["per_template_s"] if matched else None,
+                                   speedup_vs_stored=stored / best["per_template_s"]))
+    prim = [c for c in res["configs"] if (c["tw"], c["dec"]) == (4.0, 4)][0]
+    t = prim["per_template_s"]
+    res["p1"] = dict(primary_m=8192, per_template_s=t, interval_s=[10e-6, 70e-6], point_s=25e-6,
+                     grade="HIT" if 10e-6 <= t <= 70e-6 else ("MISS-fast" if t < 10e-6 else "MISS-slow"),
+                     speedup_vs_stored=stored / t)
+    res["max_child_footprint_mb"] = max(r["peak_footprint_mb"] for r in res["runs"])
     write("P1_timing.json", res)
-    print(f"P1 {res['p1']['grade']}: {best*1e6:.1f} us per template at M = 8192 "
-          f"({res['p1']['speedup_vs_stored']:.0f}x vs stored, {res['p1']['speedup_vs_paired']:.0f}x vs paired)", flush=True)
+    print(f"P1 {res['p1']['grade']}: {t*1e6:.1f} us per template at M = 8192 ({stored/t:.0f}x vs the stored 3.36 ms); "
+          f"largest child footprint {res['max_child_footprint_mb']} MB", flush=True)
 
 
 # ------------------------------------------------------------------ P3: the cost model, with what the old one left out
@@ -620,8 +730,6 @@ def cost():
     mc_pts = np.geomspace(0.175, 0.868, 12)
     t_snip = ov.get("snippet_read_transfer_rfft_s", ov["snippet_rfft_mps_s"])
     for cfg in tm["configs"]:
-        if cfg["batch"] != max(c["batch"] for c in tm["configs"] if c["m"] == cfg["m"] and c["tw"] == cfg["tw"]):
-            continue
         t_loc, tw, dec = cfg["per_template_s"], cfg["tw"], cfg["dec"]
         for l_max in CC.L_OPTS:
             key = f"tw{tw:.0f}_L{l_max}"
@@ -631,7 +739,7 @@ def cost():
             for lab, mcs in cands.items():
                 n = n_each(mcs, l_max)
                 n_ref = np.interp(np.log(mcs), np.log(mc_pts), res["lattices"][key])
-                per_cd = n * t_loc + n_ref * ov["reference_corr_and_window_s"] + t_snip + ov["chi2_top5_p16_s"]
+                per_cd = n * t_loc + n_ref * ov["reference_corr_and_window_s"] + t_snip + ov["chi2_coarse_top5_p16_s"]
                 bg_h = 2 * per_cd.sum() / 3600
                 passes = 2 + 900 / len(mcs)
                 # one-off, shared by every pass: coefficient tables per distinct box, reference templates per lattice
@@ -648,7 +756,7 @@ def cost():
                                                    references=float(2 * (n_ref * ov["reference_corr_and_window_s"]).sum()
                                                                     / 3600 * passes),
                                                    snippets=float(2 * len(mcs) * t_snip / 3600 * passes),
-                                                   chi2=float(2 * len(mcs) * ov["chi2_top5_p16_s"] / 3600 * passes),
+                                                   chi2=float(2 * len(mcs) * ov["chi2_coarse_top5_p16_s"] / 3600 * passes),
                                                    one_off_tables=float(once_h)),
                                         s2_total_hours=float(total), old_model_hours=old, speedup=float(old / total),
                                         total_if_n_tmpl_x2p5=float(total + 1.5 * 2 * (n * t_loc).sum() / 3600 * passes)))
@@ -663,7 +771,12 @@ def cost():
 
 
 if __name__ == "__main__":
-    if sys.argv[1] == "prep":
+    cmd = sys.argv[1]
+    if cmd == "prep":
         prep(sys.argv[2], int(sys.argv[3]), tuple(int(a) for a in sys.argv[4:]))
+    elif cmd == "tbase":
+        tbase(int(sys.argv[2]))
+    elif cmd == "tlocal":
+        tlocal(float(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4]))
     else:
-        {"e1": e1, "e2": e2, "time": timing, "cost": cost}[sys.argv[1]]()
+        {"e1": e1, "e2": e2, "tovh": tovh, "time": timeall, "cost": cost}[cmd]()

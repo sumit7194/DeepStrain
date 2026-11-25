@@ -4,6 +4,8 @@
  "worst_rad": 4.668570839493448e-10,
  "sign": -1,
  "passed": true,
+ "coeffs_fast_vs_reference_max_rel": 0.0,
+ "coeffs_us_per_call": 4.148608213290572,
  "rows": [
   {
    "mc": 0.7332876553326894,
@@ -208,7 +210,8 @@
  ],
  "model": "Fable 5.2",
  "status": "UNVERIFIED",
- "peak_rss_mb": 371,
+ "peak_rss_mb": 373,
+ "peak_footprint_mb": 337,
  "env": {
   "python": "3.12.13",
   "executable": "/Users/sumit/Github/BlackHole/primordial_blackhole_search/.venv/bin/python",
@@ -254,8 +257,8 @@
    "PYTORCH_ENABLE_MPS_FALLBACK": null
   },
   "git": {
-   "commit": "09a68e079614cc19e46d4d16b97c5fc250157468",
-   "dirty": false
+   "commit": "104c69c9e38c3b3a304b927be73d8b4a336cad7b",
+   "dirty": true
   }
  }
 }
