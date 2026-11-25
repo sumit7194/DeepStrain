@@ -4,7 +4,7 @@
 
 Three real-data gravitational-wave sub-projects — a **subsolar / primordial-black-hole merger search**, a **post-merger echo search**, and **ringdown spectroscopy** (a no-hair test) — plus the black-hole physics notes that started it all. Everything is measured on **real O3a/O4 detector noise**: sensitivity comes from injections, significance from a measured background, and **null results are treated as results.**
 
-> A computer engineer's deep dive into gravitational-wave astronomy. Built carefully: every load-bearing claim is checked against the literature, every sensitivity number comes from injections into real noise, and a regression gate (`./verify.sh`, **46 checks**) asserts the headline results never silently change. Cross-validated against sister projects — an exact-GR solution engine, a neural-network geometry-discovery model, a quantum-foundations lab, and an entanglement-entropy corner-function study — via **[The Bridge](https://github.com/sumit7194/trivium)**.
+> A computer engineer's deep dive into gravitational-wave astronomy, AI-assisted (disclosure at the end). Built carefully: every load-bearing claim is checked against the literature, every sensitivity number comes from injections into real noise, and a regression gate (`./verify.sh`, **46 checks**) asserts the headline results never silently change. Cross-validated against sister projects — an exact-GR solution engine, a neural-network geometry-discovery model, a quantum-foundations lab, and an entanglement-entropy corner-function study — via **[The Bridge](https://github.com/sumit7194/trivium)**.
 
 **The family:** [ansatz-machine](https://github.com/sumit7194/ansatz-machine) · [tabula-geometrica](https://github.com/sumit7194/tabula-geometrica) · [vestigium](https://github.com/sumit7194/vestigium) · [cuspis](https://github.com/sumit7194/cuspis) · [trivium](https://github.com/sumit7194/trivium) (the bridge). Each keeps its own code and its own gates; only questions and results cross.
 
@@ -109,6 +109,14 @@ python tools/envstamp.py                  # record the environment you actually 
 Built entirely on public data from the [Gravitational Wave Open Science Center (GWOSC)](https://gwosc.org/), produced by the LIGO/Virgo/KAGRA collaborations (not affiliated). All SNRs are band-limited to [50, 1024] Hz; whitening is normalized so whitened-domain energy equals matched-filter SNR². Stack: Python · PyTorch · `gwpy` · `gwosc` · `pycbc` · `sbi` · the Isi/Farr `ringdown` package. If you use this work, see [`CITATION.cff`](CITATION.cff).
 
 **Acknowledgement (GWOSC):** This research has made use of data or software obtained from the Gravitational Wave Open Science Center (gwosc.org), a service of the LIGO Scientific Collaboration, the Virgo Collaboration, and KAGRA. *Funding acknowledgements: see [gwosc.org/acknowledgement](https://gwosc.org/acknowledgement/) for the full text.* GWOSC data are released under CC BY 4.0 (per GWOSC).
+
+
+**AI assistance.** This work was carried out with AI assistance: Claude (Anthropic) for code, analysis and drafting,
+and Gemini (Google) for outside review of analysis plans and literature leads. AI outputs were treated as unverified
+until checked; every reported result was verified independently by injections into real detector noise, measured
+backgrounds, golden tests against field-standard tools and published calibrations (PyCBC, the Isi/Farr `ringdown`
+package, published QNM tables), external claims checked at the primary source, and a regression gate (`./verify.sh`)
+that re-asserts every headline number. The author takes full responsibility for the content.
 
 **Data papers to cite:**
 - LIGO Scientific and Virgo Collaborations, "Open data from the first and second observing runs of Advanced LIGO and Advanced Virgo", *SoftwareX* **13** (2021) 100658.

@@ -29,10 +29,8 @@ comparison before running on full observing runs.
 
 Design, charter and every decision with its reason: [PLAN.md](PLAN.md). All numbers: [RESULTS.md](RESULTS.md).
 
-**Authorship and AI use.** Author: Sumit Pal, independent, non-academic work by a software engineer. Developed with
-substantial assistance from Anthropic's Claude AI models (several versions), which wrote most of the code and ran
-most of the analyses under the author's direction. The author chose the questions, directed and reviewed the
-work, and takes responsibility for its content.
+**Authorship.** Sumit Pal, independent, non-academic work by a software engineer. AI-assisted (see
+[AI assistance](#ai-assistance) at the end).
 
 ---
 
@@ -201,6 +199,15 @@ file boundaries. GWOSC publishes no checksum, so each file was checked three way
 > (NSTC) in Taiwan.
 
 (Text as retrieved from gwosc.org/acknowledgement on 2026-11-20.)
+
+
+## AI assistance
+
+This work was carried out with AI assistance: Claude (Anthropic) for code, analysis and drafting. AI outputs were
+treated as unverified until checked; every reported result was verified independently by golden tests of each
+pipeline step (including the matched-filter normalisation against PyCBC), integrity checks of every data file
+against GWOSC's published per-file statistics, and a script that re-derives all 64 published numbers from the stored
+outputs (`verify_published.py`). The author takes full responsibility for the content.
 
 Environment of the published numbers: Mac (macOS 27.2, arm64, MPS) · primordial_blackhole_search/requirements-lock.txt
 · Python 3.12.13, numpy 2.4.6, scipy 1.17.1, torch 2.12.0, pycbc 2.10.0, gwpy 4.0.1, lal 7.7.1.

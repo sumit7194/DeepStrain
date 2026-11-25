@@ -11,9 +11,7 @@ abstract: >-
   Includes LongChirp (primordial_blackhole_search/benchmark/), a benchmark for searches of minutes-long
   subsolar-mass inspirals in real O3a H1+L1 noise: fixed segments and injections, an MLGWSC-1-format evaluator,
   and three scored yardsticks (ideal SNR, a semi-coherent matched-filter bank, a CNN).
-  Developed with substantial assistance from Anthropic's Claude AI models (several versions), which wrote
-  most of the code and ran most of the analyses under the author's direction; the author chose the questions,
-  directed and reviewed the work, and takes responsibility for its content.
+  AI-assisted; the disclosure is at the end of README.md.
 authors:
   - given-names: Sumit
     family-names: Pal
