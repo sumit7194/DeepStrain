@@ -1,6 +1,6 @@
 # Redesign brief v1.1: an affordable consistency-tested coherent second look (LongChirp)
 
-*DeepStrain, 2026-11-25; v1.1 2026-11-26 adds the House rules and Where things live sections, and re-checks every
+*DeepStrain, 2026-11-25; v1.1 2026-11-26 (core-reservation addendum the same day) adds the House rules and Where things live sections, and re-checks every
 number against `results/coh2/T_cost.json` and `T1_mc_bias.json` (all unchanged). Self-contained. All numbers are measured on the tuning set (the 24 original LongChirp test
 segments) unless marked. Full record: `primordial_blackhole_search/benchmark/PREREG_coherent2.md` (frozen 715a0b3;
 §9–10).*
@@ -107,12 +107,16 @@ segments) unless marked. Full record: `primordial_blackhole_search/benchmark/PRE
    - Finish with a handover doc (e.g. `reports/coh2c_handover.md`) that ends with a **checklist for DeepStrain**: what
      to verify, how, and with which numbers.
 2. **Compute:**
-   - One process at a time, nice 12. Its core counts toward the fleet total (10 long jobs on 10 cores tonight), so
-     **short runs only**.
-   - **Ask the Bridge before anything over ~15 min, or anything parallel.**
+   - **One core is reserved for you** (another job is paused for the round). Timing measurements are valid on it.
+   - Still run one process at a time, at normal priority (not niced), since the core is yours.
+   - If you need a second core or a long run, ask the Bridge.
 3. **GPU / MPS:**
+   - **Timing work needs MPS**, so that it is comparable: the cost baseline (3.36 ms per template, 2²¹-sample complex
+     correlation) was measured on MPS, warm median, batches of 64. A redesign must be timed on the same device, the
+     same way, and its speed-up quoted against that number.
    - Memory is unified and shared with the fleet (about half free tonight).
-   - Declare a peak for any MPS run and keep it **under 2 GB**.
+   - Declare a peak for any MPS run and keep it **under 2 GB**. A batch of 64 snippets of 2²¹ complex64 values is
+     ~1 GB on the device; the baseline measurement peaked at 1.31 GB RSS, and RSS under-reports MPS by ~1.3×.
    - No long MPS job without the Bridge's OK.
 4. **No job-ending caps:** no timeout, alarm or step limits. Pause on pressure (`job_guard.sh` does this) and
    checkpoint anything over ~10 min.
