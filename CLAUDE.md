@@ -495,7 +495,8 @@ only — minutes-long subsolar signals are the open gap). See its README.md for 
   after t_c, so repo templates/injections end 5 s AFTER the merger); re-scored at +5 s, all 4 looks still UNINFORMATIVE
   (bank X 11.67/12.31, FAR 4.8e5/3.8e5 /yr). Out-of-domain CNN FARs not re-checked. RESULTS.md M11 addendum.**
   **Resource lessons (2026-09-24, from `bridge`):** a SIGSTOPped process frees NOTHING on macOS (compressed pages keep
-  migrating to swap on disk) — guards must terminate; size jobs by top's MEM incl. CMPRS (ours 3.2 GB vs RSS 1.95 GB,
+  migrating to swap on disk) — ⚠️ the conclusion "guards must terminate" is SUPERSEDED 2026-11-25 by Sumit's fleet rule
+  (no cap may end a job: pause + alert + auto-resume, benchmark/job_guard.sh; pausing stops growth, a human frees memory); size jobs by top's MEM incl. CMPRS (ours 3.2 GB vs RSS 1.95 GB,
   1.65×); after a reboot vm.swapusage reads total=free=0, which a naive 'free swap < X' guard reads as FULL.
 - **ADEQUATE BANK REACHED (2026-09-23): the dense bank saturates by ~1,600 templates, and then the MATCHED FILTER
   BEATS the CNN by 6%.** `bank_dense.py --spacing 0.0005 --n-inj 1500` (B = 3,235, 9,000 injections, ~34 h, made
