@@ -113,10 +113,12 @@ Built entirely on public data from the [Gravitational Wave Open Science Center (
 
 **AI assistance.** This work was carried out with AI assistance: Claude (Anthropic) for code, analysis and drafting,
 and Gemini (Google) for outside review of analysis plans and literature leads. AI outputs were treated as unverified
-until checked; every reported result was verified independently by injections into real detector noise, measured
-backgrounds, golden tests against field-standard tools and published calibrations (PyCBC, the Isi/Farr `ringdown`
-package, published QNM tables), external claims checked at the primary source, and a regression gate (`./verify.sh`)
-that re-asserts every headline number. The author takes full responsibility for the content.
+until checked; every result reported as established was verified independently, by injections into real detector
+noise, measured backgrounds, golden tests against field-standard tools and published calibrations (PyCBC, the Isi/Farr
+`ringdown` package, published QNM tables), external claims checked at the primary source, and a regression gate
+(`./verify.sh`) that re-asserts every headline number; results not yet verified this way are labelled as relayed,
+numerical or unverified (e.g. [S]-tagged literature notes, items marked provisional). The author takes full
+responsibility for the content.
 
 **Data papers to cite:**
 - LIGO Scientific and Virgo Collaborations, "Open data from the first and second observing runs of Advanced LIGO and Advanced Virgo", *SoftwareX* **13** (2021) 100658.
