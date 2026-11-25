@@ -1,6 +1,7 @@
-# Redesign brief: an affordable consistency-tested coherent second look (LongChirp)
+# Redesign brief v1.1: an affordable consistency-tested coherent second look (LongChirp)
 
-*DeepStrain, 2026-11-25. Self-contained. All numbers are measured on the tuning set (the 24 original LongChirp test
+*DeepStrain, 2026-11-25; v1.1 2026-11-26 adds the House rules and Where things live sections, and re-checks every
+number against `results/coh2/T_cost.json` and `T1_mc_bias.json` (all unchanged). Self-contained. All numbers are measured on the tuning set (the 24 original LongChirp test
 segments) unless marked. Full record: `primordial_blackhole_search/benchmark/PREREG_coherent2.md` (frozen 715a0b3;
 §9–10).*
 
@@ -66,7 +67,59 @@ segments) unless marked. Full record: `primordial_blackhole_search/benchmark/PRE
 
 ## What is not known yet
 
+- **The cost model counts correlation time only** (3.36 ms per template per detector). χ² at the top peaks, template
+  generation, and the per-candidate snippet FFT are not counted. N_tmpl comes from a hexagonal covering estimate on a
+  locally fitted (ln Mc, q) metric, not from a constructed grid. Both are estimates, to be checked before relying on
+  them.
+
 - The real-noise tail of the χ² + v_s statistic at candidate times. The plain coherent statistic's tail was
   catastrophic: survival 10⁻³ at ρ² ≈ 1,254, against 33 for a Gaussian twin.
 - How much a coarse stage loses on real signals.
 - Whether any design keeps ≥ 1.15× after both.
+
+## Where things live (all paths relative to `primordial_blackhole_search/`)
+
+- **Tuning data, the only data you may use:**
+  - `benchmark/data/{H1,L1}_<gps>.npy`: float32 strain, 24 tuning (old test) + 8 dev segments, all on disk;
+  - `benchmark/injections.csv`: 1,344 injections;
+  - `benchmark/results/y1_bins/`: Y1 per-segment bins with the winning template indices, and per-injection
+    foreground triggers;
+  - `benchmark/state/realbg/caught.json`: one-per-minute stage-1 candidates and caught injections;
+  - `benchmark/submissions/y1/`: Y1 trigger lists.
+  - `state/` and `submissions/` are git-ignored but are on disk in this working tree.
+- **Reusable code:**
+  - `benchmark/realbg_cascade.py`: whitening, gating, coherent |z|², linearity shortcut;
+  - `benchmark/coh2_cost.py`: metric and timing;
+  - `benchmark/y1_bank.py`: stage 1;
+  - `pbh/ratiofilter.py`: the ratio filter;
+  - `benchmark/lowmem_psd.py`.
+- **Launching:** `benchmark/run.sh <name> <script> …` starts a job detached at nice 15 with `benchmark/job_guard.sh`
+  (pause plus alert on pressure, auto-resume, never kills). For this round, use nice 12 as below.
+- **Interpreter:** `primordial_blackhole_search/.venv/bin/python` (Python 3.12.13;
+  `primordial_blackhole_search/requirements-lock.txt`).
+
+## House rules for this round (fleet rules, 2026-11-25/26)
+
+1. **Branch:**
+   - Work on `fable/2026-11-26-coh2c`, branched from current `main`.
+   - Do **not** edit `benchmark/PREREG_coherent2.md`, any `RESULTS.md`, or any `README.md`.
+   - Tag every commit `[model: Fable 5.2]` and mark its contents **UNVERIFIED**.
+   - Finish with a handover doc (e.g. `reports/coh2c_handover.md`) that ends with a **checklist for DeepStrain**: what
+     to verify, how, and with which numbers.
+2. **Compute:**
+   - One process at a time, nice 12. Its core counts toward the fleet total (10 long jobs on 10 cores tonight), so
+     **short runs only**.
+   - **Ask the Bridge before anything over ~15 min, or anything parallel.**
+3. **GPU / MPS:**
+   - Memory is unified and shared with the fleet (about half free tonight).
+   - Declare a peak for any MPS run and keep it **under 2 GB**.
+   - No long MPS job without the Bridge's OK.
+4. **No job-ending caps:** no timeout, alarm or step limits. Pause on pressure (`job_guard.sh` does this) and
+   checkpoint anything over ~10 min.
+5. **The 24 fresh validation segments stay unopened.** They are not on disk and must not be fetched; only the tuning
+   set above may be used. **If any design choice needs a number from fresh data, stop and say so.**
+6. **Seal predictions first:** any predicted speed-up or headroom is committed, with a grading rule, **before** it is
+   measured.
+7. **Literature:** quoted at the source, or marked "from memory".
+8. **Provenance:** record the interpreter and package versions in every output (`python tools/envstamp.py` at the
+   repo root).
