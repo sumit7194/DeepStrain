@@ -11,6 +11,9 @@
 single templates.**
 - Stage 2 at one per minute is ~18–22 h at full time resolution, against the ≤ 96 h target.
 - Real-noise headroom (step T) is still untested, so **G0 is not passed**, exactly as the handover says.
+- **Verification status (the Bridge, 2026-11-26): VERIFIED except checklist item 5.** The MPS timing re-run is still
+  pending a quiet box. Fable's 59 µs per template at full rate is therefore the round's own measurement, not
+  independently reproduced. It must be re-timed on a quiet core before step T is costed for its slot.
 
 ## 1. The checklist (§10 of the handover)
 
