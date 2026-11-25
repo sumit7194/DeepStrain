@@ -49,7 +49,7 @@ GUARD_SWAP_OVERRIDE_FILE="$SO" GUARD_FREE_OVERRIDE_FILE="$FO" GUARD_INTERVAL_S=1
   "$B/run.sh" guardrun "benchmark/state/guard_dummy.py" >/dev/null
 P=$(cat "$S/guardrun.pid"); sleep 5
 BASE=$(sed -n 's/.*swap baseline \([0-9]*\)MB.*/\1/p' "$S/guardrun.log" | head -1)
-check "RSS over a 1000-KB guide value: INFORM only, still running" "$(state $P)" running
+check "footprint over a 1000-KB guide value: INFORM only, still running" "$(state $P)" running
 check "inform line logged" "$(grep -c 'INFORM' "$S/guardrun.log")" 1
 echo $((BASE + 1500)) > "$SO"; sleep 3
 check "swap baseline+1500 (< +1536; the old absolute rule acted on this)" "$(state $P)" running

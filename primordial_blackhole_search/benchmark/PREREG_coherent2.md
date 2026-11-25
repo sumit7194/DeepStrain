@@ -262,3 +262,15 @@ clause 1 needs R_tune ≥ 1.15. So the whole real-world loss budget (grid mismat
   hierarchical coarse→fine refiner), to be explored later. It will be a new amendment, or a new pre-registration
   that inherits this one's gates and G0.
 - **Brief for the redesign:** `reports/coh2_redesign_brief.md`.
+
+## 11. Correction (2026-11-26): T-cost's memory peak was RSS, not footprint
+
+- §9's "peak 1.31 GB" is **process RSS**. On this Mac, RSS misses Metal/MPS unified memory.
+- The Fable redesign round measured the identical call (`coh2_cost.per_template_seconds`, a 64 × 2²¹ complex64 batch)
+  at **~5.8 GB of footprint while RSS read tens of MB**. That figure is UNVERIFIED, but it is consistent with the
+  working-set arithmetic of ≈ 3.8 GB before allocator caching.
+- So the T-cost run's true peak was **not measured; it was likely ~5–6 GB**. It was harmless, because it finished in
+  5 min on a box with room.
+- **Consequence for §8:** the "< 2 GB" stage-2 memory statement cannot be met at batch 64. Any stage-2 design must use
+  batch 8–16 and re-measure its per-template time at that batch, since 3.36 ms was measured at batch 64.
+- `job_guard.sh` now measures group **footprint** (top MEM) instead of RSS.
