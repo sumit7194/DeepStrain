@@ -1,0 +1,80 @@
+{
+ "check": "V1/V2/V3/D2",
+ "det": "H1",
+ "segment": 1253212160,
+ "injection": 471,
+ "mc_star": 0.2018913184786915,
+ "l_max": 128,
+ "device": "cpu",
+ "n_templates": 2070,
+ "n_grid_full": 2070,
+ "n_refs": 3,
+ "lattice_worst_dtau": 1.4511759542949383,
+ "v3_worst_assigned_dtau": 1.4511759542949383,
+ "dtau_rule": 1.5,
+ "v3_pass": true,
+ "box_max_local": 291.48066548636604,
+ "box_max_brute": 291.480749218541,
+ "box_max_rel_err": 2.872648543483791e-07,
+ "same_argmax": true,
+ "per_template_rel_err_max": 4.125859590742298e-05,
+ "per_template_rel_err_median": 2.177582209217377e-06,
+ "d2_box_max_own": 291.4295699891038,
+ "d2_box_max_change": -0.0001755835662369254,
+ "d2_n_affected": 2063,
+ "d2_per_template_change_median": -0.00014203544341423457,
+ "d2_per_template_change_absmax": 0.09980516787410498,
+ "seconds_local": 8.2,
+ "seconds_total": 430.1,
+ "peak_footprint_mb": 863,
+ "model": "Claude Opus 5.5 (DeepStrain verification)",
+ "env": {
+  "python": "3.12.13",
+  "executable": "/private/tmp/claude-501/-Users-sumit-Github-BlackHole/dcc1807f-7098-45f5-a1fc-8045bfd32a11/scratchpad/wt_fable/primordial_blackhole_search/.venv/bin/python",
+  "implementation": "CPython",
+  "platform": "macOS-27.2-arm64-arm-64bit",
+  "machine": "arm64",
+  "cpu_count": 10,
+  "packages": {
+   "numpy": "2.4.6",
+   "scipy": "1.17.1",
+   "torch": "2.12.0",
+   "pycbc": "2.10.0",
+   "gwpy": "4.0.1",
+   "lal": "7.7.1",
+   "sbi": null,
+   "qnm": null,
+   "mpmath": "1.3.0",
+   "ringdown": null,
+   "jax": null
+  },
+  "blas_lapack": {
+   "numpy": {
+    "blas": "accelerate",
+    "lapack": "accelerate"
+   },
+   "scipy": {
+    "blas": "Accelerate",
+    "lapack": "Accelerate"
+   }
+  },
+  "torch": {
+   "threads": 1,
+   "interop_threads": 10,
+   "mps": true,
+   "cuda": false,
+   "default_dtype": "torch.float32"
+  },
+  "thread_env": {
+   "OMP_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": null,
+   "OPENBLAS_NUM_THREADS": null,
+   "VECLIB_MAXIMUM_THREADS": null,
+   "PYTORCH_ENABLE_MPS_FALLBACK": null
+  },
+  "git": {
+   "commit": "4f01c22a61f1ade18d19e5fffdbda55fe8beec1a",
+   "dirty": true
+  }
+ }
+}

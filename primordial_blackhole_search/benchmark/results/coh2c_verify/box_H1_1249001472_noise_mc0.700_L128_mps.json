@@ -1,0 +1,80 @@
+{
+ "check": "V1/V2/V3/D2",
+ "det": "H1",
+ "segment": 1249001472,
+ "injection": null,
+ "mc_star": 0.7,
+ "l_max": 128,
+ "device": "mps",
+ "n_templates": 429,
+ "n_grid_full": 429,
+ "n_refs": 1,
+ "lattice_worst_dtau": 1.2853823217119633,
+ "v3_worst_assigned_dtau": 1.2853823217119633,
+ "dtau_rule": 1.5,
+ "v3_pass": true,
+ "box_max_local": 282.8837699406206,
+ "box_max_brute": 282.8827608831102,
+ "box_max_rel_err": 3.56705197313012e-06,
+ "same_argmax": true,
+ "per_template_rel_err_max": 1.716860346778759e-05,
+ "per_template_rel_err_median": 2.3452280357716404e-06,
+ "d2_box_max_own": 282.8827608831102,
+ "d2_box_max_change": 0.0,
+ "d2_n_affected": 0,
+ "d2_per_template_change_median": 0.0,
+ "d2_per_template_change_absmax": 0.0,
+ "seconds_local": 7.7,
+ "seconds_total": 51.1,
+ "peak_footprint_mb": 1859,
+ "model": "Claude Opus 5.5 (DeepStrain verification)",
+ "env": {
+  "python": "3.12.13",
+  "executable": "/private/tmp/claude-501/-Users-sumit-Github-BlackHole/dcc1807f-7098-45f5-a1fc-8045bfd32a11/scratchpad/wt_fable/primordial_blackhole_search/.venv/bin/python",
+  "implementation": "CPython",
+  "platform": "macOS-27.2-arm64-arm-64bit",
+  "machine": "arm64",
+  "cpu_count": 10,
+  "packages": {
+   "numpy": "2.4.6",
+   "scipy": "1.17.1",
+   "torch": "2.12.0",
+   "pycbc": "2.10.0",
+   "gwpy": "4.0.1",
+   "lal": "7.7.1",
+   "sbi": null,
+   "qnm": null,
+   "mpmath": "1.3.0",
+   "ringdown": null,
+   "jax": null
+  },
+  "blas_lapack": {
+   "numpy": {
+    "blas": "accelerate",
+    "lapack": "accelerate"
+   },
+   "scipy": {
+    "blas": "Accelerate",
+    "lapack": "Accelerate"
+   }
+  },
+  "torch": {
+   "threads": 1,
+   "interop_threads": 10,
+   "mps": true,
+   "cuda": false,
+   "default_dtype": "torch.float32"
+  },
+  "thread_env": {
+   "OMP_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": null,
+   "OPENBLAS_NUM_THREADS": null,
+   "VECLIB_MAXIMUM_THREADS": "1",
+   "PYTORCH_ENABLE_MPS_FALLBACK": null
+  },
+  "git": {
+   "commit": "4f01c22a61f1ade18d19e5fffdbda55fe8beec1a",
+   "dirty": true
+  }
+ }
+}

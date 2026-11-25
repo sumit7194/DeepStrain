@@ -1,0 +1,8 @@
+Wed Nov 25 23:52:01 IST 2026 GUARD[c2e2]: armed: swap baseline 3237MB (pause above +1536), disk pause < 5 GB / resume >= 6 GB, RSS inform > 4194304 KB
+E2 noise L_max 128 Mc* 0.3895: 3 refs (worst dtau 1.23 s) | overlap median 1.000000 worst 1.000000 | peak err median 1.8e-06 worst 7.2e-06 | 1024-Hz loss mean 0.0106 max 0.0501 | max peak |z|^2 210.2 | 16 s | RSS 1917 MB
+E2 noise L_max 384 Mc* 0.3895: 3 refs (worst dtau 1.23 s) | overlap median 1.000000 worst 1.000000 | peak err median 1.6e-06 worst 7.8e-06 | 1024-Hz loss mean 0.0105 max 0.0577 | max peak |z|^2 219.4 | 26 s | RSS 1917 MB
+E2 signal L_max 128 Mc* 0.5681: 2 refs (worst dtau 0.92 s) | overlap median 1.000000 worst 1.000000 | peak err median 1.7e-06 worst 6.2e-06 | 1024-Hz loss mean 0.0319 max 0.1180 | max peak |z|^2 308.7 | 39 s | RSS 2332 MB
+E2 signal L_max 384 Mc* 0.5681: 2 refs (worst dtau 0.92 s) | overlap median 1.000000 worst 1.000000 | peak err median 1.8e-06 worst 6.1e-06 | 1024-Hz loss mean 0.0363 max 0.1780 | max peak |z|^2 308.7 | 51 s | RSS 2332 MB
+wrote results/coh2c/E2_local_vs_brute.json | peak RSS 2332 MB
+E2 PASS
+Wed Nov 25 23:52:57 IST 2026 GUARD[c2e2]: job exited; process-group RSS peak 1915 MB (sampled every 5 s)
