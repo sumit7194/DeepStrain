@@ -216,3 +216,38 @@ already does this).
 **GWOSC etiquette:** one transfer at a time, with backoff of 10, 30 and 60 min.
 
 **GPU:** Y1 and S2 use MPS. Per the box rules, they run only when ≥ 60% of memory is free.
+
+## 9. Tuning log, part 1 (2026-11-25): cost and stage-1 rate (tuning set only; no fresh data touched)
+
+**T1, stage-1 chirp-mass bias** (caught tuning injections, from Y1's stored winning-template indices; `results/coh2/T1_mc_bias.json`):
+
+| | n | p90 | p99 |
+|---|---|---|---|
+| all | 220 | 0.36% | 2.15% |
+| q < 0.5 | 84 | 0.28% | 2.20% |
+| q ≥ 0.5 | 136 | 0.66% | 1.90% |
+
+⇒ By the frozen rule, the box half-width is ~2%.
+
+**T-cost** (`coh2_cost.py`, `results/coh2/T_cost.json`; 301 s, 1 core, nice 12, peak 1.31 GB):
+- Coherent (ln Mc, q) metric, min match 0.97, f_low 50 Hz, real O3a H1 PSD.
+- Sanity: self-match 1.000; a 0.01% Mc offset costs 17.5% at L = 384 s.
+- N_tmpl per candidate, by chirp mass 0.18 / 0.26 / 0.35 / 0.50 / 0.70 / 0.86:
+  - L_max = 128: 212 / 5,440 / 12,067 / 2,497 / 457 / 14;
+  - L_max = 384: 465 / 7,669 / 12,067 / 2,497 / 457 / 14.
+- **Per-template correlation: 3.36 ms** (MPS, 2²¹ samples, warm median).
+
+**Projected stage-2 total** (background, twin, decoys and foreground):
+
+| r₁ | L_max 128 / 256 / 384 |
+|---|---|
+| one per hour (655 candidates) | **17.5 / 20.6 / 20.9 h** |
+| one per minute (39,321 candidates) | **584 / 694 / 703 h** |
+
+**⇒ By the §5 rule** (one per minute only if ≤ 96 h), **r₁ = one per hour is FORCED**. G0 clause 3 (≤ 120 h) is
+met at one per hour.
+
+**Consequence, stated before any tuning-set gain is measured.** At one per hour, the idealised cascade's *upper bound*
+at 1/day is 67.2 / 57.47 = **1.169**: Gaussian stage-2 noise, the true template every time, and expected SNR. G0
+clause 1 needs R_tune ≥ 1.15. So the whole real-world loss budget (grid mismatch up to 3% in SNR, real-noise tails,
+χ² and v_s penalties) must fit inside **1.6%** of distance. I expect G0 clause 1 to fail.
