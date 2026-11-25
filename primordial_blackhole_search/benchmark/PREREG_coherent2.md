@@ -274,3 +274,21 @@ clause 1 needs R_tune ≥ 1.15. So the whole real-world loss budget (grid mismat
 - **Consequence for §8:** the "< 2 GB" stage-2 memory statement cannot be met at batch 64. Any stage-2 design must use
   batch 8–16 and re-measure its per-template time at that batch, since 3.36 ms was measured at batch 64.
 - `job_guard.sh` now measures group **footprint** (top MEM) instead of RSS.
+
+## 12. Amendment T1 (2026-11-26): decisions D1–D5, taken on the tuning set before any fresh data
+
+Decided by the Bridge for Sumit on 2026-11-26, after the redesign (c) round (`fable/2026-11-26-coh2c` @ 4f01c22) and
+its independent verification (`verify/2026-11-26-coh2c` @ 358e386, `reports/coh2c_verification.md`).
+- **Verification status:** VERIFIED, except the quiet-core MPS timing re-run (checklist item 5, pending).
+- No fresh segment has been fetched or opened.
+- Measured numbers are beside each decision. They come from the verification unless marked "round".
+
+| # | Decision | Measured basis |
+|---|---|---|
+| **D1** | **ACCEPT: stage 2 by the local heterodyned refiner at full time resolution** (±4-s window, 4,096 samples/s). It reads exactly the lags of §3 and computes the same statistic. | 6 real constructed grids, 7,178 templates (H1 noise at Mc 0.70 / 0.50 / 0.26; caught injections 676 and 471; one L1 box). Box maximum equal to an independent numpy brute force within ≤ 5.2·10⁻⁶, same argmax in all six; CPU vs MPS 1.6·10⁻⁶. Gate E2 44/44 on CPU (worst 1 − overlap 3.0·10⁻¹⁰). |
+| **D2** | **ACCEPT: templates that share a reference use that reference's start frequency** f_start(Mc_ref, L_max), instead of their own (§3.2). | Signal ρ² **±1.4% at the box edge** (0 at the reference; symmetric; Mc 0.18–0.32 at L_max 128). Box maximum **−0.02%** on the lowest-Mc caught injection (id 471; 2,063 of 2,070 templates affected) and **−0.9%** on a noise box (Mc 0.26). Template durations 0.965–1.036 × L_max. Every template stays a normalised matched filter (χ²₂ in Gaussian noise), identical for background and foreground. |
+| **D3** | **ACCEPT: r₁ = one per minute** (39,321 tuning background candidates). The §5 cost rule (≤ 96 h ⇒ one per minute) now selects it. This supersedes the "one per hour FORCED" of §9–§10, which rested on the pre-redesign cost. | Stage-2 cost with constructed grids at full rate: **17.8 h (L_max 128), 22.3 h (384)** (round, P3; reproduced exactly). The template time it uses, 59 µs on MPS, is the round's measurement (re-time pending). |
+| **D4** | **ACCEPT: thin boxes keep the over-placed constructed grids.** | Grids at Mc 0.18 / 0.86 hold 5–11× the covering estimate, but are small in absolute terms; every constructed grid's minimum fitting factor is ≥ 0.971 (round, G_grids; reproduced). |
+| **D5** | **ACCEPT: a uniform box half-width of 2.20% in chirp mass**, the larger q-stratum p99 (§3.3 said "p99 stratified by q": 2.20% for q < 0.5, 1.90% for q ≥ 0.5). | **The round's code used the pooled p99 (2.15%), and the verification ran at 2.15%.** Production must use 2.20% (~+2% templates). The reference-assignment rule held at 2.15% with a worst 1.451 s against 1.5 s at Mc 0.20, so step T re-checks it at 2.20%. |
+
+Step T is registered in `reports/stepT_registration.md` (this commit). Nothing runs before the Bridge slots it.
