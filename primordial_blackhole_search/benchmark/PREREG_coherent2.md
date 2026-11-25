@@ -1,13 +1,10 @@
-# Pre-registration (DRAFT): a consistency-tested coherent second look on FRESH O3a segments
+# Pre-registration (FROZEN 2026-11-25): a consistency-tested coherent second look on FRESH O3a segments
 
-**Status:** DRAFT, written 2026-11-25. Nothing in it has been run, and no fresh data has been downloaded.
+**FROZEN 2026-11-25** on Sumit's go (relayed by the Bridge), together with the staged gate G0 (§6b).
 
-It becomes FROZEN in two steps:
-1. **Rules frozen.** Committed with a "FROZEN" header on Sumit's go, before any download.
-2. **Tuned values frozen.** The tuning amendment T (§6) fixes the dev-tuned values. T is committed before any
-   fresh-segment strain is opened.
-
-After that, any change is a dated amendment, and the pre-amendment result is reported too.
+- Nothing has been run, and no fresh data has been downloaded.
+- The tuning values are fixed later by amendment T (§6), committed before any fresh strain is opened.
+- Any other change after this commit is a dated amendment, and the pre-amendment result is reported too.
 
 **Lineage:**
 - `PLAN_next_2026-11-23.md`, revised by the outside review (`reports/PLAN_next_2026-11-23_review.md`, accepted points
@@ -165,6 +162,23 @@ Fixes and records:
 **Tuning objective:** maximise tuning-set cascade distance at 1/day, subject to the tuning-set versions of F1, F2 and
 P1 passing. Every candidate configuration tried is logged, so that the number of configurations explored is on the
 record.
+
+## 6b. Staged go: the go/no-go gate G0, evaluated on the TUNING set at the end of T (added 2026-11-25 at Sumit's request)
+
+The multi-day fresh run (download D, Y0, Y1-bg, Y1-fg, S2) starts **only if all of the following hold** on the tuning
+set (the old 24 segments) with the frozen T configuration:
+
+1. **Projected gain.** R_tune = cascade / Y1-alone sensitive chirp distance at 1/day, with a segment-block bootstrap
+   (2,000 resamples, both thresholds re-estimated), must satisfy **R_tune ≥ 1.15 and CI_lo > 1.00**.
+   - The bar is 1.15, stricter than the fresh verdict's 1.10, because T *chooses* the configuration that maximises
+     R_tune, which biases it upward.
+   - The number of configurations tried is reported beside it.
+2. **The tuning-set versions of K1, K2, F1, F2, P1 and N1 all pass**, with the §4 bars.
+3. **Cost.** The projected stage-2 cost on the fresh set at the chosen r₁, from the measured per-template time and
+   N_tmpl, must be **≤ 120 h**.
+
+**If any fails: STOP and report.** The fresh segments stay unfetched and unopened, and the result is recorded as
+"G0 not passed", with the failing clause and its numbers. G0 passing licenses the fresh run only; it is not a result.
 
 ## 7. What this cannot tell us
 
