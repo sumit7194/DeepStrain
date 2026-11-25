@@ -1,0 +1,85 @@
+{
+ "gate": "S0",
+ "det": "H1",
+ "segment": 1249001472,
+ "v_args": {
+  "segment": 8,
+  "short_segment": 0.25,
+  "psd_long_segment": 512,
+  "psd_duration": 8,
+  "psd_stride": 4,
+  "psd_avg_method": "median",
+  "low_freq": 50.0,
+  "high_freq": 480.0
+ },
+ "min_expected_psdvar": 0.65,
+ "checks": {
+  "v_finite_fraction": 1.0,
+  "v_median": 1.0025143565935626,
+  "v_p01": 0.9056616731473215,
+  "v_p99": 1.2282844887023023,
+  "v_samples": 4073,
+  "v_at_three_times": [
+   0.9603864674147687,
+   1.0472250101592493,
+   1.0043456450926365
+  ],
+  "rho_hat_equals_scaled_rho_when_unweighted": true,
+  "rho_hat_below_scaled_rho_when_weighted": true,
+  "low_v_treated_as_one": true,
+  "max_rel_diff_vs_pycbc_newsnr_sgveto_psdvar": 3.3306690738754696e-16
+ },
+ "passed": true,
+ "seconds": 2.5,
+ "model": "Claude Opus 5.5",
+ "peak_footprint_mb": 839,
+ "env": {
+  "python": "3.12.13",
+  "executable": "/private/tmp/claude-501/-Users-sumit-Github-BlackHole/dcc1807f-7098-45f5-a1fc-8045bfd32a11/scratchpad/wt_build/primordial_blackhole_search/.venv/bin/python",
+  "implementation": "CPython",
+  "platform": "macOS-27.2-arm64-arm-64bit",
+  "machine": "arm64",
+  "cpu_count": 10,
+  "packages": {
+   "numpy": "2.4.6",
+   "scipy": "1.17.1",
+   "torch": "2.12.0",
+   "pycbc": "2.10.0",
+   "gwpy": "4.0.1",
+   "lal": "7.7.1",
+   "sbi": null,
+   "qnm": null,
+   "mpmath": "1.3.0",
+   "ringdown": null,
+   "jax": null
+  },
+  "blas_lapack": {
+   "numpy": {
+    "blas": "accelerate",
+    "lapack": "accelerate"
+   },
+   "scipy": {
+    "blas": "Accelerate",
+    "lapack": "Accelerate"
+   }
+  },
+  "torch": {
+   "threads": 1,
+   "interop_threads": 10,
+   "mps": true,
+   "cuda": false,
+   "default_dtype": "torch.float32"
+  },
+  "thread_env": {
+   "OMP_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": null,
+   "OPENBLAS_NUM_THREADS": null,
+   "VECLIB_MAXIMUM_THREADS": "1",
+   "PYTORCH_ENABLE_MPS_FALLBACK": null
+  },
+  "git": {
+   "commit": "138c95e0f13a4756fd26f104ab3716ca8d0ccb76",
+   "dirty": false
+  }
+ }
+}
