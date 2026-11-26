@@ -785,3 +785,20 @@ a result.
 **Cost.** More templates in light L384 boxes, and up to 3 builds per box on the child CPU. Whether Fable's
 constructed-grid cost included the shrink is not yet checked; production times will tell.
 
+### C20 (a), ruled 2026-11-26: the stricter stop, a disclosed TIGHTENING of Fable's verified rule
+
+**Why it changed.** c19check's G_grids reproduction failed in one cell, L384 Mc 0.18. Fable stopped at 0.7 because its
+0.85 build had 1.3 % below 0.97; ours, with different MC points, had 0.25 % at 0.85. With 400 points the ≤ 1 % stop is
+4 points, so the decision is a coin flip near the line. The function is the same; only the random points differ.
+
+**The rule now.** A box stops shrinking only when **0 of 400** MC points are below 0.97, a 95 % upper bound of
+≈ 0.75 % (rule of three).
+- It can only ADD templates, never remove coverage.
+- **Acceptance (the Bridge):** the G_grids reproduction under (a) must choose Fable's shrink, with an identical
+  n_grid, in **12/12** cells, before check (i) uses any light L384 box.
+- **Report:** the extra templates it costs across production, from the re-cost.
+- **Unchanged:** the 0.5 gate. A box that still has points below 0.97 at shrink 0.5 stops at the box boundary and is
+  logged.
+- **The cache:** every grid records `stop_rule = zero_of_400`. Grids built under any other rule are rebuilt, never
+  reused.
+

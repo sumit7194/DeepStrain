@@ -302,6 +302,7 @@ class _qpatch:
 
 
 SHRINKS = (1.0, 0.85, 0.7, 0.6, 0.5)     # C20: Fable's verified rule is (1.0, 0.85, 0.7); 0.6 and 0.5 are an ADDITION
+STOP_RULE = "zero_of_400"                  # C20 (a): stop at 0 of 400 MC points below 0.97
 
 
 def shrink_select(mc_star, half_width, l_max):
@@ -312,7 +313,9 @@ def shrink_select(mc_star, half_width, l_max):
     from coh2c_verify import grid_points
     for shrink in SHRINKS:
         pts, gsum = grid_points(mc_star, half_width, l_max, shrink)
-        if gsum["frac_below_097"] <= 0.01:
+        # C20 (a), ruled: stop only when NONE of the 400 MC points is below 0.97 (95 % upper bound ~0.75 %, rule of
+        # three); a disclosed TIGHTENING of Fable's <= 1 % stop, whose decision is a coin flip at 4 of 400 points
+        if gsum["frac_below_097"] == 0.0:
             return pts, gsum, shrink
     log(f"C20 GATE: Mc* {mc_star} L{l_max} still {gsum['frac_below_097']:.3f} below 0.97 at shrink 0.5")
     raise AssertionError(f"C20 gate: grid fails minimal match at shrink 0.5 (Mc* {mc_star}, L_max {l_max})")
@@ -324,7 +327,7 @@ def grid(tid, l_max):
     path = STATE / "grids" / f"L{l_max}_tid{tid:04d}.npz"
     if path.exists():
         z = dict(np.load(path, allow_pickle=False))
-        if "shrink" in z:                               # files from before C20 lack it and are rebuilt, never reused
+        if str(z.get("stop_rule", "")) == STOP_RULE:     # grids from an earlier rule are rebuilt, never reused
             z["coeffs"] = np.array([L.coeffs(mc, q) for mc, q in z["pts"]])
             return z
     from coh2c_verify import grid_points
@@ -344,7 +347,8 @@ def grid(tid, l_max):
                worst_dtau=np.float64(worst), ff_min=np.float64(gsum["ff_min"]), ff_p01=np.float64(gsum["ff_p01"]),
                c19=np.bool_(qp.active), shrink=np.float64(shrink), frac_below_097=np.float64(gsum["frac_below_097"]),
                ff_median=np.float64(gsum["ff_median"]), n_area_estimate=np.float64(gsum["n_area_estimate"]),
-               gsum_json=json.dumps(gsum, default=float))             # the full ff table, kept for every box
+               gsum_json=json.dumps(gsum, default=float),             # the full ff table, kept for every box
+               stop_rule=np.str_(STOP_RULE))
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_name(path.stem + ".tmp.npz")
     np.savez(tmp, **{k: v for k, v in out.items() if k != "coeffs"})
@@ -1153,10 +1157,10 @@ def c19check():
                     ns = {"__name__": "coh2c_grid_c19", "__file__": str(B / "coh2c_grid.py")}
                     exec(compile(src, "coh2c_grid_c19", "exec"), ns)
                     summ = ns["build"](float(mcs[tid]), HALF_WIDTH, l_max, shrink, np.random.default_rng(1))
-                    if summ["frac_below_097"] <= 0.01:
+                    if summ["frac_below_097"] == 0.0:
                         break
             e = {k: summ[k] for k in ("n_grid", "ff_min", "ff_p01", "ff_median", "frac_below_097", "q_range")}
-            e.update(shrink=shrink, passed=bool(summ["ff_min"] >= 0.97 and summ["frac_below_097"] <= 0.01))
+            e.update(shrink=shrink, passed=bool(summ["ff_min"] >= 0.97 and summ["frac_below_097"] == 0.0))
             ff[f"tid{tid}_L{l_max}"] = e
             log(f"C19 FF tid {tid} L{l_max}: {e}")
     ident = {}
@@ -1183,8 +1187,8 @@ def c19check():
         e = dict(shrink_fable=r["shrink"], shrink_ours=sh, n_fable=r["n_grid"], n_ours=gsum["n_grid"],
                  below_fable=r["frac_below_097"], below_ours=gsum["frac_below_097"],
                  ff_median_fable=r["ff_median"], ff_median_ours=gsum["ff_median"])
-        e["passed"] = bool(sh == r["shrink"] and gsum["n_grid"] == r["n_grid"] and gsum["frac_below_097"] <= 0.01
-                           and r["frac_below_097"] <= 0.01 and abs(gsum["ff_median"] - r["ff_median"]) <= 0.002)
+        # acceptance for rule (a) (the Bridge): the same shrink as Fable chose and an identical n_grid, all 12 cells
+        e["passed"] = bool(sh == r["shrink"] and gsum["n_grid"] == r["n_grid"])
         repro[f"L{l_max}_mc{mc}"] = e
         log(f"G_grids repro L{l_max} Mc {mc}: {e}")
     res = dict(check="C19 conditions + C20 shrink rule", g_grids_reproduction=repro, affected_tids=bad, light_tids=light, heavy_tids=heavy,
