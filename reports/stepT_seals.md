@@ -37,6 +37,16 @@ DeepStrain checked this from git metadata and a hash of the blob, without readin
 configuration probability. Under the brief's rules those items are graded for Fable alone; for DeepStrain they are
 recorded as "no prediction", not as a miss.
 
+## 2b. Exposure note (2026-11-26, Deepstrain-personal)
+
+- **What happened:** On 2026-11-26, at about 11:55 IST, Deepstrain-personal read its office twin's session transcript
+  when it took the project over. That transcript quotes DeepStrain's §7 numbers.
+- **The seal came first:** Fable's prediction was sealed at 04:03:38 the same day, in commit `b13b4f8`. Its content
+  was fixed before the exposure.
+- **Status:** Fable's prediction stays **blind**. The only effect is that the predicting session now knows the other
+  prediction; nothing sealed changed.
+- Recorded on the Bridge's instruction.
+
 ## 3. How to check, after G0
 
 ```bash
