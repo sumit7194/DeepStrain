@@ -829,3 +829,29 @@ and re-registered before the must-fire result counts."
 resident (1.73 → 1.87 GB, creeping slightly over the 864 series) while each series-generation child runs (about
 1.4 GB). Re-declared for check (i): **≤ 3.5 GB group.**
 
+### Check (i) RESULT (2026-11-27 01:40): the BINDING gate FAILS
+
+Run 23:49–01:39 at n = 216, group peak 2.99 GB. Values are pooled ratios against exact_a (R − 1, with z = (R − 1)/SE).
+
+| Cell | Gate: pycbc, C16 configuration | Sensitivity: pycbc, original PSD above 1,024 Hz |
+|---|---|---|
+| L128 H1 | **+0.656 % (z +13.2), FAIL** | +0.585 % (z +12.2), fail |
+| L384 H1 | **+0.628 % (z +12.9), FAIL** | +0.576 % (z +12.3), fail |
+| L128 L1 | +0.131 % (z +2.7), pass | +0.036 % (z +0.7), pass |
+| L384 L1 | +0.137 % (z +2.8), pass | +0.052 % (z +1.1), pass |
+
+**By the registered rule, this is the result:** pycbc in C16's configuration does not pass as K1-(A)'s generator, so
+K1's first clause cannot be evaluated with it as designed.
+
+**Descriptive, not a verdict.**
+- pycbc's H1 noise carries about **0.6 % more matched-filter-weighted |z|² than an exact Gaussian with the same PSD,
+  in BOTH configurations.** That is about 2× δ*, which would shift K1's survival at 10⁻² by about 13 %.
+- Flattening above 1,024 Hz is not the cause in H1, and in L1 it slightly *raises* the excess (+0.13 % against
+  +0.04 %).
+- **The cause is unknown.** Candidates, untested: lalsimulation SimNoise's segment stitching and colouring around
+  H1's very strong lines (10⁹ peak-to-median at 476–537 and 963–1,024 Hz); the 1/16-Hz PSD sampling at those lines.
+  Investigating it would be a new line of work.
+
+**The controls validated the measurement itself.** Null within 3·SE, must-fire fired with z ≥ 4.4, and the absolute
+level was 2.000 for exact noise. So the excess is a property of pycbc's noise, not of the check.
+
