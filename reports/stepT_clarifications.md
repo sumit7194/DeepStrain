@@ -369,4 +369,44 @@ the same 200 injections per L_max per detector, in twin noise, with ρ uniform i
     real mismatch exceeds it.
   - The real test is also reported against this nominal bound, for information.
 
+## C10 addendum (2026-11-26 21:20, before the control runs): k1precheck FAILED; a perfect-generator control
+
+**What failed.** k1precheck, run 21:07 on segment 0, failed its ±1.5 % bar. Every other band is within about 0.7 %.
+
+| Band | H1 (est/target) | L1 (est/target) |
+|---|---|---|
+| 293–354 Hz | 1.068 | 1.021 |
+| 476–537 Hz | 11.07 | 1.28 |
+| 963–1,024 Hz | 11.14 | 1.57 |
+
+**Rule (the Bridge):** the bar is not changed on an untested hypothesis.
+
+**Hypothesis, untested.** The bar may be ill-posed at strong lines. The target PSD already carries the Welch window's
+leakage around each line, and re-estimating generated noise with the same window smears that leakage a second time.
+Then ANY correct generator would fail there.
+
+**Control (`k1perfect`), fixed now.**
+- A perfect generator: a Gaussian process drawn exactly from the target PSD on the full 4,096-s circle,
+  X_k = √(N·f_s·S_k/4)·(a + i b), then irfft. This is the same exact stationary construction as the twin, and it uses
+  no pycbc.
+- It is run through the same `lowmem_psd.estimate_psd` and the same 16 bands, for segment 0, H1 and L1, with seed
+  (202611261, 3, detector).
+
+**Decision rule, per detector, on the two notch bands (476–537 and 963–1,024 Hz):**
+- **ILL-POSED**, if both of these hold:
+  - the perfect generator also fails ±1.5 % in BOTH notch bands;
+  - in each, its excess is "the same" as pycbc's, meaning 2/3 ≤ (r_perfect − 1)/(r_pycbc − 1) ≤ 3/2.
+
+  Then a redefined check is registered, with its exclusion or windowing fixed in advance, BEFORE k1precheck reruns.
+- **GENERATOR AT FAULT**, if the perfect generator passes all 16 bands.
+- **INCONCLUSIVE**, in every other case: reported, with no rerun and no change.
+
+**The 293–354 Hz band** is reported the same way, but it is not part of the decision.
+
+**Line heights** (explaining H1 at about 11× against L1 at about 1.3× in the same bands):
+- For each detector and band: the target PSD's peak-to-median ratio and the fraction of band bins above 10× the
+  band median.
+- Prediction under the double-smear hypothesis: the excess grows with line strength, so H1's lines in those bands
+  must be much stronger than L1's.
+- **If the line heights are similar, the hypothesis is weakened**, whatever the decision above says.
 
