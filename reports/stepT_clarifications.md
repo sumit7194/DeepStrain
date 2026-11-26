@@ -530,3 +530,26 @@ other part of step T is independent of K1-(A).
 
 Their code comes before G0. Their runs are short, except K2's injection preparation.
 
+### C13 result (k1diag, run 21:26, code 80f68ca)
+
+**Reproductions:** both exact. V0 equals k1precheck and V5 equals k1perfect, bit for bit.
+
+| Deviation | Registered | Δf 1/8 → 1/16 → 1/64 | PSD flat above 1,024 Hz | Perfect fed the 1/16 PSD | Verdict (rule) |
+|---|---|---|---|---|---|
+| D1, L1 963–1,024 Hz | 1.54 | 1.055 → 1.544 → 1.000 | 1.004 | 1.007 | **EXPLAINED: PSD above 1,024 Hz** |
+| D2, H1 476–537 Hz | 0.38 | 0.077 → 0.384 → 0.115 | 0.530 | 9.45 | **UNEXPLAINED** |
+| D3, H1 963–1,024 Hz | 0.21 | 6.60 → 0.213 → 0.069 | 1.192 | 24.6 | **EXPLAINED: PSD above 1,024 Hz, marginal** |
+
+All values are pycbc/perfect.
+
+**Notes on each.**
+- **D1** (L1 band top, no strong line) is clean. Flattening the PSD above 1,024 Hz removes it (1.004), and so does
+  Δf = 1/64 Hz (1.000). Δf = 1/8 Hz nearly does (1.055). It appears only at Δf = 1/16 Hz, so it does **not** move
+  monotonically with Δf, and the mechanism is not fully understood. The PSD-sampling explanation fails its second leg
+  (V4 = 1.007).
+- **D2** is unexplained. **D3** passes the rule only barely: |1.192 − 1| = 0.192 against the 0.25·|0.213 − 1| = 0.197
+  limit.
+- At H1's strong-line bands, the band mean of the Welch re-estimate jumps by orders of magnitude under tiny generator
+  changes. Examples: the perfect generator fed the sampled PSD gives 272 and 1,285; Δf = 1/8 Hz gives 344 at
+  963–1,024. **That supports (a): the metric is unusable at strong lines,** whatever the generator.
+
