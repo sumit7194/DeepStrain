@@ -107,6 +107,7 @@ def y1_triggers(h, lv_src, g):
     """y1_bank.series_triggers, unchanged, except that it also returns the kept H1 bin indices."""
     lv = np.maximum.reduce([np.pad(lv_src["val"], 1, mode="edge")[s:s + len(lv_src["val"])] for s in (0, 1, 2)])
     net = np.sqrt(np.maximum(h["val"], 0) ** 2 + np.maximum(lv, 0) ** 2)
+    assert np.isfinite(net).all(), "non-finite Y1 network bin"
     t = g + C.WHITEN_CROP_SEC + (np.arange(len(net)) * Y1_BIN + h["off"] + Y1_WIN - 1) / FS
     half = int(round(1.0 * FS / Y1_BIN))
     taken = np.zeros(len(net), bool)
@@ -282,7 +283,7 @@ def grid(tid, l_max):
     cs = np.array([L.coeffs(mc, q) for mc, q in pts])
     asg = [L.assign(c, refs) for c in cs]
     worst = max(d for _, d in asg)
-    assert worst <= L.dtau_max(4.0), (tid, l_max, worst)            # V3, per box
+    assert all(np.isfinite(d) for _, d in asg) and worst <= L.dtau_max(4.0), (tid, l_max, worst)   # V3, per box
     out = dict(mc_star=np.float64(mc_star), pts=np.array(pts), coeffs=cs, ref_of=np.array([j for j, _ in asg]),
                ref_mcq=np.array([(r[0], r[1], r[2]) for r in refs]), ref_coeffs=np.array([r[3] for r in refs]),
                worst_dtau=np.float64(worst), ff_min=np.float64(gsum["ff_min"]), ff_p01=np.float64(gsum["ff_p01"]))
@@ -550,6 +551,7 @@ def k1precheck():
         f = np.fft.rfftfreq(N, d=1.0 / FS)
         edges = np.linspace(L.F_LO, L.F_HI, 17)
         bands = [float(np.mean((est / psd)[(f >= a) & (f < b)])) for a, b in zip(edges[:-1], edges[1:])]
+        assert all(np.isfinite(v) for v in bands), "non-finite band mean"
         worst = max(abs(v - 1) for v in bands)
         ok &= worst <= 0.015
         rows.append(dict(det=det, segment=gps, seed=seed, band_means=bands, worst_dev=worst))
@@ -671,6 +673,15 @@ class Fine:
         self.basis = torch.tensor(L.basis(f[self.kb]).astype(np.float32), device=dev)
         self.k_idx = torch.tensor(self.kb, device=dev, dtype=torch.int64)
         self.deltas = torch.arange(-DELTA, DELTA + 1, device=dev, dtype=torch.int64)
+        # exact lag phases exp(2 pi i k delta / NS) for every band bin and every delta, built once (integer phase), as
+        # real cos / sin matrices [nb, 83]: every band sum is then a fixed-shape matmul (MPS caches per shape; the
+        # first version's per-band slices grew the footprint to 4.3 GB over two boxes)
+        cs, sn = [], []
+        for a in range(0, len(self.kb), 65536):
+            ph = ((self.k_idx[a:a + 65536].unsqueeze(1) * self.deltas.unsqueeze(0)) % NS).to(torch.float32) * (2 * np.pi / NS)
+            cs.append(torch.cos(ph)); sn.append(torch.sin(ph))
+            del ph
+        self.cosE, self.sinE = torch.cat(cs), torch.cat(sn)
 
 
 def noise_spectrum(c, y):
@@ -681,7 +692,9 @@ def noise_spectrum(c, y):
     else:
         lo = snippet_start(c["i_c"])
         ysn = np.fft.rfft(np.asarray(y[lo: lo + NS], dtype=np.float64))
-    return ysn, 1.0 / np.median(np.abs(ysn[NS // 2048: NS // 8]))
+    kappa = 1.0 / np.median(np.abs(ysn[NS // 2048: NS // 8]))
+    assert np.isfinite(ysn).all() and np.isfinite(kappa) and kappa > 0, "non-finite snippet spectrum"
+    return ysn, kappa
 
 
 def prepare(box, fine, ysn, kappa, w_snip, i_c):
@@ -713,11 +726,17 @@ def band_series(box, fine, r, tidx, n0):
     ph = (dco @ fine.basis) * float(-box.sign)
     ph = ph + ((fine.k_idx * int(n0)) % NS).to(t.float32) * (2 * np.pi / NS)
     zt0 = rf["p0"] * t.complex(t.cos(ph), t.sin(ph)) * (2.0 / NS)
-    out = []
-    for a, b in rf["edges16"]:
-        e = ((fine.k_idx[a:b].unsqueeze(1) * fine.deltas.unsqueeze(0)) % NS).to(t.float32) * (2 * np.pi / NS)
-        out.append(zt0[a:b] @ t.complex(t.cos(e), t.sin(e)))
-    return (t.stack(out, dim=1).cpu().numpy().astype(np.complex128)) / (rf["sig0"] * r["kappa"])
+    if "member" not in rf:                                   # [16, nb] band membership, fixed shape
+        mem = t.zeros(16, len(fine.kb), device=box.dev)
+        for jj, (a, b) in enumerate(rf["edges16"]):
+            mem[jj, a:b] = 1.0
+        rf["member"] = mem
+    wa, wb = rf["member"] * zt0.real.unsqueeze(0), rf["member"] * zt0.imag.unsqueeze(0)
+    re = wa @ fine.cosE - wb @ fine.sinE                      # sum_k zt0_k exp(i 2 pi k delta / NS), per band
+    im = wa @ fine.sinE + wb @ fine.cosE
+    out = (re.cpu().numpy().astype(np.float64) + 1j * im.cpu().numpy().astype(np.float64)).T   # [n_delta, 16]
+    assert np.isfinite(out).all(), "non-finite chi^2 band pieces: correctness gate"
+    return out * (1.0 / (rf["sig0"] * r["kappa"]))
 
 
 def chi2_of(z16):
@@ -739,7 +758,7 @@ def score(box, fine, rH, rL, plain_only=False):
     n_lag = 2 * eng.half + 1
     tpeak, tlag = np.zeros(box.n), np.zeros(box.n, np.int64)
     zH_pk, zL_at = np.zeros(box.n, np.complex128), np.zeros(box.n, np.complex128)
-    plain = -1.0
+    plain = -np.inf
     for j, (idx, dco) in enumerate(box.groups):
         if len(idx) == 0:
             continue
@@ -750,9 +769,11 @@ def score(box, fine, rH, rL, plain_only=False):
             del x0
         for s in range(0, len(idx), BATCH):
             part = idx[s:s + BATCH]
-            zH = eng.z(yt["H1"], dco[s:s + BATCH], box.sign) / float(rH["refs"][j]["sig0"] * rH["kappa"])
-            zL = eng.z(yt["L1"], dco[s:s + BATCH], box.sign) / float(rL["refs"][j]["sig0"] * rL["kappa"])
+            # multiply by the reciprocal: on MPS, complex / (a float ~4e-26) returns NaN (found by the 2026-11-26 pilot)
+            zH = eng.z(yt["H1"], dco[s:s + BATCH], box.sign) * float(1.0 / (rH["refs"][j]["sig0"] * rH["kappa"]))
+            zL = eng.z(yt["L1"], dco[s:s + BATCH], box.sign) * float(1.0 / (rL["refs"][j]["sig0"] * rL["kappa"]))
             aH, aL = zH.abs() ** 2, zL.abs() ** 2
+            assert bool(t.isfinite(aH).all()) and bool(t.isfinite(aL).all()), "non-finite |z|^2: correctness gate"
             lmax = t.nn.functional.max_pool1d(aL.unsqueeze(1), 2 * DELTA + 1, stride=1, padding=DELTA).squeeze(1)
             plain = max(plain, float((aH + lmax).max()))
             pk, am = aH.max(dim=1)
@@ -762,6 +783,7 @@ def score(box, fine, rH, rL, plain_only=False):
             zL_at[part] = zL[rows, am].cpu().numpy()
             del zH, zL, aH, aL, lmax
         del yt
+    assert np.isfinite(tpeak).all() and np.isfinite(plain), "non-finite |z|^2: correctness gate, stopping"
     if plain_only:
         return dict(tpeak_max=float(tpeak.max()), plain_net=plain)
     top = np.argsort(-tpeak)[:K_PEAKS]
@@ -803,6 +825,7 @@ def candidate(box, fine, series, c, extra=None, target=None, twin=None):
         o_extra["extra_only_plain"] = o_alone["plain_net"]
         if c["kind"] != "fg":
             assert target is not None, "decoys need the calibration target (run 'calib' after fg)"
+            assert np.isfinite(target) and np.isfinite(o_alone["plain_net"]) and o_alone["plain_net"] > 0
             scale = float(np.sqrt(target / o_alone["plain_net"]))
     o_extra["extra_scale"] = scale
     r, o = run_on(lambda det: spec[det][0] + scale * extra_spec[det] if extra is not None else spec[det][0])
@@ -825,10 +848,11 @@ def peaks_one(box, r):
         del x0
         for s_ in range(0, len(idx), BATCH):
             part = idx[s_:s_ + BATCH]
-            a2 = (eng.z(yt, dco[s_:s_ + BATCH], box.sign) / float(r["refs"][j]["sig0"] * r["kappa"])).abs() ** 2
+            a2 = (eng.z(yt, dco[s_:s_ + BATCH], box.sign) * float(1.0 / (r["refs"][j]["sig0"] * r["kappa"]))).abs() ** 2
             pk, am = a2.max(dim=1)
             tpeak[part], tlag[part] = pk.cpu().numpy(), am.cpu().numpy()
         del yt
+    assert np.isfinite(tpeak).all(), "non-finite |z|^2: correctness gate, stopping"
     return tpeak, tlag
 
 
@@ -887,6 +911,7 @@ def allen_candidate(box, fine, series, c, twin, l_max):
             ys, tp = noise_free(coef, j_fix)
         best = int(np.argmax(tp))
         m = float(np.sqrt(tp.max()) / par["rho"])
+        assert np.isfinite(m), "non-finite match"
         r = prepare(box, fine, ysn_n + ys, kappa, w_snip, c["i_c"])
         _, tln = peaks_one(box, r)
         n0 = r["i_s"] - box.eng.half + int(tln[best])
@@ -999,6 +1024,9 @@ def run(l_max, kinds="bg,fg", n_box=None, real=None):
             for pth in [refs_path] + [f for c in by_box.get(tid, []) for f in extra_files(c).values()]:
                 pth.unlink(missing_ok=True)
             del box
+            if dev == "mps":
+                import torch
+                torch.mps.empty_cache()
             log(f"box {tid} ({s + part.index(tid) + 1}/{len(todo)}) {time.time() - t0:.1f} s | footprint "
                 f"{L.peak_footprint_mb()} MB | {(time.time() - t_start) / 3600:.2f} h")
         if not overlap and s + chunk_n < len(todo):
@@ -1018,6 +1046,7 @@ def calib(l_max):
         z = np.load(d / f"box_{tid:04d}_fg.npz")
         vals += list(np.atleast_1d(z["extra_only_plain"]))
     assert len(vals) == sum(c["kind"] == "fg" and c["valid"] for c in pl["candidates"]), "fg pass incomplete"
+    assert np.isfinite(vals).all() and min(vals) > 0, "non-finite or non-positive signal-only plain value"
     atomic_json(out, dict(target_plain=float(np.median(vals)), n=len(vals), quantiles=[float(q) for q in
                 np.quantile(vals, [0.1, 0.25, 0.5, 0.75, 0.9])], rule="C6", model="Claude Opus 5.5", env=L.stamp()))
     log(f"decoy calibration L{l_max}: target plain {np.median(vals):.1f} from {len(vals)} caught injections")
@@ -1035,18 +1064,24 @@ def status(l_max):
 # ------------------------------------------------------------------ golden: the driver path against the verification
 def golden():
     """One box of the verification (H1 noise, segment 1249001472, Mc* 0.70, L_max 128, pooled half-width 2.15 %), by
-    the driver's own engine path with the same H1 series in both detector slots:
-      * the box maximum of |z_H|^2 equals results/coh2c_verify's box_max_local within 1e-5, same template count;
-      * the band pieces at delta = 0 equal coh2c_local.chi2_fine (gate E3's function) within 1e-5, for p = 4, 8, 16;
-      * closure (sum of bands vs the engine's z) <= 1e-4 at every top point, in both slots;
-      * with identical slots, L at delta = 0 equals H, and the plain network value is >= 2 x the box maximum.
-    """
+    the driver's own engine path with the same H1 series in both detector slots. Bars:
+      * box max of |z_H|^2 = the same-device verification box's box_max_local within 1e-5; same template count;
+      * band pieces at delta = 0 = coh2c_local.chi2_fine (gate E3's function) within 1e-5, for p = 4, 8, 16;
+      * closure (sum of bands vs the engine's z) <= 1e-4 at every top point, both slots;
+      * identical slots: L at delta = 0 equals H; plain network value >= 2 x the box max;
+      * ALL FIELDS against the pre-rewrite CPU golden (results/coh2t/driver_golden_cpu_27d3bf9.json): the chosen
+        top templates and lags identical; H_rho and H_chi2 within 1e-5 relative (the Bridge, 2026-11-26);
+      * on MPS, also against the CPU golden of THIS code (driver_golden_cpu.npz): templates and lags identical, every
+        band piece (H anchors and the whole L window) within 1e-5 of max(|z|, 1), box max within 1e-5.
+    Writes driver_golden_<dev>.json + .npz (the band pieces), and their sha256 in the json."""
     import torch
-    ref = json.loads((B / "results" / "coh2c_verify" / "box_H1_1249001472_noise_mc0.700_L128_cpu.json").read_text())
+    dev_ = L.pick_dev()
+    ref = json.loads((B / "results" / "coh2c_verify" / f"box_H1_1249001472_noise_mc0.700_L128_{dev_}.json").read_text())
+    old = json.loads((OUT / "driver_golden_cpu_27d3bf9.json").read_text())
     st = json.loads((B / "state" / "realbg" / "caught.json").read_text())
     gps = segments()[0]
     i_c = [b for b in st["candidates"]["0_0"] if (L.PRE + 1) * FS < b * 102 < 4096 * FS - 65 * FS][0] * 102
-    dev = L.pick_dev()
+    dev = dev_
     sign = json.loads((L.OUT / "E1_phase_model.json").read_text())["sign"]
     from coh2c_verify import grid_points
     hw = 0.021510884647971934
@@ -1058,38 +1093,53 @@ def golden():
     eng, fine = L.Engine(dev, 4.0, 1), Fine(dev)
     box = Box(None, 128, dev, eng, sign, h0, gr=gr)
     y, w_snip, _ = L.load_ww("H1", gps)
-    ysn, kappa = noise_spectrum(dict(kind="bg", i_c=i_c, n=0), "H1", y, w_snip)
+    ysn, kappa = noise_spectrum(dict(kind="bg", i_c=i_c, n=0), y)
     r = prepare(box, fine, ysn, kappa, w_snip, i_c)
     o = score(box, fine, r, r)
     rel = abs(o["tpeak_max"] / ref["box_max_local"] - 1)
-    # band pieces vs gate E3's own function, at the top point
+    z16_H = np.stack([band_series(box, fine, r, int(tx), r["i_s"] - eng.half + int(lg))[DELTA]
+                      for tx, lg in zip(o["tmpl"], o["lag"])])
+    z16_L0 = band_series(box, fine, r, int(o["tmpl"][0]), r["i_s"] - eng.half + int(o["lag"][0]))
     tidx, n0 = int(o["tmpl"][0]), r["i_s"] - eng.half + int(o["lag"][0])
     j = int(gr["ref_of"][tidx])
-    z16 = band_series(box, fine, r, tidx, n0)[DELTA]
     dco = torch.tensor((cs[tidx] - gr["ref_coeffs"][j]).astype(np.float32), device=dev).unsqueeze(0)
-    e3_err = 0.0
+    e3 = []
     for p in P_BINS:
         ed = r["refs"][j]["edges16"]
         edp = [(ed[k][0], ed[k + 16 // p - 1][1]) for k in range(0, 16, 16 // p)]
         zj = L.chi2_fine(torch, r["refs"][j]["p0"], dco, sign, torch.tensor([n0], device=dev), edp, fine.basis,
                          fine.k_idx)[0].cpu().numpy().astype(np.complex128) / (r["refs"][j]["sig0"] * r["kappa"])
-        mine = z16.reshape(p, 16 // p).sum(axis=1)
-        e3_err = max(e3_err, float(np.abs(mine - zj).max() / max(abs(zj.sum()), 1.0)))
-    clos = float(o["closure"].max())
+        e3.append(float(np.abs(z16_H[0].reshape(p, 16 // p).sum(axis=1) - zj).max() / max(abs(zj.sum()), 1.0)))
+    assert all(np.isfinite(e3)) and np.isfinite(o["closure"]).all() and np.isfinite(rel), "non-finite golden field"
+    e3_err, clos = max(e3), float(o["closure"].max())
     same_hl = float(np.abs(o["L_rho"][:, DELTA] - o["H_rho"]).max() / o["H_rho"].max())
-    ok = (rel <= 1e-5 and box.n == ref["n_templates"] and e3_err <= 1e-5 and clos <= 1e-4 and same_hl <= 1e-6
-          and o["plain_net"] >= 2 * o["tpeak_max"] * (1 - 1e-6))
-    res = dict(gate="driver golden", device=dev, n_templates=box.n, box_max_driver=o["tpeak_max"],
-               box_max_verify=ref["box_max_local"], rel=rel, band_vs_chi2_fine_max=e3_err, closure_max=clos,
-               identical_slot_L_vs_H=same_hl, plain_net=o["plain_net"],
-               top=dict(tmpl=o["tmpl"].tolist(), lag=o["lag"].tolist(), H_rho=o["H_rho"].tolist(),
-                        H_chi2_p4_p8_p16=o["H_chi2"].tolist()),
-               passed=bool(ok), peak_footprint_mb=L.peak_footprint_mb(), model="Claude Opus 5.5", env=L.stamp())
+    old_tmpl_same = list(map(int, o["tmpl"])) == old["top"]["tmpl"] and list(map(int, o["lag"])) == old["top"]["lag"]
+    old_rho = float(np.max(np.abs(o["H_rho"] / np.array(old["top"]["H_rho"]) - 1)))
+    old_chi = float(np.max(np.abs(o["H_chi2"] / np.array(old["top"]["H_chi2_p4_p8_p16"]) - 1)))
+    checks = dict(box_max_rel=rel, n_templates_match=box.n == ref["n_templates"], band_vs_chi2_fine_max=e3_err,
+                  closure_max=clos, identical_slot_L_vs_H=same_hl, plain_ge_2x=bool(o["plain_net"] >= 2 * o["tpeak_max"] * (1 - 1e-6)),
+                  vs_pre_rewrite_cpu=dict(tmpl_lag_identical=old_tmpl_same, H_rho_rel_max=old_rho, H_chi2_rel_max=old_chi))
+    ok = (rel <= 1e-5 and checks["n_templates_match"] and e3_err <= 1e-5 and clos <= 1e-4 and same_hl <= 1e-6
+          and checks["plain_ge_2x"] and old_tmpl_same and old_rho <= 1e-5 and old_chi <= 1e-5)
     OUT.mkdir(parents=True, exist_ok=True)
+    npz = OUT / f"driver_golden_{dev}.npz"
+    np.savez(npz, tmpl=o["tmpl"], lag=o["lag"], z16_H=z16_H, z16_L0=z16_L0, tpeak_max=o["tpeak_max"])
+    if dev == "mps":
+        c = np.load(OUT / "driver_golden_cpu.npz")
+        scale = np.maximum(np.abs(c["z16_H"].sum(axis=1)), 1.0)[:, None]
+        xd = dict(tmpl_lag_identical=bool(np.array_equal(c["tmpl"], o["tmpl"]) and np.array_equal(c["lag"], o["lag"])),
+                  z16_H_max=float(np.max(np.abs(z16_H - c["z16_H"]) / scale)),
+                  z16_L0_max=float(np.max(np.abs(z16_L0 - c["z16_L0"])) / max(abs(c["z16_L0"].sum(axis=1)).max(), 1.0)),
+                  box_max_rel=float(abs(o["tpeak_max"] / float(c["tpeak_max"]) - 1)))
+        checks["vs_cpu_same_code"] = xd
+        ok = ok and xd["tmpl_lag_identical"] and xd["z16_H_max"] <= 1e-5 and xd["z16_L0_max"] <= 1e-5 and xd["box_max_rel"] <= 1e-5
+    res = dict(gate="driver golden", device=dev, n_templates=box.n, box_max_driver=o["tpeak_max"],
+               box_max_verify=ref["box_max_local"], checks=checks, plain_net=o["plain_net"],
+               top=dict(tmpl=o["tmpl"].tolist(), lag=o["lag"].tolist(), H_rho=o["H_rho"].tolist(),
+                        H_chi2_p4_p8_p16=o["H_chi2"].tolist()), npz=npz.name, npz_sha256=_sha(npz),
+               passed=bool(ok), peak_footprint_mb=L.peak_footprint_mb(), model="Claude Opus 5.5", env=L.stamp())
     (OUT / f"driver_golden_{dev}.json").write_text(json.dumps(res, indent=1))
-    log(f"driver golden {'PASS' if ok else 'FAIL'}: box max {o['tpeak_max']:.6f} vs {ref['box_max_local']:.6f} "
-        f"(rel {rel:.1e}), bands vs chi2_fine {e3_err:.1e}, closure {clos:.1e}, L=H {same_hl:.1e}, {box.n} templates "
-        f"| footprint {L.peak_footprint_mb()} MB")
+    log(f"driver golden ({dev}) {'PASS' if ok else 'FAIL'}: {json.dumps(checks)} | footprint {L.peak_footprint_mb()} MB")
 
 
 if __name__ == "__main__":

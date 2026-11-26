@@ -1,0 +1,106 @@
+{
+ "check": "C10 (1) pycbc noise reproduces the target PSD",
+ "bar": 0.015,
+ "rows": [
+  {
+   "det": "H1",
+   "segment": 1249001472,
+   "seed": 7099000,
+   "band_means": [
+    1.0031985806414714,
+    1.0004631250382452,
+    0.9969375014738359,
+    0.9999190647675765,
+    1.0676982662030292,
+    1.0015068967908658,
+    1.0013771956213957,
+    11.074092787238877,
+    0.9993141991279301,
+    1.0064513687949088,
+    1.0012986036799112,
+    0.9987018124722701,
+    1.0033895074432018,
+    0.9991855216465368,
+    0.9988706639892915,
+    11.143466594496328
+   ],
+   "worst_dev": 10.143466594496328
+  },
+  {
+   "det": "L1",
+   "segment": 1249001472,
+   "seed": 7099001,
+   "band_means": [
+    1.0004548391966313,
+    1.0002944386835297,
+    0.9985922986628452,
+    0.9989883512729286,
+    1.0213985001495987,
+    0.9978803283398057,
+    1.0011011848026385,
+    1.2847372457165376,
+    1.0003239170253035,
+    1.0052808969685705,
+    0.9987882217468089,
+    0.9981633474957673,
+    1.000265931454485,
+    1.0023352037784674,
+    1.000402053380457,
+    1.5715338044654585
+   ],
+   "worst_dev": 0.5715338044654585
+  }
+ ],
+ "passed": false,
+ "peak_footprint_mb": 1742,
+ "model": "Claude Opus 5.5",
+ "env": {
+  "python": "3.12.13",
+  "executable": "/Users/sumit/Github/BlackHole/primordial_blackhole_search/.venv/bin/python",
+  "implementation": "CPython",
+  "platform": "macOS-27.2-arm64-arm-64bit",
+  "machine": "arm64",
+  "cpu_count": 10,
+  "packages": {
+   "numpy": "2.4.6",
+   "scipy": "1.17.1",
+   "torch": "2.12.0",
+   "pycbc": "2.10.0",
+   "gwpy": "4.0.1",
+   "lal": "7.7.1",
+   "sbi": null,
+   "qnm": null,
+   "mpmath": "1.3.0",
+   "ringdown": null,
+   "jax": null
+  },
+  "blas_lapack": {
+   "numpy": {
+    "blas": "accelerate",
+    "lapack": "accelerate"
+   },
+   "scipy": {
+    "blas": "Accelerate",
+    "lapack": "Accelerate"
+   }
+  },
+  "torch": {
+   "threads": 1,
+   "interop_threads": 10,
+   "mps": true,
+   "cuda": false,
+   "default_dtype": "torch.float32"
+  },
+  "thread_env": {
+   "OMP_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": "1",
+   "OPENBLAS_NUM_THREADS": "1",
+   "VECLIB_MAXIMUM_THREADS": "1",
+   "PYTORCH_ENABLE_MPS_FALLBACK": null
+  },
+  "git": {
+   "commit": "5f74a098f0b661d038c1b0e71d444900772d48de",
+   "dirty": false
+  }
+ }
+}
