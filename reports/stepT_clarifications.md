@@ -138,7 +138,8 @@ Written with their code (`coh2t_drive.py`) before any of these kinds ran.
 - **Bar, as registered:** passes ≤ x*, with x* = 2 for n = 218 under Binomial(n, 1/1440).
   - Where the number comes from: registration §5 F1 defines x* as the smallest count with P(X > x*) ≤ 0.01 for
     X ~ Binomial(n, f/r₁), with f/r₁ = (1/day)/(1/minute) = 1/1440.
-  - For n = 218 valid caught injections, P(X > 1) = 0.0383 and P(X > 2) = 0.00051, so x* = 2.
+  - For n = 218 valid caught injections, P(X > 1) = 0.0103 (just above 0.01) and P(X > 2) = 0.00051, so x* = 2
+    (scipy.stats.binom.sf, computed 2026-11-26).
   - The number is not in the registration; the rule is.
 - **Status:** ACCEPTED.
 
