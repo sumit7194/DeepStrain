@@ -603,3 +603,67 @@ rest on conventions recorded independently of C13:
 - **Sensitivity readout, not a gate:** (i) is also run on the original configuration (Δf 1/16 Hz, the PSD above
   1,024 Hz as estimated).
 
+## C17 (2026-11-26, PROPOSED, before any code or run): check (i), noise-only |z|² against the exact generator
+
+**What is compared.** The per-template mean of noise-only |z|² over all ±1-s lags, which is the quantity K1's
+survival comparison depends on.
+- **The K1-(A) generator, C16's configuration:** pycbc, Δf 1/16 Hz, PSD flat below 40 Hz and above 1,024 Hz. This
+  comparison is the gate.
+- **Against the exact generator:** a Gaussian drawn exactly from the same PSD on the full 4,096-s circle.
+- Both go through prep's whitening path (×w², the real segment's own filter) and the identical engine.
+
+**Templates.** 21 per L_max: 7 from each of 3 boxes (the bg boxes nearest Mc 0.20, 0.35 and 0.60), evenly spaced in
+the box's grid order, at L_max 128 and 384. Both detectors, segment 0.
+
+**Sample.**
+- 64 independent 4,096-s series per (generator, detector), seeded.
+- From each, 31 snippets with centres 128 s apart in [392, 4,088] s, so about 1,984 snippets per (generator, detector).
+- Inside a series the ±1-s windows are far apart, so the |z| values are nearly independent. The correlation from
+  overlapping data is handled by the bootstrap below.
+
+**Decision: on the POOLED ratio only.**
+- R = mean over templates, lags and snippets of |z|² for the generator, divided by the same for the exact generator,
+  per L_max and per detector, so 4 pooled ratios.
+- **Bar:** |R − 1| ≤ 3·SE_pooled in all 4.
+- **SE_pooled** comes from a bootstrap over SERIES (B = 2,000), resampling each generator's 64 series independently.
+  That keeps the cross-template, cross-lag and in-series correlations, as the Bridge's fix 1 requires.
+- Per-template ratios are reported descriptively, never gated: 20 tests at 3σ would give about a 5 % chance of a
+  spurious fail.
+
+**Power, the must-fire control (fix 3).**
+- **The deviation that matters for K1, derived for the per-candidate max:** χ²₄ trials, N_eff 10⁶, so x ≈ 43.1 at
+  survival 10⁻².
+- A noise-variance excess δ shifts survival at 10⁻² as follows (computed, scipy):
+
+  | δ | 0.1 % | 0.2 % | 0.3 % | 0.5 % | 1.0 % |
+  |---|---|---|---|---|---|
+  | Survival factor | ×1.021 | ×1.042 | ×1.063 | ×1.107 | ×1.225 |
+
+- K1's own statistical sd of the survival ratio at 10⁻² is 6.2 % (N_MC = 100,000, C10). **A deviation matters if it
+  alone shifts survival by one K1 sd, so δ* = 0.3 %.**
+- **Planted fault:** the exact generator with its PSD multiplied by (1 + δ*) over 50–300 Hz, where the templates' σ²
+  sits, then whitened with the UNCHANGED filter. It must FAIL the pooled bar against an independent exact draw, in
+  all 4 (L_max, detector) cells.
+- **Null control:** two independent exact-generator draws must PASS in all 4 cells.
+
+**Order.**
+1. The null control and the must-fire control run first. They involve no pycbc.
+2. **If the planted fault does not fail in every cell,** n is too small. I raise n (more series), re-register the new
+   n, and repeat step 1 before anything else.
+3. Only then the gate: C16's configuration against the exact generator.
+4. Then the sensitivity readout: pycbc with the original PSD above 1,024 Hz. Reported, not a gate.
+
+**n set from an a-priori SE estimate, before any run.**
+- |z|² behaves like χ²₂ (relative sd 1). The autocorrelation of whitened chirp z is about 1/(150 Hz), about 27
+  samples, so each 2-s window holds about 300 independent lags: a relative SE of about 5.8 % per template per snippet.
+- With about 3–10 effectively independent templates over 3 boxes, that is about 2–3 % per snippet.
+- For the ratio of two generators with n snippets each: SE ≈ √2 × 2.5 %/√n. That is ≈ 0.08 % at n ≈ 1,984, so
+  3·SE ≈ 0.24 % < δ*·f_w ≈ 0.28 %, where f_w ≈ 0.95 is the fraction of template σ² in 50–300 Hz.
+- That margin is thin, which is why the must-fire control decides whether n is enough.
+
+**Cost, an estimate.**
+- CPU, the series: 64 × 2 detectors × 5 generators-or-controls, about 2–6 s each, about 35 min in all.
+- MPS, the engine: one rfft per snippet (~60 ms, shared by all boxes and both L_max), plus 3 boxes × 2 L_max × about
+  15 ms of reference correlations. About 0.15 s per snippet, so 1,984 × 2 detectors × 5 ≈ **50 min**.
+- Peak ≤ 2.6 GB, under the guard.
+
