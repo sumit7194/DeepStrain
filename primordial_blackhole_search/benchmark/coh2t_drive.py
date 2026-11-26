@@ -20,16 +20,17 @@ Stage-1 candidates and their box (identical rule for background and foreground):
   Edge rule (realbg_cascade's, for both kinds): the candidate's merger sample must lie in [(384 + 8) s, 4096 - 8 s];
   candidates outside are recorded as excluded, and their count is reported, so livetime can be scaled.
 
-Per candidate and detector (engine: coh2c_local, verified as D1): a 512-s snippet (start clamped inside the segment),
-one reference correlation per reference used by the box, every grid template's |z|^2 over the +-1-s lags. Kept:
-  * each template's peak (max over lags), and each lag's best template;
-  * PAIRS for the network value: for each of the K = 5 templates with the largest peak in one detector, the other
-    detector's best (template, lag) within +-10 ms (41 samples) of that peak; both directions, so <= 2K pairs;
-  * at every point of every pair: rho = |z|, and Allen's chi^2 for p = 4, 8, 16 equal-SNR bins by the exact route of
-    gate E3 (heterodyned, full snippet resolution, integer lag phase), plus its GPS time;
-  * the plain-coherent network maximum (ablation): max over H1 lags of (best |z_H|^2 + best |z_L|^2 within +-10 ms).
-PSD variation v and newSNR are applied afterwards, by PyCBC itself in its own process (coh2t.v_at / rho_hat), so the
-engine process never imports pycbc; the candidate score is then the maximum over pairs of rho^_H^2 + rho^_L^2.
+Per candidate (engine: coh2c_local, verified as D1; clarifications in reports/stepT_clarifications.md): a 512-s
+snippet per detector (start clamped inside the segment), one reference correlation per reference used by the box,
+every grid template's complex z over the +-1-s lags in H1 and L1. The network value is the registered H-anchored form
+(registration §3), with the L1 term on the SAME template, as realbg_cascade.survival paired them:
+  * H1's K = 5 loudest templates, each at its own best H1 lag (per-template de-duplication, clarification C1);
+  * at each: rho_H and Allen's chi^2 (p = 4, 8, 16 equal-SNR bins, gate E3's exact route), and the same template's
+    rho_L and chi^2 at EVERY L1 lag within +-10 ms (41 samples each side), with their GPS times;
+  * the plain-coherent ablation, same form over all templates: max over H1 lags of |z_H|^2 + max_{+-10 ms} |z_L|^2.
+PSD variation v and newSNR are applied afterwards by PyCBC itself in its own process (coh2t.v_at / rho_hat), so the
+engine process never imports pycbc. The candidate score is then max over the K templates of
+rho^_H^2 + max over delta of rho^_L^2, with v read at each point's own time.
 
 pycbc runs only in short-lived children: noise series (coh2c_local prep), PyCBC v series, and per chunk of boxes the
 reference templates and the foreground signal snippets, which the engine deletes once their box is done.
@@ -263,7 +264,7 @@ def vone(det, gps):
     os.replace(tmp, out)
 
 
-# ------------------------------------------------------------------ engine: one candidate in one detector
+# ------------------------------------------------------------------ engine: one candidate, both detectors
 def snippet_start(i_c):
     return int(np.clip(i_c - L.PRE * FS, 0, N - NS))
 
@@ -271,11 +272,11 @@ def snippet_start(i_c):
 class Box:
     """Everything that is fixed for one (tid, l_max): grid, references on the device, per-template phase offsets."""
 
-    def __init__(self, tid, l_max, dev, eng, sign, h0):
+    def __init__(self, tid, l_max, dev, eng, sign, h0, gr=None):
         import torch
         self.t, self.dev, self.eng, self.sign = torch, dev, eng, sign
-        gr = grid(tid, l_max)
-        self.gr, self.n = gr, len(gr["pts"])
+        gr = grid(tid, l_max) if gr is None else gr
+        self.gr, self.n = gr, len(gr["coeffs"])
         self.ref_of = gr["ref_of"]
         self.h0 = h0                                                         # [n_ref, NS/2+1] complex64 (numpy)
         self.h0c = [torch.tensor(h, device=dev) for h in h0]
@@ -295,115 +296,125 @@ class Fine:
         self.kb = np.where((f >= L.F_LO - 12) & (f <= L.F_HI))[0]
         self.basis = torch.tensor(L.basis(f[self.kb]).astype(np.float32), device=dev)
         self.k_idx = torch.tensor(self.kb, device=dev, dtype=torch.int64)
+        self.deltas = torch.arange(-DELTA, DELTA + 1, device=dev, dtype=torch.int64)
 
 
-def one_detector(box, fine, y, w_snip, i_c, sig=None):
-    """|z|^2 over the box at +-1 s around sample i_c of series y. Returns per-template peaks, per-lag best, and what
-    chi^2 needs later (p0, sigma, band edges per reference)."""
-    t, eng = box.t, box.eng
+def prepare(box, fine, y, w_snip, i_c, sig=None):
+    """One detector's snippet: spectrum on the device, and per reference its sigma, equal-SNR band edges (p = 16;
+    p = 8 and 4 are unions of them, asserted) and the fine-resolution product p0 for chi^2."""
+    t = box.t
     lo = snippet_start(i_c)
-    i_s = i_c - lo
     x = np.asarray(y[lo: lo + NS], dtype=np.float64)
     if sig is not None:
         x = x + sig.astype(np.float64)
     ysn = np.fft.rfft(x)
     kappa = 1.0 / np.median(np.abs(ysn[NS // 2048: NS // 8]))
     ysn_t = t.tensor((ysn * kappa).astype(np.complex64), device=box.dev)
-    n_lag = 2 * eng.half + 1
-    tpeak, tlag = np.zeros(box.n), np.zeros(box.n, np.int64)
-    zpk = np.zeros(box.n, np.complex128)
-    lagmax, lagarg = np.zeros(n_lag), np.full(n_lag, -1, np.int64)
-    per_ref = []
-    for j, (idx, dco) in enumerate(box.groups):
+    refs = []
+    for j in range(len(box.h0)):
         pw = (np.abs(box.h0[j]) * w_snip) ** 2
         sig0 = np.sqrt(2 * pw.sum() / NS)
         cum = np.cumsum(pw[fine.kb]) / pw[fine.kb].sum()
-        edges = {}
-        for p in P_BINS:
-            ke = np.concatenate([[0], np.searchsorted(cum, np.arange(1, p) / p), [len(fine.kb)]])
-            edges[p] = [(int(a), int(b)) for a, b in zip(ke[:-1], ke[1:])]
-        p0 = (ysn_t * box.h0c[j])[fine.k_idx]
-        per_ref.append((sig0, edges, p0))
+        ke = {p: np.concatenate([[0], np.searchsorted(cum, np.arange(1, p) / p), [len(fine.kb)]]) for p in P_BINS}
+        for p in P_BINS:                         # nested bands: every p-edge is a 16-edge
+            assert np.array_equal(ke[p], ke[16][:: 16 // p]), (p, "band edges are not nested")
+        refs.append(dict(sig0=sig0, edges16=[(int(a), int(b)) for a, b in zip(ke[16][:-1], ke[16][1:])],
+                         p0=(ysn_t * box.h0c[j])[fine.k_idx]))
+    return dict(lo=lo, i_s=i_c - lo, kappa=kappa, ysn_t=ysn_t, refs=refs)
+
+
+def band_series(box, fine, r, tidx, n0):
+    """Allen's 16 band pieces z_j at snippet samples n0 + delta, delta in +-10 ms (gate E3's exact route: heterodyned
+    at full snippet resolution, integer lag phase; the delta phase is an exact integer too). -> [n_delta, 16], normalised."""
+    t = box.t
+    j = int(box.ref_of[tidx])
+    rf = r["refs"][j]
+    dco = t.tensor((box.gr["coeffs"][tidx] - box.gr["ref_coeffs"][j]).astype(np.float32), device=box.dev)
+    ph = (dco @ fine.basis) * float(-box.sign)
+    ph = ph + ((fine.k_idx * int(n0)) % NS).to(t.float32) * (2 * np.pi / NS)
+    zt0 = rf["p0"] * t.complex(t.cos(ph), t.sin(ph)) * (2.0 / NS)
+    out = []
+    for a, b in rf["edges16"]:
+        e = ((fine.k_idx[a:b].unsqueeze(1) * fine.deltas.unsqueeze(0)) % NS).to(t.float32) * (2 * np.pi / NS)
+        out.append(zt0[a:b] @ t.complex(t.cos(e), t.sin(e)))
+    return (t.stack(out, dim=1).cpu().numpy().astype(np.complex128)) / (rf["sig0"] * r["kappa"])
+
+
+def chi2_of(z16):
+    """[..., 16] band pieces -> rho and Allen chi^2 for p = 4, 8, 16 (p-bands are unions of 16-bands)."""
+    z = z16.sum(axis=-1)
+    out = {}
+    for p in P_BINS:
+        zp = z16.reshape(z16.shape[:-1] + (p, 16 // p)).sum(axis=-1)
+        out[p] = p * np.sum(np.abs(zp - z[..., None] / p) ** 2, axis=-1)
+    return np.abs(z), out
+
+
+def score(box, fine, rH, rL):
+    """Registration §3, H-anchored: for each of H1's K loudest templates (each template's own best lag), chi^2 at that
+    H1 point, and the SAME template's L1 rho and chi^2 at every lag within +-10 ms of it (v and newSNR are applied
+    later by PyCBC, which then takes the max over delta). Also the plain-coherent ablation, same form, all templates."""
+    t, eng = box.t, box.eng
+    assert rH["i_s"] == rL["i_s"]
+    n_lag = 2 * eng.half + 1
+    tpeak, tlag = np.zeros(box.n), np.zeros(box.n, np.int64)
+    zH_pk, zL_at = np.zeros(box.n, np.complex128), np.zeros(box.n, np.complex128)
+    plain = -1.0
+    for j, (idx, dco) in enumerate(box.groups):
         if len(idx) == 0:
             continue
-        x0 = L.analytic_corr(t, ysn_t, box.h0c[j])
-        ytil = eng.window(x0, i_s)
-        del x0
+        yt = {}
+        for det, r in (("H1", rH), ("L1", rL)):
+            x0 = L.analytic_corr(t, r["ysn_t"], box.h0c[j])
+            yt[det] = eng.window(x0, r["i_s"])
+            del x0
         for s in range(0, len(idx), BATCH):
             part = idx[s:s + BATCH]
-            z = eng.z(ytil, dco[s:s + BATCH], box.sign).cpu().numpy().astype(np.complex128) / (sig0 * kappa)
-            a2 = np.abs(z) ** 2
-            am = a2.argmax(axis=1)
-            tpeak[part], tlag[part] = a2[np.arange(len(part)), am], am
-            zpk[part] = z[np.arange(len(part)), am]
-            bm, bi = a2.max(axis=0), a2.argmax(axis=0)
-            better = bm > lagmax
-            lagmax[better], lagarg[better] = bm[better], part[bi[better]]
-        del ytil
-    return dict(lo=lo, i_s=i_s, kappa=kappa, tpeak=tpeak, tlag=tlag, zpk=zpk, lagmax=lagmax, lagarg=lagarg, per_ref=per_ref)
-
-
-def chi2_points(box, fine, r, pts):
-    """Exact Allen chi^2 (gate E3 route) at (template, lag) points of one detector -> rho, chi2 per p, closure."""
-    t, eng = box.t, box.eng
-    out = {}
-    for tidx, lag in pts:
-        j = int(box.ref_of[tidx])
-        sig0, edges, p0 = r["per_ref"][j]
-        dco = t.tensor((box.gr["coeffs"][tidx] - box.gr["ref_coeffs"][j]).astype(np.float32), device=box.dev).unsqueeze(0)
-        n0 = t.tensor([r["i_s"] - eng.half + int(lag)], device=box.dev, dtype=t.int64)
-        rec = {}
-        for p in P_BINS:
-            zj = L.chi2_fine(t, p0, dco, box.sign, n0, edges[p], fine.basis, fine.k_idx)[0].cpu().numpy() \
-                .astype(np.complex128) / (sig0 * r["kappa"])
-            zt = zj.sum()
-            rec[f"chi2_p{p}"] = float(p * np.sum(np.abs(zj - zt / p) ** 2))
-        z_eng = r["zpk"][tidx] if int(r["tlag"][tidx]) == int(lag) else None
-        rec.update(rho=float(abs(zt)), lag=int(lag), tmpl=int(tidx),
-                   closure=None if z_eng is None else float(abs(zt - z_eng) / max(abs(z_eng), 1.0)))
-        out[(tidx, lag)] = rec
+            zH = eng.z(yt["H1"], dco[s:s + BATCH], box.sign) / float(rH["refs"][j]["sig0"] * rH["kappa"])
+            zL = eng.z(yt["L1"], dco[s:s + BATCH], box.sign) / float(rL["refs"][j]["sig0"] * rL["kappa"])
+            aH, aL = zH.abs() ** 2, zL.abs() ** 2
+            lmax = t.nn.functional.max_pool1d(aL.unsqueeze(1), 2 * DELTA + 1, stride=1, padding=DELTA).squeeze(1)
+            plain = max(plain, float((aH + lmax).max()))
+            pk, am = aH.max(dim=1)
+            rows = t.arange(len(part), device=box.dev)
+            tpeak[part], tlag[part] = pk.cpu().numpy(), am.cpu().numpy()
+            zH_pk[part] = zH[rows, am].cpu().numpy()
+            zL_at[part] = zL[rows, am].cpu().numpy()
+            del zH, zL, aH, aL, lmax
+        del yt
+    top = np.argsort(-tpeak)[:K_PEAKS]
+    out = dict(tmpl=top, lag=tlag[top], H_rho=np.zeros(K_PEAKS), H_chi2=np.zeros((K_PEAKS, 3)),
+               L_rho=np.zeros((K_PEAKS, 2 * DELTA + 1)), L_chi2=np.zeros((K_PEAKS, 3, 2 * DELTA + 1)),
+               closure=np.zeros((K_PEAKS, 2)))
+    for a, tidx in enumerate(top):
+        n0 = rH["i_s"] - eng.half + int(tlag[tidx])
+        zh16 = band_series(box, fine, rH, tidx, n0)[DELTA]                    # delta = 0 only
+        zl16 = band_series(box, fine, rL, tidx, n0)                           # every delta
+        rho_h, c_h = chi2_of(zh16)
+        rho_l, c_l = chi2_of(zl16)
+        out["H_rho"][a], out["H_chi2"][a] = rho_h, [c_h[p] for p in P_BINS]
+        out["L_rho"][a], out["L_chi2"][a] = rho_l, np.stack([c_l[p] for p in P_BINS])
+        out["closure"][a] = (abs(zh16.sum() - zH_pk[tidx]) / max(abs(zH_pk[tidx]), 1.0),
+                             abs(zl16[DELTA].sum() - zL_at[tidx]) / max(abs(zL_at[tidx]), 1.0))
+    out.update(tpeak_max=float(tpeak.max()), plain_net=plain, n_lag=n_lag)
     return out
 
 
-def pairs(rH, rL):
-    """<= 2K (H1 point, L1 point) pairs: each detector's K loudest templates at their peak lag, matched with the other
-    detector's best (template, lag) within +-10 ms."""
-    out = []
-    for a, b, flip in ((rH, rL, False), (rL, rH, True)):
-        for tidx in np.argsort(-a["tpeak"])[:K_PEAKS]:
-            lag = int(a["tlag"][tidx])
-            lo, hi = max(0, lag - DELTA), min(len(b["lagmax"]), lag + DELTA + 1)
-            l2 = lo + int(np.argmax(b["lagmax"][lo:hi]))
-            pa, pb = (int(tidx), lag), (int(b["lagarg"][l2]), l2)
-            out.append((pb, pa) if flip else (pa, pb))
-    return sorted(set(out))
-
-
-def plain_network(rH, rL):
-    from scipy.ndimage import maximum_filter1d
-    return float(np.max(rH["lagmax"] + maximum_filter1d(rL["lagmax"], 2 * DELTA + 1, mode="constant", cval=0.0)))
-
-
-def score(box, fine, series, c, sig=None):
+def candidate(box, fine, series, c, sig=None):
     segs = segments()
     r = {}
     for det, si in (("H1", c["i"]), ("L1", c["iL"])):
         y, w_snip, _ = series(det, segs[si])
-        r[det] = one_detector(box, fine, y, w_snip, c["i_c"], None if sig is None else sig[det])
-    pr = pairs(r["H1"], r["L1"])
-    pts = {det: sorted({p[k] for p in pr}) for k, det in enumerate(("H1", "L1"))}
-    ch = {det: chi2_points(box, fine, r[det], pts[det]) for det in ("H1", "L1")}
-    rec = dict(n=c["n"], kind=c["kind"], k=c["k"], i=c["i"], iL=c["iL"], i_c=c["i_c"], y1=c["y1"], inj=c.get("inj"),
-               n_tmpl=box.n, plain_net=plain_network(r["H1"], r["L1"]), dets={})
-    for det, si in (("H1", c["i"]), ("L1", c["iL"])):
-        rr = r[det]
-        gps0 = segs[si] + rr["lo"] / FS
-        rec["dets"][det] = dict(lo=rr["lo"], box_max=float(rr["tpeak"].max()), box_argmax=int(rr["tpeak"].argmax()),
-                                points=[dict(v, gps=gps0 + (rr["i_s"] - box.eng.half + v["lag"]) / FS)
-                                        for v in ch[det].values()])
-    key = {det: {(v["tmpl"], v["lag"]): n for n, v in enumerate(ch[det].values())} for det in ("H1", "L1")}
-    rec["pairs"] = [[key["H1"][a], key["L1"][b]] for a, b in pr]
-    return rec
+        r[det] = prepare(box, fine, y, w_snip, c["i_c"], None if sig is None else sig[det])
+    o = score(box, fine, r["H1"], r["L1"])
+    lag0 = r["H1"]["i_s"] - box.eng.half
+    o["H_gps"] = segs[c["i"]] + (r["H1"]["lo"] + lag0 + o["lag"]) / FS                 # H1 peak time
+    o["L_gps0"] = segs[c["iL"]] + (r["L1"]["lo"] + lag0 + o["lag"] - DELTA) / FS       # L1 time at delta = -10 ms
+    return o
+
+
+ARRAYS = ("tmpl", "lag", "H_rho", "H_chi2", "L_rho", "L_chi2", "closure", "H_gps", "L_gps0", "tpeak_max", "plain_net")
+META = ("n", "kind", "k", "i", "iL", "i_c", "y1", "inj")
 
 
 # ------------------------------------------------------------------ the box-major loop
@@ -424,7 +435,7 @@ def run(l_max, kinds="bg,fg", n_box=None):
             cache[(det, gps)] = L.load_ww(det, gps)
         return cache[(det, gps)]
     done_dir = OUT / f"L{l_max}"
-    todo = [tid for tid in pl["boxes"] if any(not (done_dir / f"box_{tid:04d}_{k}.json").exists() for k in kinds)]
+    todo = [tid for tid in pl["boxes"] if any(not (done_dir / f"box_{tid:04d}_{k}.npz").exists() for k in kinds)]
     if n_box is not None:
         todo = todo[: int(n_box)]
     by_box = {}
@@ -441,36 +452,38 @@ def run(l_max, kinds="bg,fg", n_box=None):
             refs_path = STATE / "chunk" / f"refs_L{l_max}_tid{tid:04d}.npy"
             box = Box(tid, l_max, dev, eng, sign, np.load(refs_path))
             for kind in kinds:
-                out = done_dir / f"box_{tid:04d}_{kind}.json"
+                out = done_dir / f"box_{tid:04d}_{kind}.npz"
                 if out.exists():
                     continue
-                recs = []
-                for c in by_box.get(tid, []):
-                    if c["kind"] != kind:
-                        continue
+                cs = [c for c in by_box.get(tid, []) if c["kind"] == kind]
+                res = []
+                for c in cs:
                     sig = None
                     if kind == "fg":
                         sig = {det: np.load(STATE / "chunk" / f"sig_{det}_{c['inj']}.npy") for det in ("H1", "L1")}
-                    recs.append(score(box, fine, series, c, sig))
-                atomic_json(out, dict(tid=tid, l_max=l_max, kind=kind, mc_star=float(box.gr["mc_star"]),
-                                      n_tmpl=box.n, n_refs=len(box.h0c), worst_dtau=float(box.gr["worst_dtau"]),
-                                      ff_min=float(box.gr["ff_min"]), records=recs,
-                                      seconds=round(time.time() - t0, 2), peak_footprint_mb=L.peak_footprint_mb(),
-                                      model="Claude Opus 5.5", status="UNVERIFIED"))
-            for p in [refs_path] + [STATE / "chunk" / f"sig_{d}_{c['inj']}.npy" for c in by_box.get(tid, [])
-                                    if c["kind"] == "fg" for d in ("H1", "L1")]:
-                p.unlink(missing_ok=True)
+                    res.append(candidate(box, fine, series, c, sig))
+                meta = dict(tid=tid, l_max=l_max, kind=kind, mc_star=float(box.gr["mc_star"]), n_tmpl=box.n,
+                            n_refs=len(box.h0c), worst_dtau=float(box.gr["worst_dtau"]), ff_min=float(box.gr["ff_min"]),
+                            candidates=[{k: c.get(k) for k in META} for c in cs], seconds=round(time.time() - t0, 2),
+                            peak_footprint_mb=L.peak_footprint_mb(), model="Claude Opus 5.5", status="UNVERIFIED")
+                arrs = {k: np.array([r[k] for r in res]) for k in ARRAYS} if res else {}
+                done_dir.mkdir(parents=True, exist_ok=True)
+                tmp = out.with_name(out.stem + ".tmp.npz")
+                np.savez(tmp, meta=json.dumps(meta), **arrs)
+                os.replace(tmp, out)
+            for pth in [refs_path] + [STATE / "chunk" / f"sig_{d}_{c['inj']}.npy" for c in by_box.get(tid, [])
+                                      if c["kind"] == "fg" for d in ("H1", "L1")]:
+                pth.unlink(missing_ok=True)
             del box
-            n_done = s + part.index(tid) + 1
-            log(f"box {tid} ({n_done}/{len(todo)}) {time.time() - t0:.1f} s | footprint {L.peak_footprint_mb()} MB | "
-                f"{(time.time() - t_start) / 3600:.2f} h")
+            log(f"box {tid} ({s + part.index(tid) + 1}/{len(todo)}) {time.time() - t0:.1f} s | footprint "
+                f"{L.peak_footprint_mb()} MB | {(time.time() - t_start) / 3600:.2f} h")
 
 
 def status(l_max):
     pl = load_plan()
     d = OUT / f"L{int(l_max)}"
     for k in KINDS:
-        n = sum((d / f"box_{tid:04d}_{k}.json").exists() for tid in pl["boxes"])
+        n = sum((d / f"box_{tid:04d}_{k}.npz").exists() for tid in pl["boxes"])
         print(f"L{l_max} {k}: {n}/{len(pl['boxes'])} boxes")
     print(json.dumps(pl["summary"]))
 
@@ -478,8 +491,12 @@ def status(l_max):
 # ------------------------------------------------------------------ golden: the driver path against the verification
 def golden():
     """One box of the verification (H1 noise, segment 1249001472, Mc* 0.70, L_max 128, pooled half-width 2.15 %), by
-    the driver's own engine path: the box maximum must equal results/coh2c_verify's box_max_local within 1e-5, and the
-    chi^2 route's closure (sum of bands vs the engine's z) must be <= 1e-4 at every point."""
+    the driver's own engine path with the same H1 series in both detector slots:
+      * the box maximum of |z_H|^2 equals results/coh2c_verify's box_max_local within 1e-5, same template count;
+      * the band pieces at delta = 0 equal coh2c_local.chi2_fine (gate E3's function) within 1e-5, for p = 4, 8, 16;
+      * closure (sum of bands vs the engine's z) <= 1e-4 at every top point, in both slots;
+      * with identical slots, L at delta = 0 equals H, and the plain network value is >= 2 x the box maximum.
+    """
     import torch
     ref = json.loads((B / "results" / "coh2c_verify" / "box_H1_1249001472_noise_mc0.700_L128_cpu.json").read_text())
     st = json.loads((B / "state" / "realbg" / "caught.json").read_text())
@@ -488,34 +505,46 @@ def golden():
     dev = L.pick_dev()
     sign = json.loads((L.OUT / "E1_phase_model.json").read_text())["sign"]
     from coh2c_verify import grid_points
-    pts, _ = grid_points(0.70, 0.021510884647971934, 128)
-    refs, _ = L.reference_lattice(0.70, 0.021510884647971934, 128, L.dtau_max(4.0))
+    hw = 0.021510884647971934
+    pts, _ = grid_points(0.70, hw, 128)
+    refs, _ = L.reference_lattice(0.70, hw, 128, L.dtau_max(4.0))
     cs = np.array([L.coeffs(mc, q) for mc, q in pts])
+    gr = dict(coeffs=cs, ref_coeffs=np.array([r[3] for r in refs]), ref_of=np.array([L.assign(c, refs)[0] for c in cs]))
+    h0 = np.stack([np.conj(L.fd_template(mc, q, f_lo)).astype(np.complex64) for mc, q, f_lo, _ in refs])
     eng, fine = L.Engine(dev, 4.0, 1), Fine(dev)
-    box = Box.__new__(Box)
-    box.t, box.dev, box.eng, box.sign, box.n = torch, dev, eng, sign, len(pts)
-    box.gr = dict(coeffs=cs, ref_coeffs=np.array([r[3] for r in refs]))
-    box.ref_of = np.array([L.assign(c, refs)[0] for c in cs])
-    box.h0 = np.stack([np.conj(L.fd_template(mc, q, f_lo)).astype(np.complex64) for mc, q, f_lo, _ in refs])
-    box.h0c = [torch.tensor(h, device=dev) for h in box.h0]
-    box.groups = [(np.where(box.ref_of == j)[0],
-                   torch.tensor((cs[box.ref_of == j] - box.gr["ref_coeffs"][j]).astype(np.float32), device=dev))
-                  for j in range(len(refs))]
+    box = Box(None, 128, dev, eng, sign, h0, gr=gr)
     y, w_snip, _ = L.load_ww("H1", gps)
-    r = one_detector(box, fine, y, w_snip, i_c)
-    top = [(int(k), int(r["tlag"][k])) for k in np.argsort(-r["tpeak"])[:K_PEAKS]]
-    ch = chi2_points(box, fine, r, top)
-    bm = float(r["tpeak"].max())
-    rel = abs(bm / ref["box_max_local"] - 1)
-    clos = max(v["closure"] for v in ch.values())
-    ok = rel <= 1e-5 and clos <= 1e-4 and box.n == ref["n_templates"]
-    res = dict(gate="driver golden", device=dev, n_templates=box.n, box_max_driver=bm, box_max_verify=ref["box_max_local"],
-               rel=rel, chi2_closure_max=clos, top=[dict(v) for v in ch.values()], passed=bool(ok),
-               peak_footprint_mb=L.peak_footprint_mb(), model="Claude Opus 5.5", env=L.stamp())
+    r = prepare(box, fine, y, w_snip, i_c)
+    o = score(box, fine, r, r)
+    rel = abs(o["tpeak_max"] / ref["box_max_local"] - 1)
+    # band pieces vs gate E3's own function, at the top point
+    tidx, n0 = int(o["tmpl"][0]), r["i_s"] - eng.half + int(o["lag"][0])
+    j = int(gr["ref_of"][tidx])
+    z16 = band_series(box, fine, r, tidx, n0)[DELTA]
+    dco = torch.tensor((cs[tidx] - gr["ref_coeffs"][j]).astype(np.float32), device=dev).unsqueeze(0)
+    e3_err = 0.0
+    for p in P_BINS:
+        ed = r["refs"][j]["edges16"]
+        edp = [(ed[k][0], ed[k + 16 // p - 1][1]) for k in range(0, 16, 16 // p)]
+        zj = L.chi2_fine(torch, r["refs"][j]["p0"], dco, sign, torch.tensor([n0], device=dev), edp, fine.basis,
+                         fine.k_idx)[0].cpu().numpy().astype(np.complex128) / (r["refs"][j]["sig0"] * r["kappa"])
+        mine = z16.reshape(p, 16 // p).sum(axis=1)
+        e3_err = max(e3_err, float(np.abs(mine - zj).max() / max(abs(zj.sum()), 1.0)))
+    clos = float(o["closure"].max())
+    same_hl = float(np.abs(o["L_rho"][:, DELTA] - o["H_rho"]).max() / o["H_rho"].max())
+    ok = (rel <= 1e-5 and box.n == ref["n_templates"] and e3_err <= 1e-5 and clos <= 1e-4 and same_hl <= 1e-6
+          and o["plain_net"] >= 2 * o["tpeak_max"] * (1 - 1e-6))
+    res = dict(gate="driver golden", device=dev, n_templates=box.n, box_max_driver=o["tpeak_max"],
+               box_max_verify=ref["box_max_local"], rel=rel, band_vs_chi2_fine_max=e3_err, closure_max=clos,
+               identical_slot_L_vs_H=same_hl, plain_net=o["plain_net"],
+               top=dict(tmpl=o["tmpl"].tolist(), lag=o["lag"].tolist(), H_rho=o["H_rho"].tolist(),
+                        H_chi2_p4_p8_p16=o["H_chi2"].tolist()),
+               passed=bool(ok), peak_footprint_mb=L.peak_footprint_mb(), model="Claude Opus 5.5", env=L.stamp())
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / f"driver_golden_{dev}.json").write_text(json.dumps(res, indent=1))
-    log(f"driver golden {'PASS' if ok else 'FAIL'}: box max {bm:.6f} vs {ref['box_max_local']:.6f} (rel {rel:.1e}), "
-        f"chi^2 closure {clos:.1e}, {box.n} templates | footprint {L.peak_footprint_mb()} MB")
+    log(f"driver golden {'PASS' if ok else 'FAIL'}: box max {o['tpeak_max']:.6f} vs {ref['box_max_local']:.6f} "
+        f"(rel {rel:.1e}), bands vs chi2_fine {e3_err:.1e}, closure {clos:.1e}, L=H {same_hl:.1e}, {box.n} templates "
+        f"| footprint {L.peak_footprint_mb()} MB")
 
 
 if __name__ == "__main__":
