@@ -28,13 +28,13 @@ import coh2c_local as L  # noqa: E402
 OUT = B / "results" / "coh2c_verify"
 
 
-def grid_points(mc_star, half_width, l_max):
+def grid_points(mc_star, half_width, l_max, shrink=1.0):
     """coh2c_grid.build, unmodified except that it also returns the grid's (x, q) points."""
     src = (B / "coh2c_grid.py").read_text()
     src = src.replace("    return dict(mc_star=mc_star,", "    return grid_xq, dict(mc_star=mc_star,", 1)
     ns = {"__name__": "coh2c_grid_copy", "__file__": str(B / "coh2c_grid.py")}
     exec(compile(src, "coh2c_grid_copy", "exec"), ns)
-    pts, summ = ns["build"](mc_star, half_width, l_max, 1.0, np.random.default_rng(1))
+    pts, summ = ns["build"](mc_star, half_width, l_max, shrink, np.random.default_rng(1))
     return [(mc_star * float(np.exp(x)), float(q)) for x, q in pts], summ
 
 

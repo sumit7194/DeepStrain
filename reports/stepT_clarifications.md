@@ -714,3 +714,51 @@ the box's grid order, at L_max 128 and 384. Both detectors, segment 0.
   the bars are unchanged.
 - This was my arithmetic error in the registration text.
 
+## C19 (2026-11-26, pre-result): boxes whose centre lies outside the population
+
+**The problem.** The Y1 bank spans Mc 0.173–0.871, wider than the population's chirp-mass range: 0.17411 (0.2 + 0.2 M☉)
+to 0.8706 (1 + 1 M☉). For **15 boxes the q range at the centre is empty.**
+- **Light:** tids 0–12, Mc* 0.1730–0.1741.
+- **Heavy:** tids 3233–3234, Mc* 0.871.
+
+They hold 335 bg candidates (0.94 % of valid bg), 335 twins, 928 K1 samples, and a few decoys and Allen injections.
+No caught injection is in them. Per-tid counts are in `results/coh2t/C19_check.json`.
+
+**Ruled (the Bridge): option (A).**
+
+**Correction to (A), found before any run.** "q range at the box's upper chirp-mass edge" holds only at the LIGHT edge.
+At the heavy edge the allowed q set SHRINKS as Mc grows, so the in-population part of a heavy box is its bottom. This
+surfaced when the first c19check crashed on tid 3234. The rule as implemented is therefore the Bridge's fallback, **the
+union of q_range over the box's chirp-mass range**, which works out as follows:
+- light boxes: q_range at the top edge;
+- heavy boxes: q_range at the bottom edge.
+
+c19check verifies that the nesting holds in each direction.
+
+**Scope.** Only these 15 boxes take the branch; every other box calls the verified builder unchanged. Separately, 47
+light-edge boxes have a centre q range narrower than 0.1 (tids 13–14 are degenerate at (1, 1)). That is Fable's
+verified design, a thin box (D4), and it is left as it is.
+
+## C20 (2026-11-26, pre-result): production grids follow the verified shrink rule
+
+**The defect.** `coh2t_drive.grid()` built each box once, at hexagon shrink 1.0. Fable's verified grids
+(`results/coh2c/G_grids.json`, from `coh2c_grid.main`) used a rule instead: shrink 1.0 → 0.85 → 0.7 until at most 1 %
+of the fitting-factor Monte Carlo points fall below the 0.97 minimal match.
+- **Where it matters:** at L_max 384 and Mc 0.18, shrink 1.0 leaves 6 % below 0.97 (worst 0.959), and only 0.7
+  passes (worst 0.989).
+- **How it was found:** the C19 check on tid 0 at L384, at shrink 1.0, gave a worst fitting factor of 0.956, with 13 %
+  of points below 0.97.
+
+**The fix.**
+- `grid()` now applies the same rule.
+- (0.6, 0.5) are added only as an extension. A box that still fails at 0.5 stops the run, as a correctness gate.
+- The chosen shrink and its below-0.97 fraction are stored per grid.
+- Cached grids from before C20 have no shrink and are rebuilt, never reused.
+
+**Effect on earlier runs.** The pilot boxes (Mc 0.35 and 0.50, L128), the golden (Mc 0.70, L128) and N1 (a precision
+check, so not coverage-dependent) all sit where G_grids shows shrink 1.0 already passes. Check (i) has not yet produced
+a result.
+
+**Cost.** More templates in light L384 boxes, and up to 3 builds per box on the child CPU. Whether Fable's
+constructed-grid cost included the shrink is not yet checked; production times will tell.
+

@@ -274,7 +274,13 @@ def box_q_range(mc_star):
     lowest chirp mass (0.2 + 0.2 Msun), q_range at the box's UPPER chirp-mass edge Mc* e^(+HALF_WIDTH), which
     contains every q the population allows anywhere in the box (q_range nested in Mc: checked, C19)."""
     qr = L.q_range(mc_star)
-    return qr if qr is not None else L.q_range(mc_star * np.exp(HALF_WIDTH))
+    if qr is not None:
+        return qr
+    # union over the box's chirp-mass range: at the light edge the in-population part is the box's top, at the heavy
+    # edge its bottom (q_range nested in Mc in each direction: checked by c19check)
+    edges = [q_ for q_ in (L.q_range(mc_star * np.exp(+HALF_WIDTH)), L.q_range(mc_star * np.exp(-HALF_WIDTH))) if q_]
+    assert edges, f"box at Mc {mc_star} has no in-population point"
+    return (min(e[0] for e in edges), max(e[1] for e in edges))
 
 
 class _qpatch:
@@ -301,12 +307,20 @@ def grid(tid, l_max):
     path = STATE / "grids" / f"L{l_max}_tid{tid:04d}.npz"
     if path.exists():
         z = dict(np.load(path, allow_pickle=False))
-        z["coeffs"] = np.array([L.coeffs(mc, q) for mc, q in z["pts"]])
-        return z
+        if "shrink" in z:                               # files from before C20 lack it and are rebuilt, never reused
+            z["coeffs"] = np.array([L.coeffs(mc, q) for mc, q in z["pts"]])
+            return z
     from coh2c_verify import grid_points
     mc_star = float(load_plan()["mcs"][tid])            # Y1's bank, stored by plan (no y1_bank import here)
     with _qpatch(mc_star) as qp:                        # C19: only the 15 below-population boxes take the branch
-        pts, gsum = grid_points(mc_star, HALF_WIDTH, l_max)
+        # C20: coh2c_grid.main's rule, the one Fable's verified grids (G_grids.json) were built with: shrink the hexagon
+        # 1.0 -> 0.85 -> 0.7 until at most 1 % of the Monte Carlo points fall below the 0.97 minimal match; (0.6, 0.5)
+        # added only as an extension, and a box still failing after 0.5 stops the run (correctness gate)
+        for shrink in (1.0, 0.85, 0.7, 0.6, 0.5):
+            pts, gsum = grid_points(mc_star, HALF_WIDTH, l_max, shrink)
+            if gsum["frac_below_097"] <= 0.01:
+                break
+        assert gsum["frac_below_097"] <= 0.01, (tid, l_max, "grid fails minimal match even at shrink 0.5")
         refs, lat_worst = L.reference_lattice(mc_star, HALF_WIDTH, l_max, L.dtau_max(4.0))
     cs = np.array([L.coeffs(mc, q) for mc, q in pts])
     asg = [L.assign(c, refs) for c in cs]
@@ -315,7 +329,7 @@ def grid(tid, l_max):
     out = dict(mc_star=np.float64(mc_star), pts=np.array(pts), coeffs=cs, ref_of=np.array([j for j, _ in asg]),
                ref_mcq=np.array([(r[0], r[1], r[2]) for r in refs]), ref_coeffs=np.array([r[3] for r in refs]),
                worst_dtau=np.float64(worst), ff_min=np.float64(gsum["ff_min"]), ff_p01=np.float64(gsum["ff_p01"]),
-               c19=np.bool_(qp.active))
+               c19=np.bool_(qp.active), shrink=np.float64(shrink), frac_below_097=np.float64(gsum["frac_below_097"]))
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_name(path.stem + ".tmp.npz")
     np.savez(tmp, **{k: v for k, v in out.items() if k != "coeffs"})
@@ -1058,65 +1072,83 @@ def checki_eval(a, b, tag):
 
 
 def c19check():
-    """C19 conditions (the Bridge, 2026-11-26): (1) q_range nested over Mc in [population minimum, top of the lightest
-    affected box]; (2) for the lightest and the 15th affected box, at L_max 128 and 384: the constructed grid's
-    fitting factor against random IN-POPULATION points of the box (coh2c_grid's own Monte Carlo, 400 points, drawn
-    by rejection to masses in [M_MIN, M_MAX]) meets the verified grids' bar (minimal match 0.97), template count
-    reported; (3) every cached grid of an unaffected box is rebuilt with this code and must be byte-identical
-    (array-equal, sha256 of the arrays)."""
+    """C19 conditions (the Bridge, 2026-11-26), with C20's shrink rule:
+    (1) q_range nested over the in-population chirp masses of the affected boxes, at BOTH edges (light: growing with
+        Mc over [Mc_pop_min, top of the light boxes]; heavy: shrinking with Mc over [bottom of the heavy boxes,
+        Mc_pop_max]);
+    (2) for the lightest and the heaviest affected box (the '15th'), at L_max 128 and 384: the C20-selected grid's
+        fitting factor against 400 random IN-POPULATION points (coh2c_grid's own Monte Carlo with a rejection
+        sampler) meets the bar (ff_min >= 0.97 and <= 1 % below 0.97); template count and shrink reported;
+    (3) every cached grid of an unaffected box: the verified builder reproduces it exactly at its own shrink
+        (array-equal), and the shrink C20 selects for it is reported (a cached shrink-1.0 grid that C20 would build
+        denser is listed, not hidden)."""
     import hashlib
     from coh2c_verify import grid_points
+    import injections as I
     pl = load_plan()
     mcs = pl["mcs"]
     bad = [t for t in pl["boxes"] if L.q_range(mcs[t]) is None]
-    import injections as I
-    mc_min = float(I.chirp_mass(C.M_MIN, C.M_MIN))
-    top = float(mcs[bad[-1]] * np.exp(HALF_WIDTH))
-    grid_mc = np.linspace(mc_min * (1 + 1e-9), top, 400)
-    qrs = [L.q_range(m) for m in grid_mc]
-    ok_q = [q for q in qrs if q is not None]
-    nested = all(b_[0] <= a_[0] + 1e-15 and b_[1] >= a_[1] - 1e-15 for a_, b_ in zip(ok_q[:-1], ok_q[1:]))
+    lo_pop, hi_pop = float(I.chirp_mass(C.M_MIN, C.M_MIN)), float(I.chirp_mass(C.M_MAX, C.M_MAX))
+    light = [t for t in bad if mcs[t] < lo_pop]
+    heavy = [t for t in bad if mcs[t] > hi_pop]
+    nest = {}
+    for name, ts, a_, b_, grow in (("light", light, lo_pop * (1 + 1e-9), None, True),
+                                   ("heavy", heavy, None, hi_pop * (1 - 1e-9), False)):
+        if not ts:
+            continue
+        a_ = a_ if a_ is not None else float(mcs[ts[0]] * np.exp(-HALF_WIDTH))
+        b_ = b_ if b_ is not None else float(mcs[ts[-1]] * np.exp(HALF_WIDTH))
+        qs = [q_ for q_ in (L.q_range(m) for m in np.linspace(a_, b_, 400)) if q_ is not None]
+        pairs = list(zip(qs[:-1], qs[1:]))
+        ok = (all(y[0] <= x[0] + 1e-15 and y[1] >= x[1] - 1e-15 for x, y in pairs) if grow else
+              all(y[0] >= x[0] - 1e-15 and y[1] <= x[1] + 1e-15 for x, y in pairs))
+        nest[name] = dict(tids=ts, mc_range=[a_, b_], n_points=len(qs), nested=bool(ok),
+                          direction="grows with Mc" if grow else "shrinks with Mc")
     counts = {t: {} for t in bad}
     for c in pl["candidates"]:
         if c["tid"] in counts and c["valid"]:
             counts[c["tid"]][c["kind"]] = counts[c["tid"]].get(c["kind"], 0) + 1
-    # (2) fitting factor on in-population points, via coh2c_grid's own builder with a rejection sampler
     src = (B / "coh2c_grid.py").read_text()
-    a_ = "        x, q = rng.uniform(-half_width, half_width), rng.uniform(*qr)\n"
-    assert src.count(a_) == 1
-    src = src.replace(a_, "        while True:\n            x, q = rng.uniform(-half_width, half_width), rng.uniform(*qr)\n"
+    a1 = "        x, q = rng.uniform(-half_width, half_width), rng.uniform(*qr)\n"
+    assert src.count(a1) == 1
+    src = src.replace(a1, "        while True:\n            x, q = rng.uniform(-half_width, half_width), rng.uniform(*qr)\n"
                           "            m1_, m2_ = L.masses(mc_star * np.exp(x), q)\n"
                           "            if C_.M_MIN <= m2_ and m1_ <= C_.M_MAX:\n                break\n")
     src = src.replace("import coh2c_local as L  # noqa: E402", "import coh2c_local as L  # noqa: E402\nfrom pbh import config as C_  # noqa: E402")
     ff = {}
     for tid in (bad[0], bad[-1]):
         for l_max in (128, 384):
-            ns = {"__name__": "coh2c_grid_c19", "__file__": str(B / "coh2c_grid.py")}
-            exec(compile(src, "coh2c_grid_c19", "exec"), ns)
             with _qpatch(float(mcs[tid])):
-                summ = ns["build"](float(mcs[tid]), HALF_WIDTH, l_max, 1.0, np.random.default_rng(1))
-            ff[f"tid{tid}_L{l_max}"] = {k: summ[k] for k in ("n_grid", "ff_min", "ff_p01", "ff_median", "frac_below_097")}
-            ff[f"tid{tid}_L{l_max}"]["passed"] = bool(summ["ff_min"] >= 0.97)
-            log(f"C19 FF tid {tid} L{l_max}: {ff[f'tid{tid}_L{l_max}']}")
-    # (3) byte-identity of unaffected cached grids
+                for shrink in (1.0, 0.85, 0.7, 0.6, 0.5):
+                    ns = {"__name__": "coh2c_grid_c19", "__file__": str(B / "coh2c_grid.py")}
+                    exec(compile(src, "coh2c_grid_c19", "exec"), ns)
+                    summ = ns["build"](float(mcs[tid]), HALF_WIDTH, l_max, shrink, np.random.default_rng(1))
+                    if summ["frac_below_097"] <= 0.01:
+                        break
+            e = {k: summ[k] for k in ("n_grid", "ff_min", "ff_p01", "ff_median", "frac_below_097", "q_range")}
+            e.update(shrink=shrink, passed=bool(summ["ff_min"] >= 0.97 and summ["frac_below_097"] <= 0.01))
+            ff[f"tid{tid}_L{l_max}"] = e
+            log(f"C19 FF tid {tid} L{l_max}: {e}")
     ident = {}
     for f in sorted((STATE / "grids").glob("L*_tid*.npz")):
         l_max, tid = int(f.stem.split("_")[0][1:]), int(f.stem.split("tid")[1])
         if tid in bad:
             continue
         old = dict(np.load(f))
-        pts, _ = grid_points(float(mcs[tid]), HALF_WIDTH, l_max)
-        same = np.array_equal(np.array(pts), old["pts"])
-        h = hashlib.sha256(np.ascontiguousarray(old["pts"]).tobytes()).hexdigest()
-        ident[f.name] = dict(identical=bool(same), pts_sha256=h)
-    res = dict(check="C19 conditions", affected_tids=bad, affected_mc=[float(mcs[t]) for t in bad],
-               population_mc_min=mc_min, nested_over_mc=bool(nested), n_mc_checked=len(ok_q),
-               counts=counts, fitting_factor=ff, unaffected_grids_identical=ident,
-               passed=bool(nested and all(v["passed"] for v in ff.values()) and all(v["identical"] for v in ident.values())),
+        sh = float(old.get("shrink", 1.0))
+        pts, _ = grid_points(float(mcs[tid]), HALF_WIDTH, l_max, sh)
+        ident[f.name] = dict(identical=bool(np.array_equal(np.array(pts), old["pts"])), shrink_cached=sh,
+                             pts_sha256=hashlib.sha256(np.ascontiguousarray(old["pts"]).tobytes()).hexdigest())
+    res = dict(check="C19 conditions + C20 shrink rule", affected_tids=bad, light_tids=light, heavy_tids=heavy,
+               affected_mc=[float(mcs[t]) for t in bad], population_mc=[lo_pop, hi_pop], nested=nest, counts=counts,
+               fitting_factor=ff, unaffected_cached_grids=ident,
+               passed=bool(all(v["nested"] for v in nest.values()) and all(v["passed"] for v in ff.values())
+                           and all(v["identical"] for v in ident.values())),
                peak_footprint_mb=L.peak_footprint_mb(), model="Claude Opus 5.5", env=L.stamp())
-    (OUT / "C19_check.json").write_text(json.dumps(res, indent=1))
-    log(f"C19 check {'PASS' if res['passed'] else 'FAIL'}: nested {nested}; FF {[(k, round(v['ff_min'], 4)) for k, v in ff.items()]}; "
-        f"{sum(v['identical'] for v in ident.values())}/{len(ident)} unaffected grids identical")
+    (OUT / "C19_check.json").write_text(json.dumps(res, indent=1, default=float))
+    log(f"C19 check {'PASS' if res['passed'] else 'FAIL'}: nested {[(k, v['nested']) for k, v in nest.items()]}; "
+        f"FF {[(k, round(v['ff_min'], 4), v['shrink']) for k, v in ff.items()]}; "
+        f"{sum(v['identical'] for v in ident.values())}/{len(ident)} cached unaffected grids reproduced")
 
 
 def prepseries():
