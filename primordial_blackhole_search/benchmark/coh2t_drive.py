@@ -83,6 +83,7 @@ SEED = 202611261                   # this build's own seed (twin draws, decoy ch
 WRONG_MC = 1.05                    # F1(b): box offset to chirp mass +5 %
 N_MC, N_REAL, SLOT_S = 100_000, 8, 4.0    # C10: K1-(A) maxima, independent pycbc realisations, slot length
 K1_SEED0 = 7_000_000               # C10: lal ranlux seed = K1_SEED0 + 1000 * realisation + 2 * segment + detector
+CLOSURE_MAX = 3e-4                 # C12 (ruled): closure gate, relative to max(|z|, 1); breach stops at the box boundary
 UNIT_STRAIN = 1e-21                # decoys are built at this raw-strain amplitude, then scaled (C6)
 Y1_BIN, Y1_WIN, Y1_CROP = 256, 64 * FS, C.WHITEN_CROP_SEC * FS
 
@@ -626,6 +627,83 @@ def k1perfect():
     (OUT / "k1perfect.json").write_text(json.dumps(res, indent=1))
 
 
+def k1diag():
+    """C13 (registered before this ran): what makes pycbc's noise depart from the exact generator. Variants per
+    detector on segment 0 (seed of K1 realisation 99, as k1precheck): V0 pycbc df 1/16 (must reproduce k1precheck
+    exactly), V1 df 1/64, V2 df 1/8, V3 df 1/16 with the PSD above 1024 Hz flat at its 1024-Hz value, V4 the perfect
+    generator fed the 1/16-sampled PSD (linear interpolation to the full grid), V5 the perfect generator (must
+    reproduce k1perfect exactly). Explanation rule, deviations and outputs: reports/stepT_clarifications.md C13."""
+    from lowmem_psd import estimate_psd
+    from pycbc.noise.gaussian import noise_from_psd
+    from pycbc.types import FrequencySeries
+    gps = segments()[0]
+    f = np.fft.rfftfreq(N, d=1.0 / FS)
+    edges = np.linspace(L.F_LO, L.F_HI, 17)
+    pyc = {r["det"]: r for r in json.loads((OUT / "k1precheck.json").read_text())["rows"]}
+    perf = {r["det"]: r for r in json.loads((OUT / "k1perfect.json").read_text())["rows"]}
+    devs = {"D1": ("L1", 15, 1.572 / 1.018), "D2": ("H1", 7, 11.07 / 28.81), "D3": ("H1", 15, 11.14 / 52.24)}
+
+    def bands(est, psd):
+        return [float(np.mean((est / psd)[(f >= a_) & (f < b_)])) for a_, b_ in zip(edges[:-1], edges[1:])]
+
+    def pycbc_noise(psd, step, flat_above_1024=False, seed=None):
+        ps = psd.copy()
+        if flat_above_1024:
+            k = int(np.searchsorted(f, L.F_HI))
+            ps[k:] = ps[k]
+        pd = ps[::step].copy()
+        fd = np.arange(len(pd)) * (FS / N) * step
+        k40 = int(np.searchsorted(fd, C.F_LOWER - 10))
+        pd[:k40] = pd[k40]
+        return noise_from_psd(N, 1.0 / FS, FrequencySeries(pd, delta_f=FS / N * step), seed=seed).numpy()
+
+    def perfect(psd_used, det, tag):
+        rng = np.random.default_rng([SEED, tag, 0 if det == "H1" else 1])
+        X = np.sqrt(N * FS * psd_used / 4.0) * (rng.standard_normal(len(psd_used)) + 1j * rng.standard_normal(len(psd_used)))
+        X[0], X[-1] = X[0].real, X[-1].real
+        return np.fft.irfft(X, n=N)
+    out = {}
+    for det in ("H1", "L1"):
+        psd = psd_from_kernel(det, gps)
+        seed = K1_SEED0 + 1000 * 99 + 0 + (0 if det == "H1" else 1)
+        res = {}
+        for name, gen in (("V0_df16", lambda: pycbc_noise(psd, 256, seed=seed)),
+                          ("V1_df64", lambda: pycbc_noise(psd, 64, seed=seed)),
+                          ("V2_df8", lambda: pycbc_noise(psd, 512, seed=seed)),
+                          ("V3_df16_flat_above_1024", lambda: pycbc_noise(psd, 256, True, seed=seed)),
+                          ("V4_perfect_fed_df16", lambda: perfect(np.interp(f, f[::256], psd[::256]), det, 4)),
+                          ("V5_perfect", lambda: perfect(psd, det, 3))):
+            x = gen()
+            res[name] = bands(estimate_psd(x), psd)
+            del x
+            log(f"k1diag {det} {name}: 476-537 {res[name][7]:.4f}  963-1024 {res[name][15]:.4f}")
+        repro = dict(V0_equals_k1precheck=res["V0_df16"] == pyc[det]["band_means"],
+                     V5_equals_k1perfect=res["V5_perfect"] == perf[det]["perfect_band_means"])
+        out[det] = dict(bands=res, reproduction=repro)
+    verdicts = {}
+    for dname, (det, bi, dval) in devs.items():
+        r = out[det]["bands"]
+        perf_b = r["V5_perfect"][bi]
+        rel = {k: r[k][bi] / perf_b for k in r}
+        within = lambda k: abs(rel[k] - 1) <= 0.25 * abs(dval - 1)
+        sampling = (within("V1_df64") or within("V2_df8")) and (
+            np.sign(rel["V4_perfect_fed_df16"] - 1) == np.sign(dval - 1) and abs(rel["V4_perfect_fed_df16"] - 1) >= 0.5 * abs(dval - 1))
+        above = within("V3_df16_flat_above_1024")
+        trend = [rel["V2_df8"], rel["V0_df16"], rel["V1_df64"]]
+        monotone = bool(trend == sorted(trend) or trend == sorted(trend, reverse=True))
+        verdicts[dname] = dict(det=det, band=[float(edges[bi]), float(edges[bi + 1])], deviation_registered=dval,
+                               variant_over_perfect=rel, explained_by_psd_sampling=bool(sampling),
+                               explained_by_psd_above_1024=bool(above),
+                               verdict=("EXPLAINED: PSD sampling" if sampling else "EXPLAINED: PSD above 1024 Hz" if above
+                                        else "UNEXPLAINED"), moves_with_df_monotone=monotone)
+        log(f"k1diag {dname} {det} band {bi}: {verdicts[dname]['verdict']} | df 1/8, 1/16, 1/64 -> "
+            f"{[round(v, 3) for v in trend]} | flat>1024 {rel['V3_df16_flat_above_1024']:.3f} | perfect fed df16 "
+            f"{rel['V4_perfect_fed_df16']:.3f}")
+    res = dict(control="C13 pycbc deviation diagnosis", runs=out, deviations=verdicts,
+               peak_footprint_mb=L.peak_footprint_mb(), model="Claude Opus 5.5", env=L.stamp())
+    (OUT / "k1diag.json").write_text(json.dumps(res, indent=1))
+
+
 def prepseries():
     """(3): noise series + PSD kernels for every (det, segment). If series_sha256.json exists (written before the
     K1 phase deleted the series), every series is checked against it and the step STOPS on any mismatch (the Bridge's
@@ -1060,6 +1138,8 @@ def run(l_max, kinds="bg,fg", n_box=None, real=None):
                             candidates=[{k: c.get(k) for k in META} for c in cs], seconds=round(time.time() - t0, 2),
                             peak_footprint_mb=L.peak_footprint_mb(), model="Claude Opus 5.5", status="UNVERIFIED")
                 arrs = {k: np.array([r[k] for r in res]) for k in res[0]} if res else {}
+                if "closure" in arrs:
+                    meta["closure_max"] = float(np.max(arrs["closure"]))
                 for k in ("H_rho", "H_chi2", "L_rho", "L_chi2", "closure"):
                     if k in arrs:
                         arrs[k] = arrs[k].astype(np.float32)
@@ -1067,6 +1147,9 @@ def run(l_max, kinds="bg,fg", n_box=None, real=None):
                 tmp = out.with_name(out.stem + ".tmp.npz")
                 np.savez_compressed(tmp, meta=json.dumps(meta), **arrs)
                 os.replace(tmp, out)
+                # C12: the box is written first (on the record), then a closure breach stops the run here
+                assert meta.get("closure_max", 0.0) <= CLOSURE_MAX, \
+                    f"closure {meta['closure_max']:.2e} > {CLOSURE_MAX:g} in box {tid} {kind}: correctness gate (C12)"
             for pth in [refs_path] + [f for c in by_box.get(tid, []) for f in extra_files(c).values()]:
                 pth.unlink(missing_ok=True)
             del box
@@ -1205,5 +1288,5 @@ if __name__ == "__main__":
         k1gen(a[2], a[3], a[4])
     else:
         dict(plan=plan, golden=golden, prepseries=prepseries, vseries=vseries, run=run, calib=calib,
-             twinexact=twinexact, k1precheck=k1precheck, k1perfect=k1perfect, hashseries=hashseries, dropseries=dropseries,
+             twinexact=twinexact, k1precheck=k1precheck, k1perfect=k1perfect, k1diag=k1diag, hashseries=hashseries, dropseries=dropseries,
              status=status)[cmd](*[None if v == "-" else v for v in a[2:]])

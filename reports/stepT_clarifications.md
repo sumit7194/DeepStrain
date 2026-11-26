@@ -454,5 +454,79 @@ anchor and in both slots.
 - Hence 1e-3 is the loosest gate that stays clearly below the decision-relevant scale, and production values are
   expected around 1e-4.
 
-**Status: PROPOSED, for the Bridge.**
+**RULED (Bridge - claude personal, 2026-11-26): closure ≤ 3e-4, not 1e-3**, as a correctness gate.
+- At 1e-3 the worst-case deterministic survival shift (about 7 % at 10⁻²) is comparable to K1's statistical sd. A
+  deterministic bias should not be allowed to be that big.
+- 3e-4 is 2× the observed 1.5e-4 and keeps the worst case near 2 %, about a third of the sd or less.
+- **Disclosure:** the 1.5e-4 was seen before this tolerance was set.
+- **As coded:** each box's `closure_max` is logged in its output, and a breach stops the run once that box has been
+  written (`CLOSURE_MAX = 3e-4`).
+
+### k1perfect, the Bridge's reading (2026-11-26)
+
+**(a) A design flaw in the K1 pre-check clause.** The ±1.5 % band-mean bar on Welch re-estimates is ill-posed at
+strong lines: the exact generator fails it harder than pycbc does (28.8 and 52.2 against 11.1 at H1). This is recorded
+as a flaw in the clause, in the same class as the voided V21/V22 control clauses, **not as a pycbc result.**
+
+**(b) The real finding.** pycbc departs from an exact generator, measured as pycbc / perfect per band:
+- L1, 963–1,024 Hz: 1.572/1.018 ≈ 1.54;
+- H1, 476–537 Hz: 11.07/28.8 ≈ 0.38;
+- H1, 963–1,024 Hz: 11.14/52.2 ≈ 0.21.
+
+Any redefined bar must be argued from the Welch estimator's own variance and fixed before it is applied. It cannot be
+tuned to these numbers, which have all been seen.
+
+## C13 (2026-11-26, before running): investigating the pycbc deviation (b)
+
+**Variants (`coh2t_drive.py k1diag`).** CPU, one at a time, segment 0, H1 and L1, the same 16 bands, each reported as
+est/target and as variant/perfect.
+- **V0:** pycbc at Δf = 1/16 Hz, seed of realisation 99. Must reproduce k1precheck **exactly**, as a reproduction
+  check.
+- **V1:** pycbc at Δf = 1/64 Hz (PSD sampled every 64th bin).
+- **V2:** pycbc at Δf = 1/8 Hz (every 512th bin).
+- **V3:** pycbc at Δf = 1/16 Hz, with the PSD above 1,024 Hz replaced by its value at 1,024 Hz.
+- **V4:** the perfect generator, but fed the 1/16-Hz-sampled PSD, linearly interpolated back to the full grid. This
+  introduces only the PSD-sampling factor, with no pycbc.
+- **V5:** the perfect generator, which must reproduce k1perfect **exactly**.
+
+**The three deviations, stated before running:**
+- **D1:** L1, 963–1,024 Hz, pycbc/perfect = 1.54.
+- **D2:** H1, 476–537 Hz, 0.38.
+- **D3:** H1, 963–1,024 Hz, 0.21.
+
+**What counts as "explained", fixed now.** A factor is the explanation of a deviation D only if both hold:
+1. Changing only that factor in pycbc (V1, V2 for PSD sampling; V3 for the PSD above 1,024 Hz) moves pycbc/perfect
+   in that band at least 75 % of the way to 1, i.e. |r_variant/r_perfect − 1| ≤ 0.25·|D − 1|.
+2. For PSD sampling, also V4: introducing only that factor into the perfect generator reproduces D's sign with at
+   least 50 % of its size.
+
+**Other outcomes.**
+- Whether a deviation moves monotonically with Δf across V2, V0 and V1 is reported, as "moves with Δf: yes/no".
+- **If no factor meets the rule, D is recorded as UNEXPLAINED.** No bar is redefined either way until the Bridge rules.
+- **Sample rate is NOT varied.** At f_s = 2,048 Hz the band top becomes Nyquist, which makes D1's band meaningless,
+  and the data cannot carry a PSD above 2,048 Hz for a higher rate.
+- **Cost:** 6 variants × 2 detectors × about 8 s, about 2 min, peak ≤ 2.2 GB.
+
+## C14 (2026-11-26, before anything runs): what in step T depends on K1-(A)
+
+**G0 depends on K1-(A), but only through K1's first clause** (twin survival against the K1-(A) Monte Carlo). Every
+other part of step T is independent of K1-(A).
+
+| Part | Depends on K1-(A)? | State |
+|---|---|---|
+| Main passes, L_max 128 and 384 (bg, twin, fg, null, wrong) | no | ready |
+| Decoy calibration (calib) and the three decoy families | no | ready |
+| K1 second clause (C11: off-grid Allen bound with the ON-grid and MUST-FAIL controls), in twin noise, no pycbc | no | ready |
+| F1, F2, P1 (P1's twin threshold is the twin's, not K1-(A)'s) | no | ready |
+| G0 clause 1, R_tune with the segment-block bootstrap | no | ready |
+| G0 clause 3, cost from T's own wall time | no | ready |
+| K1 first clause | **YES** | blocked until (b) and the precheck redefinition are ruled |
+
+**NOT BUILT YET, stated plainly** (each a pre-G0 build step):
+- **the reducer:** PyCBC v and newSNR at every stored point, the H-anchored network score, thresholds, R_tune and its
+  bootstrap, and the gate evaluations;
+- **K2:** the linearity shortcut against really injected strain, 15 injections;
+- **N1:** float32 against float64 for a 384-s template through the identical chain.
+
+Their code comes before G0. Their runs are short, except K2's injection preparation.
 
