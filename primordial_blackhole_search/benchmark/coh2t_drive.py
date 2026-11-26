@@ -801,15 +801,17 @@ def run(l_max, kinds="bg,fg", n_box=None, real=None):
     t_start = time.time()
     overlap = os.environ.get("COH2T_OVERLAP") == "1"       # child for chunk s+1 runs while chunk s is scored
 
+    chunk_n = 16 if kinds == ["k1mc"] else CHUNK          # K1 boxes need only references: fewer, larger children
+
     def launch(i):
-        part = todo[i:i + CHUNK]
+        part = todo[i:i + chunk_n]
         return subprocess.Popen([sys.executable, "-u", __file__, "chunk", str(l_max), ",".join(map(str, part)),
                                  ",".join(kinds)]) if part else None
     nxt = launch(0)
-    for s in range(0, len(todo), CHUNK):
-        part = todo[s:s + CHUNK]
+    for s in range(0, len(todo), chunk_n):
+        part = todo[s:s + chunk_n]
         assert nxt.wait() == 0, "chunk child failed"
-        nxt = launch(s + CHUNK) if overlap else None
+        nxt = launch(s + chunk_n) if overlap else None
         for tid in part:
             t0 = time.time()
             refs_path = STATE / "chunk" / f"refs_L{l_max}_tid{tid:04d}.npy"
@@ -844,8 +846,8 @@ def run(l_max, kinds="bg,fg", n_box=None, real=None):
             del box
             log(f"box {tid} ({s + part.index(tid) + 1}/{len(todo)}) {time.time() - t0:.1f} s | footprint "
                 f"{L.peak_footprint_mb()} MB | {(time.time() - t_start) / 3600:.2f} h")
-        if not overlap and s + CHUNK < len(todo):
-            nxt = launch(s + CHUNK)
+        if not overlap and s + chunk_n < len(todo):
+            nxt = launch(s + chunk_n)
 
 
 def calib(l_max):
