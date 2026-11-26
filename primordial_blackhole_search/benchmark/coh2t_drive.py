@@ -891,6 +891,143 @@ def n1():
         f"footprint {L.peak_footprint_mb()} MB")
 
 
+# ------------------------------------------------------------------ check (i), C17
+CI_DIR = STATE / "checki"
+CI_SERIES, CI_SNIPS, CI_TEMPLATES, DELTA_STAR = 144, 31, 7, 0.003
+CI_GENS = ("exact_a", "exact_b", "planted", "pycbc_v3", "pycbc_orig")
+
+
+def ci_boxes():
+    pl = load_plan()
+    has = sorted({c["tid"] for c in pl["candidates"] if c["kind"] == "bg" and c["valid"]})
+    return [min(has, key=lambda t: abs(pl["mcs"][t] - m)) for m in (0.20, 0.35, 0.60)]
+
+
+def ci_series(gen, det, j):
+    """Child: one 4,096-s series of generator gen, whitened by prep's path (x w^2, the target filter, no gating),
+    written as float32 for the engine. Seeds distinct per (generator, detector, series)."""
+    import realbg_cascade as R
+    gi, di, j = CI_GENS.index(gen), (0 if det == "H1" else 1), int(j)
+    gps = segments()[0]
+    out = CI_DIR / f"{gen}_{det}_{j}.npy"
+    if out.exists():
+        return
+    psd = psd_from_kernel(det, gps)
+    w = R.whiten_filter(psd)
+    if gen.startswith("pycbc"):
+        from pycbc.noise.gaussian import noise_from_psd
+        from pycbc.types import FrequencySeries
+        f = np.fft.rfftfreq(N, d=1.0 / FS)
+        ps = psd.copy()
+        if gen == "pycbc_v3":                                  # C16: flat above F_HIGH
+            k = int(np.searchsorted(f, L.F_HI)); ps[k:] = ps[k]
+        p16 = ps[::256].copy()
+        k40 = int(np.searchsorted(np.arange(len(p16)) / 16.0, C.F_LOWER - 10)); p16[:k40] = p16[k40]
+        x = noise_from_psd(N, 1.0 / FS, FrequencySeries(p16, delta_f=1.0 / 16), seed=9_000_000 + 10_000 * gi + 1_000 * di + j).numpy()
+    else:
+        ps = psd.copy()
+        if gen == "planted":                                   # C17 must-fire: PSD x (1 + delta*) over 50-300 Hz
+            f = np.fft.rfftfreq(N, d=1.0 / FS)
+            ps[(f >= 50) & (f <= 300)] *= 1 + DELTA_STAR
+        rng = np.random.default_rng([SEED, 17, gi, di, j])
+        X = np.sqrt(N * FS * ps / 4.0) * (rng.standard_normal(len(ps)) + 1j * rng.standard_normal(len(ps)))
+        X[0], X[-1] = X[0].real, X[-1].real
+        x = np.fft.irfft(X, n=N)
+    y = np.fft.irfft(np.fft.rfft(x) * w * w, n=N).astype(np.float32)
+    CI_DIR.mkdir(parents=True, exist_ok=True)
+    tmp = out.with_name(out.stem + ".tmp.npy")
+    np.save(tmp, y)
+    os.replace(tmp, out)
+
+
+def checki(gens):
+    """C17 runner: for each generator in gens (comma list) and detector, CI_SERIES series, each scored on CI_SNIPS
+    snippets (centres 128 s apart in the valid window) by CI_TEMPLATES templates of each of the 3 boxes at L_max 128
+    and 384: the mean over the +-1-s lags of noise-only |z|^2. Saves [series, snippet, box_L, template] per
+    (generator, detector), checkpointed per series."""
+    import torch
+    dev = L.pick_dev()
+    sign = json.loads((L.OUT / "E1_phase_model.json").read_text())["sign"]
+    eng, fine = L.Engine(dev, 4.0, 1), Fine(dev)
+    gps = segments()[0]
+    centres = (392 + 64 + 128 * np.arange(CI_SNIPS)) * FS
+    boxes = []
+    for l_max in (128, 384):
+        for tid in ci_boxes():
+            subprocess.run([sys.executable, "-u", __file__, "chunk", str(l_max), str(tid), "bg"], check=True)
+            bx = Box(tid, l_max, dev, eng, sign, np.load(STATE / "chunk" / f"refs_L{l_max}_tid{tid:04d}.npy"))
+            sel = np.linspace(0, bx.n - 1, CI_TEMPLATES).round().astype(int)
+            boxes.append((l_max, tid, bx, sel))
+    for gen in gens.split(","):
+        assert gen in CI_GENS
+        for det in ("H1", "L1"):
+            w_snip = L.load_ww(det, gps)[1]
+            res_path = OUT / "checki" / f"{gen}_{det}.npz"
+            done = dict(np.load(res_path)) if res_path.exists() else {}
+            arr = done.get("mz2", np.full((CI_SERIES, CI_SNIPS, len(boxes), CI_TEMPLATES), np.nan))
+            # per box: sigma per reference (depends only on the template and this detector's filter), and the
+            # selected templates grouped by reference, so each reference correlation is computed once per snippet
+            prep_b = []
+            for l_max, tid, bx, sel in boxes:
+                sig = [np.sqrt(2 * np.sum((np.abs(bx.h0[jr]) * w_snip) ** 2) / NS) for jr in range(len(bx.h0))]
+                groups = []
+                for jr in sorted(set(int(bx.ref_of[t_]) for t_ in sel)):
+                    ti = [k for k, t_ in enumerate(sel) if int(bx.ref_of[t_]) == jr]
+                    dco = torch.tensor((bx.gr["coeffs"][sel[ti]] - bx.gr["ref_coeffs"][jr]).astype(np.float32), device=dev)
+                    groups.append((jr, ti, dco))
+                prep_b.append((bx, sig, groups))
+            for j in range(CI_SERIES):
+                if np.isfinite(arr[j]).all():
+                    continue
+                subprocess.run([sys.executable, "-u", __file__, "ciseries", gen, det, str(j)], check=True)
+                y = np.load(CI_DIR / f"{gen}_{det}_{j}.npy", mmap_mode="r")
+                for si, i_c in enumerate(centres):
+                    ysn, kappa = noise_spectrum(dict(kind="bg", i_c=int(i_c), n=0), y)
+                    ysn_t = torch.tensor((ysn * kappa).astype(np.complex64), device=dev)
+                    i_s = int(i_c) - snippet_start(int(i_c))
+                    for bi, (bx, sig, groups) in enumerate(prep_b):
+                        for jr, ti, dco in groups:
+                            yt = eng.window(L.analytic_corr(torch, ysn_t, bx.h0c[jr]), i_s)
+                            a2 = (eng.z(yt, dco, sign) * float(1.0 / (sig[jr] * kappa))).abs() ** 2
+                            assert bool(torch.isfinite(a2).all()), "non-finite |z|^2 (check i)"
+                            arr[j, si, bi, ti] = a2.mean(dim=1).cpu().numpy()
+                (CI_DIR / f"{gen}_{det}_{j}.npy").unlink()
+                (OUT / "checki").mkdir(parents=True, exist_ok=True)
+                tmp = res_path.with_name(res_path.stem + ".tmp.npz")
+                np.savez(tmp, mz2=arr, boxes=np.array([(l_, t_) for l_, t_, _, _ in boxes]))
+                os.replace(tmp, res_path)
+                if dev == "mps":
+                    torch.mps.empty_cache()
+                log(f"checki {gen} {det} series {j + 1}/{CI_SERIES} | footprint {L.peak_footprint_mb()} MB")
+
+
+def checki_eval(a, b, tag):
+    """C17 decision: pooled ratio R = mean(gen a) / mean(gen b) per (L_max, detector) cell, SE from a bootstrap over
+    series (B = 2,000; each generator's series resampled independently). Pass: |R - 1| <= 3 SE in all 4 cells."""
+    rng = np.random.default_rng([SEED, 18])
+    out = dict(a=a, b=b, cells={})
+    for det in ("H1", "L1"):
+        A = np.load(OUT / "checki" / f"{a}_{det}.npz")["mz2"]; Bb = np.load(OUT / "checki" / f"{b}_{det}.npz")["mz2"]
+        assert np.isfinite(A).all() and np.isfinite(Bb).all(), "incomplete series"
+        for li, l_max in enumerate((128, 384)):
+            sl = slice(3 * li, 3 * li + 3)
+            sa, sb = A[:, :, sl, :].mean(axis=(1, 2, 3)), Bb[:, :, sl, :].mean(axis=(1, 2, 3))   # per-series means
+            R = sa.mean() / sb.mean()
+            boot = np.array([sa[rng.integers(0, len(sa), len(sa))].mean() / sb[rng.integers(0, len(sb), len(sb))].mean()
+                             for _ in range(2000)])
+            se = float(boot.std(ddof=1))
+            per_t = (A[:, :, sl, :].mean(axis=(0, 1)) / Bb[:, :, sl, :].mean(axis=(0, 1))).ravel().tolist()
+            out["cells"][f"L{l_max}_{det}"] = dict(R=float(R), se=se, within_3se=bool(abs(R - 1) <= 3 * se),
+                                                   mean_a=float(sa.mean()), mean_b=float(sb.mean()),   # expect ~2 (chi^2_2)
+                                                   per_template_ratios=per_t)
+    out["all_within"] = all(c_["within_3se"] for c_ in out["cells"].values())
+    out["max_se"] = max(c_["se"] for c_ in out["cells"].values())
+    (OUT / "checki" / f"eval_{tag}.json").write_text(json.dumps(dict(out, env=L.stamp()), indent=1))
+    log(f"checki eval {tag}: {json.dumps({k: (round(v['R'], 5), round(v['se'], 5)) for k, v in out['cells'].items()})} "
+        f"all within 3 SE: {out['all_within']} | max SE {out['max_se']:.5f}")
+    return out
+
+
 def prepseries():
     """(3): noise series + PSD kernels for every (det, segment). If series_sha256.json exists (written before the
     K1 phase deleted the series), every series is checked against it and the step STOPS on any mismatch (the Bridge's
@@ -1508,9 +1645,13 @@ if __name__ == "__main__":
         kernel(a[2], a[3])
     elif cmd == "k1gen":
         k1gen(a[2], a[3], a[4])
+    elif cmd == "ciseries":
+        ci_series(a[2], a[3], a[4])
+    elif cmd == "checki_eval":
+        checki_eval(a[2], a[3], a[4])
     elif cmd in ("k2gates", "k2prep"):
         {"k2gates": k2gates, "k2prep": k2prep}[cmd](a[2], a[3], a[4])
     else:
         dict(plan=plan, golden=golden, prepseries=prepseries, vseries=vseries, run=run, calib=calib,
-             twinexact=twinexact, k1precheck=k1precheck, k1perfect=k1perfect, k1diag=k1diag, k2select=k2select, k2run=k2run, n1=n1, hashseries=hashseries, dropseries=dropseries,
+             twinexact=twinexact, k1precheck=k1precheck, k1perfect=k1perfect, k1diag=k1diag, k2select=k2select, k2run=k2run, n1=n1, checki=checki, hashseries=hashseries, dropseries=dropseries,
              status=status)[cmd](*[None if v == "-" else v for v in a[2:]])
