@@ -2,6 +2,45 @@
 
 *Deepstrain-personal [model: Claude Opus 5.5]. Declared against measured, for every run. Newest first.*
 
+## 2026-11-26 12:26–12:28 — C9 twin check (`coh2t_drive.py twincheck`): FAILED twice by its own bar; stopped for a ruling
+
+| | Declared | Measured |
+|---|---|---|
+| Device / threads / nice | CPU / 1 / 15 | CPU / 1 / 15 |
+| Wall time | seconds | 5.8 s and 5.7 s |
+| Peak footprint | (not declared) | 1,857 MB and 1,977 MB, under 2 GB; the box was 72 % / 70 % free, pressure level 1 |
+
+- **Bar, committed before run 1 (06f4640):** in each of 16 bands over 50–1,024 Hz, the band mean of |Y|²/(NS·w²) for
+  the twin must equal that of a 512-s cut of a full-length draw within 2 %. The time-domain variances must agree
+  within 1 %.
+
+**Run 1, the snippet-grid twin (the accepted C9).** FAIL: worst band 0.707; variance ratio 1.0036.
+
+| Band | Cut of a full draw | Real data | Snippet-grid twin |
+|---|---|---|---|
+| 476–537 Hz | 3.42 | 3.53 | 1.00 |
+| 963–1,024 Hz | 2.11 | 2.04 | 1.00 |
+
+- **Diagnosis:** both bands hold narrow lines, and whitening puts deep notches there. The 512-s rectangular cut leaks
+  sidelobe power into those notches. The real pipeline makes exactly that cut, and the snippet-grid draw has no cut.
+  **My C9 equivalence argument was wrong there.**
+- Kept as `results/coh2t/twincheck_H1_1249001472_run1_snippetgrid_FAIL.json`.
+
+**Run 2, the twin drawn over 2 × 512 s and cut to its central 512 s.** FAIL: worst band 0.536; variance ratio 1.0017.
+
+| Band | Cut of a full draw | Twin (2 × 512 s, cut) |
+|---|---|---|
+| 476–537 Hz | 3.42 | 2.92 |
+| 963–1,024 Hz | 2.11 | 3.24 |
+
+- **Every other band agrees within 2 %.** Kept as `results/coh2t/twincheck_H1_1249001472_run2_pad2_FAIL.json`.
+- **Reading:** a band's mean ratio is dominated by a few notch bins, where w² is tiny. There the ratio is
+  ill-conditioned, set by the exact notch depth and the sidelobe range, and it varies from one realisation to the
+  next.
+- **Post-hoc measure, added after run 1 and first computed in run 2, so not a gate:** the matched-filter-weighted noise
+  power (weight f^(−7/3)·w²): twin 0.998, cut 1.004, real 0.996.
+- **No third run** until the Bridge rules on the check (stated before any further run).
+
 ## 2026-11-26 12:17 — driver golden (`coh2t_drive.py golden`)
 | | Declared | Measured |
 |---|---|---|
