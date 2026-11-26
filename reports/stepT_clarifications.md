@@ -309,7 +309,13 @@ Allen (2005). Comparing it with Allen's paper at source is not done; the derivat
 **Test, run only after the Bridge accepts this.**
 - **Injections:** 200 per L_max, per detector, into twin noise. Each sits at a random valid twin candidate's time,
   offset uniformly within ±0.5 s, at an (Mc, q) drawn uniformly inside that candidate's box, so it is off-grid by
-  construction. The signal is TaylorF2, generated in the child.
+  construction.
+- **How the signal is built (as coded, 2026-11-26).** It uses the engine's own verified phase model (gate E1:
+  5·10⁻¹⁰ rad against pycbc): its nearest reference's TaylorF2 amplitude and band, times exp(i·sign·ΔΨ) from
+  lalsimulation's coefficients, double-whitened like the data. There is no pycbc in the engine and no disk.
+  - Consequence: the signal shares its reference's start frequency, and so its band edges, with the templates. Allen's
+    tighter bound (eqs. 75 / 100) then applies and is reported, for information only.
+  - The registered comparison stays the general bound.
 - **Amplitude:** set so the noise-free optimal |z|, with the exact template evaluated by the engine, is ρ, with ρ
   uniform in [8, 25].
 - **Measured, per injection:** m, the largest noise-free |z| over the grid divided by ρ; and χ² (p = 4, 8, 16) at that
@@ -332,9 +338,10 @@ equation numbers may differ there):
   eqs. 63–64).
 - **Allen's tighter bound is not used.** His eqs. (75) and (100) give κ ≤ (p − 1)(1/cos θ − 1)², about (p − 1)ε²,
   when the template and signal share band edges and ε ≤ 2/p.
-  - It is not used because the injected signal keeps its own start frequency, while the templates share their
-    reference's (D2). Their band edges then differ slightly, which is outside that bound's assumptions.
-  - It is reported alongside, for information only.
+  - **Correction, after coding:** as built, the injections do share their reference's start frequency (see
+    above), so the tighter bound's assumption holds. The general bound stays the registered bar because it is what
+    the frozen text names, "Allen's mismatch upper bound". The tighter one is reported alongside, for information
+    only.
 
 **Controls, added before coding (the Bridge, 2026-11-26).** Both use the same injection machinery as the real test,
 the same 200 injections per L_max per detector, in twin noise, with ρ uniform in [8, 25].
@@ -346,8 +353,9 @@ the same 200 injections per L_max per detector, in twin noise, with ρ uniform i
   - This tests the χ² normalisation, the band edges and the noise level at once.
 - **(b) MUST-FAIL control, which must EXCEED the grid's nominal bound.**
   - The injections sit just outside the box, at Mc = Mc*·exp(+0.022 + δ). δ is chosen per injection from a noise-free
-    scan (δ = 0.0005, 0.001, …), taking the first value whose best-grid match m lies in [0.6, 0.9]. The match is far
-    worse than the grid's 0.97 minimal match.
+    scan (δ = 0.0005, 0.001, …), taking the first value whose best-grid match is ≤ 0.9. As coded, a match below 0.6
+    is not refined, only recorded; each injection's m is kept. The match is far worse than the grid's 0.97 minimal
+    match.
   - **Bar:** mean χ² > mean [2(p − 1) + ρ²(1 − 0.97²)] + 3·SE, for at least one p, and for p = 16, the most resolving.
   - The bound is mathematically valid at any measured m, so a must-fail against the measured-m bound is impossible by
     construction. What (b) shows is that the test has the power to see χ² above the bound the grid promises when the

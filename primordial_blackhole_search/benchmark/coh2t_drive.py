@@ -73,7 +73,10 @@ DELTA = int(round(0.010 * FS))     # +-10 ms network window (41 samples)
 EDGE_LO, EDGE_HI = (384 + 8) * FS, N - 8 * FS
 BATCH = 128                        # registration §9: template batches <= 128 at M = 32,768
 CHUNK = 2                          # boxes per child; the next chunk's child runs while this one is scored
-KINDS = ("bg", "fg", "twin", "null", "wrong", "dec_sg", "dec_train", "dec_drift", "k1mc")
+KINDS = ("bg", "fg", "twin", "null", "wrong", "dec_sg", "dec_train", "dec_drift", "k1mc",
+         "allen_off", "allen_on", "allen_fail")
+ALLEN = ("allen_off", "allen_on", "allen_fail")
+N_ALLEN = 200                      # C11: per family, per L_max, each with both detectors
 DECOYS = ("dec_sg", "dec_train", "dec_drift")
 N_DECOY = 200                      # registration §5 F2: 200 per family
 SEED = 202611261                   # this build's own seed (twin draws, decoy choice and parameters); NOT the fresh seed
@@ -199,6 +202,15 @@ def plan():
             usedH[t["i"], j] = usedL[t["iL"], j] = True
             cands.append(dict(kind="k1mc", k=t["k"], i=t["i"], iL=t["iL"], tid=t["tid"], y1=None,
                               i_c=int(slots[j]), real=r, valid=True))
+    # C11: off-grid / on-grid / must-fail injections into twin noise at random twin candidates' boxes and times
+    rng_a = np.random.default_rng([SEED, 2])
+    for fam in ALLEN:
+        for _ in range(N_ALLEN):
+            t = twins[int(rng_a.integers(len(twins)))]
+            cands.append(dict(kind=fam, k=t["k"], i=t["i"], iL=t["iL"], tid=t["tid"], y1=None, i_c=t["i_c"], valid=True,
+                              inj_par={det: dict(dt=float(rng_a.uniform(-0.5, 0.5)), rho=float(rng_a.uniform(8, 25)),
+                                                 u=float(rng_a.uniform(0, 1)), v=float(rng_a.uniform(-1, 1)))
+                                       for det in ("H1", "L1")}))
     for n, c in enumerate(cands):
         c["n"] = n
     boxes = sorted({c["tid"] for c in cands if c["valid"]})
@@ -288,7 +300,7 @@ def extra_files(c):
         return {det: STATE / "chunk" / f"sig_{det}_{c['inj']}_{c['kind']}.npy" for det in ("H1", "L1")}
     if c["kind"] in DECOYS:
         return {det: STATE / "chunk" / f"dec_{det}_{c['n']}.npy" for det in ("H1", "L1")}
-    if c["kind"] == "twin":
+    if c["kind"] == "twin" or c["kind"] in ALLEN:        # Allen injections sit in twin noise of their own seed
         return {det: STATE / "chunk" / f"twin_{det}_{c['n']}.npy" for det in ("H1", "L1")}
     return {}
 
@@ -328,8 +340,9 @@ def chunk(l_max, tids, kinds=KINDS):
     for det, gps, c, out in sorted(jobs, key=lambda j: (j[0], j[1], j[2]["n"])):   # one PSD per (det, segment)
         if out.exists():
             continue
-        x, g, psd, w = seg_state(det, gps, need_strain=c["kind"] != "twin")
-        if c["kind"] == "twin":
+        is_twin = c["kind"] == "twin" or c["kind"] in ALLEN
+        x, g, psd, w = seg_state(det, gps, need_strain=not is_twin)
+        if is_twin:
             tmp = out.with_name(out.stem + ".tmp.npy")
             np.save(tmp, twin_snippet(psd, w, c, det))
             os.replace(tmp, out)
@@ -800,7 +813,97 @@ def candidate(box, fine, series, c, extra=None, target=None, twin=None):
     return o
 
 
-META = ("n", "kind", "k", "i", "iL", "i_c", "y1", "inj", "tid_y1", "decoy", "real")
+def peaks_one(box, r):
+    """Single-detector |z|^2 peak of every grid template (max over the +-1-s lags) and its lag."""
+    t, eng = box.t, box.eng
+    tpeak, tlag = np.zeros(box.n), np.zeros(box.n, np.int64)
+    for j, (idx, dco) in enumerate(box.groups):
+        if len(idx) == 0:
+            continue
+        x0 = L.analytic_corr(t, r["ysn_t"], box.h0c[j])
+        yt = eng.window(x0, r["i_s"])
+        del x0
+        for s_ in range(0, len(idx), BATCH):
+            part = idx[s_:s_ + BATCH]
+            a2 = (eng.z(yt, dco[s_:s_ + BATCH], box.sign) / float(r["refs"][j]["sig0"] * r["kappa"])).abs() ** 2
+            pk, am = a2.max(dim=1)
+            tpeak[part], tlag[part] = pk.cpu().numpy(), am.cpu().numpy()
+        del yt
+    return tpeak, tlag
+
+
+def allen_signal(box, w_snip, coef, rho, n_inj, sign, j=None):
+    """C11 injection on the snippet grid, built with the engine's verified phase model: reference j's TaylorF2
+    amplitude and band, the signal's own phase (lalsimulation coefficients), merger at snippet sample n_inj, double-
+    whitened like the data (x w^2). Amplitude A = rho / sigma_ref, so the exact template's noise-free |z| is rho.
+    Sharing the reference's amplitude and start frequency means signal and templates share band edges, so Allen's
+    tighter bound (his eqs. 75 / 100) also applies; it is reported for information."""
+    if j is None:
+        refs = [(r_[0], r_[1], r_[2], c_) for r_, c_ in zip(box.gr["ref_mcq"], box.gr["ref_coeffs"])]
+        j = L.assign(coef, refs)[0]
+    h0 = np.conj(box.h0[j].astype(np.complex128))
+    f = np.arange(NS // 2 + 1) * (FS / NS)
+    nz = np.abs(h0) > 0
+    dpsi = np.zeros(len(f))
+    dpsi[nz] = (coef - box.gr["ref_coeffs"][j]) @ L.basis(f[nz])
+    sig0 = np.sqrt(2 * np.sum((np.abs(h0) * w_snip) ** 2) / NS)
+    k = np.arange(NS // 2 + 1)
+    return (rho / sig0) * h0 * np.exp(1j * sign * dpsi) * w_snip ** 2 * np.exp(-2j * np.pi * ((k * n_inj) % NS) / NS)
+
+
+def allen_candidate(box, fine, series, c, twin, l_max):
+    """C11, per detector: inject (off-grid / exactly on a grid template / just outside the box), find the best grid
+    template noise-free (match m), then chi^2 at that template's own peak in the noisy data."""
+    segs = segments()
+    out = {}
+    mc_star = float(box.gr["mc_star"])
+    qr = L.q_range(mc_star)
+    for det, si in (("H1", c["i"]), ("L1", c["iL"])):
+        _, w_snip, _ = series(det, segs[si])
+        ysn_n, kappa = noise_spectrum(c, twin[det])
+        par = c["inj_par"][det]
+        lo = snippet_start(c["i_c"])
+        n_inj = c["i_c"] - lo + int(round(par["dt"] * FS))
+        q = qr[0] + par["u"] * (qr[1] - qr[0])
+        j_fix, delta, tsel = None, None, None
+        if c["kind"] == "allen_on":
+            tsel = min(int(par["u"] * box.n), box.n - 1)
+            coef, j_fix = box.gr["coeffs"][tsel], int(box.ref_of[tsel])
+        elif c["kind"] == "allen_off":
+            coef = L.coeffs(mc_star * np.exp(par["v"] * HALF_WIDTH), q)
+
+        def noise_free(cf, jf=None):
+            ys = allen_signal(box, w_snip, cf, par["rho"], n_inj, box.sign, jf)
+            tp, _ = peaks_one(box, prepare(box, fine, ys, kappa, w_snip, c["i_c"]))
+            return ys, tp
+        if c["kind"] == "allen_fail":             # the first delta (0.05 % steps) whose best-grid match is <= 0.9
+            for step in range(1, 200):
+                delta = 0.0005 * step
+                coef = L.coeffs(mc_star * np.exp(HALF_WIDTH + delta), q)
+                ys, tp = noise_free(coef)
+                if np.sqrt(tp.max()) / par["rho"] <= 0.9:
+                    break
+        else:
+            ys, tp = noise_free(coef, j_fix)
+        best = int(np.argmax(tp))
+        m = float(np.sqrt(tp.max()) / par["rho"])
+        r = prepare(box, fine, ysn_n + ys, kappa, w_snip, c["i_c"])
+        _, tln = peaks_one(box, r)
+        n0 = r["i_s"] - box.eng.half + int(tln[best])
+        rho_obs, ch = chi2_of(band_series(box, fine, r, best, n0)[DELTA])
+        rho = par["rho"]
+        rec = dict(rho=rho, m=m, rho_obs=float(rho_obs), best_tmpl=best, chi2=[float(ch[p_]) for p_ in P_BINS],
+                   bound=[2 * (p_ - 1) + rho ** 2 * (1 - m ** 2) for p_ in P_BINS],
+                   bound_nominal=[2 * (p_ - 1) + rho ** 2 * (1 - 0.97 ** 2) for p_ in P_BINS],
+                   bound_allen_tight=[2 * (p_ - 1) + (p_ - 1) * (1 / max(m, 1e-9) - 1) ** 2 * (rho * m) ** 2
+                                      for p_ in P_BINS],
+                   delta=-1.0 if delta is None else delta, on_tmpl=-1 if tsel is None else tsel,
+                   on_found=bool(tsel is None or best == tsel))
+        out[det] = rec
+    return {f"{det}_{k}": v for det, rec in out.items() for k, v in rec.items()}
+
+
+META = ("n", "kind", "k", "i", "iL", "i_c", "y1", "inj", "tid_y1", "decoy", "real", "inj_par")
 
 
 # ------------------------------------------------------------------ the box-major loop
@@ -872,7 +975,9 @@ def run(l_max, kinds="bg,fg", n_box=None, real=None):
                 for c in cs:
                     files = extra_files(c) if kind != "null" else {}
                     loaded = {det: np.load(f) for det, f in files.items()} or None
-                    if kind == "twin":
+                    if kind in ALLEN:
+                        res.append(allen_candidate(box, fine, series, c, loaded, l_max))
+                    elif kind == "twin":
                         res.append(candidate(box, fine, series, c, None, target, twin=loaded))
                     else:
                         res.append(candidate(box, fine, series, c, loaded, target))
