@@ -195,3 +195,64 @@ Written with their code (`coh2t_drive.py`) before any of these kinds ran.
     generator as the twin. It would then test only seed independence. An independent generator would keep it
     informative, for example pycbc.noise.noise_from_psd: time-domain coloured noise, run through prep's whitening path
     at random valid times.
+
+## C10 (2026-11-26): K1-(A) with an independent noise generator — PROPOSED, sample size awaiting the Bridge
+
+Registered before any K1 code exists. The generator choice is ACCEPTED by the Bridge; the sample size below is open.
+
+**Generator.** `pycbc.noise.noise_from_psd`, a different algorithm from the twin's, run in the child process so pycbc
+stays out of the engine. The series then goes through prep's own whitening path:
+- gated? no, it is synthetic;
+- double-whitened with the real segment's filter w, so the twin and the MC share their whitening and differ only in
+  how the Gaussian noise is generated.
+
+**(3) Conventions, read at source: pycbc 2.10.0, `pycbc/noise/gaussian.py`, lines 78–131.**
+- Seeding: `lal.gsl_rng("ranlux", seed)` with an integer seed. Ours is seed = 7,000,000 + 2·i + d, for segment index
+  i and detector d (H1 = 0, L1 = 1). These are distinct from every other seed in this build.
+- Segmenting: segment length N = 1/(Δt·Δf), stride N/2, stitched by `lalsimulation.SimNoise`. How SimNoise colours
+  and stitches internally is from memory, not read.
+- The PSD's DC and last bins are set to 0.
+- There is **no** low-frequency cutoff inside the function.
+- **Our inputs:**
+  - Δt = 1/4,096 s; length 2²⁴ samples (one 4,096-s series per detector and segment).
+  - Δf = 1/16 Hz, the PSD estimate's own resolution (16-s Welch segments). The PSD passed is the segment's exact
+    pipeline PSD (rebuilt from its kernel) sampled every 256th bin.
+  - Below F_LOWER − 10 = 40 Hz the PSD is extended flat at its 40-Hz value. There the truncated PSD is an artefact of
+    the inverse-spectrum truncation, and prep's whitening filter is zero, so in-band statistics are unaffected and
+    low-frequency leakage stays small.
+
+**(1) Pre-check, before any K1 maximum.**
+- For segment 0, H1 and L1: the Welch estimate of the generated series (`lowmem_psd.estimate_psd`, the pipeline's own
+  median Welch with 511 segments of 16 s) divided by the target PSD, averaged over each of 16 equal bands in
+  [50, 1,024] Hz.
+- **Bar:** |band mean − 1| ≤ 1.5 % in every band.
+- **Why that tolerance.**
+  - A median-of-511 estimate has a relative scatter of about 1.44/√511 ≈ 6.4 % per frequency bin.
+  - Each 61-Hz band holds about 975 bins at 1/16 Hz, roughly 650 independent ones after Hann-window correlation.
+  - So a band mean scatters by about 0.25 %, and 1.5 % is about 6σ.
+  - The bar catches convention errors (factors of 2, Δf, one-sided against two-sided), which give ≥ 30 %, not noise.
+- The ratio is of two PSDs, both large at the lines, so unlike the failed C9 bar it is well conditioned in notches.
+
+**(2) Comparison, as registered (frozen §4 K1; registration §5).**
+- The per-candidate-maximum survival of the twin, with ρ̂²_net as the primary statistic, against the pycbc-noise MC,
+  through the same boxes.
+- **Bars:** ±15 % at survival 10⁻², and within a factor of 2 at the deepest level the MC populates.
+- **Design:**
+  - MC samples are drawn segment-major: the 2 series of a segment are generated, scored, then deleted (128 MB
+    transient).
+  - Each sample takes the box and detector pairing of a randomly chosen twin candidate (seeded), at a random valid time
+    in [392, 4,088] s of that segment, so the box mix matches the twin's.
+  - Matched-filter output decorrelates within milliseconds, so samples from one series at different times are treated
+    as independent.
+
+**OPEN, the sample size. My earlier "~5,000 maxima" was WRONG.**
+
+| MC maxima | Events at 10⁻² | sd of the twin/MC ratio | P(fails ±15 % with no real difference) |
+|---|---|---|---|
+| 5,000 | 50 | 0.151 | **0.32** |
+| 35,482 (= twin) | 355 | 0.075 | 0.046 |
+| 100,000 | 1,000 | 0.062 | 0.015 |
+
+- The sd combines the MC with the twin's own 355 events.
+- With 5,000 maxima the registered bar would be a coin flip. A sample size is needed before (A) runs.
+

@@ -447,7 +447,7 @@ def twinexact():
         lo = snippet_start(c["i_c"])
         ref = full[lo: lo + NS].astype(np.float32)
         rows.append(dict(n=c["n"], det=det, segment=gps, i_c=c["i_c"], identical=bool(np.array_equal(mine, ref)),
-                         max_abs_diff=float(np.max(np.abs(mine.astype(np.float64) - ref))), rms=float(np.std(ref))))
+                         max_abs_diff=float(np.max(np.abs(mine.astype(np.float64) - ref))), rms=float(np.std(ref.astype(np.float64)))))   # float64: float32 squares of ~1e21 overflow
         log(f"twinexact n {c['n']} {det} {gps}: identical {rows[-1]['identical']}")
     ok = all(r["identical"] for r in rows)
     res = dict(check="C9 (i) exact identity", rows=rows, passed=bool(ok), peak_footprint_mb=L.peak_footprint_mb(),

@@ -2,6 +2,21 @@
 
 *Deepstrain-personal [model: Claude Opus 5.5]. Declared against measured, for every run. Newest first.*
 
+## 2026-11-26 12:35 — PSD kernels (H1, L1, segment 1249001472) and the C9 (i) exact identity (`twinexact`)
+| | Declared | Measured |
+|---|---|---|
+| Device / threads / nice | CPU / 1 / 15 | CPU / 1 / 15 |
+| Wall time | ~1 min in all | 4.9 s + 4.7 s + 12.0 s |
+| Peak footprint | ≤ 2.2 GB each | 1,203 MB, 1,203 MB, **2,154 MB** (inside the declaration, above the 2-GB guide) |
+
+- **Start gate:** memory 64 % / 63 % free; pressure level 1.
+- **Kernels:** both PASS their bit-for-bit asserts. The rebuilt PSD equals `estimate_psd` of prep's gated series, and
+  its snippet-grid filter equals prep's stored one.
+- **twinexact: PASS.** 4 of 4 twin snippets (n 39539 H1, 58185 L1, 73588 H1, 73653 L1) are bit-identical to the
+  independent reference; max |difference| 0.0. Result file: `results/coh2t/twinexact.json`.
+- **Cosmetic bug:** the file's "rms" reads `inf`. It was computed in float32, where squares of ~10²¹ overflow, and it
+  does not touch the identity. Fixed to float64 after the run; not re-run.
+
 ## 2026-11-26 12:26–12:28 — C9 twin check (`coh2t_drive.py twincheck`): FAILED twice by its own bar; stopped for a ruling
 
 | | Declared | Measured |

@@ -1,0 +1,93 @@
+{
+ "check": "C9 (i) exact identity",
+ "rows": [
+  {
+   "n": 39539,
+   "det": "H1",
+   "segment": 1249001472,
+   "i_c": 2117364,
+   "identical": true,
+   "max_abs_diff": 0.0,
+   "rms": Infinity
+  },
+  {
+   "n": 58185,
+   "det": "L1",
+   "segment": 1249001472,
+   "i_c": 13179034,
+   "identical": true,
+   "max_abs_diff": 0.0,
+   "rms": Infinity
+  },
+  {
+   "n": 73588,
+   "det": "H1",
+   "segment": 1249001472,
+   "i_c": 16271116,
+   "identical": true,
+   "max_abs_diff": 0.0,
+   "rms": Infinity
+  },
+  {
+   "n": 73653,
+   "det": "L1",
+   "segment": 1249001472,
+   "i_c": 15724572,
+   "identical": true,
+   "max_abs_diff": 0.0,
+   "rms": Infinity
+  }
+ ],
+ "passed": true,
+ "peak_footprint_mb": 1920,
+ "model": "Claude Opus 5.5",
+ "env": {
+  "python": "3.12.13",
+  "executable": "/Users/sumit/Github/BlackHole/primordial_blackhole_search/.venv/bin/python",
+  "implementation": "CPython",
+  "platform": "macOS-27.2-arm64-arm-64bit",
+  "machine": "arm64",
+  "cpu_count": 10,
+  "packages": {
+   "numpy": "2.4.6",
+   "scipy": "1.17.1",
+   "torch": "2.12.0",
+   "pycbc": "2.10.0",
+   "gwpy": "4.0.1",
+   "lal": "7.7.1",
+   "sbi": null,
+   "qnm": null,
+   "mpmath": "1.3.0",
+   "ringdown": null,
+   "jax": null
+  },
+  "blas_lapack": {
+   "numpy": {
+    "blas": "accelerate",
+    "lapack": "accelerate"
+   },
+   "scipy": {
+    "blas": "Accelerate",
+    "lapack": "Accelerate"
+   }
+  },
+  "torch": {
+   "threads": 1,
+   "interop_threads": 10,
+   "mps": true,
+   "cuda": false,
+   "default_dtype": "torch.float32"
+  },
+  "thread_env": {
+   "OMP_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": null,
+   "OPENBLAS_NUM_THREADS": null,
+   "VECLIB_MAXIMUM_THREADS": "1",
+   "PYTORCH_ENABLE_MPS_FALLBACK": null
+  },
+  "git": {
+   "commit": "84b557a380327efc355494a12419044530041800",
+   "dirty": false
+  }
+ }
+}
