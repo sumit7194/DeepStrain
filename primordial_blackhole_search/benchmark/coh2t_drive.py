@@ -240,8 +240,9 @@ def grid(tid, l_max):
     coh2c_verify.grid_points), with its fitting-factor Monte Carlo kept as a per-box record."""
     path = STATE / "grids" / f"L{l_max}_tid{tid:04d}.npz"
     if path.exists():
-        z = np.load(path, allow_pickle=False)
-        return dict(z)
+        z = dict(np.load(path, allow_pickle=False))
+        z["coeffs"] = np.array([L.coeffs(mc, q) for mc, q in z["pts"]])
+        return z
     from coh2c_verify import grid_points
     mc_star = float(load_plan()["mcs"][tid])            # Y1's bank, stored by plan (no y1_bank import here)
     pts, gsum = grid_points(mc_star, HALF_WIDTH, l_max)
@@ -255,7 +256,7 @@ def grid(tid, l_max):
                worst_dtau=np.float64(worst), ff_min=np.float64(gsum["ff_min"]), ff_p01=np.float64(gsum["ff_p01"]))
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_name(path.stem + ".tmp.npz")
-    np.savez(tmp, **out)
+    np.savez(tmp, **{k: v for k, v in out.items() if k != "coeffs"})
     os.replace(tmp, path)
     return out
 
@@ -586,6 +587,9 @@ def run(l_max, kinds="bg,fg", n_box=None):
                             candidates=[{k: c.get(k) for k in META} for c in cs], seconds=round(time.time() - t0, 2),
                             peak_footprint_mb=L.peak_footprint_mb(), model="Claude Opus 5.5", status="UNVERIFIED")
                 arrs = {k: np.array([r[k] for r in res]) for k in res[0]} if res else {}
+                for k in ("H_rho", "H_chi2", "L_rho", "L_chi2", "closure"):
+                    if k in arrs:
+                        arrs[k] = arrs[k].astype(np.float32)
                 done_dir.mkdir(parents=True, exist_ok=True)
                 tmp = out.with_name(out.stem + ".tmp.npz")
                 np.savez(tmp, meta=json.dumps(meta), **arrs)
@@ -613,6 +617,54 @@ def calib(l_max):
     atomic_json(out, dict(target_plain=float(np.median(vals)), n=len(vals), quantiles=[float(q) for q in
                 np.quantile(vals, [0.1, 0.25, 0.5, 0.75, 0.9])], rule="C6", model="Claude Opus 5.5", env=L.stamp()))
     log(f"decoy calibration L{l_max}: target plain {np.median(vals):.1f} from {len(vals)} caught injections")
+
+
+def twincheck(det="H1", gps=None):
+    """C9 check (the Bridge, 2026-11-26): on one segment, the snippet-grid twin draw against a 512-s cut of a FULL
+    draw (realbg_cascade's twin construction, whitened as coh2c_local.prep), and both against the real series' cut.
+    Bars fixed before the first run: in each of 16 equal-width bands over [50, 1024] Hz, mean |Y|^2 / (NS w^2) of the
+    snippet draw and of the cut agree within 2 % (statistical noise ~0.6 % per band), and their time-domain
+    variances agree within 1 %. The real series is reported, not gated (it is not Gaussian)."""
+    import realbg_cascade as R
+    from lowmem_psd import estimate_psd
+    gps = int(gps or segments()[0])
+    x = np.load(B / "data" / f"{det}_{gps}.npy").astype(np.float64)
+    g = R.gate_window(det, gps)[0]
+    psd = estimate_psd(x * g)
+    del x
+    w = R.whiten_filter(psd)
+    rng = np.random.default_rng([SEED, 9])
+    X = np.sqrt(N * FS * psd / 4.0) * (rng.standard_normal(len(psd)) + 1j * rng.standard_normal(len(psd)))
+    X[0], X[-1] = X[0].real, X[-1].real
+    y_full = np.fft.irfft(X * w * w, n=N)
+    del X
+    lo = snippet_start(2_000 * FS)
+    cut = np.fft.rfft(y_full[lo: lo + NS])
+    del y_full
+    y_real, w_snip, _ = L.load_ww(det, gps)
+    real = np.fft.rfft(np.asarray(y_real[lo: lo + NS], dtype=np.float64))
+    snip, _ = noise_spectrum(dict(kind="twin", n=0, i_c=0), det, None, w_snip)
+    f = np.arange(NS // 2 + 1) * (FS / NS)
+    ref = NS * w_snip ** 2
+    edges = np.linspace(L.F_LO, L.F_HI, 17)
+    rows = []
+    for a, b in zip(edges[:-1], edges[1:]):
+        m = (f >= a) & (f < b) & (ref > 0)
+        rows.append(dict(f_lo=float(a), f_hi=float(b), n_bins=int(m.sum()),
+                         snippet=float(np.mean(np.abs(snip[m]) ** 2 / ref[m])),
+                         cut_of_full=float(np.mean(np.abs(cut[m]) ** 2 / ref[m])),
+                         real=float(np.mean(np.abs(real[m]) ** 2 / ref[m]))))
+    worst = max(abs(r["snippet"] / r["cut_of_full"] - 1) for r in rows)
+    v_snip, v_cut = float(np.var(np.fft.irfft(snip, n=NS))), float(np.var(np.fft.irfft(cut, n=NS)))
+    ok = worst <= 0.02 and abs(v_snip / v_cut - 1) <= 0.01
+    res = dict(check="C9 twin: snippet-grid draw vs cut of a full draw", det=det, segment=gps, snippet_start=lo,
+               bars=dict(band_ratio=0.02, variance_ratio=0.01), bands=rows, worst_band_ratio_dev=worst,
+               var_snippet=v_snip, var_cut=v_cut, var_real=float(np.var(np.asarray(y_real[lo: lo + NS], np.float64))),
+               passed=bool(ok), peak_footprint_mb=L.peak_footprint_mb(), model="Claude Opus 5.5", env=L.stamp())
+    OUT.mkdir(parents=True, exist_ok=True)
+    (OUT / f"twincheck_{det}_{gps}.json").write_text(json.dumps(res, indent=1))
+    log(f"C9 twin check {'PASS' if ok else 'FAIL'}: worst band ratio deviation {worst:.4f}, variance ratio "
+        f"{v_snip / v_cut:.4f} | footprint {L.peak_footprint_mb()} MB")
 
 
 def status(l_max):
@@ -693,4 +745,4 @@ if __name__ == "__main__":
         vone(a[2], a[3])
     else:
         dict(plan=plan, golden=golden, prepseries=prepseries, vseries=vseries, run=run, calib=calib,
-             status=status)[cmd](*a[2:])
+             twincheck=twincheck, status=status)[cmd](*a[2:])
