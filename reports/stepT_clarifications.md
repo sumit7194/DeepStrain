@@ -686,3 +686,21 @@ the box's grid order, at L_max 128 and 384. Both detectors, segment 0.
 - **Order:** null and must-fire controls (no pycbc) → the binding gate on C16's configuration → the sensitivity
   readout on the original configuration.
 
+## C18 (2026-11-26, pre-result, ruled by the Bridge): K1's depth bar and K2's per-injection bar
+
+**(a) K1's "within a factor 2 at the deepest populated level".**
+- **Depth:** x_d is the twin score at which the K1-(A) MC survival equals **20/N_MC**, the deepest level where the MC
+  has at least 20 events.
+- **Bar:** 0.5 ≤ S_twin(x_d)/S_MC(x_d) ≤ 2.
+- **Why 20 and not 10:** under equal true rates, Poisson counting alone gives a factor-2 false fail of about 3.1 % at
+  10 events, about 0.5 % at 20 and about 0.3 % at 25 (the Bridge's calculation: P(count < n/2) + P(count > 2n)). A
+  registered bar should not fail 3 % of the time on counting noise.
+- **Also reported:** the 10-event level, descriptively, and the twin's own sampling uncertainty at x_d.
+
+**(b) K2's "within 2 % on ρ̂_net and χ²_r".**
+- **Bar:** EVERY one of the 15 injections must be within 2 % on ρ̂_net, and on χ²_r at both the H1 and the L1 point of
+  the anchor that sets the score.
+- **Why per injection:** the shortcut and the real series see the same noise in the same box, so any difference is a
+  pipeline difference, not noise.
+- **Reported:** the largest deviation, and which injection it is.
+

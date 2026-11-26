@@ -235,7 +235,17 @@ def evaluate_config(l_max, p, ctx, rng):
             x02 = float(np.quantile(tw[key], 1 - 1e-2))
             s_mc = float(np.mean(mc[key] > x02))
             g["K1_clause1"] = dict(x_at_twin_survival_1e2=x02, mc_survival=s_mc, ratio=s_mc / 1e-2,
-                                   passed=bool(abs(s_mc / 1e-2 - 1) <= 0.15), deepest="see the K1 note (not decided here)")
+                                   passed=bool(abs(s_mc / 1e-2 - 1) <= 0.15))
+            # C18 (a): the deepest level with >= 20 MC events; the 10-event level descriptively; twin's own sd there
+            n_mc, n_tw = len(mc[key]), len(tw[key])
+            depth = {}
+            for ev in (20, 10):
+                x_d = float(np.sort(mc[key])[::-1][ev - 1])
+                s_mc_d, s_tw_d = ev / n_mc, float(np.mean(tw[key] >= x_d))
+                k_tw = s_tw_d * n_tw
+                depth[f"{ev}_events"] = dict(x_d=x_d, s_mc=s_mc_d, s_twin=s_tw_d, ratio=s_tw_d / s_mc_d,
+                                             twin_rel_sd=float(1 / np.sqrt(k_tw)) if k_tw > 0 else None)
+            g["K1_depth"] = dict(depth, passed=bool(0.5 <= depth["20_events"]["ratio"] <= 2.0))
     res["gates_passed"] = bool(g) and all(v_.get("passed", True) for v_ in g.values())
     return res
 
