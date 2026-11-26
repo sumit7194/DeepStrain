@@ -410,3 +410,49 @@ Then ANY correct generator would fail there.
   must be much stronger than L1's.
 - **If the line heights are similar, the hypothesis is weakened**, whatever the decision above says.
 
+### k1perfect result (run 21:21, code d58ffe5): INCONCLUSIVE for both detectors, by the registered rule
+
+| Detector, band | Perfect generator | pycbc | Ratio of excesses (perfect/pycbc) | Line height (peak/median) |
+|---|---|---|---|---|
+| H1, 476–537 Hz | 28.8 | 11.07 | 2.76 | 1.3·10⁹ |
+| H1, 963–1,024 Hz | 52.2 | 11.14 | 5.05 | 1.1·10⁹ |
+| L1, 476–537 Hz | 1.223 | 1.285 | 0.78 (inside 2/3–3/2) | 1.6·10⁷ |
+| L1, 963–1,024 Hz | 1.018 | 1.572 | 0.03 | 33 |
+
+- In every other band the perfect generator is within 0.6 %.
+- **H1:** the perfect generator fails in both notch bands, but its excess is not "the same" as pycbc's.
+- **L1:** the second band fails the "same" test.
+- **Per the rule: reported, no rerun, no change.** k1precheck's FAIL stands, and K1-(A) is blocked until the Bridge rules.
+
+**Descriptive reading, not a verdict.**
+1. **Where the lines are huge** (H1's two bands, L1's 476–537 Hz), even an exact Gaussian with the target PSD fails
+   the bar, and it fails more where the lines are taller: H1 at 10⁹ against L1 at 10⁷. That fits the double-smear
+   hypothesis. **There the bar cannot be met by a correct generator.**
+2. **L1 at 963–1,024 Hz has no strong line** (peak/median 33). The perfect generator nearly passes there (1.018),
+   while pycbc gives **1.57**. That is a pycbc-generator-specific deviation near the band top, which the double-smear
+   does not explain. It is a real open question about the K1-(A) generator.
+
+## C12 (2026-11-26, before production): production closure tolerance
+
+**What the record says.** The 1e-4 closure bar is registered **only for the golden** (`coh2t_drive.golden`'s
+docstring, committed before the golden runs). No production tolerance was registered.
+
+**What was observed first.** Disclosed, because it was seen before this was written: the fixed 2-box pilot gave
+closure up to **1.5e-4** relative to max(|z|, 1), on box 1410 bg.
+
+**Proposal: a correctness gate, stopping at the box boundary, of closure ≤ 1e-3 relative to max(|z|, 1),** at every
+anchor and in both slots.
+
+**Reasoning: the effect on any decision.**
+- Closure measures the gap between the χ² band sum and the engine's z, so it bounds the error in ρ by 1e-3 × max(|z|, 1).
+- **Noise scale:** |z| has σ ≈ 1 per quadrature (E|n|² = 2), so 1e-3 is 0.1 % of the noise scale.
+- **At the threshold:** at a 1/day-like ρ̂_net of about 9, the error is at most 0.009 in ρ, or 0.2 % in ρ².
+- **Against the statistics:** in K1 a 1.2 % variance excess moves survival at 10⁻² by about 28 %. Survival changes by
+  about 0.47 per unit of ρ², so 0.2 % of ρ² ≈ 80 is about 0.16 units, a survival shift of about 7 %. That is
+  comparable to K1's statistical sd.
+- **The pilot's 1.5e-4 is 7× smaller,** about 1 %, well below every statistical error in play.
+- Hence 1e-3 is the loosest gate that stays clearly below the decision-relevant scale, and production values are
+  expected around 1e-4.
+
+**Status: PROPOSED, for the Bridge.**
+

@@ -1,0 +1,301 @@
+{
+ "control": "C10 addendum perfect generator",
+ "registered": "69acadf",
+ "rows": [
+  {
+   "det": "H1",
+   "segment": 1249001472,
+   "perfect_band_means": [
+    1.0013753729389132,
+    1.0011908306082626,
+    0.997635993785936,
+    1.0018725241902646,
+    1.0416217817039628,
+    1.0024181686198574,
+    1.0007245798722202,
+    28.81283925494186,
+    0.9999940292274054,
+    1.0054659741775127,
+    0.9996752691630734,
+    1.0017870081306677,
+    1.0002474279579479,
+    0.998102616455627,
+    0.9991116631614043,
+    52.24169490558186
+   ],
+   "pycbc_band_means": [
+    1.0031985806414714,
+    1.0004631250382452,
+    0.9969375014738359,
+    0.9999190647675765,
+    1.0676982662030292,
+    1.0015068967908658,
+    1.0013771956213957,
+    11.074092787238877,
+    0.9993141991279301,
+    1.0064513687949088,
+    1.0012986036799112,
+    0.9987018124722701,
+    1.0033895074432018,
+    0.9991855216465368,
+    0.9988706639892915,
+    11.143466594496328
+   ],
+   "notch_bands_hz": [
+    [
+     476.125,
+     537.0
+    ],
+    [
+     963.125,
+     1024.0
+    ]
+   ],
+   "excess_ratio_perfect_over_pycbc": [
+    2.760828179999804,
+    5.051694549217004
+   ],
+   "perfect_passes_all": false,
+   "line_heights": [
+    {
+     "peak_over_median": 9.873361539626623,
+     "frac_above_10x": 0.0
+    },
+    {
+     "peak_over_median": 2.616019478025943,
+     "frac_above_10x": 0.0
+    },
+    {
+     "peak_over_median": 1.635603917991706,
+     "frac_above_10x": 0.0
+    },
+    {
+     "peak_over_median": 1.5050476265859456,
+     "frac_above_10x": 0.0
+    },
+    {
+     "peak_over_median": 395.0065026872271,
+     "frac_above_10x": 0.011241497689938398
+    },
+    {
+     "peak_over_median": 1.5023976549812235,
+     "frac_above_10x": 0.0
+    },
+    {
+     "peak_over_median": 2.1557603515639086,
+     "frac_above_10x": 0.0
+    },
+    {
+     "peak_over_median": 1299635145.3605826,
+     "frac_above_10x": 0.05808040297741273
+    },
+    {
+     "peak_over_median": 4.738259805990505,
+     "frac_above_10x": 0.0
+    },
+    {
+     "peak_over_median": 18.02722985211495,
+     "frac_above_10x": 0.0029517453798767967
+    },
+    {
+     "peak_over_median": 2.5697590953312575,
+     "frac_above_10x": 0.0
+    },
+    {
+     "peak_over_median": 1.329635542036714,
+     "frac_above_10x": 0.0
+    },
+    {
+     "peak_over_median": 6.643420228102736,
+     "frac_above_10x": 0.0
+    },
+    {
+     "peak_over_median": 6.773379628598943,
+     "frac_above_10x": 0.0
+    },
+    {
+     "peak_over_median": 1.7855819425350974,
+     "frac_above_10x": 0.0
+    },
+    {
+     "peak_over_median": 1139623439.598219,
+     "frac_above_10x": 0.04877598819301848
+    }
+   ],
+   "verdict": "INCONCLUSIVE"
+  },
+  {
+   "det": "L1",
+   "segment": 1249001472,
+   "perfect_band_means": [
+    1.0044216736186546,
+    0.9985555170554412,
+    0.9998772946861635,
+    0.9975295173699807,
+    1.011959770205451,
+    1.0064061008527236,
+    1.002539569289723,
+    1.2225661798683778,
+    1.0022127127377072,
+    1.001019355630919,
+    1.0011539652923331,
+    1.0023224074558907,
+    0.9998436527946769,
+    1.0023686054729988,
+    1.0062342155149107,
+    1.018129739003765
+   ],
+   "pycbc_band_means": [
+    1.0004548391966313,
+    1.0002944386835297,
+    0.9985922986628452,
+    0.9989883512729286,
+    1.0213985001495987,
+    0.9978803283398057,
+    1.0011011848026385,
+    1.2847372457165376,
+    1.0003239170253035,
+    1.0052808969685705,
+    0.9987882217468089,
+    0.9981633474957673,
+    1.000265931454485,
+    1.0023352037784674,
+    1.000402053380457,
+    1.5715338044654585
+   ],
+   "notch_bands_hz": [
+    [
+     476.125,
+     537.0
+    ],
+    [
+     963.125,
+     1024.0
+    ]
+   ],
+   "excess_ratio_perfect_over_pycbc": [
+    0.7816546068930774,
+    0.03172120154943627
+   ],
+   "perfect_passes_all": false,
+   "line_heights": [
+    {
+     "peak_over_median": 21.119522041142776,
+     "frac_above_10x": 0.0019170302874743327
+    },
+    {
+     "peak_over_median": 1.7769094499334592,
+     "frac_above_10x": 0.0
+    },
+    {
+     "peak_over_median": 1.4147489977974048,
+     "frac_above_10x": 0.0
+    },
+    {
+     "peak_over_median": 1.2189155153836113,
+     "frac_above_10x": 0.0
+    },
+    {
+     "peak_over_median": 260.0681262985802,
+     "frac_above_10x": 0.012966022843942505
+    },
+    {
+     "peak_over_median": 2.3790705951303797,
+     "frac_above_10x": 0.0
+    },
+    {
+     "peak_over_median": 2.040902190234644,
+     "frac_above_10x": 0.0
+    },
+    {
+     "peak_over_median": 15751336.343157673,
+     "frac_above_10x": 0.0748804863963039
+    },
+    {
+     "peak_over_median": 1.222969857295939,
+     "frac_above_10x": 0.0
+    },
+    {
+     "peak_over_median": 15.085567096415826,
+     "frac_above_10x": 0.0022499037474332647
+    },
+    {
+     "peak_over_median": 1.247391572248551,
+     "frac_above_10x": 0.0
+    },
+    {
+     "peak_over_median": 1.2122036372948621,
+     "frac_above_10x": 0.0
+    },
+    {
+     "peak_over_median": 1.431087216491928,
+     "frac_above_10x": 0.0
+    },
+    {
+     "peak_over_median": 1.2208734366200609,
+     "frac_above_10x": 0.0
+    },
+    {
+     "peak_over_median": 2.188838435121823,
+     "frac_above_10x": 0.0
+    },
+    {
+     "peak_over_median": 32.99195953671795,
+     "frac_above_10x": 0.007644058008213553
+    }
+   ],
+   "verdict": "INCONCLUSIVE"
+  }
+ ],
+ "peak_footprint_mb": 1280,
+ "model": "Claude Opus 5.5",
+ "env": {
+  "python": "3.12.13",
+  "executable": "/Users/sumit/Github/BlackHole/primordial_blackhole_search/.venv/bin/python",
+  "implementation": "CPython",
+  "platform": "macOS-27.2-arm64-arm-64bit",
+  "machine": "arm64",
+  "cpu_count": 10,
+  "packages": {
+   "numpy": "2.4.6",
+   "scipy": "1.17.1",
+   "torch": "2.12.0",
+   "pycbc": "2.10.0",
+   "gwpy": "4.0.1",
+   "lal": "7.7.1",
+   "sbi": null,
+   "qnm": null,
+   "mpmath": "1.3.0",
+   "ringdown": null,
+   "jax": null
+  },
+  "blas_lapack": {
+   "numpy": {
+    "blas": "accelerate",
+    "lapack": "accelerate"
+   },
+   "scipy": {
+    "blas": "Accelerate",
+    "lapack": "Accelerate"
+   }
+  },
+  "torch": {
+   "threads": 1,
+   "interop_threads": 10,
+   "mps": true,
+   "cuda": false,
+   "default_dtype": "torch.float32"
+  },
+  "thread_env": {
+   "OMP_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": null,
+   "OPENBLAS_NUM_THREADS": null,
+   "VECLIB_MAXIMUM_THREADS": "1",
+   "PYTORCH_ENABLE_MPS_FALLBACK": null
+  },
+  "git": {
+   "commit": "d58ffe53deb5e15279270fa19ee5ec397a200268",
+   "dirty": false
+  }
+ }
+}

@@ -82,3 +82,27 @@ New results from here are tagged `macOS 27.0.1 (26A434)` in their Environment li
   finite. Record: `fetch_regression_curl.json`.
 - Run 2026-11-18 01:07 IST, `regress_check.py` as registered. Details: `regression_macos27.2_26B123.json`, log
   `retry_27.2.log`.
+
+## Known bug: torch 2.12.0 on MPS, complex ÷ real scalar returns NaN (found 2026-11-26)
+
+**Symptom.** In `torch==2.12.0` on Apple MPS (macOS 27.2), dividing a complex64 tensor by a tiny real Python scalar
+returns NaN. Example: `z / 3.98e-26` with |z| ~ 10⁻²⁵. The same operation on the CPU is correct.
+
+**Minimal reproduction:**
+
+```python
+(torch.randn(4, 8, dtype=torch.complex64) * 3.7e-25).to("mps") / 3.98e-26
+```
+
+**Confirmed** by the Bridge on the Mac mini: NaN in 32 of 32 runs under 2.12.0, and in 0 of 32 under 2.13.0. It is a
+PyTorch bug, fixed by 2.13, not an Apple one.
+
+**What we do about it.**
+- torch stays pinned at 2.12.0. Moving to 2.13 is an environment change that would need new goldens.
+- Code multiplies by the reciprocal instead of dividing (`coh2t_drive.py`, commit 0dfc367).
+- Every stage asserts that its values are finite, as a correctness gate.
+
+**What it affected.** Only the 2026-11-26 step-T MPS pilot, which is kept and marked INVALID
+(`primordial_blackhole_search/benchmark/results/coh2t/L128_pilot_INVALID_mps_nan/`). Earlier MPS code (the coh2c
+round and its verification) divided on the CPU, after `.cpu().numpy()`.
+
