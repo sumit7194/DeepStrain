@@ -69,14 +69,14 @@
   },
   "L384_mc0.18": {
    "shrink_fable": 0.7,
-   "shrink_ours": 0.85,
+   "shrink_ours": 0.7,
    "n_fable": 3715,
-   "n_ours": 3033,
+   "n_ours": 3715,
    "below_fable": 0.0,
-   "below_ours": 0.0025,
+   "below_ours": 0.0,
    "ff_median_fable": 0.9962135712944844,
-   "ff_median_ours": 0.9951114337586694,
-   "passed": false
+   "ff_median_ours": 0.9953816868950387,
+   "passed": true
   },
   "L384_mc0.26": {
    "shrink_fable": 1.0,
@@ -421,8 +421,8 @@
    "pts_sha256": "ac4f3a77f2aee10dd8225e816d20fb73a20250dbf48d0ba0a762808c03b6ed11"
   }
  },
- "passed": false,
- "peak_footprint_mb": 328,
+ "passed": true,
+ "peak_footprint_mb": 320,
  "model": "Claude Opus 5.5",
  "env": {
   "python": "3.12.13",
@@ -469,7 +469,7 @@
    "PYTORCH_ENABLE_MPS_FALLBACK": null
   },
   "git": {
-   "commit": "0bf7924638c263addb94b813ce6db12ca4babde5",
+   "commit": "2a8e8ec685f028a89becbd5a37ccc10b9e900c38",
    "dirty": false
   }
  }
