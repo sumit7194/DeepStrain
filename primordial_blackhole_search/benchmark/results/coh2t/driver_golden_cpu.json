@@ -1,0 +1,125 @@
+{
+ "gate": "driver golden",
+ "device": "cpu",
+ "n_templates": 429,
+ "box_max_driver": 282.88421630859375,
+ "box_max_verify": 282.8842260090579,
+ "checks": {
+  "box_max_rel": 3.42912869211176e-08,
+  "n_templates_match": true,
+  "band_vs_chi2_fine_max": 2.709606905421506e-07,
+  "closure_max": 3.4462914658987187e-06,
+  "identical_slot_L_vs_H": 0.0,
+  "plain_ge_2x": true,
+  "vs_pre_rewrite_cpu": {
+   "tmpl_lag_identical": true,
+   "H_rho_rel_max": 1.1325445639087661e-06,
+   "H_chi2_rel_max": 5.206274423796842e-06
+  }
+ },
+ "plain_net": 565.7684326171875,
+ "top": {
+  "tmpl": [
+   259,
+   289,
+   142,
+   358,
+   150
+  ],
+  "lag": [
+   4587,
+   5040,
+   5744,
+   5740,
+   5780
+  ],
+  "H_rho": [
+   16.819105067529048,
+   16.76600907530136,
+   16.690564258634147,
+   16.659837916008797,
+   16.63014012684418
+  ],
+  "H_chi2_p4_p8_p16": [
+   [
+    460.1520993999309,
+    1556.4690538447305,
+    3650.5466222938517
+   ],
+   [
+    509.13578624053537,
+    1607.7748981393743,
+    3481.2425531855324
+   ],
+   [
+    535.4715856352863,
+    1667.8015558896632,
+    3419.558142243031
+   ],
+   [
+    537.8700756989025,
+    1666.279346192773,
+    3430.2121015085104
+   ],
+   [
+    498.7331834370873,
+    1585.7542265982663,
+    3516.457287693912
+   ]
+  ]
+ },
+ "npz": "driver_golden_cpu.npz",
+ "npz_sha256": "5d77e559164471fbceb4dc2bb37c2e1e00359da6f67ddfe7520e0ab1e0edaea2",
+ "passed": true,
+ "peak_footprint_mb": 1221,
+ "model": "Claude Opus 5.5",
+ "env": {
+  "python": "3.12.13",
+  "executable": "/Users/sumit/Github/BlackHole/primordial_blackhole_search/.venv/bin/python",
+  "implementation": "CPython",
+  "platform": "macOS-27.2-arm64-arm-64bit",
+  "machine": "arm64",
+  "cpu_count": 10,
+  "packages": {
+   "numpy": "2.4.6",
+   "scipy": "1.17.1",
+   "torch": "2.12.0",
+   "pycbc": "2.10.0",
+   "gwpy": "4.0.1",
+   "lal": "7.7.1",
+   "sbi": null,
+   "qnm": null,
+   "mpmath": "1.3.0",
+   "ringdown": null,
+   "jax": null
+  },
+  "blas_lapack": {
+   "numpy": {
+    "blas": "accelerate",
+    "lapack": "accelerate"
+   },
+   "scipy": {
+    "blas": "Accelerate",
+    "lapack": "Accelerate"
+   }
+  },
+  "torch": {
+   "threads": 1,
+   "interop_threads": 10,
+   "mps": true,
+   "cuda": false,
+   "default_dtype": "torch.float32"
+  },
+  "thread_env": {
+   "OMP_NUM_THREADS": "1",
+   "MKL_NUM_THREADS": null,
+   "OPENBLAS_NUM_THREADS": null,
+   "VECLIB_MAXIMUM_THREADS": "1",
+   "PYTORCH_ENABLE_MPS_FALLBACK": null
+  },
+  "git": {
+   "commit": "0dfc3677144e9b434975ce10c2de0ef5ef400b95",
+   "dirty": false
+  }
+ }
+}

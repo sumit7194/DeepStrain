@@ -51,6 +51,11 @@ def peak_footprint_mb():
     return round(footprint_mb()[1])
 
 
+def footprint_now_mb():
+    from footprint import footprint_mb
+    return round(footprint_mb()[0])
+
+
 def pick_dev():
     """MPS by default; COH2C_DEV=cpu runs the same engine code on the CPU (exactness gates then need ~1 GB of
     footprint instead of ~2 GB: a 2^21-sample FFT on MPS alone holds ~1.1 GB of driver memory)."""

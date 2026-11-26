@@ -1024,10 +1024,14 @@ def run(l_max, kinds="bg,fg", n_box=None, real=None):
             for pth in [refs_path] + [f for c in by_box.get(tid, []) for f in extra_files(c).values()]:
                 pth.unlink(missing_ok=True)
             del box
+            mem = ""
             if dev == "mps":
                 import torch
+                pre = (torch.mps.current_allocated_memory() >> 20, torch.mps.driver_allocated_memory() >> 20)
                 torch.mps.empty_cache()
-            log(f"box {tid} ({s + part.index(tid) + 1}/{len(todo)}) {time.time() - t0:.1f} s | footprint "
+                mem = (f" | mps cur/drv {pre[0]}/{pre[1]} MB -> after empty_cache {torch.mps.current_allocated_memory() >> 20}/"
+                       f"{torch.mps.driver_allocated_memory() >> 20} MB | footprint now {L.footprint_now_mb()} MB")
+            log(f"box {tid}{mem} ({s + part.index(tid) + 1}/{len(todo)}) {time.time() - t0:.1f} s | footprint "
                 f"{L.peak_footprint_mb()} MB | {(time.time() - t_start) / 3600:.2f} h")
         if not overlap and s + chunk_n < len(todo):
             nxt = launch(s + chunk_n)
