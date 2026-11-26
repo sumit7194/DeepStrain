@@ -2,6 +2,66 @@
 
 *Deepstrain-personal [model: Claude Opus 5.5]. Declared against measured, for every run. Newest first.*
 
+## 2026-11-26 — cost plan for step T, everything included (an estimate, not a measurement)
+
+**Basis.** Fable's P3 model (`results/coh2c/P3_cost.json`: full rate, ±4 s, constructed grids, one per minute) gives
+the engine time per candidate evaluation, both detectors: **0.47 s at L_max 128, 0.64 s at L_max 384**. That rests on
+59 µs per template, which is UNVERIFIED (the quiet-core re-time is still pending). The plan's 2,927 boxes are 7 % more
+than the model's 2,718.
+
+**Not in Fable's model:** the H-anchored χ² at 83 L1 lags for 5 anchors (C2), about **+0.15 s** per evaluation. This
+is my estimate, unmeasured. It gives **0.62 s (L128) and 0.79 s (L384)**.
+
+**Evaluations per L_max.**
+- Main pass: background 35,482 + twin 35,482 + fg 218 × 2 + null 218 + wrong 218 + sine-Gaussian and train decoys
+  400 × 2 + drift 200 ≈ **72,840**.
+- K1-(A): **100,000**.
+
+**MPS (engine) hours.**
+
+| | L128 | L384 |
+|---|---|---|
+| Main pass | 12.5 | 16.0 |
+| K1-(A) | 17.2 | 21.9 |
+
+- **Total ≈ 68 h.** The 59-µs basis is unverified and the χ² term is unmeasured, so the honest range is ×0.7 to ×2:
+  **≈ 47–135 h**.
+
+**CPU (child process, 1 core) hours.**
+
+| Item | Hours |
+|---|---|
+| Grid builds, 2,927 boxes × 2 L_max | 13 |
+| Reference templates, main passes (0.56 s each; median 3.1 / 5.4 per box) | 3.9 |
+| Twin snippets (0.6 s × 2 det × 35,482, per L_max) | 23.7 |
+| Signal and decoy snippets | 3 |
+| Child start-up, main passes | 2.4 |
+| **K1 reference templates (8 realisations × 2 L_max; the biggest item)** | **31** |
+| K1 child start-up (16-box chunks) | 3.3 |
+| K1 series generation, 8 × 48 | 1.1 |
+| **Total** | **≈ 81** |
+
+**Wall time.**
+- COH2T_OVERLAP off (serial): MPS + CPU ≈ **150 h ≈ 6.2 days**.
+- Overlap on: ≈ **85–95 h**, with a process-group footprint of about 3 GB.
+
+**Before the passes.**
+- (3) prepseries: 48 prep children plus 48 kernels, about 0.6 h CPU, ≤ 1.6 GB per child, **+3.2 GB disk**.
+- (4) vseries: 48 children, about 0.5 h CPU.
+- k1precheck: about 1 min, ≤ 2.2 GB.
+- A **pilot** on MPS: a few boxes, about 10 min. It measures per-evaluation time and engine-only footprint, and
+  re-costs everything above.
+
+**Disk.** Main passes ≈ 4.4 GB in use, leaving ≈ 5.6 GB free.
+- The K1 phase holds one realisation at a time (3.1 GB), so the real noise series must be off the disk during it.
+  They can be regenerated in about 1 h.
+- The pause-only guard in job_guard.sh sits at the 5-GB floor.
+
+**G0 clause 3 (fresh cost ≤ 120 h), projected from this:**
+- A fresh main pass at one L_max is ≈ 12.5–16 h MPS + ≈ 20 h CPU.
+- If K1 is required on the fresh set at the same N, add ≈ 17–22 h MPS + ≈ 18 h CPU.
+- That totals ≈ 65–75 h serial, inside 120 h. The ×2 timing risk would bring it to about 120.
+
 ## 2026-11-26 12:35 — PSD kernels (H1, L1, segment 1249001472) and the C9 (i) exact identity (`twinexact`)
 | | Declared | Measured |
 |---|---|---|
