@@ -21,10 +21,11 @@ stretches, which have already been seen.
 - The twin (artificial noise) is exact by construction (C9, bit-for-bit check).
 - The noise check (i) is validated: its null control and planted fault both behave.
 
-**Blocked.** One of the sanity checks (K1) compares our twin noise with an independently generated noise. pycbc's
-noise generator **failed** that comparison: it is 0.6 % too loud in H1, enough to spoil K1.
-- **Next:** a home-built filter generator (FIR, C21), with the same check, about 45 min.
-- If it also fails, K1 cannot be evaluated, and G0 cannot formally pass.
+**Unblocked (2026-11-27).** One of the sanity checks (K1) compares our twin noise with an independently generated
+noise.
+- pycbc's generator **failed** that comparison: 0.6 % too loud in H1.
+- A home-built filter generator (FIR, C21) **passed** it in all four cells, within 0.04 %.
+- So K1 can be evaluated, with FIR as the independent generator.
 
 **Not yet run:** the main passes, the actual measurement. They need about 5–8 days of the Mac mini, so they wait for
 Sumit's go (value gate below).
@@ -45,4 +46,4 @@ Sumit's go (value gate below).
 | C18 | K1 depth bar (20 events); K2 per injection | ruled |
 | C19 | 15 out-of-population boxes (the Bridge's first rule was wrong at the heavy edge) | ruled; checked |
 | C20 | grid spacing follows Fable's verified rule, with a stricter stop | ruled; 12/12 reproduced |
-| C21 | FIR noise generator for K1 | **proposed** |
+| C21 | FIR noise generator for K1 | ruled; **PASSED** check (i) |

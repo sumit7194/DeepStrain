@@ -888,3 +888,22 @@ stitching).
 
 **Cost.** About 2 × 216 series × about 6 s ≈ 45 min (CPU child plus MPS engine). Group footprint ≤ 3.5 GB.
 
+### C21 RESULT (2026-11-27 02:16): the FIR generator PASSES check (i), so K1 is achievable
+
+Run 01:43–02:16, n = 216 per detector. FIR against exact_a, pooled R − 1 (z):
+
+| Cell | R − 1 | z | Verdict |
+|---|---|---|---|
+| L128 H1 | −0.039 % | −0.80 | PASS |
+| L384 H1 | −0.036 % | −0.75 | PASS |
+| L128 L1 | −0.017 % | −0.35 | PASS |
+| L384 L1 | −0.007 % | −0.15 | PASS |
+
+The absolute mean |z|² is 1.9997–2.0001. **FIR becomes K1-(A)'s generator.** The K1 run itself needs a short
+registration: C10's design (N_MC = 100,000 per L_max, 8 realisations, exclusive 4-s slots) with the generator
+swapped to FIR.
+
+**Memory miss.** I declared a group footprint ≤ 3.5 GB; the guard measured **3,911 MB**. The FIR child's linear
+convolution of 2²⁴ + 2¹⁸ samples is heavier than the other generators. Nothing paused. The K1 run will be declared
+from this measurement: ≤ 4.3 GB group, or the convolution is done in blocks if that is too high.
+
