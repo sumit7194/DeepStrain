@@ -947,6 +947,9 @@ def run(l_max, kinds="bg,fg", n_box=None, real=None):
         if c["valid"] and c["kind"] in kinds and (real is None or c.get("real") == real):
             by_box.setdefault(c["tid"], []).append(c)
     todo = [tid for tid in todo if tid in by_box]
+    if os.environ.get("COH2T_BOXES"):                    # pilot: an explicit list of box tids
+        want = [int(v) for v in os.environ["COH2T_BOXES"].split(",")]
+        todo = [tid for tid in want if tid in todo]
     log(f"run L{l_max} {kinds}: {len(todo)} boxes to do on {dev}")
     t_start = time.time()
     overlap = os.environ.get("COH2T_OVERLAP") == "1"       # child for chunk s+1 runs while chunk s is scored
