@@ -285,6 +285,59 @@ def allen(l_max):
     return out
 
 
+def k2eval(l_max, pi=2, p=16):
+    """C18 (b): every K2 injection within 2 % on rho^_net, and on chi^2_r at the H1 and the L1 point of the anchor that
+    sets the score. The shortcut takes v from the gated NOISE series, the real side from the injected strain's own
+    v series (state/coh2t/k2/v_<det>_<inj>.npz). Reported for every p; the bar applies to every p."""
+    import coh2t
+    from pycbc.psd.variation import find_trigger_value
+    from pycbc.types import TimeSeries
+    f = OUT / f"K2_L{l_max}.npz"
+    if not f.exists():
+        return None
+    z = np.load(f)
+    segs = json.loads((B / "manifest.json").read_text())["test"]
+    pl = json.loads((B / "state" / "coh2t" / "plan.json").read_text())
+    fgc = {c["inj"]: c for c in pl["candidates"] if c["kind"] == "fg"}
+
+    def vser(path):
+        q = np.load(path)
+        return TimeSeries(q["values"], delta_t=float(q["delta_t"]), epoch=float(q["start"]))
+    rows, worst = [], dict(dev=0.0)
+    dl = (np.arange(-DELTA, DELTA + 1) + DELTA) / FS
+    for a_, inj in enumerate(z["inj"]):
+        c = fgc[int(inj)]
+        out = {}
+        for side in ("short", "real"):
+            vs = {det: vser(B / "state" / "coh2t" / ("v" if side == "short" else "k2") /
+                            (f"v_{det}_{segs[c['i']]}.npz" if side == "short" else f"v_{det}_{int(inj)}.npz"))
+                  for det in ("H1", "L1")}
+            g = segs[c["i"]]
+            Hg, Lg = z[f"{side}_H_gps"][a_], z[f"{side}_L_gps0"][a_][:, None] + dl[None, :]
+            vH = np.atleast_1d(find_trigger_value(vs["H1"], (Hg - g) * FS, float(g), FS)).reshape(Hg.shape)
+            vL = np.atleast_1d(find_trigger_value(vs["L1"], ((Lg - g) * FS).ravel(), float(g), FS)).reshape(Lg.shape)
+            res = {}
+            for pj, pp in enumerate(P_BINS):
+                dof = 2 * pp - 2
+                rH = coh2t.rho_hat(z[f"{side}_H_rho"][a_], z[f"{side}_H_chi2"][a_][:, pj] / dof, vH)
+                rL = coh2t.rho_hat(z[f"{side}_L_rho"][a_], z[f"{side}_L_chi2"][a_][:, pj, :] / dof, vL)
+                tot = rH ** 2 + np.max(rL ** 2, axis=-1)
+                k = int(np.argmax(tot)); d = int(np.argmax(rL[k] ** 2))
+                res[pp] = dict(rho_net=float(np.sqrt(tot[k])), chi2r_H=float(z[f"{side}_H_chi2"][a_][k, pj] / dof),
+                               chi2r_L=float(z[f"{side}_L_chi2"][a_][k, pj, d] / dof), anchor=k)
+            out[side] = res
+        r = dict(inj=int(inj))
+        for pp in P_BINS:
+            s_, q_ = out["short"][pp], out["real"][pp]
+            devs = {k: abs(s_[k] / q_[k] - 1) for k in ("rho_net", "chi2r_H", "chi2r_L")}
+            r[f"p{pp}"] = dict(devs, short=s_, real=q_, passed=bool(max(devs.values()) <= 0.02))
+            m = max(devs.values())
+            if m > worst["dev"]:
+                worst = dict(dev=m, inj=int(inj), p=pp, field=max(devs, key=devs.get))
+        rows.append(r)
+    return dict(rows=rows, worst=worst, passed=bool(all(r_[f"p{pp}"]["passed"] for r_ in rows for pp in P_BINS)))
+
+
 def evaluate(*l_maxes):
     import csv
     segs = json.loads((B / "manifest.json").read_text())["test"]
@@ -305,6 +358,7 @@ def evaluate(*l_maxes):
             report["configs"].append(r)
             log(f"L{l_max} p{p}: R_tune {r['R_tune']:.3f} CI90 {r['ci90']} clause1 {r['clause1']} gates {r['gates_passed']}")
         report["allen"][f"L{l_max}"] = allen(l_max)
+        report.setdefault("K2", {})[f"L{l_max}"] = k2eval(l_max)
     ok = [r for r in report["configs"] if r["gates_passed"]]
     report["chosen"] = max(ok, key=lambda r: r["R_tune"])["l_max"] if ok else None
     report["n_configs_tried"] = len(report["configs"])

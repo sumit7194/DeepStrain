@@ -907,3 +907,47 @@ swapped to FIR.
 convolution of 2²⁴ + 2¹⁸ samples is heavier than the other generators. Nothing paused. The K1 run will be declared
 from this measurement: ≤ 4.3 GB group, or the convolution is done in blocks if that is too high.
 
+## C22 (2026-11-27, approved by the Bridge; committed with its runner before it runs): the K1-(A) run with the FIR generator
+
+**Design: C10's, unchanged except for the generator.**
+- N_MC = 100,000 per L_max; 8 independent realisations × 12,500 samples; exclusive 4-s slots per H1 and L1 series.
+- Each sample takes the box and pairing of a random twin candidate (already in plan.json).
+- The bars are C10's and C18's:
+  - twin vs MC survival within ±15 % at 10⁻² (about a 1.5 % false-fail rate);
+  - within a factor 2 at the deepest level with ≥ 20 MC events.
+
+**Generator: C21's FIR.**
+- The same filter and band rule, seeded (202611261, 22, realisation, segment, detector), then prep's whitening path.
+- pycbc, which failed check (i), is not used. The C10 pre-check (Welch band means) is superseded by check (i), which
+  FIR passed.
+
+**Memory.**
+- Series generation runs in children, BEFORE the engine is created in each realisation's pass. The FIR child (about
+  2 GB) and the engine (about 2.3 GB) are therefore never resident together.
+- **Declared ≤ 4.3 GB group** (the Bridge), from check (i)'s measured 3.9 GB with both resident. Expected lower,
+  since they are not co-resident in the K1 passes.
+
+**Disk.** One realisation at a time, 3.1 GB. The real noise series are hashed, then deleted (C10 rule, with the
+Bridge's condition), before the K1 phase.
+
+**Cost.** About 26–35 h of MPS per L_max (measured unit times), plus about 0.5 h of FIR series generation per
+realisation.
+
+**When it runs.** After the main passes, as part of the long run Sumit decides on.
+- **Seed independence (the Bridge's condition).** K1 draws from the family [202611261, 22, realisation, segment,
+  detector]. `assert_k1_seed_independent` checks it against every other seed family in this build (listed in
+  `SEED_FAMILIES`).
+  - Twins use [SEED, n, d], which has three elements, so a twin with n = 22 is still a different SeedSequence.
+  - The checked streams differ: K1 against check (i)'s exact family, and K1 against the twin with n = 22.
+
+## The L128 stage (Sumit's GO, 2026-11-27, staged per S2)
+
+**Queue (`coh2t_queue_L128.py`):** main pass → calib → decoys → C11 families → K2 → dropseries → K1 (8 FIR
+realisations) → reduce → evaluate → gridstats.
+- Serial, under job_guard, declared peak ≤ 4.3 GB. Correctness gates stop at box boundaries.
+- **The noise-series hash record** (`results/coh2t/series_sha256.json`, 144 files) is made before launch and committed
+  with this unit. dropseries and any later prepseries check against it.
+
+**Stop rule S2.** After L128, STOP for Sumit's word if the best R_tune over p is < 1.00, or its 90 % CI upper bound is
+< 1.15. Otherwise report and ask before L384 anyway.
+

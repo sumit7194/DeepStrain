@@ -557,21 +557,42 @@ def k1_path(det, gps, r):
     return STATE / "k1" / f"pyc_{det}_{gps}_r{r}.npy"
 
 
+# every numpy seed-tuple family this build draws from, by its second element (the family tag) and length:
+#   [SEED, n, d] (len 3) twin of candidate n; [SEED, 1] / [SEED, 2] (len 2) plan's K1 / C11 sampling;
+#   [SEED, 3, d] / [SEED, 4, d] (len 3) k1perfect / k1diag V4; [SEED, 5] (len 2) K2 selection;
+#   [SEED, 9] (len 2) the old twin check; [SEED, 17, g, d, j] (len 5) check (i) exact / planted;
+#   [SEED, 18] (len 2) check (i) bootstrap; [SEED, 21, d, j] (len 4) check (i) FIR
+SEED_FAMILIES = {(2, 1), (2, 2), (2, 5), (2, 9), (2, 18), (5, 17), (4, 21)}
+
+
+def assert_k1_seed_independent(seed):
+    """The Bridge's condition on C22: K1's FIR draws use the family [SEED, 22, realisation, segment, detector], which
+    no validation draw shares. Twins are [SEED, n, d] with 3 elements, so a twin whose candidate index n happens to be
+    22 still has a different length, and numpy's SeedSequence keeps them distinct."""
+    assert seed[0] == SEED and seed[1] == 22 and len(seed) == 5, seed
+    assert (len(seed), seed[1]) not in SEED_FAMILIES, "K1 seed family collides with a validation family"
+
+
 def k1_series(det, gps, r):
-    """C10: pycbc.noise.noise_from_psd (lal ranlux + lalsimulation.SimNoise) at the segment's exact pipeline PSD,
-    sampled at its own 1/16-Hz resolution and extended flat below 40 Hz, then prep's whitening path: rfft x w^2,
-    with the same full-grid filter as the real series. Synthetic noise is not gated. Float32, as the noise series."""
+    """C22 (K1-(A) generator, after C21): the FIR generator of check (i) (white Gaussian noise linearly convolved with
+    the 64-s Tukey-tapered zero-phase colouring filter of the segment's exact pipeline PSD under C16's band rule),
+    seeded per (realisation, segment, detector), then prep's whitening path. pycbc failed check (i) and is not used."""
     import realbg_cascade as R
-    from pycbc.noise.gaussian import noise_from_psd
-    from pycbc.types import FrequencySeries
+    from scipy.signal import fftconvolve
+    from scipy.signal.windows import tukey
     segs = segments()
     psd = psd_from_kernel(det, gps)
-    p16 = psd[::256].copy()                                            # bins at k/16 Hz
-    f16 = np.arange(len(p16)) / 16.0
-    k40 = int(np.searchsorted(f16, C.F_LOWER - 10))
-    p16[:k40] = p16[k40]
-    seed = K1_SEED0 + 1000 * int(r) + 2 * segs.index(int(gps)) + (0 if det == "H1" else 1)
-    x = noise_from_psd(N, 1.0 / FS, FrequencySeries(p16, delta_f=1.0 / 16), seed=seed).numpy()
+    f = np.fft.rfftfreq(N, d=1.0 / FS)
+    ps = psd.copy()
+    k40, k1024 = int(np.searchsorted(f, C.F_LOWER - 10)), int(np.searchsorted(f, L.F_HI))
+    ps[:k40], ps[k1024:] = ps[k40], ps[k1024]
+    c_full = np.fft.irfft(np.sqrt(ps * FS / 2.0), n=N)
+    half = FIR_S * FS // 2
+    taps = np.concatenate([c_full[-half:], c_full[:half]]) * tukey(2 * half, 0.1)
+    del c_full
+    seed = [SEED, 22, int(r), segs.index(int(gps)), 0 if det == "H1" else 1]
+    assert_k1_seed_independent(seed)
+    x = fftconvolve(np.random.default_rng(seed).standard_normal(N + len(taps) - 1), taps, mode="valid")
     w = R.whiten_filter(psd)
     return np.fft.irfft(np.fft.rfft(x) * w * w, n=N).astype(np.float32), x, psd, seed
 

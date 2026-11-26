@@ -27,8 +27,8 @@ noise.
 - A home-built filter generator (FIR, C21) **passed** it in all four cells, within 0.04 %.
 - So K1 can be evaluated, with FIR as the independent generator.
 
-**Not yet run:** the main passes, the actual measurement. They need about 5–8 days of the Mac mini, so they wait for
-Sumit's go (value gate below).
+**Running (from 2026-11-27):** the main measurement, staged on Sumit's go. The L128 stage runs first, about
+2–2.5 days plus about 1 day for K1. After it, we stop and ask Sumit before L384.
 
 | # | Amendment or clarification (all made before any step-T number) | Status |
 |---|---|---|
@@ -47,3 +47,4 @@ Sumit's go (value gate below).
 | C19 | 15 out-of-population boxes (the Bridge's first rule was wrong at the heavy edge) | ruled; checked |
 | C20 | grid spacing follows Fable's verified rule, with a stricter stop | ruled; 12/12 reproduced |
 | C21 | FIR noise generator for K1 | ruled; **PASSED** check (i) |
+| C22 | K1 run with the FIR generator, seeds independent of every validation draw | ruled; runs in the L128 stage |
