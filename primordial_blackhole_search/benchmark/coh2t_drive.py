@@ -857,7 +857,8 @@ def n1():
     pl = load_plan()
     segs = segments()
     bgv = [c for c in pl["candidates"] if c["kind"] == "bg" and c["valid"]]
-    c = min(bgv, key=lambda c_: pl["mcs"][c_["tid"]])
+    # the lightest bg box whose centre has a non-empty q range (Mc* >= 0.1741; the 15 lighter boxes wait for C19)
+    c = min([c_ for c_ in bgv if L.q_range(pl["mcs"][c_["tid"]]) is not None], key=lambda c_: pl["mcs"][c_["tid"]])
     dev = L.pick_dev()
     sign = json.loads((L.OUT / "E1_phase_model.json").read_text())["sign"]
     gr = grid(c["tid"], 384)
