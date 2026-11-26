@@ -2,6 +2,85 @@
 
 *Deepstrain-personal [model: Claude Opus 5.5]. Declared against measured, for every run. Newest first.*
 
+## 2026-11-26 20:55–21:22 — evening queue, the MPS NaN bug, the fixed pilot, the k1 control
+
+**Queue (`coh2t_queue.py`, under run.sh / job_guard, serial, nice 15).** All steps exited with code 0.
+
+| Step | Result | Time | Notes |
+|---|---|---|---|
+| plan | done | 16 s | |
+| prepseries | done | 8 min | 46 new kernels, all bit-for-bit; prep RSS ≤ 1.1 GB |
+| vseries | done | 3.4 min | |
+| k1precheck | **FAIL** | 16 s | see the clarifications, C10 addendum; 1.94 GB |
+| engine re-time | done | 1 s | 61.7 µs per template against Fable's 59.0 (+4.6 %), on a loaded box; 1.31 GB |
+| 2-box MPS pilot | **INVALID** | 222 s | see below |
+
+- **My launch note was wrong:** it said "a failed step stops the queue". k1precheck records PASS/FAIL in its result
+  file and exits 0, so the queue stops only on a process failure, not on a gate verdict.
+
+**Pilot 1: INVALID.**
+- **The bug:** on MPS, torch 2.12.0 returns NaN when a complex tensor is divided by a tiny real scalar
+  (σ·κ ≈ 4·10⁻²⁶). The CPU is correct, which is why the CPU golden passed. The Bridge confirmed it under 2.12.0 and
+  showed 2.13.0 is fixed; see ENVIRONMENT/README.md.
+- **A second bug hid it:** `max(−1, nan)` silently kept the placeholder.
+- **The files are kept,** with a README, in `results/coh2t/L128_pilot_INVALID_mps_nan/`.
+- **The fix (0dfc367):**
+  - multiply by the reciprocal;
+  - use −inf placeholders;
+  - assert finite values at every stage, as correctness gates;
+  - build the band sums with fixed shapes;
+  - empty the MPS cache per box.
+
+**MEMORY MISS.**
+
+| | Footprint |
+|---|---|
+| Declared | ≤ 2 GB |
+| Measured, pilot 1 (engine) | **3.2 GB, then 4.3 GB**, growing |
+| Group (guard INFORM) | 4.44 GB |
+| Box state | 37 % free, pressure level 1, swap flat |
+
+- **Cause, measured:** about 1.15 GB of MPS driver memory from the first 2²¹-sample FFT. The growth came from the
+  per-band, variable-shape matmuls, because MPS caches buffers per shape.
+- **After the fix:** the engine runs at 2.15 → 2.22 GB, roughly flat; the group peaks at 2.26 GB.
+- **Re-declared at ≤ 2.6 GB** (measured + 15 %), accepted by the Bridge.
+
+**Goldens with the fixed code: PASS on CPU and MPS, all fields.**
+
+| Device | Footprint | json sha256 | npz sha256 |
+|---|---|---|---|
+| CPU | 1.30 GB | 883e1718… | 5d77e559… |
+| MPS | 1.86 GB | 2af2d9b1… | 740b7669… |
+
+**Pilot 2, the fixed code.**
+- Every output is finite. Kept as `results/coh2t/L128_pilot2_fixed/`, **not** under `L128/`, so production
+  recomputes those boxes.
+- **Time per candidate:** 1.9 s at Mc 0.35 (8,277 templates); 0.8 s at Mc 0.50 (2,291 templates). That is about
+  0.38 s + 1.84·10⁻⁴ s per template.
+- **Closure:** up to 1.5e-4. The tolerance is proposed as C12.
+
+**Re-cost, superseding the 68-h estimate.**
+
+| | L128 | L384 |
+|---|---|---|
+| Main pass, MPS | ≈ 19 h | ≈ 25 h |
+| K1, MPS | ≈ 26 h | ≈ 35 h |
+
+- MPS ≈ 105 h; CPU ≈ 81 h.
+- Wall: serial ≈ 186 h; with overlap ≈ 110 h.
+- G0 clause 3 projected at ≈ 90–100 h, against 120 h.
+
+**k1perfect (registered in 69acadf, run 21:21): INCONCLUSIVE** for both detectors. K1-(A) is blocked pending the
+Bridge's ruling.
+
+**Blast radius, checked in the files.**
+- Every JSON in `results/coh2`, `results/coh2c`, `results/coh2c_verify`, `results/coh2t` and
+  `results/realbg_cascade.json` is finite. The one exception is the known cosmetic "rms" in `twinexact.json`.
+- Every earlier MPS code path divided in numpy after `.cpu()`: coh2c E2 line 444, E3 lines 625/632, and coh2c_verify
+  line 87.
+- realbg uses only real arithmetic.
+- T-cost and P1 timed random tensors and did no division.
+
 ## 2026-11-26 — cost plan for step T, everything included (an estimate, not a measurement)
 
 **Basis.** Fable's P3 model (`results/coh2c/P3_cost.json`: full rate, ±4 s, constructed grids, one per minute) gives
