@@ -704,6 +704,193 @@ def k1diag():
     (OUT / "k1diag.json").write_text(json.dumps(res, indent=1))
 
 
+# ------------------------------------------------------------------ K2 (linearity vs really injected strain) and N1
+K2_DIR = STATE / "k2"
+
+
+def k2select():
+    """K2 sample (registration §5): 15 caught injections, stratified by chirp mass (terciles) x q (< / >= 0.5),
+    at least 3 with optimal SNR > 30 (Y0's oracle, used only to select), and one whose template span
+    [merger - 384 s, merger] holds a gate (a gated glitch). Seeded; written once."""
+    import csv
+    pl = load_plan()
+    out = K2_DIR / "k2_selection.json"
+    if out.exists():
+        return
+    with open(B / "results" / "oracle_snr.csv") as f:
+        orc = {int(r["id"]): float(r["snr_net"]) for r in csv.DictReader(f)}
+    tab = L._table()
+    import injections as I
+    segs = segments()
+    fg = [c for c in pl["candidates"] if c["kind"] == "fg" and c["valid"]]
+    mc = {c["inj"]: I.chirp_mass(tab[c["inj"]]["mass1"], tab[c["inj"]]["mass2"]) for c in fg}
+    qq = {c["inj"]: min(tab[c["inj"]]["mass1"], tab[c["inj"]]["mass2"]) / max(tab[c["inj"]]["mass1"], tab[c["inj"]]["mass2"]) for c in fg}
+    t1, t2 = np.quantile(list(mc.values()), [1 / 3, 2 / 3])
+    rng = np.random.default_rng([SEED, 5])
+    pick = []
+    for lo, hi in ((0, t1), (t1, t2), (t2, 9)):
+        for qlo, qhi in ((0, 0.5), (0.5, 1.01)):
+            cell = [c for c in fg if lo <= mc[c["inj"]] < hi and qlo <= qq[c["inj"]] < qhi and c not in pick]
+            pick += [cell[int(j)] for j in rng.choice(len(cell), min(2, len(cell)), replace=False)]
+    loud = [c for c in fg if orc[c["inj"]] > 30 and c not in pick]
+    while sum(orc[c["inj"]] > 30 for c in pick) < 3 and loud:
+        pick.append(loud.pop(int(rng.integers(len(loud)))))
+
+    def gated(c):
+        gps = segs[c["i"]]
+        for det in ("H1", "L1"):
+            times = json.loads((B / "state" / "realbg" / f"gates_{det}_{gps}.json").read_text())
+            t_c = gps + c["i_c"] / FS
+            if any(t_c - 384 <= t <= t_c for t in times):
+                return True
+        return False
+    if not any(gated(c) for c in pick):
+        cand = [c for c in fg if gated(c) and c not in pick]
+        assert cand, "no caught injection sits on a gated glitch"
+        pick.append(cand[int(rng.integers(len(cand)))])
+    pick = pick[:15] if len(pick) > 15 else pick
+    K2_DIR.mkdir(parents=True, exist_ok=True)
+    atomic_json(out, dict(injections=[c["inj"] for c in pick], n=len(pick),
+                          n_loud=int(sum(orc[c["inj"]] > 30 for c in pick)), n_gated=int(sum(gated(c) for c in pick))))
+    log(f"K2 selection: {len(pick)} injections")
+
+
+def _gate_window(times, gps):
+    from pycbc.types import TimeSeries
+    g = TimeSeries(np.ones(N), delta_t=1.0 / FS, epoch=gps)
+    for t in times:
+        g = g.gate(t, window=0.25, method="taper", copy=False, taper_width=0.25)
+    return g.numpy().copy()
+
+
+def k2gates(det, gps, inj):
+    """Child: PyCBC's glitch detector on the REALLY injected strain (realbg F2b: detection in its own process)."""
+    import injections as I
+    import realbg_cascade as R
+    from pycbc.strain.strain import detect_loud_glitches
+    from pycbc.types import TimeSeries
+    gps, inj = int(gps), int(inj)
+    out = K2_DIR / f"gates_{det}_{inj}.json"
+    if out.exists():
+        return
+    x = np.load(B / "data" / f"{det}_{gps}.npy").astype(np.float64)
+    s_, s0, _, _ = R._injection_template(L._table()[inj], det, gps)
+    x += I.add_signal(np.zeros(N), gps, s_, s0)
+    atomic_json(out, [float(t) for t in detect_loud_glitches(TimeSeries(x, delta_t=1.0 / FS, epoch=gps))])
+    log(f"k2 gates {det} {inj} | footprint {L.peak_footprint_mb()} MB")
+
+
+def k2prep(det, gps, inj):
+    """Child: the really injected series: raw + signal, gated at ITS OWN detected gates, PSD and whitening from the
+    injected gated strain, double-whitened (as coh2c_local.prep); its snippet-grid filter; its PyCBC v series."""
+    import injections as I
+    import realbg_cascade as R
+    import coh2t
+    from lowmem_psd import estimate_psd
+    from pycbc.psd.variation import calc_filt_psd_variation
+    from pycbc.types import TimeSeries
+    gps, inj = int(gps), int(inj)
+    tag = f"{det}_{inj}"
+    if (K2_DIR / f"v_{tag}.npz").exists():
+        return
+    x = np.load(B / "data" / f"{det}_{gps}.npy").astype(np.float64)
+    s_, s0, _, _ = R._injection_template(L._table()[inj], det, gps)
+    x += I.add_signal(np.zeros(N), gps, s_, s0)
+    g = _gate_window(json.loads((K2_DIR / f"gates_{tag}.json").read_text()), gps).astype(np.float32)
+    x *= g
+    w = R.whiten_filter(estimate_psd(x))
+    y = np.fft.irfft(np.fft.rfft(x) * w * w, n=N).astype(np.float32)
+    np.save(K2_DIR / f"ww_{tag}.npy", y)
+    np.save(K2_DIR / f"wsnip_{tag}.npy", w[::8].copy())
+    pv = calc_filt_psd_variation(TimeSeries(x, delta_t=1.0 / FS, epoch=gps), **coh2t.V_ARGS)
+    np.savez(K2_DIR / f"v_{tag}.npz", values=np.asarray(pv.numpy(), np.float64), start=float(pv.start_time),
+             delta_t=float(pv.delta_t))
+    log(f"k2 prep {tag} | footprint {L.peak_footprint_mb()} MB")
+
+
+def k2run(l_max):
+    """K2: each selected injection scored twice in its own box, by the shortcut (noise series + gated signal snippet,
+    the production path) and on the really injected series; both outputs stored for the reducer (which applies each
+    strain's own v). Bars (registration §5): rho^_net and chi^2_r within 2 %, every injection."""
+    l_max = int(l_max)
+    sel = json.loads((K2_DIR / "k2_selection.json").read_text())["injections"]
+    pl = load_plan()
+    segs = segments()
+    fgc = {c["inj"]: c for c in pl["candidates"] if c["kind"] == "fg"}
+    dev = L.pick_dev()
+    sign = json.loads((L.OUT / "E1_phase_model.json").read_text())["sign"]
+    eng, fine = L.Engine(dev, 4.0, 1), Fine(dev)
+    res = []
+    for inj in sel:
+        c = fgc[inj]
+        gps = segs[c["i"]]
+        for det in ("H1", "L1"):
+            subprocess.run([sys.executable, "-u", __file__, "k2gates", det, str(gps), str(inj)], check=True)
+            subprocess.run([sys.executable, "-u", __file__, "k2prep", det, str(gps), str(inj)], check=True)
+        subprocess.run([sys.executable, "-u", __file__, "chunk", str(l_max), str(c["tid"]), "fg"], check=True)
+        box = Box(c["tid"], l_max, dev, eng, sign, np.load(STATE / "chunk" / f"refs_L{l_max}_tid{c['tid']:04d}.npy"))
+        series = lambda det, g, _c={}: _c.setdefault((det, g), L.load_ww(det, g))
+        sig = {det: np.load(f) for det, f in extra_files(c).items()}
+        short = candidate(box, fine, series, c, sig)
+        # the really injected strain carries its OWN gates, PSD and filter, so its own snippet-grid filter is used
+        series_real = lambda det, g: (np.load(K2_DIR / f"ww_{det}_{inj}.npy", mmap_mode="r"),
+                                      np.load(K2_DIR / f"wsnip_{det}_{inj}.npy"), {})
+        real = candidate(box, fine, series_real, dict(c, kind="k2real"))
+        res.append(dict(inj=inj, short=short, real=real))
+        for det in ("H1", "L1"):
+            (K2_DIR / f"ww_{det}_{inj}.npy").unlink(missing_ok=True)
+        for f in list(extra_files(c).values()) + [STATE / "chunk" / f"refs_L{l_max}_tid{c['tid']:04d}.npy"]:
+            f.unlink(missing_ok=True)
+        log(f"K2 inj {inj}: done | footprint {L.peak_footprint_mb()} MB")
+    keys = [k for k in res[0]["short"] if k in res[0]["real"]]
+    np.savez(OUT / f"K2_L{l_max}.npz", inj=np.array(sel),
+             **{f"short_{k}": np.array([r["short"][k] for r in res]) for k in keys},
+             **{f"real_{k}": np.array([r["real"][k] for r in res]) for k in keys})
+
+
+def n1():
+    """N1 (registration §5): float32 vs float64 through the identical chain for a 384-s light template: the
+    lightest-Mc background box at L_max 384, its grid template nearest the centre, a rho = 20 injection of that
+    template in real tuning noise; the engine's complex z over the +-1-s lags in float32 (production) and with every
+    tensor in float64. Bar: normalised match |<z32, z64>| / (|z32| |z64|) >= 0.9999."""
+    import torch
+    pl = load_plan()
+    segs = segments()
+    bgv = [c for c in pl["candidates"] if c["kind"] == "bg" and c["valid"]]
+    c = min(bgv, key=lambda c_: pl["mcs"][c_["tid"]])
+    dev = L.pick_dev()
+    sign = json.loads((L.OUT / "E1_phase_model.json").read_text())["sign"]
+    gr = grid(c["tid"], 384)
+    refs = [(r_[0], r_[1], r_[2]) for r_ in gr["ref_mcq"]]
+    h0 = np.stack([np.conj(L.fd_template(mc, q, f_lo)).astype(np.complex64) for mc, q, f_lo in refs])
+    eng, fine = L.Engine(dev, 4.0, 1), Fine(dev)
+    box = Box(c["tid"], 384, dev, eng, sign, h0, gr=gr)
+    tsel = int(np.argmin(np.abs(np.log(gr["pts"][:, 0] / gr["mc_star"])) + np.abs(gr["pts"][:, 1] - gr["pts"][:, 1].mean())))
+    y, w_snip, _ = L.load_ww("H1", segs[c["i"]])
+    ysn, kappa = noise_spectrum(c, y)
+    lo = snippet_start(c["i_c"])
+    ysn = ysn + allen_signal(box, w_snip, gr["coeffs"][tsel], 20.0, c["i_c"] - lo, sign, int(gr["ref_of"][tsel]))
+    j = int(gr["ref_of"][tsel])
+    sig0 = np.sqrt(2 * np.sum((np.abs(h0[j]) * w_snip) ** 2) / NS)
+    out = {}
+    for name, cdt, rdt in (("f32", torch.complex64, torch.float32), ("f64", torch.complex128, torch.float64)):
+        e = L.Engine("cpu", 4.0, 1)
+        e.down, e.basis = e.down.to(cdt), e.basis.to(rdt)
+        yt = e.window(L.analytic_corr(torch, torch.tensor(ysn * kappa, dtype=cdt), torch.tensor(h0[j], dtype=cdt)),
+                      c["i_c"] - lo)
+        dco = torch.tensor((gr["coeffs"][tsel] - gr["ref_coeffs"][j])[None, :], dtype=rdt)
+        out[name] = e.z(yt, dco, sign)[0].numpy().astype(np.complex128) * (1.0 / (sig0 * kappa))
+    a, b = out["f32"], out["f64"]
+    match = float(abs(np.vdot(b, a)) / np.sqrt(np.vdot(a, a).real * np.vdot(b, b).real))
+    peak_rel = float(abs(np.abs(a).max() / np.abs(b).max() - 1))
+    res = dict(gate="N1", tid=c["tid"], mc_star=float(gr["mc_star"]), template=tsel, match=match, bar=0.9999,
+               peak_rel_diff=peak_rel, peak_abs_f64=float(np.abs(b).max()), passed=bool(match >= 0.9999),
+               peak_footprint_mb=L.peak_footprint_mb(), model="Claude Opus 5.5", env=L.stamp())
+    (OUT / "N1.json").write_text(json.dumps(res, indent=1))
+    log(f"N1 {'PASS' if res['passed'] else 'FAIL'}: match {match:.7f}, peak rel diff {peak_rel:.1e} | "
+        f"footprint {L.peak_footprint_mb()} MB")
+
+
 def prepseries():
     """(3): noise series + PSD kernels for every (det, segment). If series_sha256.json exists (written before the
     K1 phase deleted the series), every series is checked against it and the step STOPS on any mismatch (the Bridge's
@@ -928,6 +1115,34 @@ def score(box, fine, rH, rL, plain_only=False):
     return out
 
 
+_TABLE = None
+
+
+def rho_opt_trunc(box, w_snip, ys, row):
+    """C15: the optimal |z| of the TRUE template truncated as the engine's templates are: the injection's own phase
+    (lalsimulation coefficients) on its nearest box reference's amplitude and start frequency (D2), evaluated on the
+    signal-only snippet spectrum ys, maximised over all lags; numpy on the CPU (complex128)."""
+    import injections as I
+    mc_t = float(I.chirp_mass(row["mass1"], row["mass2"]))
+    q_t = float(min(row["mass1"], row["mass2"]) / max(row["mass1"], row["mass2"]))
+    c_t = L.coeffs(mc_t, q_t)
+    refs = [(r_[0], r_[1], r_[2], c_) for r_, c_ in zip(box.gr["ref_mcq"], box.gr["ref_coeffs"])]
+    j = L.assign(c_t, refs)[0]
+    h0 = np.conj(box.h0[j].astype(np.complex128))
+    f = np.arange(NS // 2 + 1) * (FS / NS)
+    nz = np.abs(h0) > 0
+    dpsi = np.zeros(len(f))
+    dpsi[nz] = (c_t - box.gr["ref_coeffs"][j]) @ L.basis(f[nz])
+    H_t = h0 * np.exp(1j * box.sign * dpsi)
+    sig0 = np.sqrt(2 * np.sum((np.abs(h0) * w_snip) ** 2) / NS)
+    P = np.zeros(NS, complex)
+    P[: NS // 2 + 1] = ys * np.conj(H_t)
+    z = 2 * np.fft.ifft(P) / sig0
+    v = float(np.abs(z).max())
+    assert np.isfinite(v), "non-finite rho_opt"
+    return v
+
+
 def candidate(box, fine, series, c, extra=None, target=None, twin=None):
     """Score one candidate. extra: per-detector additive snippets (injected signal, or a unit-amplitude decoy).
     fg also records the signal-only plain network value (the decoy calibration's yardstick, C6); dec_sg / dec_train
@@ -944,6 +1159,13 @@ def candidate(box, fine, series, c, extra=None, target=None, twin=None):
         r = {det: prepare(box, fine, fn(det), spec[det][1], spec[det][2], c["i_c"]) for det in ("H1", "L1")}
         return r, score(box, fine, r["H1"], r["L1"], plain_only)
     o_extra, scale = {}, 1.0
+    if c["kind"] in ("fg", "wrong"):                       # C15: P1's rho_opt, per detector and network
+        global _TABLE
+        if _TABLE is None:
+            _TABLE = L._table()
+        ro = {det: rho_opt_trunc(box, spec[det][2], extra_spec[det], _TABLE[c["inj"]]) for det in ("H1", "L1")}
+        o_extra.update(rho_opt_trunc_H1=ro["H1"], rho_opt_trunc_L1=ro["L1"],
+                       rho_opt_trunc_net=float(np.hypot(ro["H1"], ro["L1"])))
     if c["kind"] in ("fg", "dec_sg", "dec_train"):
         _, o_alone = run_on(lambda det: extra_spec[det], plain_only=True)
         o_extra["extra_only_plain"] = o_alone["plain_net"]
@@ -1286,7 +1508,9 @@ if __name__ == "__main__":
         kernel(a[2], a[3])
     elif cmd == "k1gen":
         k1gen(a[2], a[3], a[4])
+    elif cmd in ("k2gates", "k2prep"):
+        {"k2gates": k2gates, "k2prep": k2prep}[cmd](a[2], a[3], a[4])
     else:
         dict(plan=plan, golden=golden, prepseries=prepseries, vseries=vseries, run=run, calib=calib,
-             twinexact=twinexact, k1precheck=k1precheck, k1perfect=k1perfect, k1diag=k1diag, hashseries=hashseries, dropseries=dropseries,
+             twinexact=twinexact, k1precheck=k1precheck, k1perfect=k1perfect, k1diag=k1diag, k2select=k2select, k2run=k2run, n1=n1, hashseries=hashseries, dropseries=dropseries,
              status=status)[cmd](*[None if v == "-" else v for v in a[2:]])
