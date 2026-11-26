@@ -802,3 +802,30 @@ constructed-grid cost included the shrink is not yet checked; production times w
 - **The cache:** every grid records `stop_rule = zero_of_400`. Grids built under any other rule are rebuilt, never
   reused.
 
+### C17: n raised to 216 series, by the registered rule (2026-11-26 23:16, before the must-fire result is read)
+
+**The null control (exact_a against exact_b, 144 series): PASS** in all 4 cells (|R − 1| ≤ 0.03 %).
+
+**But its measured SE is 0.059–0.063 %,** above the 0.054 % that the power requirement needs. At 0.063 % the per-cell
+power is about 0.93, and the joint power about 0.73.
+
+**The rule fixed in advance applies:** "if the null control's measured SE comes out larger than 0.054 %, n is raised
+and re-registered before the must-fire result counts."
+- **The must-fire evaluation has NOT been run.**
+- **New n = 216 series** per (generator, detector), with SE scaling as 1/√n from the measured 0.063 %:
+
+  | Series | SE | Per-cell power | Joint power |
+  |---|---|---|---|
+  | 144 | 0.063 % | 0.925 | 0.73 |
+  | 200 | 0.053 % | 0.987 | 0.95 |
+  | **216** | **0.051 %** | **0.993** | **0.97** |
+
+- The 72 extra series per (generator, detector) are new, independent seeds, j = 144–215. The 144 already scored are
+  kept.
+- The null and must-fire controls are both re-evaluated at n = 216. The null's SE must come out ≤ 0.054 % before the
+  must-fire counts.
+
+**Memory miss.** I declared ≤ 2.6 GB; the guard measured a **process-group peak of 3,244 MB**. The engine stays
+resident (1.73 → 1.87 GB, creeping slightly over the 864 series) while each series-generation child runs (about
+1.4 GB). Re-declared for check (i): **≤ 3.5 GB group.**
+

@@ -955,7 +955,7 @@ def n1():
 
 # ------------------------------------------------------------------ check (i), C17
 CI_DIR = STATE / "checki"
-CI_SERIES, CI_SNIPS, CI_TEMPLATES, DELTA_STAR = 144, 31, 7, 0.003
+CI_SERIES, CI_SNIPS, CI_TEMPLATES, DELTA_STAR = 216, 31, 7, 0.003   # 144 -> 216 by the C17 rule (null SE 0.063 %)
 CI_GENS = ("exact_a", "exact_b", "planted", "pycbc_v3", "pycbc_orig")
 
 
@@ -1026,7 +1026,9 @@ def checki(gens):
             w_snip = L.load_ww(det, gps)[1]
             res_path = OUT / "checki" / f"{gen}_{det}.npz"
             done = dict(np.load(res_path)) if res_path.exists() else {}
-            arr = done.get("mz2", np.full((CI_SERIES, CI_SNIPS, len(boxes), CI_TEMPLATES), np.nan))
+            arr = np.full((CI_SERIES, CI_SNIPS, len(boxes), CI_TEMPLATES), np.nan)
+            if "mz2" in done:                                   # a checkpoint from a smaller n: keep its rows
+                arr[: len(done["mz2"])] = done["mz2"]
             # per box: sigma per reference (depends only on the template and this detector's filter), and the
             # selected templates grouped by reference, so each reference correlation is computed once per snippet
             prep_b = []
