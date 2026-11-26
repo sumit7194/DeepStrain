@@ -548,13 +548,60 @@ def k1precheck():
     log(f"C10 (1) PSD pre-check {'PASS' if ok else 'FAIL'} | footprint {L.peak_footprint_mb()} MB")
 
 
+SERIES_SHA = OUT / "series_sha256.json"
+
+
+def _sha(path):
+    import hashlib
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for b in iter(lambda: f.read(1 << 24), b""):
+            h.update(b)
+    return h.hexdigest()
+
+
+def _series_files(det, g):
+    tag = L.ww_tag(det, g)
+    return [L.STATE / f"ww_{tag}.npy", L.STATE / f"wsnip_{tag}.npy", L.STATE / f"rows_{tag}.json"]
+
+
 def prepseries():
+    """(3): noise series + PSD kernels for every (det, segment). If series_sha256.json exists (written before the
+    K1 phase deleted the series), every series is checked against it and the step STOPS on any mismatch (the Bridge's
+    condition, 2026-11-26): a regenerated series is used only if it is bit-identical to the one the passes used."""
+    want = json.loads(SERIES_SHA.read_text()) if SERIES_SHA.exists() else None
     for det in ("H1", "L1"):
         for g in segments():
             L.load_ww(det, g)                   # runs coh2c_local prep in its own child if the series is missing
             if not (STATE / "kern" / f"kern_{det}_{g}.npz").exists():
                 subprocess.run([sys.executable, "-u", __file__, "kernel", det, str(g)], check=True)
-    log("noise series and PSD kernels ready")
+            if want is not None:
+                for f in _series_files(det, g):
+                    got = _sha(f)
+                    assert got == want[f.name], f"{f.name}: sha256 {got} != recorded {want[f.name]}; STOP"
+    log("noise series and PSD kernels ready" + (" (all sha256 match the record)" if want else ""))
+
+
+def hashseries():
+    """Record the sha256 of every noise-series file (series, snippet-grid filter, rows), before any deletion."""
+    rec = {f.name: _sha(f) for det in ("H1", "L1") for g in segments() for f in _series_files(det, g)}
+    OUT.mkdir(parents=True, exist_ok=True)
+    atomic_json(SERIES_SHA, rec)
+    log(f"recorded sha256 of {len(rec)} series files -> {SERIES_SHA.name}")
+
+
+def dropseries():
+    """Before the K1 phase (disk, C10): delete the real noise series (ww_*.npy), keeping their small filter and rows
+    files, ONLY after re-hashing each one against the committed record."""
+    want = json.loads(SERIES_SHA.read_text())
+    for det in ("H1", "L1"):
+        for g in segments():
+            f = _series_files(det, g)[0]
+            assert _sha(f) == want[f.name], f"{f.name} changed since it was recorded; not deleting"
+    for det in ("H1", "L1"):
+        for g in segments():
+            _series_files(det, g)[0].unlink()
+    log("real noise series deleted (hashes verified first); regenerate with prepseries, which re-checks them")
 
 
 def vseries():
@@ -950,4 +997,5 @@ if __name__ == "__main__":
         k1gen(a[2], a[3], a[4])
     else:
         dict(plan=plan, golden=golden, prepseries=prepseries, vseries=vseries, run=run, calib=calib,
-             twinexact=twinexact, k1precheck=k1precheck, status=status)[cmd](*[None if v == "-" else v for v in a[2:]])
+             twinexact=twinexact, k1precheck=k1precheck, hashseries=hashseries, dropseries=dropseries,
+             status=status)[cmd](*[None if v == "-" else v for v in a[2:]])
