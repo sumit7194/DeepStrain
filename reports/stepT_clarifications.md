@@ -77,10 +77,13 @@ never run.
 
 Environment: Mac (macOS 27.2, arm64) · text only, no computation · git 3ddf5a5 (parent).
 
-## C6–C9 (2026-11-26, later the same day): twin, nulls and decoys — PROPOSED, awaiting the Bridge
+## C6–C9 (2026-11-26, later the same day): twin, nulls and decoys
 
-Written with their code (`coh2t_drive.py`) before any of these kinds has run. Each is marked accepted or changed when
-the Bridge replies; until then these are proposals, not rules.
+Written with their code (`coh2t_drive.py`) before any of these kinds ran.
+
+**Rulings (Bridge - claude personal, 2026-11-26):**
+- C6, C7 and C8 are ACCEPTED, with the additions marked below.
+- C9 was accepted with a cheap check required. The check then failed, so C9 is open again; see C9 and the run notes.
 
 ### C6. Decoy amplitude calibration (registration §4, "each decoy family scaled to the median plain-coherent ρ of caught tuning signals")
 - The fg pass also scores each caught injection's signal **alone** (zero noise, the noise's own float scale) and keeps
@@ -92,6 +95,7 @@ the Bridge replies; until then these are proposals, not rules.
 - **Why signal-only on both sides:** it compares like with like. A value measured in noise would mix in each window's
   own noise maximum.
 - **Power drift is not scaled.** It is multiplicative, and its strength is the registered 10–30 % range itself.
+- **Status:** ACCEPTED.
 
 ### C7. Decoy families: parameters, drawn once in the plan with this build's seed 202611261
 - **Placement:** in **both** detectors, at a valid background candidate time, with parameters drawn independently per
@@ -114,6 +118,17 @@ the Bridge replies; until then these are proposals, not rules.
   - This is exactly the linearity route used for injections, so decoys and foreground are treated the same.
   - A consequence, stated now: a decoy loud enough that PyCBC autogating would have caught it is not gated here.
     That makes the test harder, not easier.
+- **Status:** ACCEPTED. The parameter ranges are **my choice, not registered text**, except the 3–10 count, the
+  10–30 % strength and the 10–100 s duration. Why each:
+  - **f₀ 50–400 Hz:** 50 Hz is the stage-2 band's lower edge. The template SNR of these light chirps sits mostly below
+    a few hundred hertz: our CNN response probe put 97–100 % of its sensitivity below 224 Hz. 400 Hz covers that with
+    margin.
+  - **Q 4–20:** short, blip-like transients (low Q; from memory, blips have Q of a few) up to longer-ringing ones. Q 20
+    at 50 Hz lasts about 0.1 s, still short against a 128–384-s template.
+  - **Train relative amplitudes 0.5–1:** no single glitch dominates. That is the harder case for χ², because the power
+    is spread across bands.
+  - **Times uniform within the template span:** that is where a coherent template integrates.
+  - **Hann bump for the drift:** a smooth, slow modulation, so the decoy is a power drift rather than a transient.
 
 ### C8. F1 nulls
 - **(a) null:** the caught injections' own windows (C5: Y1 trigger time and tid), scored with the signal left out.
@@ -121,6 +136,11 @@ the Bridge replies; until then these are proposals, not rules.
   template. The registration says "a box offset to chirp mass +5 %"; the offset is applied to the box, which is
   centred on Y1's template (C3), not on the true mass.
 - **Bar, as registered:** passes ≤ x*, with x* = 2 for n = 218 under Binomial(n, 1/1440).
+  - Where the number comes from: registration §5 F1 defines x* as the smallest count with P(X > x*) ≤ 0.01 for
+    X ~ Binomial(n, f/r₁), with f/r₁ = (1/day)/(1/minute) = 1/1440.
+  - For n = 218 valid caught injections, P(X > 1) = 0.0383 and P(X > 2) = 0.00051, so x* = 2.
+  - The number is not in the registration; the rule is.
+- **Status:** ACCEPTED.
 
 ### C9. Gaussian twin (K1), drawn on the snippet grid
 - **Rule:** each valid background candidate is scored again on Gaussian noise drawn directly on the 512-s snippet grid:
@@ -133,5 +153,13 @@ the Bridge replies; until then these are proposals, not rules.
   - The correlation length of double-whitened noise is set by the 16-s inverse-spectrum truncation.
   - The data a template uses lie ≥ 50 s from the snippet's ends.
   - So the samples used have the same Gaussian statistics as a cut of a full-length draw.
-- **Not built yet: K1's "independent Monte Carlo through the same grids"**, and the off-grid twin injections. Their
-  design is a question for the Bridge; see the run notes.
+- **Status: the required check FAILED** (run notes, 2026-11-26 12:26–12:28).
+  - A draw made directly on the snippet grid lacks the 512-s cut's leakage into whitening notches at narrow lines.
+    The equivalence argument above is wrong there.
+  - A 2 × 512-s draw cut to 512 s reproduces most of the leakage, but still fails the pre-set band bar.
+  - The twin's final form waits for the Bridge's ruling.
+- **K1 design (ruled):** option (C).
+  - (A) is the registered gate: the same grid, independent Gaussian noise, ~5,000 maxima, ±15 % at 10⁻².
+  - (B), numpy brute force at 10⁻¹, is an extra engine cross-check only. It runs when cores free up and does not
+    block T.
+  - The off-grid twin Allen bound is written before (A) runs.
