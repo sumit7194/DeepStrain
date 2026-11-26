@@ -1633,6 +1633,29 @@ META = ("n", "kind", "k", "i", "iL", "i_c", "y1", "inj", "tid_y1", "decoy", "rea
 
 
 # ------------------------------------------------------------------ the box-major loop
+def out_dir(l_max):
+    """Box outputs; COH2T_OUTDIR redirects them (the identity re-check writes to scratch, never over the record)."""
+    return Path(os.environ["COH2T_OUTDIR"]) if os.environ.get("COH2T_OUTDIR") else OUT / f"L{l_max}"
+
+
+def todo_boxes(pl, l_max, kinds, real):
+    """Boxes with at least one valid candidate of these kinds whose output is not yet on disk, in plan order."""
+    done_dir = out_dir(l_max)
+    tag = "" if real is None else f"_r{real}"
+    by_box = {}
+    for c in pl["candidates"]:
+        if c["valid"] and c["kind"] in kinds and (real is None or c.get("real") == real):
+            by_box.setdefault(c["tid"], []).append(c)
+    todo = [tid for tid in pl["boxes"] if tid in by_box
+            and any(not (done_dir / f"box_{tid:04d}_{k}{tag}.npz").exists() for k in kinds)]
+    return todo, by_box
+
+
+def remaining(l_max, kinds, real=None):
+    """Print the number of boxes still to do (the queue's loop condition)."""
+    print(len(todo_boxes(load_plan(), int(l_max), kinds.split(","), None if real is None else int(real))[0]))
+
+
 def run(l_max, kinds="bg,fg", n_box=None, real=None):
     l_max = int(l_max)
     kinds = [k for k in kinds.split(",")]
@@ -1663,16 +1686,11 @@ def run(l_max, kinds="bg,fg", n_box=None, real=None):
                 cache[(det, gps)] = (np.load(k1_path(det, gps, real), mmap_mode="r"),
                                      np.load(L.STATE / f"wsnip_{tag_}.npy"), {})
         return cache[(det, gps)]
-    done_dir = OUT / f"L{l_max}"
+    done_dir = out_dir(l_max)
     tag = "" if real is None else f"_r{real}"
-    todo = [tid for tid in pl["boxes"] if any(not (done_dir / f"box_{tid:04d}_{k}{tag}.npz").exists() for k in kinds)]
-    if n_box is not None:
+    todo, by_box = todo_boxes(pl, l_max, kinds, real)
+    if n_box is not None:                                # after the candidate filter, so n_box counts real work
         todo = todo[: int(n_box)]
-    by_box = {}
-    for c in pl["candidates"]:
-        if c["valid"] and c["kind"] in kinds and (real is None or c.get("real") == real):
-            by_box.setdefault(c["tid"], []).append(c)
-    todo = [tid for tid in todo if tid in by_box]
     if os.environ.get("COH2T_BOXES"):                    # pilot: an explicit list of box tids
         want = [int(v) for v in os.environ["COH2T_BOXES"].split(",")]
         todo = [tid for tid in want if tid in todo]
@@ -1871,5 +1889,5 @@ if __name__ == "__main__":
         {"k2gates": k2gates, "k2prep": k2prep}[cmd](a[2], a[3], a[4])
     else:
         dict(plan=plan, golden=golden, prepseries=prepseries, vseries=vseries, run=run, calib=calib,
-             twinexact=twinexact, k1precheck=k1precheck, k1perfect=k1perfect, k1diag=k1diag, k2select=k2select, k2run=k2run, n1=n1, checki=checki, c19check=c19check, gridstats=gridstats, hashseries=hashseries, dropseries=dropseries,
+             twinexact=twinexact, k1precheck=k1precheck, k1perfect=k1perfect, k1diag=k1diag, k2select=k2select, k2run=k2run, n1=n1, checki=checki, c19check=c19check, gridstats=gridstats, hashseries=hashseries, dropseries=dropseries, remaining=remaining,
              status=status)[cmd](*[None if v == "-" else v for v in a[2:]])

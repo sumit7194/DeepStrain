@@ -1,0 +1,175 @@
+{
+ "check": "L128 recycle fix: box outputs recomputed by the new driver (scratch) vs the record written by the committed driver 3f3a60e",
+ "boxes": {
+  "9": "record from the 02:19 production run",
+  "47": "record from the 02:19 production run",
+  "694": "record written 2026-11-27 ~03:00 by 3f3a60e (a temporary copy, removed after), because none of the 48 completed boxes has fg/null/wrong candidates; it is a genuine production box and stays in the record"
+ },
+ "all_content_identical": true,
+ "rule": "every array bit-identical (dtype, shape, bytes); meta identical except the timing fields seconds and peak_footprint_mb. Whole-file bytes cannot match: numpy stamps each zip entry with its write time, and meta carries wall-clock seconds and footprint.",
+ "files": [
+  {
+   "file": "box_0009_bg.npz",
+   "n_arrays": 13,
+   "n_candidates": 21,
+   "arrays_bit_identical": true,
+   "meta_differs_only_in": [
+    "peak_footprint_mb",
+    "seconds"
+   ],
+   "file_bytes_identical": false
+  },
+  {
+   "file": "box_0009_fg.npz",
+   "n_arrays": 0,
+   "n_candidates": 0,
+   "arrays_bit_identical": true,
+   "meta_differs_only_in": [
+    "peak_footprint_mb",
+    "seconds"
+   ],
+   "file_bytes_identical": false
+  },
+  {
+   "file": "box_0009_null.npz",
+   "n_arrays": 0,
+   "n_candidates": 0,
+   "arrays_bit_identical": true,
+   "meta_differs_only_in": [
+    "peak_footprint_mb",
+    "seconds"
+   ],
+   "file_bytes_identical": false
+  },
+  {
+   "file": "box_0009_twin.npz",
+   "n_arrays": 13,
+   "n_candidates": 21,
+   "arrays_bit_identical": true,
+   "meta_differs_only_in": [
+    "peak_footprint_mb",
+    "seconds"
+   ],
+   "file_bytes_identical": false
+  },
+  {
+   "file": "box_0009_wrong.npz",
+   "n_arrays": 0,
+   "n_candidates": 0,
+   "arrays_bit_identical": true,
+   "meta_differs_only_in": [
+    "peak_footprint_mb",
+    "seconds"
+   ],
+   "file_bytes_identical": false
+  },
+  {
+   "file": "box_0047_bg.npz",
+   "n_arrays": 13,
+   "n_candidates": 16,
+   "arrays_bit_identical": true,
+   "meta_differs_only_in": [
+    "peak_footprint_mb",
+    "seconds"
+   ],
+   "file_bytes_identical": false
+  },
+  {
+   "file": "box_0047_fg.npz",
+   "n_arrays": 0,
+   "n_candidates": 0,
+   "arrays_bit_identical": true,
+   "meta_differs_only_in": [
+    "peak_footprint_mb",
+    "seconds"
+   ],
+   "file_bytes_identical": false
+  },
+  {
+   "file": "box_0047_null.npz",
+   "n_arrays": 0,
+   "n_candidates": 0,
+   "arrays_bit_identical": true,
+   "meta_differs_only_in": [
+    "peak_footprint_mb",
+    "seconds"
+   ],
+   "file_bytes_identical": false
+  },
+  {
+   "file": "box_0047_twin.npz",
+   "n_arrays": 13,
+   "n_candidates": 16,
+   "arrays_bit_identical": true,
+   "meta_differs_only_in": [
+    "peak_footprint_mb",
+    "seconds"
+   ],
+   "file_bytes_identical": false
+  },
+  {
+   "file": "box_0047_wrong.npz",
+   "n_arrays": 0,
+   "n_candidates": 0,
+   "arrays_bit_identical": true,
+   "meta_differs_only_in": [
+    "peak_footprint_mb",
+    "seconds"
+   ],
+   "file_bytes_identical": false
+  },
+  {
+   "file": "box_0694_bg.npz",
+   "n_arrays": 13,
+   "n_candidates": 26,
+   "arrays_bit_identical": true,
+   "meta_differs_only_in": [
+    "peak_footprint_mb",
+    "seconds"
+   ],
+   "file_bytes_identical": false
+  },
+  {
+   "file": "box_0694_fg.npz",
+   "n_arrays": 17,
+   "n_candidates": 1,
+   "arrays_bit_identical": true,
+   "meta_differs_only_in": [
+    "peak_footprint_mb",
+    "seconds"
+   ],
+   "file_bytes_identical": false
+  },
+  {
+   "file": "box_0694_null.npz",
+   "n_arrays": 13,
+   "n_candidates": 1,
+   "arrays_bit_identical": true,
+   "meta_differs_only_in": [
+    "seconds"
+   ],
+   "file_bytes_identical": false
+  },
+  {
+   "file": "box_0694_twin.npz",
+   "n_arrays": 13,
+   "n_candidates": 26,
+   "arrays_bit_identical": true,
+   "meta_differs_only_in": [
+    "seconds"
+   ],
+   "file_bytes_identical": false
+  },
+  {
+   "file": "box_0694_wrong.npz",
+   "n_arrays": 16,
+   "n_candidates": 1,
+   "arrays_bit_identical": true,
+   "meta_differs_only_in": [
+    "seconds"
+   ],
+   "file_bytes_identical": false
+  }
+ ],
+ "model": "Claude Opus 5.5"
+}

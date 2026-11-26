@@ -2,6 +2,9 @@
 
 Serial, one step at a time, under run.sh / job_guard (true-memory footprint, pause-only; declared peak <= 4.3 GB).
 A step that fails (a correctness gate or any error) stops the queue at that step boundary; nothing is killed.
+Each `run` step is done in sub-runs of RECYCLE boxes, a fresh driver process each (2026-11-27, 41 boxes in: the
+driver's footprint grew ~14 MB/box after every cache had saturated, in both the MPS pool and the CPU heap; a new
+process per sub-run resets it. Boxes are independent and checkpointed, so outputs are unchanged.)
 Order (registration §8; C14; C22):
   1 run 128 bg,twin,fg,null,wrong          main pass (box-major, checkpointed per box)
   2 calib 128                              C6 decoy target (write-once)
@@ -40,16 +43,33 @@ def step(name, args):
         sys.exit(rc)
 
 
+RECYCLE = 50
+
+
+def left(kinds, real="-"):
+    return int(subprocess.run([PY, DRV, "remaining", "128", kinds] + ([] if real == "-" else [real]), env=ENV,
+                              capture_output=True, text=True, check=True).stdout.strip())
+
+
+def run_step(name, kinds, real="-"):
+    n0, k = left(kinds, real), 0
+    while (n := left(kinds, real)) > 0:
+        step(f"{name}[{k}] ({n} boxes left)", [DRV, "run", "128", kinds, str(RECYCLE), real])
+        assert left(kinds, real) < n, f"{name}: a sub-run made no progress"
+        k += 1
+    log(f"{name}: all {n0} boxes done in {k} sub-runs")
+
+
 if __name__ == "__main__":
-    step("main", [DRV, "run", "128", "bg,twin,fg,null,wrong"])
+    run_step("main", "bg,twin,fg,null,wrong")
     step("calib", [DRV, "calib", "128"])
-    step("decoys", [DRV, "run", "128", "dec_sg,dec_train,dec_drift"])
-    step("allen", [DRV, "run", "128", "allen_off,allen_on,allen_fail"])
+    run_step("decoys", "dec_sg,dec_train,dec_drift")
+    run_step("allen", "allen_off,allen_on,allen_fail")
     step("k2select", [DRV, "k2select"])
     step("k2run", [DRV, "k2run", "128"])
     step("dropseries", [DRV, "dropseries"])
     for r in range(8):
-        step(f"k1mc_r{r}", [DRV, "run", "128", "k1mc", "-", str(r)])
+        run_step(f"k1mc_r{r}", "k1mc", str(r))
     step("reduce", [RED, "reduce", "128"])
     step("evaluate", [RED, "evaluate", "128"])
     step("gridstats", [DRV, "gridstats"])

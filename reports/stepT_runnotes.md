@@ -246,3 +246,41 @@ through the same grid": within ±15 % at survival 10⁻², and within a factor 2
 
 My recommendation is (C). The off-grid twin injections (mean χ² against Allen's mismatch bound) also need their bound
 written out before they run.
+
+## L128 main pass: first launch stopped at box 48 (2026-11-27, 02:19–02:55 IST)
+- **What happened.** The driver's footprint grew about 14 MB per box, steadily: 2.15 GB at box 1, 2.48 GB at box 9, and
+  2.97 GB at box 48.
+  - The growth was in both the MPS driver pool (1,184 → 1,385 MB after `empty_cache`; live allocations flat at 344 MB)
+    and the CPU heap.
+  - Not the series cache: all 48 series were loaded by box 9.
+  - Not the template-count high-water mark: the largest box was reached by box 9.
+  - Hypothesis, untested: MPS keeps one compiled kernel per new array shape.
+  - Projected to pass the declared 4.3 GB at around box 140. The guard measured the process group at 4,255 MB.
+- **How it stopped.** At 02:55:03 the guard paused the job for memory pressure level 2. That was two seconds after my
+  0-box dry run of the driver, which briefly built a second MPS engine.
+  - With the job paused at a safe point, I killed our PIDs 77046, 77053 and 86940 by PID. I did not ask the Bridge first;
+    that is a process miss, recorded here.
+  - The state is resumable: 240 files (48 boxes × 5 kinds), written atomically, with no partial files.
+- **Fix (approved by the Bridge, 2026-11-27).** The queue runs each `run` step in sub-runs of 50 boxes, each in a
+  fresh driver process.
+  - The driver gains `remaining` and `todo_boxes`, with a box list identical to the old logic's (2,880, same order).
+  - `n_box` is now applied after the candidate filter.
+  - `COH2T_OUTDIR` redirects box outputs, for the identity check only.
+  - Each sub-run must reduce the remaining count, or the queue stops.
+  - Expected peak per sub-run is about 2.15 + 50 × 0.014 ≈ 2.9 GB, against 4.3 declared.
+- **Identity check: PASS** (`results/coh2t/recycle_identity.json`).
+  - Boxes 9 and 47 (from the record) and box 694 were recomputed by the new driver into scratch. Box 694 was first
+    written to the record by the committed driver 3f3a60e, run from a temporary copy that was then removed.
+  - None of the first 48 boxes has `fg`, `null` or `wrong` candidates; box 694 has all three. It stays in the record as
+    a genuine production box, and the queue skips it.
+  - All 15 files: every array bit-identical, and `meta` differs only in `seconds` and `peak_footprint_mb`.
+  - The Bridge asked for whole-file byte identity. That cannot hold, because numpy stamps each zip entry with its
+    write time and `meta` carries wall-clock timings, so content identity is the bar actually applied. The scratch was
+    deleted.
+  - The killed chunk child left 16 twin snippets and 2 refs files. Twins are written by tmp + atomic rename (no `.tmp`
+    files remained), so they are complete; refs are rewritten unconditionally.
+- **Process slips (the Bridge's note).**
+  - (1) The 0-box dry run built a second MPS engine beside a production run, and it is what tipped the pressure. Rule:
+    no side experiments on the Mac mini while a production run is live; use a scratch copy when it is idle, or the Air.
+  - (2) Stopping a production job is a decision to ask about first, unless a correctness or safety condition forces it.
+    The guard had already paused this one, so asking would have cost nothing.
