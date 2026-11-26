@@ -72,7 +72,7 @@ P_BINS = (4, 8, 16)                # registration §4: one pass serves all three
 DELTA = int(round(0.010 * FS))     # +-10 ms network window (41 samples)
 EDGE_LO, EDGE_HI = (384 + 8) * FS, N - 8 * FS
 BATCH = 128                        # registration §9: template batches <= 128 at M = 32,768
-CHUNK = 8                          # boxes per reference/foreground child
+CHUNK = 4                          # boxes per reference/foreground child (transient disk <~ 0.35 GB)
 KINDS = ("bg", "fg", "twin", "null", "wrong", "dec_sg", "dec_train", "dec_drift")
 DECOYS = ("dec_sg", "dec_train", "dec_drift")
 N_DECOY = 200                      # registration §5 F2: 200 per family
@@ -600,7 +600,7 @@ def run(l_max, kinds="bg,fg", n_box=None):
                         arrs[k] = arrs[k].astype(np.float32)
                 done_dir.mkdir(parents=True, exist_ok=True)
                 tmp = out.with_name(out.stem + ".tmp.npz")
-                np.savez(tmp, meta=json.dumps(meta), **arrs)
+                np.savez_compressed(tmp, meta=json.dumps(meta), **arrs)
                 os.replace(tmp, out)
             for pth in [refs_path] + [f for c in by_box.get(tid, []) for f in extra_files(c).values()]:
                 pth.unlink(missing_ok=True)
