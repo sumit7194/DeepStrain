@@ -72,13 +72,12 @@ P_BINS = (4, 8, 16)                # registration §4: one pass serves all three
 DELTA = int(round(0.010 * FS))     # +-10 ms network window (41 samples)
 EDGE_LO, EDGE_HI = (384 + 8) * FS, N - 8 * FS
 BATCH = 128                        # registration §9: template batches <= 128 at M = 32,768
-CHUNK = 4                          # boxes per reference/foreground child (transient disk <~ 0.35 GB)
+CHUNK = 2                          # boxes per child; the next chunk's child runs while this one is scored
 KINDS = ("bg", "fg", "twin", "null", "wrong", "dec_sg", "dec_train", "dec_drift")
 DECOYS = ("dec_sg", "dec_train", "dec_drift")
 N_DECOY = 200                      # registration §5 F2: 200 per family
 SEED = 202611261                   # this build's own seed (twin draws, decoy choice and parameters); NOT the fresh seed
 WRONG_MC = 1.05                    # F1(b): box offset to chirp mass +5 %
-TWIN_PAD = 2                       # C9 (amended): twin drawn over 2 x 512 s, cut to the central 512 s
 UNIT_STRAIN = 1e-21                # decoys are built at this raw-strain amplitude, then scaled (C6)
 Y1_BIN, Y1_WIN, Y1_CROP = 256, 64 * FS, C.WHITEN_CROP_SEC * FS
 
@@ -269,6 +268,8 @@ def extra_files(c):
         return {det: STATE / "chunk" / f"sig_{det}_{c['inj']}_{c['kind']}.npy" for det in ("H1", "L1")}
     if c["kind"] in DECOYS:
         return {det: STATE / "chunk" / f"dec_{det}_{c['n']}.npy" for det in ("H1", "L1")}
+    if c["kind"] == "twin":
+        return {det: STATE / "chunk" / f"twin_{det}_{c['n']}.npy" for det in ("H1", "L1")}
     return {}
 
 
@@ -278,7 +279,6 @@ def chunk(l_max, tids, kinds=KINDS):
     double-whitened with the noise's PSD, exactly as coh2c_local.prep adds injections. Written to state/coh2t/chunk/."""
     import injections as I
     import realbg_cascade as R
-    from lowmem_psd import estimate_psd
     pl = load_plan()
     segs = segments()
     d = STATE / "chunk"
@@ -286,50 +286,184 @@ def chunk(l_max, tids, kinds=KINDS):
     table = L._table()
     wcache = {}
 
-    def seg_state(det, gps):
-        if (det, gps) not in wcache:
+    def seg_state(det, gps, need_strain):
+        if wcache.get("key") != (det, gps):
             wcache.clear()
-            x = np.load(B / "data" / f"{det}_{gps}.npy").astype(np.float64)
-            g = R.gate_window(det, gps)[0]
-            w = R.whiten_filter(estimate_psd(x * g))
-            wcache[(det, gps)] = (x, g, w)
-        return wcache[(det, gps)]
+            psd = psd_from_kernel(det, gps)                                  # == estimate_psd(x * g), bit for bit
+            wcache.update(key=(det, gps), psd=psd, w=R.whiten_filter(psd))
+        if need_strain and "x" not in wcache:
+            wcache["x"] = np.load(B / "data" / f"{det}_{gps}.npy").astype(np.float64)
+            wcache["g"] = R.gate_window(det, gps)[0].astype(np.float32)     # as coh2c_local.prep
+        return wcache.get("x"), wcache.get("g"), wcache["psd"], wcache["w"]
     for tid in tids:
         gr = grid(tid, l_max)
         h0 = np.stack([np.conj(L.fd_template(mc, q, f_lo)).astype(np.complex64) for mc, q, f_lo in gr["ref_mcq"]])
         tmp = d / f"refs_L{l_max}_tid{tid:04d}.tmp.npy"
         np.save(tmp, h0)
         os.replace(tmp, d / f"refs_L{l_max}_tid{tid:04d}.npy")
-        for c in pl["candidates"]:
-            if c["tid"] != tid or not c["valid"] or c["kind"] not in kinds or c["kind"] == "null":
-                continue
-            for det, out in extra_files(c).items():
-                if out.exists():
-                    continue
-                gps = segs[c["i"] if det == "H1" else c["iL"]]
-                x, g, w = seg_state(det, gps)
-                if c["kind"] in ("fg", "wrong"):
-                    s_, s0, _, _ = R._injection_template(table[c["inj"]], det, gps)
-                    raw = I.add_signal(np.zeros(R.N), gps, s_, s0)
-                    del s_
-                elif c["kind"] == "dec_drift":
-                    raw = decoy_raw(c["kind"], dict(c["decoy"][det], x=x), c["i_c"], l_max)
-                else:
-                    raw = decoy_raw(c["kind"], c["decoy"][det], c["i_c"], l_max)
-                ys = np.fft.irfft(np.fft.rfft(raw * g) * w * w, n=R.N)
-                lo = snippet_start(c["i_c"])
-                tmp = out.with_name(out.stem + ".tmp.npy")
-                np.save(tmp, ys[lo: lo + NS].astype(np.float32))
-                os.replace(tmp, out)
-                del raw, ys
+    tidset = set(tids)
+    jobs = [(det, segs[c["i"] if det == "H1" else c["iL"]], c, out) for c in pl["candidates"]
+            if c["tid"] in tidset and c["valid"] and c["kind"] in kinds and c["kind"] != "null"
+            for det, out in extra_files(c).items()]
+    for det, gps, c, out in sorted(jobs, key=lambda j: (j[0], j[1], j[2]["n"])):   # one PSD per (det, segment)
+        if out.exists():
+            continue
+        x, g, psd, w = seg_state(det, gps, need_strain=c["kind"] != "twin")
+        if c["kind"] == "twin":
+            tmp = out.with_name(out.stem + ".tmp.npy")
+            np.save(tmp, twin_snippet(psd, w, c, det))
+            os.replace(tmp, out)
+            continue
+        if c["kind"] in ("fg", "wrong"):
+            s_, s0, _, _ = R._injection_template(table[c["inj"]], det, gps)
+            raw = I.add_signal(np.zeros(R.N), gps, s_, s0)
+            del s_
+        elif c["kind"] == "dec_drift":
+            raw = decoy_raw(c["kind"], dict(c["decoy"][det], x=x), c["i_c"], l_max)
+        else:
+            raw = decoy_raw(c["kind"], c["decoy"][det], c["i_c"], l_max)
+        ys = np.fft.irfft(np.fft.rfft(raw * g) * w * w, n=R.N)
+        lo = snippet_start(c["i_c"])
+        tmp = out.with_name(out.stem + ".tmp.npy")
+        np.save(tmp, ys[lo: lo + NS].astype(np.float32))
+        os.replace(tmp, out)
+        del raw, ys
     log(f"chunk L{l_max} {len(tids)} boxes done | peak footprint {L.peak_footprint_mb()} MB")
+
+
+def psd_with_kernel(x):
+    """lowmem_psd.estimate_psd, line for line, also returning the nonzero ends of its inverse-spectrum-truncation
+    kernel q (L/2 samples at each end; zero in between). 1/|rfft(q)|^2 IS the PSD, so ~0.5 MB rebuilds it exactly."""
+    import lowmem_psd as LP
+    fs, n = C.SAMPLE_RATE, len(x)
+    Lw = int(round(C.PSD_SEG_SEC * fs)); S = Lw // 2
+    nseg = n // S
+    if (nseg - 1) * S + Lw > n:
+        nseg -= 1
+    data_len = (nseg - 1) * S + Lw
+    if data_len < n:
+        diff = n - data_len
+        a = diff // 2 + (diff % 2)
+        x = x[a:n - diff // 2]
+    win = np.hanning(Lw)
+    dt, df = 1.0 / fs, fs / Lw
+    P = np.empty((nseg, Lw // 2 + 1))
+    for i in range(nseg):
+        P[i] = np.abs(np.fft.rfft(x[i * S:i * S + Lw] * win) * dt) ** 2
+    P[:, 0] /= 2; P[:, -1] /= 2
+    psd = np.median(P, axis=0) / LP._median_bias(nseg)
+    del P
+    psd *= 2 * df * Lw / (win * win).sum()
+    new_df = fs / n
+    new_n = int(np.rint((len(psd) - 1) * df / new_df + 1))
+    psd = np.interp(np.arange(new_n) * new_df, np.arange(len(psd)) * df, psd)
+    Nn = (len(psd) - 1) * 2
+    kmin = int((C.F_LOWER - 10) / new_df)
+    inv = np.zeros(len(psd))
+    inv[kmin:Nn // 2] = psd[kmin:Nn // 2] ** -0.5
+    del psd
+    q = np.fft.irfft(inv, n=Nn)
+    del inv
+    q[Lw // 2:Nn - Lw // 2] = 0
+    ends = (q[:Lw // 2].copy(), q[Nn - Lw // 2:].copy())
+    return 1.0 / np.abs(np.fft.rfft(q)) ** 2, ends
+
+
+def _psd_from_ends(qa, qb):
+    q = np.zeros(N)
+    q[:len(qa)], q[N - len(qb):] = qa, qb
+    return 1.0 / np.abs(np.fft.rfft(q)) ** 2
+
+
+def psd_from_kernel(det, gps):
+    z = np.load(STATE / "kern" / f"kern_{det}_{gps}.npz")
+    return _psd_from_ends(z["qa"], z["qb"])
+
+
+def kernel(det, gps):
+    """Child: the PSD kernel of one gated tuning series, with two bit-for-bit guards: it reproduces
+    lowmem_psd.estimate_psd on the same gated input, and its whitening filter on the snippet grid equals the one
+    coh2c_local.prep stored with the noise series."""
+    import realbg_cascade as R
+    from lowmem_psd import estimate_psd
+    gps = int(gps)
+    x = np.load(B / "data" / f"{det}_{gps}.npy").astype(np.float64)
+    x *= R.gate_window(det, gps)[0].astype(np.float32)                     # exactly prep's gating
+    psd, (qa, qb) = psd_with_kernel(x)
+    assert np.array_equal(psd, estimate_psd(x)), "kernel PSD differs from lowmem_psd.estimate_psd"
+    rebuilt = _psd_from_ends(qa, qb)
+    assert np.array_equal(rebuilt, psd), "PSD not rebuilt exactly from its kernel"
+    w_snip = np.load(L.STATE / f"wsnip_{L.ww_tag(det, gps)}.npy")
+    assert np.array_equal(R.whiten_filter(rebuilt)[::8], w_snip), "filter differs from prep's"
+    out = STATE / "kern" / f"kern_{det}_{gps}.npz"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    tmp = out.with_name(out.stem + ".tmp.npz")
+    np.savez(tmp, qa=qa, qb=qb)
+    os.replace(tmp, out)
+    log(f"kernel {det} {gps}: PSD and filter reproduced bit for bit")
+
+
+def twin_snippet(psd, w, c, det):
+    """C9 as amended (option (i), the Bridge 2026-11-26): realbg_cascade's twin construction on the FULL 4096-s grid
+    (Gaussian, the gated series' own PSD, double-whitened), with an independent seed per candidate and detector,
+    then the same 512-s rectangular cut the real series gets. Float32, as the noise series."""
+    rng = np.random.default_rng([SEED, int(c["n"]), 0 if det == "H1" else 1])
+    X = np.sqrt(N * FS * psd / 4.0) * (rng.standard_normal(len(psd)) + 1j * rng.standard_normal(len(psd)))
+    X[0], X[-1] = X[0].real, X[-1].real
+    y = np.fft.irfft(X * w * w, n=N)
+    lo = snippet_start(c["i_c"])
+    return y[lo: lo + NS].astype(np.float32)
+
+
+def twinexact():
+    """Registered check for option (i), bars fixed before its first run: for 4 twin candidates (both detectors, the
+    first tuning segment, different seeds and cut positions), the driver's twin snippet (kernel PSD -> twin_snippet, the chunk child's exact path) must be
+    BIT-IDENTICAL to a reference built independently from the data: lowmem_psd.estimate_psd of prep's gated series,
+    realbg_cascade.whiten_filter, realbg's twin lines written out again here, the same seed, the same 512-s cut.
+    Requires that segment's kernels (`kernel H1|L1 <gps>`). Tests that the code does what (i) says; K1-(A) tests the statistics."""
+    import realbg_cascade as R
+    from lowmem_psd import estimate_psd
+    pl = load_plan()
+    segs = segments()
+    # segment 0: the one segment whose noise series and filter already exist (prep), in both detectors
+    tH = [c for c in pl["candidates"] if c["kind"] == "twin" and c["i"] == 0]
+    tL = [c for c in pl["candidates"] if c["kind"] == "twin" and c["iL"] == 0]
+    picks = [(tH[0], "H1"), (tL[len(tL) // 2], "L1"), (tH[-1], "H1"), (tL[-1], "L1")]
+    rows = []
+    for c, det in picks:
+        gps = segs[c["i"] if det == "H1" else c["iL"]]
+        psd_k = psd_from_kernel(det, gps)
+        mine = twin_snippet(psd_k, R.whiten_filter(psd_k), c, det)
+        x = np.load(B / "data" / f"{det}_{gps}.npy").astype(np.float64)
+        x *= R.gate_window(det, gps)[0].astype(np.float32)
+        psd = estimate_psd(x)
+        del x
+        w = R.whiten_filter(psd)
+        rng = np.random.default_rng([SEED, int(c["n"]), 0 if det == "H1" else 1])
+        sig = np.sqrt(N * FS * psd / 4.0)
+        X = sig * (rng.standard_normal(len(psd)) + 1j * rng.standard_normal(len(psd)))
+        X[0] = X[0].real; X[-1] = X[-1].real
+        full = np.fft.irfft(X * w * w, n=N)
+        lo = snippet_start(c["i_c"])
+        ref = full[lo: lo + NS].astype(np.float32)
+        rows.append(dict(n=c["n"], det=det, segment=gps, i_c=c["i_c"], identical=bool(np.array_equal(mine, ref)),
+                         max_abs_diff=float(np.max(np.abs(mine.astype(np.float64) - ref))), rms=float(np.std(ref))))
+        log(f"twinexact n {c['n']} {det} {gps}: identical {rows[-1]['identical']}")
+    ok = all(r["identical"] for r in rows)
+    res = dict(check="C9 (i) exact identity", rows=rows, passed=bool(ok), peak_footprint_mb=L.peak_footprint_mb(),
+               model="Claude Opus 5.5", env=L.stamp())
+    OUT.mkdir(parents=True, exist_ok=True)
+    (OUT / "twinexact.json").write_text(json.dumps(res, indent=1))
+    log(f"C9 (i) exact identity {'PASS' if ok else 'FAIL'} | footprint {L.peak_footprint_mb()} MB")
 
 
 def prepseries():
     for det in ("H1", "L1"):
         for g in segments():
             L.load_ww(det, g)                   # runs coh2c_local prep in its own child if the series is missing
-    log("noise series ready")
+            if not (STATE / "kern" / f"kern_{det}_{g}.npz").exists():
+                subprocess.run([sys.executable, "-u", __file__, "kernel", det, str(g)], check=True)
+    log("noise series and PSD kernels ready")
 
 
 def vseries():
@@ -388,21 +522,11 @@ class Fine:
         self.deltas = torch.arange(-DELTA, DELTA + 1, device=dev, dtype=torch.int64)
 
 
-def noise_spectrum(c, det, y, w_snip):
-    """The snippet's noise spectrum: the real (gated, double-whitened) series, or for the twin (C9, as amended after the
-    first C9 check failed) a Gaussian draw of TWIN_PAD x 512 s with the same PSD, Y_k = w_k sqrt(M/2) (a + i b), cut to
-    its central 512 s with the same rectangular cut the real series gets. A draw made directly on the 512-s grid has
-    no cut, hence none of the cut's leakage into the whitening notches at narrow lines (476-537 Hz and the band top
-    were 2-3.5x low in it): results/coh2t/twincheck_*_run1_snippetgrid_FAIL.json. kappa always comes from the noise."""
-    if c["kind"] == "twin":
-        rng = np.random.default_rng([SEED, int(c["n"]), 0 if det == "H1" else 1])
-        m = TWIN_PAD * NS
-        f_s = np.arange(NS // 2 + 1) * (FS / NS)
-        w2 = np.interp(np.arange(m // 2 + 1) * (FS / m), f_s, w_snip)
-        Y = w2 * np.sqrt(m / 2.0) * (rng.standard_normal(len(w2)) + 1j * rng.standard_normal(len(w2)))
-        Y[0], Y[-1] = Y[0].real, Y[-1].real
-        a = (m - NS) // 2
-        ysn = np.fft.rfft(np.fft.irfft(Y, n=m)[a: a + NS])
+def noise_spectrum(c, y):
+    """The snippet's noise spectrum from a series (the real gated, double-whitened one, or a twin snippet already cut
+    to 512 s). kappa, the float32 range scale, always comes from the noise."""
+    if len(y) == NS:
+        ysn = np.fft.rfft(np.asarray(y, dtype=np.float64))
     else:
         lo = snippet_start(c["i_c"])
         ysn = np.fft.rfft(np.asarray(y[lo: lo + NS], dtype=np.float64))
@@ -507,7 +631,7 @@ def score(box, fine, rH, rL, plain_only=False):
     return out
 
 
-def candidate(box, fine, series, c, extra=None, target=None):
+def candidate(box, fine, series, c, extra=None, target=None, twin=None):
     """Score one candidate. extra: per-detector additive snippets (injected signal, or a unit-amplitude decoy).
     fg also records the signal-only plain network value (the decoy calibration's yardstick, C6); dec_sg / dec_train
     are scaled so that their own decoy-only plain network value equals target (C6); dec_drift is not scaled."""
@@ -515,7 +639,7 @@ def candidate(box, fine, series, c, extra=None, target=None):
     spec, extra_spec = {}, {}
     for det, si in (("H1", c["i"]), ("L1", c["iL"])):
         y, w_snip, _ = series(det, segs[si])
-        spec[det] = noise_spectrum(c, det, y, w_snip) + (w_snip,)
+        spec[det] = noise_spectrum(c, y if twin is None else twin[det]) + (w_snip,)
         if extra is not None:
             extra_spec[det] = np.fft.rfft(extra[det].astype(np.float64))
 
@@ -572,10 +696,17 @@ def run(l_max, kinds="bg,fg", n_box=None):
             by_box.setdefault(c["tid"], []).append(c)
     log(f"run L{l_max} {kinds}: {len(todo)} boxes to do on {dev}")
     t_start = time.time()
+    overlap = os.environ.get("COH2T_OVERLAP") == "1"       # child for chunk s+1 runs while chunk s is scored
+
+    def launch(i):
+        part = todo[i:i + CHUNK]
+        return subprocess.Popen([sys.executable, "-u", __file__, "chunk", str(l_max), ",".join(map(str, part)),
+                                 ",".join(kinds)]) if part else None
+    nxt = launch(0)
     for s in range(0, len(todo), CHUNK):
         part = todo[s:s + CHUNK]
-        subprocess.run([sys.executable, "-u", __file__, "chunk", str(l_max), ",".join(map(str, part)), ",".join(kinds)],
-                       check=True)
+        assert nxt.wait() == 0, "chunk child failed"
+        nxt = launch(s + CHUNK) if overlap else None
         for tid in part:
             t0 = time.time()
             refs_path = STATE / "chunk" / f"refs_L{l_max}_tid{tid:04d}.npy"
@@ -588,8 +719,11 @@ def run(l_max, kinds="bg,fg", n_box=None):
                 res = []
                 for c in cs:
                     files = extra_files(c) if kind != "null" else {}
-                    extra = {det: np.load(f) for det, f in files.items()} or None
-                    res.append(candidate(box, fine, series, c, extra, target))
+                    loaded = {det: np.load(f) for det, f in files.items()} or None
+                    if kind == "twin":
+                        res.append(candidate(box, fine, series, c, None, target, twin=loaded))
+                    else:
+                        res.append(candidate(box, fine, series, c, loaded, target))
                 meta = dict(tid=tid, l_max=l_max, kind=kind, mc_star=float(box.gr["mc_star"]), n_tmpl=box.n,
                             n_refs=len(box.h0c), worst_dtau=float(box.gr["worst_dtau"]), ff_min=float(box.gr["ff_min"]),
                             candidates=[{k: c.get(k) for k in META} for c in cs], seconds=round(time.time() - t0, 2),
@@ -607,6 +741,8 @@ def run(l_max, kinds="bg,fg", n_box=None):
             del box
             log(f"box {tid} ({s + part.index(tid) + 1}/{len(todo)}) {time.time() - t0:.1f} s | footprint "
                 f"{L.peak_footprint_mb()} MB | {(time.time() - t_start) / 3600:.2f} h")
+        if not overlap and s + CHUNK < len(todo):
+            nxt = launch(s + CHUNK)
 
 
 def calib(l_max):
@@ -625,58 +761,6 @@ def calib(l_max):
     atomic_json(out, dict(target_plain=float(np.median(vals)), n=len(vals), quantiles=[float(q) for q in
                 np.quantile(vals, [0.1, 0.25, 0.5, 0.75, 0.9])], rule="C6", model="Claude Opus 5.5", env=L.stamp()))
     log(f"decoy calibration L{l_max}: target plain {np.median(vals):.1f} from {len(vals)} caught injections")
-
-
-def twincheck(det="H1", gps=None):
-    """C9 check (the Bridge, 2026-11-26): on one segment, the snippet-grid twin draw against a 512-s cut of a FULL
-    draw (realbg_cascade's twin construction, whitened as coh2c_local.prep), and both against the real series' cut.
-    Bars fixed before the first run: in each of 16 equal-width bands over [50, 1024] Hz, mean |Y|^2 / (NS w^2) of the
-    snippet draw and of the cut agree within 2 % (statistical noise ~0.6 % per band), and their time-domain
-    variances agree within 1 %. The real series is reported, not gated (it is not Gaussian)."""
-    import realbg_cascade as R
-    from lowmem_psd import estimate_psd
-    gps = int(gps or segments()[0])
-    x = np.load(B / "data" / f"{det}_{gps}.npy").astype(np.float64)
-    g = R.gate_window(det, gps)[0]
-    psd = estimate_psd(x * g)
-    del x
-    w = R.whiten_filter(psd)
-    rng = np.random.default_rng([SEED, 9])
-    X = np.sqrt(N * FS * psd / 4.0) * (rng.standard_normal(len(psd)) + 1j * rng.standard_normal(len(psd)))
-    X[0], X[-1] = X[0].real, X[-1].real
-    y_full = np.fft.irfft(X * w * w, n=N)
-    del X
-    lo = snippet_start(2_000 * FS)
-    cut = np.fft.rfft(y_full[lo: lo + NS])
-    del y_full
-    y_real, w_snip, _ = L.load_ww(det, gps)
-    real = np.fft.rfft(np.asarray(y_real[lo: lo + NS], dtype=np.float64))
-    snip, _ = noise_spectrum(dict(kind="twin", n=0, i_c=0), det, None, w_snip)
-    f = np.arange(NS // 2 + 1) * (FS / NS)
-    ref = NS * w_snip ** 2
-    edges = np.linspace(L.F_LO, L.F_HI, 17)
-    rows = []
-    for a, b in zip(edges[:-1], edges[1:]):
-        m = (f >= a) & (f < b) & (ref > 0)
-        rows.append(dict(f_lo=float(a), f_hi=float(b), n_bins=int(m.sum()),
-                         snippet=float(np.mean(np.abs(snip[m]) ** 2 / ref[m])),
-                         cut_of_full=float(np.mean(np.abs(cut[m]) ** 2 / ref[m])),
-                         real=float(np.mean(np.abs(real[m]) ** 2 / ref[m]))))
-    worst = max(abs(r["snippet"] / r["cut_of_full"] - 1) for r in rows)
-    v_snip, v_cut = float(np.var(np.fft.irfft(snip, n=NS))), float(np.var(np.fft.irfft(cut, n=NS)))
-    # reported, not gated: the matched-filter-weighted noise power ratio (weight f^-7/3 w^2, as a TaylorF2 template)
-    wt = np.where(ref > 0, f.clip(1e-9) ** (-7.0 / 3.0) * w_snip ** 2, 0.0)
-    mf = {k: float(np.sum(wt * np.abs(v) ** 2) / np.sum(wt * ref)) for k, v in (("snippet", snip), ("cut_of_full", cut),
-                                                                              ("real", real))}
-    ok = worst <= 0.02 and abs(v_snip / v_cut - 1) <= 0.01
-    res = dict(check="C9 twin: snippet-grid draw vs cut of a full draw", det=det, segment=gps, snippet_start=lo,
-               bars=dict(band_ratio=0.02, variance_ratio=0.01), bands=rows, worst_band_ratio_dev=worst,
-               var_snippet=v_snip, var_cut=v_cut, matched_filter_weighted_power=mf, twin_pad=TWIN_PAD, var_real=float(np.var(np.asarray(y_real[lo: lo + NS], np.float64))),
-               passed=bool(ok), peak_footprint_mb=L.peak_footprint_mb(), model="Claude Opus 5.5", env=L.stamp())
-    OUT.mkdir(parents=True, exist_ok=True)
-    (OUT / f"twincheck_{det}_{gps}.json").write_text(json.dumps(res, indent=1))
-    log(f"C9 twin check {'PASS' if ok else 'FAIL'}: worst band ratio deviation {worst:.4f}, variance ratio "
-        f"{v_snip / v_cut:.4f} | footprint {L.peak_footprint_mb()} MB")
 
 
 def status(l_max):
@@ -755,6 +839,8 @@ if __name__ == "__main__":
         chunk(int(a[2]), [int(v) for v in a[3].split(",")], tuple(a[4].split(",")) if len(a) > 4 else KINDS)
     elif cmd == "vone":
         vone(a[2], a[3])
+    elif cmd == "kernel":
+        kernel(a[2], a[3])
     else:
         dict(plan=plan, golden=golden, prepseries=prepseries, vseries=vseries, run=run, calib=calib,
-             twincheck=twincheck, status=status)[cmd](*a[2:])
+             twinexact=twinexact, status=status)[cmd](*a[2:])

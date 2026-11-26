@@ -154,13 +154,44 @@ Written with their code (`coh2t_drive.py`) before any of these kinds ran.
   - The correlation length of double-whitened noise is set by the 16-s inverse-spectrum truncation.
   - The data a template uses lie ≥ 50 s from the snippet's ends.
   - So the samples used have the same Gaussian statistics as a cut of a full-length draw.
-- **Status: the required check FAILED** (run notes, 2026-11-26 12:26–12:28).
-  - A draw made directly on the snippet grid lacks the 512-s cut's leakage into whitening notches at narrow lines.
-    The equivalence argument above is wrong there.
-  - A 2 × 512-s draw cut to 512 s reproduces most of the leakage, but still fails the pre-set band bar.
-  - The twin's final form waits for the Bridge's ruling.
+- **Status: the required check FAILED twice.** C9 was then amended to option (i) on the Bridge's ruling. See the
+  run notes, 2026-11-26 12:26–12:28.
+
+**C9 amendment (2026-11-26, post-check, before any step-T number exists): the twin is a cut of a full-length draw.**
+- **What was wrong.** My equivalence argument above fails at narrow spectral lines. Whitening puts deep notches
+  there, and the real pipeline's 512-s rectangular cut leaks sidelobe power into them.
+  - At 476–537 Hz: a cut of a full draw shows 3.42×, real data 3.53×, the snippet-grid draw 1.00.
+  - At 963–1,024 Hz: 2.11×, 2.04× and 1.00.
+  - A 2 × 512-s draw cut to 512 s carries most of the leakage, but it still failed the same pre-set bar.
+- **Both FAIL runs stay on record.**
+- **Rejected:** keeping a padded draw and designing a better-posed check. The Bridge ruled that would be a post-hoc
+  rescue of a failed registered check.
+- **New construction, option (i):**
+  - each twin snippet is realbg_cascade's twin built on the **full 4,096-s grid**: Gaussian, the gated series' own
+    PSD, double-whitened;
+  - it uses an independent seed per candidate and detector, (202611261, candidate, detector);
+  - it is cut to 512 s exactly as the real series is cut;
+  - so it carries the same notch leakage by construction.
+- **How the PSD is rebuilt exactly.** The full-resolution PSD comes from the PSD estimate's own 16-s
+  inverse-spectrum-truncation kernel: 2 × 32,768 samples per series, about 0.5 MB. The kernel step asserts, bit for
+  bit, that it reproduces `lowmem_psd.estimate_psd` on prep's gated input, and that its snippet-grid filter equals the
+  one prep stored.
+- **Cost:** about 0.6 s CPU per candidate and detector, roughly 12 h of child CPU per L_max pass, on the 1 extra core
+  the Bridge accepted. Twin snippets are transient: about 8 MB each, deleted after their box.
+- **Post-hoc context only, never a gate:** the matched-filter-weighted noise power (weight f^(−7/3)·w², the |z|²
+  variance of a TaylorF2 template). Measured on run 2: twin 0.998, cut of a full draw 1.004, real 0.996.
+- **Replacement check, registered before it runs (`coh2t_drive.py twinexact`):** an exact identity. For 4 twin
+  candidates (H1 and L1, tuning segment 0, different seeds and cut positions):
+  - the driver's twin snippet must be bit-identical to a reference built independently from the data:
+    `lowmem_psd.estimate_psd` of prep's gated series, `realbg_cascade.whiten_filter`, realbg's twin lines written out
+    again, the same seed and the same cut;
+  - this tests that the code does what (i) says. K1-(A) tests the statistics.
 - **K1 design (ruled):** option (C).
   - (A) is the registered gate: the same grid, independent Gaussian noise, ~5,000 maxima, ±15 % at 10⁻².
   - (B), numpy brute force at 10⁻¹, is an extra engine cross-check only. It runs when cores free up and does not
     block T.
   - The off-grid twin Allen bound is written before (A) runs.
+  - **Open, raised with the Bridge:** under (i), K1-(A)'s "independent Gaussian noise" would come from the same
+    generator as the twin. It would then test only seed independence. An independent generator would keep it
+    informative, for example pycbc.noise.noise_from_psd: time-domain coloured noise, run through prep's whitening path
+    at random valid times.
