@@ -73,11 +73,13 @@ DELTA = int(round(0.010 * FS))     # +-10 ms network window (41 samples)
 EDGE_LO, EDGE_HI = (384 + 8) * FS, N - 8 * FS
 BATCH = 128                        # registration §9: template batches <= 128 at M = 32,768
 CHUNK = 2                          # boxes per child; the next chunk's child runs while this one is scored
-KINDS = ("bg", "fg", "twin", "null", "wrong", "dec_sg", "dec_train", "dec_drift")
+KINDS = ("bg", "fg", "twin", "null", "wrong", "dec_sg", "dec_train", "dec_drift", "k1mc")
 DECOYS = ("dec_sg", "dec_train", "dec_drift")
 N_DECOY = 200                      # registration §5 F2: 200 per family
 SEED = 202611261                   # this build's own seed (twin draws, decoy choice and parameters); NOT the fresh seed
 WRONG_MC = 1.05                    # F1(b): box offset to chirp mass +5 %
+N_MC, N_REAL, SLOT_S = 100_000, 8, 4.0    # C10: K1-(A) maxima, independent pycbc realisations, slot length
+K1_SEED0 = 7_000_000               # C10: lal ranlux seed = K1_SEED0 + 1000 * realisation + 2 * segment + detector
 UNIT_STRAIN = 1e-21                # decoys are built at this raw-strain amplitude, then scaled (C6)
 Y1_BIN, Y1_WIN, Y1_CROP = 256, 64 * FS, C.WHITEN_CROP_SEC * FS
 
@@ -179,6 +181,24 @@ def plan():
             c = dict(bg_v[int(j)], kind=fam)
             c["decoy"] = decoy_params(fam, rng)
             cands.append(c)
+    # K1-(A) (C10): N_MC samples in N_REAL independent pycbc realisations. Each takes the box and segment pairing of a
+    # random twin candidate, at a time slot of its realisation that no other sample uses in that H1 or L1 series,
+    # so no two maxima of one realisation share a +-1-s window.
+    twins = [c for c in cands if c["kind"] == "twin"]
+    slots = np.arange(EDGE_LO + int(SLOT_S * FS) // 2, EDGE_HI - int(SLOT_S * FS) // 2, int(SLOT_S * FS))
+    rng_k = np.random.default_rng([SEED, 1])
+    for r in range(N_REAL):
+        usedH = np.zeros((24, len(slots)), bool); usedL = np.zeros((24, len(slots)), bool)
+        for _ in range(N_MC // N_REAL):
+            while True:
+                t = twins[int(rng_k.integers(len(twins)))]
+                free = np.where(~usedH[t["i"]] & ~usedL[t["iL"]])[0]
+                if len(free):
+                    break
+            j = int(free[rng_k.integers(len(free))])
+            usedH[t["i"], j] = usedL[t["iL"], j] = True
+            cands.append(dict(kind="k1mc", k=t["k"], i=t["i"], iL=t["iL"], tid=t["tid"], y1=None,
+                              i_c=int(slots[j]), real=r, valid=True))
     for n, c in enumerate(cands):
         c["n"] = n
     boxes = sorted({c["tid"] for c in cands if c["valid"]})
@@ -457,6 +477,77 @@ def twinexact():
     log(f"C9 (i) exact identity {'PASS' if ok else 'FAIL'} | footprint {L.peak_footprint_mb()} MB")
 
 
+def k1_path(det, gps, r):
+    return STATE / "k1" / f"pyc_{det}_{gps}_r{r}.npy"
+
+
+def k1_series(det, gps, r):
+    """C10: pycbc.noise.noise_from_psd (lal ranlux + lalsimulation.SimNoise) at the segment's exact pipeline PSD,
+    sampled at its own 1/16-Hz resolution and extended flat below 40 Hz, then prep's whitening path: rfft x w^2,
+    with the same full-grid filter as the real series. Synthetic noise is not gated. Float32, as the noise series."""
+    import realbg_cascade as R
+    from pycbc.noise.gaussian import noise_from_psd
+    from pycbc.types import FrequencySeries
+    segs = segments()
+    psd = psd_from_kernel(det, gps)
+    p16 = psd[::256].copy()                                            # bins at k/16 Hz
+    f16 = np.arange(len(p16)) / 16.0
+    k40 = int(np.searchsorted(f16, C.F_LOWER - 10))
+    p16[:k40] = p16[k40]
+    seed = K1_SEED0 + 1000 * int(r) + 2 * segs.index(int(gps)) + (0 if det == "H1" else 1)
+    x = noise_from_psd(N, 1.0 / FS, FrequencySeries(p16, delta_f=1.0 / 16), seed=seed).numpy()
+    w = R.whiten_filter(psd)
+    return np.fft.irfft(np.fft.rfft(x) * w * w, n=N).astype(np.float32), x, psd, seed
+
+
+def k1gen(det, gps, r):
+    """Child: one pycbc realisation of one (det, segment), written for the engine to memory-map."""
+    out = k1_path(det, int(gps), int(r))
+    if out.exists():
+        return
+    y, _, _, seed = k1_series(det, int(gps), int(r))
+    out.parent.mkdir(parents=True, exist_ok=True)
+    tmp = out.with_name(out.stem + ".tmp.npy")
+    np.save(tmp, y)
+    os.replace(tmp, out)
+    log(f"k1gen {det} {gps} r{r} (seed {seed}) | footprint {L.peak_footprint_mb()} MB")
+
+
+def k1gen_all(r):
+    """Realisation r for every (det, segment); any other realisation's series are deleted first (disk, C10)."""
+    for f in (STATE / "k1").glob("pyc_*.npy"):
+        if not f.stem.endswith(f"_r{r}"):
+            f.unlink()
+    for det in ("H1", "L1"):
+        for g in segments():
+            if not k1_path(det, g, r).exists():
+                subprocess.run([sys.executable, "-u", __file__, "k1gen", det, str(g), str(r)], check=True)
+
+
+def k1precheck():
+    """C10 (1), bars fixed before the first run: for tuning segment 0, H1 and L1, the pipeline's own Welch estimate
+    (lowmem_psd.estimate_psd) of the generated, un-whitened pycbc series over the target PSD, averaged in each of 16
+    equal bands over [50, 1024] Hz, within +-1.5 % (about 6 sigma of the expected 0.25 % band-mean scatter)."""
+    from lowmem_psd import estimate_psd
+    gps = segments()[0]
+    rows, ok = [], True
+    for det in ("H1", "L1"):
+        _, x, psd, seed = k1_series(det, gps, 99)                     # realisation 99: never used by K1 itself
+        est = estimate_psd(x)
+        f = np.fft.rfftfreq(N, d=1.0 / FS)
+        edges = np.linspace(L.F_LO, L.F_HI, 17)
+        bands = [float(np.mean((est / psd)[(f >= a) & (f < b)])) for a, b in zip(edges[:-1], edges[1:])]
+        worst = max(abs(v - 1) for v in bands)
+        ok &= worst <= 0.015
+        rows.append(dict(det=det, segment=gps, seed=seed, band_means=bands, worst_dev=worst))
+        log(f"k1precheck {det}: worst band deviation {worst:.4f}")
+    res = dict(check="C10 (1) pycbc noise reproduces the target PSD", bar=0.015, rows=rows, passed=bool(ok),
+               peak_footprint_mb=L.peak_footprint_mb(), model="Claude Opus 5.5", env=L.stamp())
+    OUT.mkdir(parents=True, exist_ok=True)
+    (OUT / "k1precheck.json").write_text(json.dumps(res, indent=1))
+    log(f"C10 (1) PSD pre-check {'PASS' if ok else 'FAIL'} | footprint {L.peak_footprint_mb()} MB")
+
+
 def prepseries():
     for det in ("H1", "L1"):
         for g in segments():
@@ -662,15 +753,20 @@ def candidate(box, fine, series, c, extra=None, target=None, twin=None):
     return o
 
 
-META = ("n", "kind", "k", "i", "iL", "i_c", "y1", "inj", "tid_y1", "decoy")
+META = ("n", "kind", "k", "i", "iL", "i_c", "y1", "inj", "tid_y1", "decoy", "real")
 
 
 # ------------------------------------------------------------------ the box-major loop
-def run(l_max, kinds="bg,fg", n_box=None):
+def run(l_max, kinds="bg,fg", n_box=None, real=None):
     l_max = int(l_max)
     kinds = [k for k in kinds.split(",")]
     for k in kinds:
         assert k in KINDS, f"unknown kind {k!r}"
+    real = None if real is None else int(real)
+    assert ("k1mc" in kinds) == (real is not None) and (real is None or kinds == ["k1mc"]), \
+        "k1mc runs alone, one realisation at a time: run <l_max> k1mc - <r>"
+    if real is not None:
+        k1gen_all(real)
     target = None
     if any(k in ("dec_sg", "dec_train") for k in kinds):
         cal = OUT / f"L{l_max}" / "decoy_calibration.json"
@@ -684,16 +780,23 @@ def run(l_max, kinds="bg,fg", n_box=None):
 
     def series(det, gps):
         if (det, gps) not in cache:
-            cache[(det, gps)] = L.load_ww(det, gps)
+            if real is None:
+                cache[(det, gps)] = L.load_ww(det, gps)
+            else:                                      # K1-(A): pycbc noise with prep's own snippet-grid filter
+                tag_ = L.ww_tag(det, gps)              # (the real noise series need not be on disk in this phase)
+                cache[(det, gps)] = (np.load(k1_path(det, gps, real), mmap_mode="r"),
+                                     np.load(L.STATE / f"wsnip_{tag_}.npy"), {})
         return cache[(det, gps)]
     done_dir = OUT / f"L{l_max}"
-    todo = [tid for tid in pl["boxes"] if any(not (done_dir / f"box_{tid:04d}_{k}.npz").exists() for k in kinds)]
+    tag = "" if real is None else f"_r{real}"
+    todo = [tid for tid in pl["boxes"] if any(not (done_dir / f"box_{tid:04d}_{k}{tag}.npz").exists() for k in kinds)]
     if n_box is not None:
         todo = todo[: int(n_box)]
     by_box = {}
     for c in pl["candidates"]:
-        if c["valid"] and c["kind"] in kinds:
+        if c["valid"] and c["kind"] in kinds and (real is None or c.get("real") == real):
             by_box.setdefault(c["tid"], []).append(c)
+    todo = [tid for tid in todo if tid in by_box]
     log(f"run L{l_max} {kinds}: {len(todo)} boxes to do on {dev}")
     t_start = time.time()
     overlap = os.environ.get("COH2T_OVERLAP") == "1"       # child for chunk s+1 runs while chunk s is scored
@@ -712,7 +815,7 @@ def run(l_max, kinds="bg,fg", n_box=None):
             refs_path = STATE / "chunk" / f"refs_L{l_max}_tid{tid:04d}.npy"
             box = Box(tid, l_max, dev, eng, sign, np.load(refs_path))
             for kind in kinds:
-                out = done_dir / f"box_{tid:04d}_{kind}.npz"
+                out = done_dir / f"box_{tid:04d}_{kind}{tag}.npz"
                 if out.exists():
                     continue
                 cs = [c for c in by_box.get(tid, []) if c["kind"] == kind]
@@ -841,6 +944,8 @@ if __name__ == "__main__":
         vone(a[2], a[3])
     elif cmd == "kernel":
         kernel(a[2], a[3])
+    elif cmd == "k1gen":
+        k1gen(a[2], a[3], a[4])
     else:
         dict(plan=plan, golden=golden, prepseries=prepseries, vseries=vseries, run=run, calib=calib,
-             twinexact=twinexact, status=status)[cmd](*a[2:])
+             twinexact=twinexact, k1precheck=k1precheck, status=status)[cmd](*[None if v == "-" else v for v in a[2:]])
