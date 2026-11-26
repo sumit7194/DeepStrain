@@ -704,3 +704,13 @@ the box's grid order, at L_max 128 and 384. Both detectors, segment 0.
   pipeline difference, not noise.
 - **Reported:** the largest deviation, and which injection it is.
 
+### C17 correction (2026-11-26 21:58, pre-result: no check (i) value exists)
+
+- **What was wrong:** "31 snippets with centres 128 s apart in [392, 4,088] s" cannot fit. 30 × 128 s = 3,840 s is more
+  than the 3,696-s window. As coded, the last centres fell beyond the segment.
+- **What happened:** the first launch (21:54) stopped at its first series, on an empty window, before any result was
+  written.
+- **Correction:** the 31 centres are now **evenly spaced over [400, 4,080] s, ≈ 122.7 s apart**. n, the statistic and
+  the bars are unchanged.
+- This was my arithmetic error in the registration text.
+
