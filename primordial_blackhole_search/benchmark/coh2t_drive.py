@@ -4,8 +4,10 @@ UNVERIFIED: code only, nothing has been run with it yet.
 What it does. Every stage-2 candidate is examined over the box around its Y1 template (chirp mass +-2.20 %, D5; q over
 the population range; merger time +-1 s at full rate, D1). Candidates are grouped by box: a box is fixed by the Y1
 template index and L_max, so its constructed grid and its reference lattice are built ONCE and then every candidate of
-that box is processed (background now; twin, decoys and the F1 nulls later, as their own build steps). Output is
-checkpointed per (box, kind) with an atomic write; a restart skips finished files.
+that box is processed: background, its Gaussian twin (K1), the caught injections (fg), the F1 nulls (null: the
+injection windows without the signal; wrong: with the signal, box at Mc +5 %) and the three F2 decoy families. Output
+is checkpointed per (box, kind) with an atomic write; a restart skips finished files. Kinds and their exact rules:
+reports/stepT_clarifications.md (C1-C9).
 
 Stage-1 candidates and their box (identical rule for background and foreground):
   background  Y1's clustered network triggers above thr1 (one per minute, caught.json), re-derived here from Y1's
@@ -40,6 +42,8 @@ reference templates and the foreground signal snippets, which the engine deletes
   python benchmark/coh2t_drive.py prepseries                   noise series for every (det, segment)  (children)
   python benchmark/coh2t_drive.py vseries                      PyCBC v series for every (det, segment) (children)
   python benchmark/coh2t_drive.py run <l_max> [kinds] [n_box]  box-major loop, e.g. run 128 bg,fg 3     (MPS)
+  python benchmark/coh2t_drive.py calib <l_max>                decoy amplitude target from the fg pass (once)
+  Order per L_max: run bg,twin,fg,null,wrong -> calib -> run dec_sg,dec_train,dec_drift
   python benchmark/coh2t_drive.py status <l_max>
   (internal) chunk <l_max> <tid,...>                           child: references + foreground signal snippets
 Device: COH2C_DEV, as the engine (MPS in production).
@@ -69,7 +73,12 @@ DELTA = int(round(0.010 * FS))     # +-10 ms network window (41 samples)
 EDGE_LO, EDGE_HI = (384 + 8) * FS, N - 8 * FS
 BATCH = 128                        # registration §9: template batches <= 128 at M = 32,768
 CHUNK = 8                          # boxes per reference/foreground child
-KINDS = ("bg", "fg")               # twin (step 4), decoys and the F1 nulls (step 5) are added by their own steps
+KINDS = ("bg", "fg", "twin", "null", "wrong", "dec_sg", "dec_train", "dec_drift")
+DECOYS = ("dec_sg", "dec_train", "dec_drift")
+N_DECOY = 200                      # registration §5 F2: 200 per family
+SEED = 202611261                   # this build's own seed (twin draws, decoy choice and parameters); NOT the fresh seed
+WRONG_MC = 1.05                    # F1(b): box offset to chirp mass +5 %
+UNIT_STRAIN = 1e-21                # decoys are built at this raw-strain amplitude, then scaled (C6)
 Y1_BIN, Y1_WIN, Y1_CROP = 256, 64 * FS, C.WHITEN_CROP_SEC * FS
 
 
@@ -153,16 +162,72 @@ def plan():
         m = int(round((x["time"] - r["segment"]) * FS))
         cands.append(dict(kind="fg", k=0, i=i, iL=i, i_c=m, tid=int(x["tid"]), y1=float(x["stat"]), inj=iid,
                           valid=bool(EDGE_LO <= m <= EDGE_HI)))
+    import y1_bank as Y1
+    mcs = np.asarray(Y1.MCS, dtype=np.float64)
+    fg_c = [c for c in cands if c["kind"] == "fg"]
+    bg_v = [c for c in cands if c["kind"] == "bg" and c["valid"]]
+    # twin (K1): every valid background candidate again, on PSD-drawn Gaussian noise (C9)
+    cands += [dict(c, kind="twin") for c in bg_v]
+    # F1(a) null: the caught injections' windows with the signal left out; F1(b) wrong: the signal in, box at Mc +5 %
+    cands += [dict(c, kind="null") for c in fg_c]
+    cands += [dict(c, kind="wrong", tid=int(np.argmin(np.abs(np.log(mcs / (mcs[c["tid"]] * WRONG_MC))))),
+                   tid_y1=c["tid"]) for c in fg_c]
+    # F2 decoys (C6-C8): 200 valid background candidate times per family, parameters drawn now
+    rng = np.random.default_rng(SEED)
+    for fam in DECOYS:
+        for j in rng.choice(len(bg_v), N_DECOY, replace=False):
+            c = dict(bg_v[int(j)], kind=fam)
+            c["decoy"] = decoy_params(fam, rng)
+            cands.append(c)
     for n, c in enumerate(cands):
         c["n"] = n
     boxes = sorted({c["tid"] for c in cands if c["valid"]})
     bg = [c for c in cands if c["kind"] == "bg"]
     fg = [c for c in cands if c["kind"] == "fg"]
     summ = dict(n_bg=len(bg), n_bg_valid=sum(c["valid"] for c in bg), n_fg=len(fg), n_fg_valid=sum(c["valid"] for c in fg),
+                n_by_kind={k: sum(c["kind"] == k for c in cands) for k in KINDS},
+                n_boxes_bg_fg=len({c["tid"] for c in cands if c["valid"] and c["kind"] in ("bg", "fg")}),
                 n_boxes=len(boxes), n_caughtjson_bin_rounding=n_floor, thr1=thr1, half_width=HALF_WIDTH, edge_s=[EDGE_LO / FS, EDGE_HI / FS])
-    import y1_bank as Y1
-    atomic_json(STATE / "plan.json", dict(summary=summ, boxes=boxes, mcs=[float(m) for m in Y1.MCS], candidates=cands))
+    atomic_json(STATE / "plan.json", dict(summary=summ, boxes=boxes, mcs=[float(m) for m in mcs], candidates=cands))
     log(f"plan: {summ}")
+
+
+def decoy_params(fam, rng):
+    """Decoy parameters (C7), drawn once in the plan. Times are fractions u of the template span before the
+    candidate (t = i_c - u * L_max), so one draw serves both L_max passes."""
+    def sg():
+        return dict(u=float(rng.uniform(0, 1)), f0=float(np.exp(rng.uniform(np.log(50.0), np.log(400.0)))),
+                    q=float(rng.uniform(4.0, 20.0)), phi=float(rng.uniform(0, 2 * np.pi)), amp=1.0)
+    if fam == "dec_sg":
+        return {"H1": [sg()], "L1": [sg()]}
+    if fam == "dec_train":
+        out = {}
+        for det in ("H1", "L1"):
+            n = int(rng.integers(3, 11))
+            out[det] = [dict(sg(), amp=float(rng.uniform(0.5, 1.0))) for _ in range(n)]
+        return out
+    return {det: dict(u=float(rng.uniform(0, 1)), a=float(rng.uniform(0.10, 0.30)), dur=float(rng.uniform(10.0, 100.0)))
+            for det in ("H1", "L1")}
+
+
+def decoy_raw(fam, prm, i_c, l_max):
+    """Additive raw-strain decoy on the full segment grid (length N), before gating and whitening. For power drift it
+    is the CHANGE of the noise, x * a * bump(t), so the caller passes the raw strain x via prm['x']."""
+    if fam in ("dec_sg", "dec_train"):
+        out = np.zeros(N)
+        for g in prm:
+            t0 = i_c - g["u"] * l_max * FS
+            tau = g["q"] / (np.sqrt(2) * np.pi * g["f0"]) * FS               # samples
+            lo, hi = int(max(0, t0 - 6 * tau)), int(min(N, t0 + 6 * tau + 1))
+            tt = np.arange(lo, hi) - t0
+            out[lo:hi] += g["amp"] * UNIT_STRAIN * np.exp(-(tt / tau) ** 2) * np.cos(2 * np.pi * g["f0"] * tt / FS + g["phi"])
+        return out
+    c0, half = i_c - prm["u"] * l_max * FS, prm["dur"] * FS / 2
+    lo, hi = int(max(0, c0 - half)), int(min(N, c0 + half + 1))
+    bump = np.zeros(N)
+    tt = (np.arange(lo, hi) - c0) / half
+    bump[lo:hi] = 0.5 * (1 + np.cos(np.pi * tt))                         # Hann bump, peak 1 at the centre
+    return prm["x"] * prm["a"] * bump
 
 
 def load_plan():
@@ -196,9 +261,19 @@ def grid(tid, l_max):
 
 
 # ------------------------------------------------------------------ children (pycbc lives only here)
-def chunk(l_max, tids):
-    """Child: reference templates (conj, complex64) for each box, and the foreground signal snippets of its
-    candidates, written to state/coh2t/chunk/. The engine deletes them after the box."""
+def extra_files(c):
+    """Per-candidate snippet files a box needs from its child, by kind (deleted after the box)."""
+    if c["kind"] in ("fg", "wrong"):               # separate names: an fg box and its +5 % box may share a chunk
+        return {det: STATE / "chunk" / f"sig_{det}_{c['inj']}_{c['kind']}.npy" for det in ("H1", "L1")}
+    if c["kind"] in DECOYS:
+        return {det: STATE / "chunk" / f"dec_{det}_{c['n']}.npy" for det in ("H1", "L1")}
+    return {}
+
+
+def chunk(l_max, tids, kinds=KINDS):
+    """Child: reference templates (conj, complex64) for each box, and the additive snippets its candidates need:
+    injected signals (fg, wrong) and decoys at unit amplitude (dec_*), each gated with the noise's own gates and
+    double-whitened with the noise's PSD, exactly as coh2c_local.prep adds injections. Written to state/coh2t/chunk/."""
     import injections as I
     import realbg_cascade as R
     from lowmem_psd import estimate_psd
@@ -208,6 +283,15 @@ def chunk(l_max, tids):
     d.mkdir(parents=True, exist_ok=True)
     table = L._table()
     wcache = {}
+
+    def seg_state(det, gps):
+        if (det, gps) not in wcache:
+            wcache.clear()
+            x = np.load(B / "data" / f"{det}_{gps}.npy").astype(np.float64)
+            g = R.gate_window(det, gps)[0]
+            w = R.whiten_filter(estimate_psd(x * g))
+            wcache[(det, gps)] = (x, g, w)
+        return wcache[(det, gps)]
     for tid in tids:
         gr = grid(tid, l_max)
         h0 = np.stack([np.conj(L.fd_template(mc, q, f_lo)).astype(np.complex64) for mc, q, f_lo in gr["ref_mcq"]])
@@ -215,29 +299,27 @@ def chunk(l_max, tids):
         np.save(tmp, h0)
         os.replace(tmp, d / f"refs_L{l_max}_tid{tid:04d}.npy")
         for c in pl["candidates"]:
-            if c["kind"] != "fg" or c["tid"] != tid or not c["valid"]:
+            if c["tid"] != tid or not c["valid"] or c["kind"] not in kinds or c["kind"] == "null":
                 continue
-            for det in ("H1", "L1"):
-                out = d / f"sig_{det}_{c['inj']}.npy"
+            for det, out in extra_files(c).items():
                 if out.exists():
                     continue
-                gps = segs[c["i"]]
-                if (det, gps) not in wcache:
-                    wcache.clear()
-                    x = np.load(B / "data" / f"{det}_{gps}.npy").astype(np.float64)
-                    g = R.gate_window(det, gps)[0]
-                    x *= g
-                    wcache[(det, gps)] = (g, R.whiten_filter(estimate_psd(x)))
-                    del x
-                g, w = wcache[(det, gps)]
-                s, s0, _, _ = R._injection_template(table[c["inj"]], det, gps)
-                sf = I.add_signal(np.zeros(R.N), gps, s, s0) * g
-                ys = np.fft.irfft(np.fft.rfft(sf) * w * w, n=R.N)
+                gps = segs[c["i"] if det == "H1" else c["iL"]]
+                x, g, w = seg_state(det, gps)
+                if c["kind"] in ("fg", "wrong"):
+                    s_, s0, _, _ = R._injection_template(table[c["inj"]], det, gps)
+                    raw = I.add_signal(np.zeros(R.N), gps, s_, s0)
+                    del s_
+                elif c["kind"] == "dec_drift":
+                    raw = decoy_raw(c["kind"], dict(c["decoy"][det], x=x), c["i_c"], l_max)
+                else:
+                    raw = decoy_raw(c["kind"], c["decoy"][det], c["i_c"], l_max)
+                ys = np.fft.irfft(np.fft.rfft(raw * g) * w * w, n=R.N)
                 lo = snippet_start(c["i_c"])
-                tmp = d / f"sig_{det}_{c['inj']}.tmp.npy"
+                tmp = out.with_name(out.stem + ".tmp.npy")
                 np.save(tmp, ys[lo: lo + NS].astype(np.float32))
                 os.replace(tmp, out)
-                del sf, ys, s
+                del raw, ys
     log(f"chunk L{l_max} {len(tids)} boxes done | peak footprint {L.peak_footprint_mb()} MB")
 
 
@@ -304,16 +386,25 @@ class Fine:
         self.deltas = torch.arange(-DELTA, DELTA + 1, device=dev, dtype=torch.int64)
 
 
-def prepare(box, fine, y, w_snip, i_c, sig=None):
-    """One detector's snippet: spectrum on the device, and per reference its sigma, equal-SNR band edges (p = 16;
+def noise_spectrum(c, det, y, w_snip):
+    """The snippet's noise spectrum: the real (gated, double-whitened) series, or for the twin a Gaussian draw on the
+    snippet grid with the same PSD (C9): Y_k = w_k sqrt(NS/2) (a + i b), a, b ~ N(0, 1), which has E|Y_k|^2 = NS w_k^2,
+    the same as a 512-s cut of the real series. kappa (the float32 range scale) always comes from the noise."""
+    if c["kind"] == "twin":
+        rng = np.random.default_rng([SEED, int(c["n"]), 0 if det == "H1" else 1])
+        ysn = w_snip * np.sqrt(NS / 2.0) * (rng.standard_normal(len(w_snip)) + 1j * rng.standard_normal(len(w_snip)))
+        ysn[0], ysn[-1] = ysn[0].real, ysn[-1].real
+    else:
+        lo = snippet_start(c["i_c"])
+        ysn = np.fft.rfft(np.asarray(y[lo: lo + NS], dtype=np.float64))
+    return ysn, 1.0 / np.median(np.abs(ysn[NS // 2048: NS // 8]))
+
+
+def prepare(box, fine, ysn, kappa, w_snip, i_c):
+    """One detector's snippet spectrum on the device, and per reference its sigma, equal-SNR band edges (p = 16;
     p = 8 and 4 are unions of them, asserted) and the fine-resolution product p0 for chi^2."""
     t = box.t
     lo = snippet_start(i_c)
-    x = np.asarray(y[lo: lo + NS], dtype=np.float64)
-    if sig is not None:
-        x = x + sig.astype(np.float64)
-    ysn = np.fft.rfft(x)
-    kappa = 1.0 / np.median(np.abs(ysn[NS // 2048: NS // 8]))
     ysn_t = t.tensor((ysn * kappa).astype(np.complex64), device=box.dev)
     refs = []
     for j in range(len(box.h0)):
@@ -355,7 +446,7 @@ def chi2_of(z16):
     return np.abs(z), out
 
 
-def score(box, fine, rH, rL):
+def score(box, fine, rH, rL, plain_only=False):
     """Registration §3, H-anchored: for each of H1's K loudest templates (each template's own best lag), chi^2 at that
     H1 point, and the SAME template's L1 rho and chi^2 at every lag within +-10 ms of it (v and newSNR are applied
     later by PyCBC, which then takes the max over delta). Also the plain-coherent ablation, same form, all templates."""
@@ -387,6 +478,8 @@ def score(box, fine, rH, rL):
             zL_at[part] = zL[rows, am].cpu().numpy()
             del zH, zL, aH, aL, lmax
         del yt
+    if plain_only:
+        return dict(tpeak_max=float(tpeak.max()), plain_net=plain)
     top = np.argsort(-tpeak)[:K_PEAKS]
     out = dict(tmpl=top, lag=tlag[top], H_rho=np.zeros(K_PEAKS), H_chi2=np.zeros((K_PEAKS, 3)),
                L_rho=np.zeros((K_PEAKS, 2 * DELTA + 1)), L_chi2=np.zeros((K_PEAKS, 3, 2 * DELTA + 1)),
@@ -405,21 +498,38 @@ def score(box, fine, rH, rL):
     return out
 
 
-def candidate(box, fine, series, c, sig=None):
+def candidate(box, fine, series, c, extra=None, target=None):
+    """Score one candidate. extra: per-detector additive snippets (injected signal, or a unit-amplitude decoy).
+    fg also records the signal-only plain network value (the decoy calibration's yardstick, C6); dec_sg / dec_train
+    are scaled so that their own decoy-only plain network value equals target (C6); dec_drift is not scaled."""
     segs = segments()
-    r = {}
+    spec, extra_spec = {}, {}
     for det, si in (("H1", c["i"]), ("L1", c["iL"])):
         y, w_snip, _ = series(det, segs[si])
-        r[det] = prepare(box, fine, y, w_snip, c["i_c"], None if sig is None else sig[det])
-    o = score(box, fine, r["H1"], r["L1"])
+        spec[det] = noise_spectrum(c, det, y, w_snip) + (w_snip,)
+        if extra is not None:
+            extra_spec[det] = np.fft.rfft(extra[det].astype(np.float64))
+
+    def run_on(fn, plain_only=False):
+        r = {det: prepare(box, fine, fn(det), spec[det][1], spec[det][2], c["i_c"]) for det in ("H1", "L1")}
+        return r, score(box, fine, r["H1"], r["L1"], plain_only)
+    o_extra, scale = {}, 1.0
+    if c["kind"] in ("fg", "dec_sg", "dec_train"):
+        _, o_alone = run_on(lambda det: extra_spec[det], plain_only=True)
+        o_extra["extra_only_plain"] = o_alone["plain_net"]
+        if c["kind"] != "fg":
+            assert target is not None, "decoys need the calibration target (run 'calib' after fg)"
+            scale = float(np.sqrt(target / o_alone["plain_net"]))
+    o_extra["extra_scale"] = scale
+    r, o = run_on(lambda det: spec[det][0] + scale * extra_spec[det] if extra is not None else spec[det][0])
     lag0 = r["H1"]["i_s"] - box.eng.half
     o["H_gps"] = segs[c["i"]] + (r["H1"]["lo"] + lag0 + o["lag"]) / FS                 # H1 peak time
     o["L_gps0"] = segs[c["iL"]] + (r["L1"]["lo"] + lag0 + o["lag"] - DELTA) / FS       # L1 time at delta = -10 ms
+    o.update(o_extra)
     return o
 
 
-ARRAYS = ("tmpl", "lag", "H_rho", "H_chi2", "L_rho", "L_chi2", "closure", "H_gps", "L_gps0", "tpeak_max", "plain_net")
-META = ("n", "kind", "k", "i", "iL", "i_c", "y1", "inj")
+META = ("n", "kind", "k", "i", "iL", "i_c", "y1", "inj", "tid_y1", "decoy")
 
 
 # ------------------------------------------------------------------ the box-major loop
@@ -427,8 +537,12 @@ def run(l_max, kinds="bg,fg", n_box=None):
     l_max = int(l_max)
     kinds = [k for k in kinds.split(",")]
     for k in kinds:
-        if k not in KINDS:
-            raise NotImplementedError(f"kind {k!r}: built by its own step (twin = step 4; decoys, nulls = step 5)")
+        assert k in KINDS, f"unknown kind {k!r}"
+    target = None
+    if any(k in ("dec_sg", "dec_train") for k in kinds):
+        cal = OUT / f"L{l_max}" / "decoy_calibration.json"
+        assert cal.exists(), "decoy calibration missing: run fg, then 'calib', before dec_sg / dec_train"
+        target = json.loads(cal.read_text())["target_plain"]
     pl = load_plan()
     dev = L.pick_dev()
     sign = json.loads((L.OUT / "E1_phase_model.json").read_text())["sign"]
@@ -451,7 +565,8 @@ def run(l_max, kinds="bg,fg", n_box=None):
     t_start = time.time()
     for s in range(0, len(todo), CHUNK):
         part = todo[s:s + CHUNK]
-        subprocess.run([sys.executable, "-u", __file__, "chunk", str(l_max), ",".join(map(str, part))], check=True)
+        subprocess.run([sys.executable, "-u", __file__, "chunk", str(l_max), ",".join(map(str, part)), ",".join(kinds)],
+                       check=True)
         for tid in part:
             t0 = time.time()
             refs_path = STATE / "chunk" / f"refs_L{l_max}_tid{tid:04d}.npy"
@@ -463,25 +578,41 @@ def run(l_max, kinds="bg,fg", n_box=None):
                 cs = [c for c in by_box.get(tid, []) if c["kind"] == kind]
                 res = []
                 for c in cs:
-                    sig = None
-                    if kind == "fg":
-                        sig = {det: np.load(STATE / "chunk" / f"sig_{det}_{c['inj']}.npy") for det in ("H1", "L1")}
-                    res.append(candidate(box, fine, series, c, sig))
+                    files = extra_files(c) if kind != "null" else {}
+                    extra = {det: np.load(f) for det, f in files.items()} or None
+                    res.append(candidate(box, fine, series, c, extra, target))
                 meta = dict(tid=tid, l_max=l_max, kind=kind, mc_star=float(box.gr["mc_star"]), n_tmpl=box.n,
                             n_refs=len(box.h0c), worst_dtau=float(box.gr["worst_dtau"]), ff_min=float(box.gr["ff_min"]),
                             candidates=[{k: c.get(k) for k in META} for c in cs], seconds=round(time.time() - t0, 2),
                             peak_footprint_mb=L.peak_footprint_mb(), model="Claude Opus 5.5", status="UNVERIFIED")
-                arrs = {k: np.array([r[k] for r in res]) for k in ARRAYS} if res else {}
+                arrs = {k: np.array([r[k] for r in res]) for k in res[0]} if res else {}
                 done_dir.mkdir(parents=True, exist_ok=True)
                 tmp = out.with_name(out.stem + ".tmp.npz")
                 np.savez(tmp, meta=json.dumps(meta), **arrs)
                 os.replace(tmp, out)
-            for pth in [refs_path] + [STATE / "chunk" / f"sig_{d}_{c['inj']}.npy" for c in by_box.get(tid, [])
-                                      if c["kind"] == "fg" for d in ("H1", "L1")]:
+            for pth in [refs_path] + [f for c in by_box.get(tid, []) for f in extra_files(c).values()]:
                 pth.unlink(missing_ok=True)
             del box
             log(f"box {tid} ({s + part.index(tid) + 1}/{len(todo)}) {time.time() - t0:.1f} s | footprint "
                 f"{L.peak_footprint_mb()} MB | {(time.time() - t_start) / 3600:.2f} h")
+
+
+def calib(l_max):
+    """C6: the decoy amplitude target = the median, over valid caught injections, of their SIGNAL-ONLY plain network
+    value (recorded by the fg pass). Written once; refuses to overwrite, so it cannot be re-tuned after decoys ran."""
+    pl = load_plan()
+    d = OUT / f"L{int(l_max)}"
+    out = d / "decoy_calibration.json"
+    assert not out.exists(), "calibration already fixed"
+    want = sorted({c["tid"] for c in pl["candidates"] if c["kind"] == "fg" and c["valid"]})
+    vals = []
+    for tid in want:
+        z = np.load(d / f"box_{tid:04d}_fg.npz")
+        vals += list(np.atleast_1d(z["extra_only_plain"]))
+    assert len(vals) == sum(c["kind"] == "fg" and c["valid"] for c in pl["candidates"]), "fg pass incomplete"
+    atomic_json(out, dict(target_plain=float(np.median(vals)), n=len(vals), quantiles=[float(q) for q in
+                np.quantile(vals, [0.1, 0.25, 0.5, 0.75, 0.9])], rule="C6", model="Claude Opus 5.5", env=L.stamp()))
+    log(f"decoy calibration L{l_max}: target plain {np.median(vals):.1f} from {len(vals)} caught injections")
 
 
 def status(l_max):
@@ -519,7 +650,8 @@ def golden():
     eng, fine = L.Engine(dev, 4.0, 1), Fine(dev)
     box = Box(None, 128, dev, eng, sign, h0, gr=gr)
     y, w_snip, _ = L.load_ww("H1", gps)
-    r = prepare(box, fine, y, w_snip, i_c)
+    ysn, kappa = noise_spectrum(dict(kind="bg", i_c=i_c, n=0), "H1", y, w_snip)
+    r = prepare(box, fine, ysn, kappa, w_snip, i_c)
     o = score(box, fine, r, r)
     rel = abs(o["tpeak_max"] / ref["box_max_local"] - 1)
     # band pieces vs gate E3's own function, at the top point
@@ -556,8 +688,9 @@ if __name__ == "__main__":
     a = sys.argv
     cmd = a[1]
     if cmd == "chunk":
-        chunk(int(a[2]), [int(v) for v in a[3].split(",")])
+        chunk(int(a[2]), [int(v) for v in a[3].split(",")], tuple(a[4].split(",")) if len(a) > 4 else KINDS)
     elif cmd == "vone":
         vone(a[2], a[3])
     else:
-        dict(plan=plan, golden=golden, prepseries=prepseries, vseries=vseries, run=run, status=status)[cmd](*a[2:])
+        dict(plan=plan, golden=golden, prepseries=prepseries, vseries=vseries, run=run, calib=calib,
+             status=status)[cmd](*a[2:])

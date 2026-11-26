@@ -76,3 +76,62 @@ never run.
 - **χ² only:** the primary statistic with v set to 1.
 
 Environment: Mac (macOS 27.2, arm64) · text only, no computation · git 3ddf5a5 (parent).
+
+## C6–C9 (2026-11-26, later the same day): twin, nulls and decoys — PROPOSED, awaiting the Bridge
+
+Written with their code (`coh2t_drive.py`) before any of these kinds has run. Each is marked accepted or changed when
+the Bridge replies; until then these are proposals, not rules.
+
+### C6. Decoy amplitude calibration (registration §4, "each decoy family scaled to the median plain-coherent ρ of caught tuning signals")
+- The fg pass also scores each caught injection's signal **alone** (zero noise, the noise's own float scale) and keeps
+  that signal-only plain network value.
+- **Target:** the median of the signal-only plain network value over the valid caught injections, per L_max.
+  `calib` writes it once and refuses to overwrite it.
+- Each sine-Gaussian or glitch-train decoy is scaled, as a whole, so that its own decoy-only plain network value equals
+  the target. Then it is scored in real noise.
+- **Why signal-only on both sides:** it compares like with like. A value measured in noise would mix in each window's
+  own noise maximum.
+- **Power drift is not scaled.** It is multiplicative, and its strength is the registered 10–30 % range itself.
+
+### C7. Decoy families: parameters, drawn once in the plan with this build's seed 202611261
+- **Placement:** in **both** detectors, at a valid background candidate time, with parameters drawn independently per
+  detector.
+  - It is the harder case for an H-anchored network value.
+  - The registration does not say whether decoys go in one detector or both.
+- **(i) single sine-Gaussian:**
+  - f₀ log-uniform in [50, 400] Hz;
+  - Q uniform in [4, 20];
+  - random phase;
+  - centre uniform within the template span before the candidate, t = i_c − u·L_max.
+- **(ii) glitch train:** 3–10 sine-Gaussians per detector, each as in (i), with relative amplitudes uniform in
+  [0.5, 1], at independent uniform times within the span.
+- **(iii) power drift:** the noise multiplied by 1 + a·bump(t).
+  - a is uniform in [0.10, 0.30];
+  - bump is a Hann window, duration uniform in [10, 100] s, centred uniformly within the span;
+  - the decoy is the change of the gated raw strain, x·g·a·bump, then whitened.
+- **Gating and whitening:** every decoy is added to the raw strain and gated with the **noise's own** gate window, then
+  double-whitened with the noise's PSD.
+  - This is exactly the linearity route used for injections, so decoys and foreground are treated the same.
+  - A consequence, stated now: a decoy loud enough that PyCBC autogating would have caught it is not gated here.
+    That makes the test harder, not easier.
+
+### C8. F1 nulls
+- **(a) null:** the caught injections' own windows (C5: Y1 trigger time and tid), scored with the signal left out.
+- **(b) wrong:** the same windows with the signal in, but the box centred at **Y1's tid Mc × 1.05**, the nearest bank
+  template. The registration says "a box offset to chirp mass +5 %"; the offset is applied to the box, which is
+  centred on Y1's template (C3), not on the true mass.
+- **Bar, as registered:** passes ≤ x*, with x* = 2 for n = 218 under Binomial(n, 1/1440).
+
+### C9. Gaussian twin (K1), drawn on the snippet grid
+- **Rule:** each valid background candidate is scored again on Gaussian noise drawn directly on the 512-s snippet grid:
+  Y_k = w_k·√(NS/2)·(a + i b), with a, b ~ N(0, 1), seeded by (202611261, candidate, detector).
+  - w is the gated noise's whitening filter on the snippet grid (`coh2c_local.prep`).
+  - This gives E|Y_k|² = NS·w_k², the same as a 512-s cut of the real series. That is exactly realbg's twin spectrum,
+    there drawn on the full segment, restated on the snippet grid.
+- **Why the snippet grid is equivalent:**
+  - The draw is circularly stationary on 512 s.
+  - The correlation length of double-whitened noise is set by the 16-s inverse-spectrum truncation.
+  - The data a template uses lie ≥ 50 s from the snippet's ends.
+  - So the samples used have the same Gaussian statistics as a cut of a full-length draw.
+- **Not built yet: K1's "independent Monte Carlo through the same grids"**, and the off-grid twin injections. Their
+  design is a question for the Bridge; see the run notes.
