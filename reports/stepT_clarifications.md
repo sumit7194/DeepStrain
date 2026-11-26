@@ -603,7 +603,7 @@ rest on conventions recorded independently of C13:
 - **Sensitivity readout, not a gate:** (i) is also run on the original configuration (Δf 1/16 Hz, the PSD above
   1,024 Hz as estimated).
 
-## C17 (2026-11-26, PROPOSED, before any code or run): check (i), noise-only |z|² against the exact generator
+## C17 (2026-11-26, design ACCEPTED, n sized for power before any code or run): check (i), noise-only |z|² against the exact generator
 
 **What is compared.** The per-template mean of noise-only |z|² over all ±1-s lags, which is the quantity K1's
 survival comparison depends on.
@@ -616,8 +616,9 @@ survival comparison depends on.
 the box's grid order, at L_max 128 and 384. Both detectors, segment 0.
 
 **Sample.**
-- 64 independent 4,096-s series per (generator, detector), seeded.
-- From each, 31 snippets with centres 128 s apart in [392, 4,088] s, so about 1,984 snippets per (generator, detector).
+- **144** independent 4,096-s series per (generator, detector), seeded. This replaces the first draft's 64; see the
+  power calculation below.
+- From each, 31 snippets with centres 128 s apart in [392, 4,088] s, so about 4,464 snippets per (generator, detector).
 - Inside a series the ±1-s windows are far apart, so the |z| values are nearly independent. The correlation from
   overlapping data is handled by the bootstrap below.
 
@@ -666,4 +667,22 @@ the box's grid order, at L_max 128 and 384. Both detectors, segment 0.
 - MPS, the engine: one rfft per snippet (~60 ms, shared by all boxes and both L_max), plus 3 boxes × 2 L_max × about
   15 ms of reference correlations. About 0.15 s per snippet, so 1,984 × 2 detectors × 5 ≈ **50 min**.
 - Peak ≤ 2.6 GB, under the guard.
+
+**Power calculation (the Bridge's change, before any code or run).**
+- The observed planted shift is ≈ N(δ*·f_w, SE), with δ*·f_w ≈ 0.28 %. A cell fires if the shift exceeds 3·SE, which
+  happens with probability Φ(δ*·f_w/SE − 3).
+- **Requirement:** per-cell power ≥ 0.987, so the joint power over 4 cells is ≥ 95 %. That needs
+  δ*·f_w ≥ (3 + 2.23)·SE, i.e. **SE ≤ 0.054 %.**
+- **With the a-priori SE**, which scales as 1/√n_series:
+
+  | Series | SE | Per-cell power | Joint power (4 cells) |
+  |---|---|---|---|
+  | 64 | 0.080 % | 0.69 | ≈ 0.23 |
+  | 144 | 0.053 % | ≥ 0.987 | ≥ 0.95 |
+
+- **SE is re-estimated from the null control's own bootstrap.** If the measured SE is larger than 0.054 %, n is raised
+  and re-registered before the must-fire result counts.
+- **Cost, re-estimated:** about 80 min CPU for the series, about 2 h MPS for the engine, peak ≤ 2.6 GB.
+- **Order:** null and must-fire controls (no pycbc) → the binding gate on C16's configuration → the sensitivity
+  readout on the original configuration.
 
