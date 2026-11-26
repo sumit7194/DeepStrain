@@ -553,3 +553,53 @@ All values are pycbc/perfect.
   changes. Examples: the perfect generator fed the sampled PSD gives 272 and 1,285; Δf = 1/8 Hz gives 344 at
   963–1,024. **That supports (a): the metric is unusable at strong lines,** whatever the generator.
 
+### C13, recorded per the Bridge (2026-11-26)
+
+**D2 (H1, 476–537 Hz) is UNEXPLAINED.** It stays recorded that way in the K1 notes. D3's explanation is marginal, and
+D1's cure is not monotone in Δf.
+
+## C15 (2026-11-26, pre-result): P1's ρ_opt
+
+**The ambiguity.** PREREG_coherent2 and the step-T registration say "median ρ̂/ρ_opt ≥ 0.90", but neither defines
+ρ_opt.
+- **Reading A:** the full-signal optimal SNR (Y0's oracle).
+- **Reading B:** the optimal SNR the engine's templates can reach, i.e. the norm of the L_max-truncated true template.
+
+**RULED (the Bridge, pre-result): reading B.**
+- P1 measures how well the engine recovers what its templates can see.
+- ρ_opt = the norm of the L_max-truncated true template, evaluated with the same reference start frequency as the
+  templates (D2), in each detector, combined over H1 and L1 as the network value is.
+- **Precedent:** `realbg_cascade` line 132 used the truncated true template's norm, with the full-length oracle as a
+  cross-check.
+
+**Kept visible.** ρ̂/ρ_opt,full (reading A) is reported per q stratum alongside, so the truncation loss stays on the
+record. That loss belongs to the L_max comparison (the configuration choice and cost), not to P1.
+
+**Made pre-result:** no P1 number exists.
+
+## C16 (2026-11-26, written BEFORE check (i) runs): the K1-(A) generator configuration, with an a-priori reason
+
+**Disclosure first.** C13's numbers, including that V3 cures D1, were seen before this was written. The reasons below
+rest on conventions recorded independently of C13:
+
+- **Δf = 1/16 Hz.**
+  - This is the PSD estimate's own resolution: 16-s median-Welch segments (`C.PSD_SEG_SEC = 16`), and an inverse-
+    spectrum truncation to 16 s.
+  - The pipeline PSD carries no information finer than 1/16 Hz.
+  - A finer Δf would interpolate a smoothed estimate, and a coarser one would discard resolution the pipeline uses.
+  - So this choice is fixed by the estimator, not by C13.
+- **PSD above F_HIGH = 1,024 Hz set flat at its 1,024-Hz value.**
+  - Since the project began, the band is limited to [50, 1,024] Hz "everywhere". The reason is that "the GWOSC 4k
+    anti-alias filter makes the PSD near Nyquist unusable": project conventions in CLAUDE.md, recorded long before
+    step T.
+  - Every whitening filter in this pipeline (`realbg_cascade.whiten_filter`, and hence the twin and the real series)
+    is exactly **zero above F_HIGH**. The pipeline assigns that region no weight and no meaning.
+  - Feeding a generator the anti-alias-shaped, unusable PSD above F_HIGH injects a region the convention says is not
+    trustworthy.
+  - Flat at the band edge is the neutral extension, the same rule already used below 40 Hz (C10).
+
+**The configuration is therefore C13's V3: pycbc, Δf = 1/16 Hz, PSD flat below 40 Hz and above 1,024 Hz.**
+- **Check (i) is the BINDING gate on it.** If (i) fails, that is the result.
+- **Sensitivity readout, not a gate:** (i) is also run on the original configuration (Δf 1/16 Hz, the PSD above
+  1,024 Hz as estimated).
+
