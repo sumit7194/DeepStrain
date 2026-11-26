@@ -129,16 +129,21 @@ def plan():
         assert dt < 2e-4 and ds < 2e-5, ("Y1 bins do not reproduce bg_k%d.csv" % k, dt, ds)
         for (i, b, off, tid), (t_csv, s_csv) in zip(info, csv_rows):
             if s_csv > thr1:                                  # caught()'s own selection, on the CSV values
-                m = Y1_CROP + b * Y1_BIN + off + Y1_WIN - 1   # merger sample from the segment start
+                m = Y1_CROP + b * Y1_BIN + off + Y1_WIN - 1   # merger sample from the segment start (exact)
+                assert abs(m - (t_csv - segs[i]) * FS) <= 0.25, (k, i, m, t_csv)    # CSV time is rounded to 0.1 ms
                 cands.append(dict(kind="bg", k=k, i=i, iL=(i + k) % 24, i_c=m, tid=tid, y1=s_csv,
-                                  valid=bool(EDGE_LO <= m <= EDGE_HI)))
+                                  valid=bool(EDGE_LO <= m <= EDGE_HI),
+                                  bin102=int(np.floor((t_csv - segs[i]) * FS / 102))))   # caught()'s own formula
     assert len(cands) == st["n1"], (len(cands), st["n1"])
     want = {key: sorted(v) for key, v in st["candidates"].items()}
     got = {}
+    # caught.json floors the 0.1-ms-rounded CSV time, so a merger exactly on a 102-sample boundary sits one bin low
+    # there; the driver uses the exact sample. Counted for the record:
+    n_floor = sum(c["i_c"] // 102 != c["bin102"] for c in cands)
     for c in cands:
-        got.setdefault(f"{c['k']}_{c['i']}", []).append(int(np.floor(c["i_c"] / 102)))
+        got.setdefault(f"{c['k']}_{c['i']}", []).append(c.pop("bin102"))
     n_bad = sum(sorted(got.get(key, [])) != v for key, v in want.items())
-    assert n_bad == 0, f"{n_bad} (slide, segment) cells disagree with caught.json"
+    assert n_bad == 0 and set(got) <= set(want), f"{n_bad} (slide, segment) cells disagree with caught.json"
     # foreground: caught injections at their Y1 trigger
     caught = {r["id"]: r for r in st["rows"] if r["caught"]}
     trig = {x["id"]: x for p in sorted((B / "results" / "y1_bins").glob("fg_*.json")) for x in json.loads(p.read_text())}
@@ -154,7 +159,7 @@ def plan():
     bg = [c for c in cands if c["kind"] == "bg"]
     fg = [c for c in cands if c["kind"] == "fg"]
     summ = dict(n_bg=len(bg), n_bg_valid=sum(c["valid"] for c in bg), n_fg=len(fg), n_fg_valid=sum(c["valid"] for c in fg),
-                n_boxes=len(boxes), thr1=thr1, half_width=HALF_WIDTH, edge_s=[EDGE_LO / FS, EDGE_HI / FS])
+                n_boxes=len(boxes), n_caughtjson_bin_rounding=n_floor, thr1=thr1, half_width=HALF_WIDTH, edge_s=[EDGE_LO / FS, EDGE_HI / FS])
     import y1_bank as Y1
     atomic_json(STATE / "plan.json", dict(summary=summ, boxes=boxes, mcs=[float(m) for m in Y1.MCS], candidates=cands))
     log(f"plan: {summ}")
