@@ -580,6 +580,52 @@ def _series_files(det, g):
     return [L.STATE / f"ww_{tag}.npy", L.STATE / f"wsnip_{tag}.npy", L.STATE / f"rows_{tag}.json"]
 
 
+def k1perfect():
+    """C10 addendum control (registered in 69acadf before this ran): a PERFECT generator (Gaussian on the full
+    4096-s circle drawn exactly from the target PSD, X_k = sqrt(N fs S_k / 4)(a + i b), irfft; no pycbc), through the
+    same estimate_psd and the same 16 bands as k1precheck. Decision per detector on the two notch bands (476-537,
+    963-1024 Hz): ILL-POSED if the perfect generator also fails +-1.5 % in BOTH and in each 2/3 <= (r_perf - 1) /
+    (r_pycbc - 1) <= 3/2; GENERATOR AT FAULT if it passes all 16 bands; INCONCLUSIVE otherwise. Also the line heights
+    (target PSD peak / band median; fraction of bins above 10x the band median) per band."""
+    from lowmem_psd import estimate_psd
+    pyc = {r["det"]: r for r in json.loads((OUT / "k1precheck.json").read_text())["rows"]}
+    gps = segments()[0]
+    f = np.fft.rfftfreq(N, d=1.0 / FS)
+    edges = np.linspace(L.F_LO, L.F_HI, 17)
+    notch = (7, 15)                                                     # band indices of 476-537 and 963-1024 Hz
+    rows = []
+    for det in ("H1", "L1"):
+        psd = psd_from_kernel(det, gps)
+        rng = np.random.default_rng([SEED, 3, 0 if det == "H1" else 1])
+        X = np.sqrt(N * FS * psd / 4.0) * (rng.standard_normal(len(psd)) + 1j * rng.standard_normal(len(psd)))
+        X[0], X[-1] = X[0].real, X[-1].real
+        x = np.fft.irfft(X, n=N)
+        del X
+        est = estimate_psd(x)
+        del x
+        bands, heights = [], []
+        for a_, b_ in zip(edges[:-1], edges[1:]):
+            m = (f >= a_) & (f < b_)
+            bands.append(float(np.mean((est / psd)[m])))
+            med = float(np.median(psd[m]))
+            heights.append(dict(peak_over_median=float(psd[m].max() / med), frac_above_10x=float(np.mean(psd[m] > 10 * med))))
+        assert all(np.isfinite(v) for v in bands)
+        perf_fail = [abs(bands[i] - 1) > 0.015 for i in notch]
+        ratio = [(bands[i] - 1) / (pyc[det]["band_means"][i] - 1) for i in notch]
+        passes_all = all(abs(v - 1) <= 0.015 for v in bands)
+        verdict = ("ILL-POSED" if all(perf_fail) and all(2 / 3 <= r_ <= 1.5 for r_ in ratio) else
+                   "GENERATOR AT FAULT" if passes_all else "INCONCLUSIVE")
+        rows.append(dict(det=det, segment=gps, perfect_band_means=bands, pycbc_band_means=pyc[det]["band_means"],
+                         notch_bands_hz=[[float(edges[i]), float(edges[i + 1])] for i in notch],
+                         excess_ratio_perfect_over_pycbc=ratio, perfect_passes_all=passes_all, line_heights=heights,
+                         verdict=verdict))
+        log(f"k1perfect {det}: notch perfect {[round(bands[i], 4) for i in notch]} vs pycbc "
+            f"{[round(pyc[det]['band_means'][i], 4) for i in notch]} -> ratio {[round(r_, 3) for r_ in ratio]} | {verdict}")
+    res = dict(control="C10 addendum perfect generator", registered="69acadf", rows=rows,
+               peak_footprint_mb=L.peak_footprint_mb(), model="Claude Opus 5.5", env=L.stamp())
+    (OUT / "k1perfect.json").write_text(json.dumps(res, indent=1))
+
+
 def prepseries():
     """(3): noise series + PSD kernels for every (det, segment). If series_sha256.json exists (written before the
     K1 phase deleted the series), every series is checked against it and the step STOPS on any mismatch (the Bridge's
@@ -1159,5 +1205,5 @@ if __name__ == "__main__":
         k1gen(a[2], a[3], a[4])
     else:
         dict(plan=plan, golden=golden, prepseries=prepseries, vseries=vseries, run=run, calib=calib,
-             twinexact=twinexact, k1precheck=k1precheck, hashseries=hashseries, dropseries=dropseries,
+             twinexact=twinexact, k1precheck=k1precheck, k1perfect=k1perfect, hashseries=hashseries, dropseries=dropseries,
              status=status)[cmd](*[None if v == "-" else v for v in a[2:]])
