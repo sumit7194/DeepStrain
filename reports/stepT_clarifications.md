@@ -855,3 +855,36 @@ K1's first clause cannot be evaluated with it as designed.
 **The controls validated the measurement itself.** Null within 3·SE, must-fire fired with z ≥ 4.4, and the absolute
 level was 2.000 for exact noise. So the excess is a property of pycbc's noise, not of the check.
 
+## C21 (2026-11-27, PROPOSED for the Bridge's read, before any run): an FIR generator for K1-(A)
+
+**Why.** pycbc failed check (i) in H1 (+0.6 %). The ruled option (2) builds a third, independent generator from first
+principles and gives it the same check. The H1 excess in pycbc stays recorded as an **open observation**; its cause
+is not pursued.
+
+**The generator (`ci_series("fir")`).**
+1. White Gaussian noise, unit variance, in the time domain, seeded (202611261, 21, detector, series).
+2. **Linearly** convolved (scipy `fftconvolve`, mode "valid") with a zero-phase colouring filter
+   |C(f)| = √(S(f)·f_s/2). For unit-variance white noise, that is the one-sided PSD rule.
+3. S is the target PSD with C16's band rule: flat below 40 Hz and above 1,024 Hz.
+4. **The filter** is the central **64 s** of irfft(C), Tukey-tapered at 10 %.
+   - Fixed a priori: 4× the PSD estimate's own 16-s truncation, so lines resolved at 1/16 Hz are carried with margin.
+   - Not tuned to any number.
+5. The output then goes through prep's whitening path, like every generator in check (i).
+
+**How it differs from the others.** It is non-circular, time-domain and finite-impulse-response. That is a different
+algorithm from both the exact generator (a circular frequency-domain draw) and pycbc (lalsimulation SimNoise
+stitching).
+
+**The check, registered now.** Check (i) exactly as for pycbc:
+- fir against exact_a;
+- n = 216 series per detector, the same templates, boxes and snippets;
+- the same bar, |R − 1| ≤ 3·SE in all 4 cells;
+- the controls already validated at this n (null and must-fire, 2026-11-26).
+
+**Outcome.**
+- **If it passes,** FIR is K1-(A)'s generator, and the K1 maxima are generated with it. A new registration of the
+  K1-(A) run is needed: the same design as C10, with the generator swapped.
+- **If it fails,** that is the result, and the stop rule in the step-T value gate applies.
+
+**Cost.** About 2 × 216 series × about 6 s ≈ 45 min (CPU child plus MPS engine). Group footprint ≤ 3.5 GB.
+

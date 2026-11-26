@@ -956,7 +956,8 @@ def n1():
 # ------------------------------------------------------------------ check (i), C17
 CI_DIR = STATE / "checki"
 CI_SERIES, CI_SNIPS, CI_TEMPLATES, DELTA_STAR = 216, 31, 7, 0.003   # 144 -> 216 by the C17 rule (null SE 0.063 %)
-CI_GENS = ("exact_a", "exact_b", "planted", "pycbc_v3", "pycbc_orig")
+CI_GENS = ("exact_a", "exact_b", "planted", "pycbc_v3", "pycbc_orig", "fir")
+FIR_S = 64                                 # C21: colouring-filter length (s), Tukey-tapered
 
 
 def ci_boxes():
@@ -976,7 +977,26 @@ def ci_series(gen, det, j):
         return
     psd = psd_from_kernel(det, gps)
     w = R.whiten_filter(psd)
-    if gen.startswith("pycbc"):
+    if gen == "fir":
+        # C21: white Gaussian noise (unit variance, time domain) LINEARLY convolved with a finite zero-phase colouring
+        # filter |C(f)| = sqrt(S(f) fs / 2), S being the PSD flat below 40 Hz and above 1024 Hz (C16's band rule);
+        # the filter is the 64-s central part of irfft(C), Tukey-tapered (10 %). One-sided PSD of the output: |C|^2 x
+        # (2 / fs) = S, up to the filter's truncation.
+        f = np.fft.rfftfreq(N, d=1.0 / FS)
+        ps = psd.copy()
+        k40, k1024 = int(np.searchsorted(f, C.F_LOWER - 10)), int(np.searchsorted(f, L.F_HI))
+        ps[:k40], ps[k1024:] = ps[k40], ps[k1024]
+        c_full = np.fft.irfft(np.sqrt(ps * FS / 2.0), n=N)
+        half = FIR_S * FS // 2
+        taps = np.concatenate([c_full[-half:], c_full[:half]])          # zero-phase filter, centred
+        from scipy.signal.windows import tukey
+        taps *= tukey(len(taps), 0.1)
+        rng = np.random.default_rng([SEED, 21, di, j])
+        wn = rng.standard_normal(N + len(taps) - 1)
+        from scipy.signal import fftconvolve
+        x = fftconvolve(wn, taps, mode="valid")                          # linear convolution, length N
+        assert len(x) == N
+    elif gen.startswith("pycbc"):
         from pycbc.noise.gaussian import noise_from_psd
         from pycbc.types import FrequencySeries
         f = np.fft.rfftfreq(N, d=1.0 / FS)
