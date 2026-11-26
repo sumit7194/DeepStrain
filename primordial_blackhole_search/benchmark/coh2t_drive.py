@@ -301,6 +301,23 @@ class _qpatch:
             L.q_range = self.orig
 
 
+SHRINKS = (1.0, 0.85, 0.7, 0.6, 0.5)     # C20: Fable's verified rule is (1.0, 0.85, 0.7); 0.6 and 0.5 are an ADDITION
+
+
+def shrink_select(mc_star, half_width, l_max):
+    """C20, shared by grid() and c19check: coh2c_grid.main's rule (lines 180-191), shrink until <= 1 % of the
+    Monte Carlo points fall below the 0.97 minimal match, extended (disclosed addition) by 0.6 and 0.5. Returns
+    (points, summary, shrink); a box still failing at 0.5 is a correctness gate, raised before any of its candidates
+    is scored (so the run stops at a box boundary) and logged with the box."""
+    from coh2c_verify import grid_points
+    for shrink in SHRINKS:
+        pts, gsum = grid_points(mc_star, half_width, l_max, shrink)
+        if gsum["frac_below_097"] <= 0.01:
+            return pts, gsum, shrink
+    log(f"C20 GATE: Mc* {mc_star} L{l_max} still {gsum['frac_below_097']:.3f} below 0.97 at shrink 0.5")
+    raise AssertionError(f"C20 gate: grid fails minimal match at shrink 0.5 (Mc* {mc_star}, L_max {l_max})")
+
+
 def grid(tid, l_max):
     """Constructed grid + reference lattice + assignment for one box, cached. The grid is coh2c_grid.build's (via
     coh2c_verify.grid_points), with its fitting-factor Monte Carlo kept as a per-box record."""
@@ -316,11 +333,7 @@ def grid(tid, l_max):
         # C20: coh2c_grid.main's rule, the one Fable's verified grids (G_grids.json) were built with: shrink the hexagon
         # 1.0 -> 0.85 -> 0.7 until at most 1 % of the Monte Carlo points fall below the 0.97 minimal match; (0.6, 0.5)
         # added only as an extension, and a box still failing after 0.5 stops the run (correctness gate)
-        for shrink in (1.0, 0.85, 0.7, 0.6, 0.5):
-            pts, gsum = grid_points(mc_star, HALF_WIDTH, l_max, shrink)
-            if gsum["frac_below_097"] <= 0.01:
-                break
-        assert gsum["frac_below_097"] <= 0.01, (tid, l_max, "grid fails minimal match even at shrink 0.5")
+        pts, gsum, shrink = shrink_select(mc_star, HALF_WIDTH, l_max)
         refs, lat_worst = L.reference_lattice(mc_star, HALF_WIDTH, l_max, L.dtau_max(4.0))
     cs = np.array([L.coeffs(mc, q) for mc, q in pts])
     asg = [L.assign(c, refs) for c in cs]
@@ -329,7 +342,9 @@ def grid(tid, l_max):
     out = dict(mc_star=np.float64(mc_star), pts=np.array(pts), coeffs=cs, ref_of=np.array([j for j, _ in asg]),
                ref_mcq=np.array([(r[0], r[1], r[2]) for r in refs]), ref_coeffs=np.array([r[3] for r in refs]),
                worst_dtau=np.float64(worst), ff_min=np.float64(gsum["ff_min"]), ff_p01=np.float64(gsum["ff_p01"]),
-               c19=np.bool_(qp.active), shrink=np.float64(shrink), frac_below_097=np.float64(gsum["frac_below_097"]))
+               c19=np.bool_(qp.active), shrink=np.float64(shrink), frac_below_097=np.float64(gsum["frac_below_097"]),
+               ff_median=np.float64(gsum["ff_median"]), n_area_estimate=np.float64(gsum["n_area_estimate"]),
+               gsum_json=json.dumps(gsum, default=float))             # the full ff table, kept for every box
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_name(path.stem + ".tmp.npz")
     np.savez(tmp, **{k: v for k, v in out.items() if k != "coeffs"})
@@ -1071,6 +1086,21 @@ def checki_eval(a, b, tag):
     return out
 
 
+def gridstats():
+    """C20 condition 1: how many built boxes per L_max needed each shrink; the boxes at 0.6 / 0.5 (the disclosed
+    addition) listed with their stored ff tables."""
+    out = {}
+    for l_max in (128, 384):
+        fs = sorted((STATE / "grids").glob(f"L{l_max}_tid*.npz"))
+        zs = [(f, dict(np.load(f))) for f in fs]
+        zs = [(f, z) for f, z in zs if "shrink" in z]
+        counts = {str(sh): int(sum(float(z["shrink"]) == sh for _, z in zs)) for sh in SHRINKS}
+        extra = {f.stem: json.loads(str(z["gsum_json"])) for f, z in zs if float(z["shrink"]) < 0.7}
+        out[f"L{l_max}"] = dict(n_built=len(zs), by_shrink=counts, beyond_verified_rule=extra)
+    (OUT / "grid_shrink_stats.json").write_text(json.dumps(out, indent=1, default=float))
+    log(f"grid shrink stats: {json.dumps({k: v['by_shrink'] for k, v in out.items()})}")
+
+
 def c19check():
     """C19 conditions (the Bridge, 2026-11-26), with C20's shrink rule:
     (1) q_range nested over the in-population chirp masses of the affected boxes, at BOTH edges (light: growing with
@@ -1139,11 +1169,29 @@ def c19check():
         pts, _ = grid_points(float(mcs[tid]), HALF_WIDTH, l_max, sh)
         ident[f.name] = dict(identical=bool(np.array_equal(np.array(pts), old["pts"])), shrink_cached=sh,
                              pts_sha256=hashlib.sha256(np.ascontiguousarray(old["pts"]).tobytes()).hexdigest())
-    res = dict(check="C19 conditions + C20 shrink rule", affected_tids=bad, light_tids=light, heavy_tids=heavy,
+    # (4) C20 condition 3: the production shrink selection reproduces Fable's verified G_grids.json for every
+    # (L_max, Mc) it verified, at G_grids' half-width. Bars fixed before running: the same final shrink, identical
+    # n_grid (geometry only), both <= 1 % below 0.97, and |ff_median difference| <= 0.002 (MC noise; G_grids used
+    # one rng stream across builds, so its Monte Carlo points are not reproduced exactly).
+    G = json.loads((B / "results" / "coh2c" / "G_grids.json").read_text())
+    final = {}
+    for r in G["rows"]:
+        final[(r["l_max"], r["mc_star"])] = r                        # rows are in shrink order; the last one is chosen
+    repro = {}
+    for (l_max, mc), r in sorted(final.items()):
+        pts, gsum, sh = shrink_select(mc, G["half_width"], l_max)
+        e = dict(shrink_fable=r["shrink"], shrink_ours=sh, n_fable=r["n_grid"], n_ours=gsum["n_grid"],
+                 below_fable=r["frac_below_097"], below_ours=gsum["frac_below_097"],
+                 ff_median_fable=r["ff_median"], ff_median_ours=gsum["ff_median"])
+        e["passed"] = bool(sh == r["shrink"] and gsum["n_grid"] == r["n_grid"] and gsum["frac_below_097"] <= 0.01
+                           and r["frac_below_097"] <= 0.01 and abs(gsum["ff_median"] - r["ff_median"]) <= 0.002)
+        repro[f"L{l_max}_mc{mc}"] = e
+        log(f"G_grids repro L{l_max} Mc {mc}: {e}")
+    res = dict(check="C19 conditions + C20 shrink rule", g_grids_reproduction=repro, affected_tids=bad, light_tids=light, heavy_tids=heavy,
                affected_mc=[float(mcs[t]) for t in bad], population_mc=[lo_pop, hi_pop], nested=nest, counts=counts,
                fitting_factor=ff, unaffected_cached_grids=ident,
                passed=bool(all(v["nested"] for v in nest.values()) and all(v["passed"] for v in ff.values())
-                           and all(v["identical"] for v in ident.values())),
+                           and all(v["identical"] for v in ident.values()) and all(v["passed"] for v in repro.values())),
                peak_footprint_mb=L.peak_footprint_mb(), model="Claude Opus 5.5", env=L.stamp())
     (OUT / "C19_check.json").write_text(json.dumps(res, indent=1, default=float))
     log(f"C19 check {'PASS' if res['passed'] else 'FAIL'}: nested {[(k, v['nested']) for k, v in nest.items()]}; "
@@ -1776,5 +1824,5 @@ if __name__ == "__main__":
         {"k2gates": k2gates, "k2prep": k2prep}[cmd](a[2], a[3], a[4])
     else:
         dict(plan=plan, golden=golden, prepseries=prepseries, vseries=vseries, run=run, calib=calib,
-             twinexact=twinexact, k1precheck=k1precheck, k1perfect=k1perfect, k1diag=k1diag, k2select=k2select, k2run=k2run, n1=n1, checki=checki, c19check=c19check, hashseries=hashseries, dropseries=dropseries,
+             twinexact=twinexact, k1precheck=k1precheck, k1perfect=k1perfect, k1diag=k1diag, k2select=k2select, k2run=k2run, n1=n1, checki=checki, c19check=c19check, gridstats=gridstats, hashseries=hashseries, dropseries=dropseries,
              status=status)[cmd](*[None if v == "-" else v for v in a[2:]])

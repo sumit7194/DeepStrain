@@ -725,6 +725,11 @@ They hold 335 bg candidates (0.94 % of valid bg), 335 twins, 928 K1 samples, and
 No caught injection is in them. Per-tid counts are in `results/coh2t/C19_check.json`.
 
 **Ruled (the Bridge): option (A).**
+- The Bridge's rule as first stated ("q_range at the box's UPPER edge, since the allowed q set grows with Mc") was
+  **wrong at the heavy edge**. There the q set shrinks with Mc. The Bridge says it should have checked both ends of the
+  population before ruling; c19check caught the error.
+- **What is implemented is the Bridge's stated fallback, the union over the box's chirp-mass range,** for all 15
+  boxes. The nesting is verified in each direction.
 
 **Correction to (A), found before any run.** "q range at the box's upper chirp-mass edge" holds only at the LIGHT edge.
 At the heavy edge the allowed q set SHRINKS as Mc grows, so the in-population part of a heavy box is its bottom. This
@@ -754,6 +759,24 @@ of the fitting-factor Monte Carlo points fall below the 0.97 minimal match.
 - (0.6, 0.5) are added only as an extension. A box that still fails at 0.5 stops the run, as a correctness gate.
 - The chosen shrink and its below-0.97 fraction are stored per grid.
 - Cached grids from before C20 have no shrink and are rebuilt, never reused.
+
+**Ruled (the Bridge): a DEFECT FIX, not a rule change.** The Bridge checked coh2c_grid.py lines 180–191 itself.
+
+**Conditions:**
+1. **The extension to 0.6 and 0.5 is an ADDITION,** not part of Fable's verified rule. `gridstats` reports how many
+   boxes per L_max need 0.85, 0.7, 0.6 and 0.5. Every grid stores its full fitting-factor table (`gsum_json`), and
+   boxes at 0.6 or 0.5 are listed with theirs.
+2. The gate at 0.5 is raised inside the chunk child, before any candidate of that box is scored. So it stops at a box
+   boundary, and the box is logged.
+3. c19check asserts that the production shrink selection (`shrink_select`, the same function `grid()` calls)
+   reproduces `G_grids.json` for every (L_max, Mc) Fable verified, at G_grids' half-width. **Bars, fixed before
+   running:**
+   - the same final shrink;
+   - an identical n_grid;
+   - both at most 1 % below 0.97;
+   - |ff_median difference| ≤ 0.002. That is MC noise: G_grids drew from one rng stream across builds, so its
+     Monte Carlo points are not reproduced exactly.
+4. **Re-cost from production,** flagged if the main passes move by more than 25 %.
 
 **Effect on earlier runs.** The pilot boxes (Mc 0.35 and 0.50, L128), the golden (Mc 0.70, L128) and N1 (a precision
 check, so not coverage-dependent) all sit where G_grids shows shrink 1.0 already passes. Check (i) has not yet produced
