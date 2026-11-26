@@ -78,6 +78,7 @@ DECOYS = ("dec_sg", "dec_train", "dec_drift")
 N_DECOY = 200                      # registration §5 F2: 200 per family
 SEED = 202611261                   # this build's own seed (twin draws, decoy choice and parameters); NOT the fresh seed
 WRONG_MC = 1.05                    # F1(b): box offset to chirp mass +5 %
+TWIN_PAD = 2                       # C9 (amended): twin drawn over 2 x 512 s, cut to the central 512 s
 UNIT_STRAIN = 1e-21                # decoys are built at this raw-strain amplitude, then scaled (C6)
 Y1_BIN, Y1_WIN, Y1_CROP = 256, 64 * FS, C.WHITEN_CROP_SEC * FS
 
@@ -388,13 +389,20 @@ class Fine:
 
 
 def noise_spectrum(c, det, y, w_snip):
-    """The snippet's noise spectrum: the real (gated, double-whitened) series, or for the twin a Gaussian draw on the
-    snippet grid with the same PSD (C9): Y_k = w_k sqrt(NS/2) (a + i b), a, b ~ N(0, 1), which has E|Y_k|^2 = NS w_k^2,
-    the same as a 512-s cut of the real series. kappa (the float32 range scale) always comes from the noise."""
+    """The snippet's noise spectrum: the real (gated, double-whitened) series, or for the twin (C9, as amended after the
+    first C9 check failed) a Gaussian draw of TWIN_PAD x 512 s with the same PSD, Y_k = w_k sqrt(M/2) (a + i b), cut to
+    its central 512 s with the same rectangular cut the real series gets. A draw made directly on the 512-s grid has
+    no cut, hence none of the cut's leakage into the whitening notches at narrow lines (476-537 Hz and the band top
+    were 2-3.5x low in it): results/coh2t/twincheck_*_run1_snippetgrid_FAIL.json. kappa always comes from the noise."""
     if c["kind"] == "twin":
         rng = np.random.default_rng([SEED, int(c["n"]), 0 if det == "H1" else 1])
-        ysn = w_snip * np.sqrt(NS / 2.0) * (rng.standard_normal(len(w_snip)) + 1j * rng.standard_normal(len(w_snip)))
-        ysn[0], ysn[-1] = ysn[0].real, ysn[-1].real
+        m = TWIN_PAD * NS
+        f_s = np.arange(NS // 2 + 1) * (FS / NS)
+        w2 = np.interp(np.arange(m // 2 + 1) * (FS / m), f_s, w_snip)
+        Y = w2 * np.sqrt(m / 2.0) * (rng.standard_normal(len(w2)) + 1j * rng.standard_normal(len(w2)))
+        Y[0], Y[-1] = Y[0].real, Y[-1].real
+        a = (m - NS) // 2
+        ysn = np.fft.rfft(np.fft.irfft(Y, n=m)[a: a + NS])
     else:
         lo = snippet_start(c["i_c"])
         ysn = np.fft.rfft(np.asarray(y[lo: lo + NS], dtype=np.float64))
@@ -656,10 +664,14 @@ def twincheck(det="H1", gps=None):
                          real=float(np.mean(np.abs(real[m]) ** 2 / ref[m]))))
     worst = max(abs(r["snippet"] / r["cut_of_full"] - 1) for r in rows)
     v_snip, v_cut = float(np.var(np.fft.irfft(snip, n=NS))), float(np.var(np.fft.irfft(cut, n=NS)))
+    # reported, not gated: the matched-filter-weighted noise power ratio (weight f^-7/3 w^2, as a TaylorF2 template)
+    wt = np.where(ref > 0, f.clip(1e-9) ** (-7.0 / 3.0) * w_snip ** 2, 0.0)
+    mf = {k: float(np.sum(wt * np.abs(v) ** 2) / np.sum(wt * ref)) for k, v in (("snippet", snip), ("cut_of_full", cut),
+                                                                              ("real", real))}
     ok = worst <= 0.02 and abs(v_snip / v_cut - 1) <= 0.01
     res = dict(check="C9 twin: snippet-grid draw vs cut of a full draw", det=det, segment=gps, snippet_start=lo,
                bars=dict(band_ratio=0.02, variance_ratio=0.01), bands=rows, worst_band_ratio_dev=worst,
-               var_snippet=v_snip, var_cut=v_cut, var_real=float(np.var(np.asarray(y_real[lo: lo + NS], np.float64))),
+               var_snippet=v_snip, var_cut=v_cut, matched_filter_weighted_power=mf, twin_pad=TWIN_PAD, var_real=float(np.var(np.asarray(y_real[lo: lo + NS], np.float64))),
                passed=bool(ok), peak_footprint_mb=L.peak_footprint_mb(), model="Claude Opus 5.5", env=L.stamp())
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / f"twincheck_{det}_{gps}.json").write_text(json.dumps(res, indent=1))
