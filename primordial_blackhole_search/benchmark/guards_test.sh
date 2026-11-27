@@ -2,8 +2,10 @@
 # Regression tests for the guards under the fleet rule of 2026-11-25: NO hard cap may end a job. Pressure PAUSES
 # (SIGSTOP) and ALERTS; recovery RESUMES (SIGCONT); RSS over the guide value is INFORM only; nothing ever kills.
 #   1. ../../.claude-coordination/blackhole_watchdog_9f21.sh  pause/resume on swap or compressor GROWTH
-#   2. benchmark/job_guard.sh (via run.sh)                    pause/resume by the 2026-11-27 rule (level, memory
-#                                                              free %, absolute swap, disk); RSS inform
+#   2. benchmark/job_guard.sh (via run.sh)                    pause/resume by the 2026-11-27 19:14 rule (level,
+#                                                              memory free %, swap GROWTH, disk); footprint, swap and
+#                                                              disk inform (the swap amendment's own pass/fail
+#                                                              tests: benchmark/guard_swap_test.sh)
 #   3. benchmark/run.sh                                       BENCH_RSS_CAP_KB validation
 # Every case checks the process state, not the log: 'T' in ps stat = stopped (paused). Alerts go to a test inbox
 # under state/, never to the Bridge's real one. Uses only a tiny dummy process. ~1.5 min.
@@ -45,13 +47,14 @@ echo "2. job_guard via run.sh: pause, resume, inform, never kill"
 cd "$ROOT" || exit 1
 SO="$S/guard_swap"; FO="$S/guard_free"; LO="$S/guard_level"; MO="$S/guard_memfree"
 rm -f "$SO" "$FO" "$LO" "$MO" "$S/guardrun.pid" "$S/guardrun.log"
-echo 1000 > "$SO"; echo 9 > "$FO"; echo 1 > "$LO"; echo 50 > "$MO"
+echo 6000 > "$SO"; echo 9 > "$FO"; echo 1 > "$LO"; echo 50 > "$MO"
 GUARD_SWAP_OVERRIDE_FILE="$SO" GUARD_FREE_OVERRIDE_FILE="$FO" GUARD_LEVEL_OVERRIDE_FILE="$LO" \
-GUARD_MEMFREE_OVERRIDE_FILE="$MO" GUARD_INTERVAL_S=1 BENCH_RSS_CAP_KB=1000 \
+GUARD_MEMFREE_OVERRIDE_FILE="$MO" GUARD_INTERVAL_S=1 GUARD_SWAP_STILL_S=3 BENCH_RSS_CAP_KB=1000 \
   "$B/run.sh" guardrun "benchmark/state/guard_dummy.py" >/dev/null
 P=$(cat "$S/guardrun.pid"); sleep 5
 check "footprint over a 1000-KB guide value: INFORM only, still running" "$(state $P)" running
-check "inform line logged" "$(grep -c 'INFORM' "$S/guardrun.log")" 1
+check "inform line logged" "$(grep -c 'INFORM: group footprint' "$S/guardrun.log")" 1
+check "free disk 9 GB (< 20): disk INFORM logged, still running" "$(grep -c 'INFORM: free disk' "$S/guardrun.log")/$(state $P)" 1/running
 echo 2 > "$LO"; sleep 3
 check "level 2 (warn; the old rule paused on this): still running" "$(state $P)" running
 echo 4 > "$LO"; sleep 3
@@ -67,14 +70,15 @@ echo 30 > "$MO"; sleep 3
 check "memory free 30% (hysteresis, < 35): still paused" "$(state $P)" paused
 echo 40 > "$MO"; sleep 3
 check "memory free 40% (>= 35): RESUMED" "$(state $P)" running
-echo 2500 > "$SO"; sleep 3
-check "swap 2500 MB (<= 3072): still running" "$(state $P)" running
-echo 3500 > "$SO"; sleep 3
-check "swap 3500 MB (> 3072): PAUSED" "$(state $P)" paused
-echo 2500 > "$SO"; sleep 3
-check "swap 2500 MB (hysteresis, > 2048): still paused" "$(state $P)" paused
-echo 1500 > "$SO"; sleep 3
-check "swap 1500 MB (<= 2048): RESUMED" "$(state $P)" running
+echo 6400 > "$SO"; sleep 3
+check "swap 6000->6400 MB (+400 <= 512): still running" "$(state $P)" running
+check "swap 6400 MB (> 6144): swap INFORM logged, no action" "$(grep -c 'INFORM: total swap' "$S/guardrun.log")" 1
+echo 6600 > "$SO"; sleep 3
+check "swap 6600 MB (+600 > 512 over baseline): PAUSED" "$(state $P)" paused
+echo 6700 > "$SO"; sleep 2
+check "swap still rising: still paused" "$(state $P)" paused
+sleep 4
+check "swap still for > 3 s (stale, high): RESUMED" "$(state $P)" running
 echo x > "$MO"; sleep 3
 check "unreadable memory metric: PAUSED (fail safe)" "$(state $P)" paused
 echo 40 > "$MO"; sleep 3
