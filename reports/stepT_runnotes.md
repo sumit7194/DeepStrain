@@ -284,3 +284,38 @@ written out before they run.
     no side experiments on the Mac mini while a production run is live; use a scratch copy when it is idle, or the Air.
   - (2) Stopping a production job is a decision to ask about first, unless a correctness or safety condition forces it.
     The guard had already paused this one, so asking would have cost nothing.
+- **Guard pauses from load (the Bridge's rule, 2026-11-27).** The relaunch paused once for 11 s at 03:10:57, at box 59,
+  under level-2 pressure from W6P12 (4.8 GB) running beside L128 (about 3.6 GB). The guard resumed it at level 1.
+  - Let the guard handle these.
+  - Report only if pauses add up to more than about 10 % of wall time in a day. Then look at a calmer pause rule (e.g.
+    level 4, or free < 30 % with growing swap), not at moving jobs.
+- **Guard RESUME rule amended (the Bridge's decision, 2026-11-27 13:28 IST).**
+  - **What happened.** From 12:07 the kernel pressure level sat at 2 ("warn") as the box's steady state, while memory
+    was ~50 % free and swap ~0.4 GB. The guard paused L128 at 12:33:47; it resumed at 13:04:50 on a brief dip to
+    level 1, and paused again at 13:15:04.
+  - **Why the old rule cost time for no safety.** A SIGSTOPped job keeps all its memory (our two stopped processes
+    held ~3.9 GB). Staying paused frees nothing, and level 1 would not return while Cuspis W6P12 runs (~4.8 GB,
+    until ~13:00 on 28 Nov). So the old rule would have paused about a day for no gain.
+  - **The new rule (`benchmark/job_guard.sh`).** Still pause-only; it never kills.
+    - PAUSE at level ≥ 4 (critical), or memory free < 25 %, or swap > 3,072 MB, or disk < 5 GB.
+    - RESUME at level ≤ 2, memory free ≥ 35 %, swap ≤ 2,048 MB and disk ≥ 6 GB.
+    - An unreadable metric counts as pressure: pause, never resume.
+    - Memory free % is read from `memory_pressure -Q`.
+    - Before: pause at level ≥ 2 or swap > baseline + 1,536 MB; resume only at level 1.
+  - **Tests.** `guards_test.sh` was extended with level and memory-free override hooks and 13 new cases (level 2 runs,
+    level 4 pauses with a CRITICAL alert, memory and swap hysteresis, fail-safe on an unreadable metric). ALL GREEN at
+    13:30.
+  - **Switch-over, 13:31 IST, DeepStrain.**
+    - The new file was installed by atomic rename, so the running guard kept its old copy.
+    - Stopped the old guard 88673, after verifying its command line.
+    - SIGCONT to pgid 88672, logged in `state/coh2t_L128.log` as a MANUAL line.
+    - Started the new guard, PID 70722, with the same footprint guide value of 4,508,877 KB.
+    - Confirmed afterwards: the chunk process is in state R, and the queue and driver are in S, no longer T. Box output
+      resumed at 13:31:27.
+  - **Pause cost today before the switch.** About 47 min in the two long pauses, plus ~17 min in ~30 short ones,
+    ≈ 4.5 % of a day.
+  - **Seen at resume (inform only).**
+    - Group footprint was 4.94 GB, against the 4.3 GB guide value.
+    - Within the current 50-box sub-run the driver grew ~40 MB per box (3.01 → 3.58 GB over 14 boxes). The 50-box
+      process recycle resets it.
+    - Watching, not acting.

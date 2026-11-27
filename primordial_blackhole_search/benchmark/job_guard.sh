@@ -8,22 +8,29 @@
 #
 # Usage: benchmark/job_guard.sh <job name>   (run.sh starts it; reads state/<name>.pid)
 #
-# Conditions:
-#   PAUSE    kernel pressure level >= 2, OR swap used > arming baseline + GUARD_SWAP_GROW_MB (1536),
-#            OR free disk < GUARD_DISK_PAUSE_GB (5)
-#   RESUME   level 1 AND swap <= baseline + grow AND free disk >= GUARD_DISK_RESUME_GB (6)
+# Conditions (amended 2026-11-27 on the Bridge's decision: kernel level 2 became this box's steady state while a
+# stopped job keeps all its memory, so 'resume only at level 1' paused for ~a day with no safety gain):
+#   PAUSE    kernel pressure level >= 4 (critical), OR memory free % < GUARD_MEMFREE_PAUSE_PCT (25),
+#            OR swap used > GUARD_SWAP_PAUSE_MB (3072), OR free disk < GUARD_DISK_PAUSE_GB (5)
+#   RESUME   level <= 2 AND memory free % >= GUARD_MEMFREE_RESUME_PCT (35) AND swap used <= GUARD_SWAP_RESUME_MB
+#            (2048) AND free disk >= GUARD_DISK_RESUME_GB (6)
+#   (before 2026-11-27: PAUSE at level >= 2 or swap > arming baseline + 1536 MB; RESUME only at level 1)
 #   CRITICAL level >= 4 OR free disk < 2 GB: pause (as above) plus a CRITICAL alert
+#   memory free % = 'System-wide memory free percentage' from memory_pressure -Q
 #   INFORM   process-group MEMORY FOOTPRINT (top MEM = phys_footprint; NOT RSS, which misses Metal/MPS unified memory:
 #            a 64x2^21 MPS batch showed ~5.8 GB footprint at tens of MB RSS, 2026-11-26) > BENCH_RSS_CAP_KB (4 GB):
 #            log and alert once, NO action
 # Alerts go to GUARD_INBOX (default: the Bridge's inbox directory).
-# Test hooks: GUARD_SWAP_OVERRIDE_FILE / GUARD_FREE_OVERRIDE_FILE (read every poll), GUARD_INTERVAL_S.
+# Test hooks: GUARD_SWAP_OVERRIDE_FILE / GUARD_FREE_OVERRIDE_FILE / GUARD_LEVEL_OVERRIDE_FILE /
+# GUARD_MEMFREE_OVERRIDE_FILE (read every poll), GUARD_INTERVAL_S.
 cd "$(dirname "$0")" || exit 1
 NAME=$1
-INTERVAL=${GUARD_INTERVAL_S:-5}; GROW=${GUARD_SWAP_GROW_MB:-1536}; CAP=${BENCH_RSS_CAP_KB:-4194304}
+INTERVAL=${GUARD_INTERVAL_S:-5}; CAP=${BENCH_RSS_CAP_KB:-4194304}
+SPAUSE=${GUARD_SWAP_PAUSE_MB:-3072}; SRESUME=${GUARD_SWAP_RESUME_MB:-2048}
+MPAUSE=${GUARD_MEMFREE_PAUSE_PCT:-25}; MRESUME=${GUARD_MEMFREE_RESUME_PCT:-35}
 DPAUSE=${GUARD_DISK_PAUSE_GB:-5}; DRESUME=${GUARD_DISK_RESUME_GB:-6}
 INBOX=${GUARD_INBOX:-/Users/sumit/Github/.claude-coordination/inbox/bridge}
-for v in "$INTERVAL" "$GROW" "$CAP" "$DPAUSE" "$DRESUME"; do
+for v in "$INTERVAL" "$CAP" "$SPAUSE" "$SRESUME" "$MPAUSE" "$MRESUME" "$DPAUSE" "$DRESUME"; do
   case "$v" in ''|*[!0-9]*) echo "job_guard: refusing non-integer setting '$v'" >&2; exit 2;; esac
 done
 LOG=state/$NAME.log
@@ -47,33 +54,44 @@ free_gb() {
   if [ -n "${GUARD_FREE_OVERRIDE_FILE:-}" ] && [ -f "$GUARD_FREE_OVERRIDE_FILE" ]; then cat "$GUARD_FREE_OVERRIDE_FILE"; return; fi
   df -g / | awk 'NR==2{print $4}'
 }
+level() {
+  if [ -n "${GUARD_LEVEL_OVERRIDE_FILE:-}" ] && [ -f "$GUARD_LEVEL_OVERRIDE_FILE" ]; then cat "$GUARD_LEVEL_OVERRIDE_FILE"; return; fi
+  sysctl -n kern.memorystatus_vm_pressure_level
+}
+memfree_pct() {
+  if [ -n "${GUARD_MEMFREE_OVERRIDE_FILE:-}" ] && [ -f "$GUARD_MEMFREE_OVERRIDE_FILE" ]; then cat "$GUARD_MEMFREE_OVERRIDE_FILE"; return; fi
+  memory_pressure -Q | awk -F': ' '/free percentage/{v=$2; sub("%","",v); print int(v)}'
+}
 
 group_mem_kb() {  # sum of top's MEM (= phys_footprint, includes Metal/MPS unified memory) over the job's process group
   top -l 1 -stats pgrp,mem 2>/dev/null | awk -v g="$PG" '$1==g{v=$2; sub(/[+-]$/,"",v); u=substr(v,length(v)); n=v+0;
     if(u=="G")n*=1048576; else if(u=="M")n*=1024; else if(u=="B")n/=1024; s+=n} END{printf "%d", s}'
 }
 BASE=$(sysctl -n vm.swapusage | awk '{for(i=1;i<=NF;i++) if($i=="used") {v=$(i+2); sub("M","",v); print int(v)}}')
-say "armed: swap baseline ${BASE}MB (pause above +${GROW}), disk pause < ${DPAUSE} GB / resume >= ${DRESUME} GB, footprint (top MEM) inform > ${CAP} KB"
+say "armed (rule of 2026-11-27): pause at level>=4 | mem free<${MPAUSE}% | swap>${SPAUSE}MB | disk<${DPAUSE}GB; resume at level<=2 & mem free>=${MRESUME}% & swap<=${SRESUME}MB & disk>=${DRESUME}GB; swap at arming ${BASE}MB; footprint (top MEM) inform > ${CAP} KB"
 PAUSED=0; INFORMED=0; PEAK=0
 while kill -0 "$PID" 2>/dev/null; do
-  LVL=$(sysctl -n kern.memorystatus_vm_pressure_level); SWAP=$(swap_used); FREE=$(free_gb)
+  LVL=$(level); SWAP=$(swap_used); FREE=$(free_gb); MEMF=$(memfree_pct)
+  for v in "$LVL" "$MEMF" "$SWAP" "$FREE"; do  # an unreadable metric counts as pressure (pause, never resume)
+    case "$v" in ''|*[!0-9]*) LVL=4; MEMF=0; SWAP=${SWAP:-0}; FREE=${FREE:-0}; case "$SWAP$FREE" in *[!0-9]*) SWAP=0; FREE=0;; esac;; esac
+  done
   RSS=$(group_mem_kb)
   [ "$RSS" -gt "$PEAK" ] && PEAK=$RSS
   if [ "$RSS" -gt "$CAP" ] && [ $INFORMED -eq 0 ]; then
     INFORMED=1; say "INFORM: group footprint ${RSS} KB > ${CAP} KB (no action taken)"
     alert inform "memory footprint ${RSS} KB passed the ${CAP} KB guide value; NO action taken (inform only)"
   fi
-  if [ "$LVL" -ge 2 ] || [ "$SWAP" -gt $((BASE + GROW)) ] || [ "$FREE" -lt "$DPAUSE" ]; then
+  if [ "$LVL" -ge 4 ] || [ "$MEMF" -lt "$MPAUSE" ] || [ "$SWAP" -gt "$SPAUSE" ] || [ "$FREE" -lt "$DPAUSE" ]; then
     if [ $PAUSED -eq 0 ]; then
       kill -STOP -- -"$PG"; PAUSED=1
       TAG=paused; [ "$LVL" -ge 4 ] || [ "$FREE" -lt 2 ] && TAG=CRITICAL_paused
-      say "PAUSED (SIGSTOP pgid $PG): level=$LVL swap=${SWAP}MB (base ${BASE}) free=${FREE}GB"
-      alert "$TAG" "paused (SIGSTOP, not killed): pressure level $LVL, swap ${SWAP} MB (baseline ${BASE}, bar +${GROW}), free disk ${FREE} GB. Resumes automatically when level=1, swap <= $((BASE + GROW)) MB and disk >= ${DRESUME} GB."
+      say "PAUSED (SIGSTOP pgid $PG): level=$LVL memfree=${MEMF}% swap=${SWAP}MB free=${FREE}GB"
+      alert "$TAG" "paused (SIGSTOP, not killed): pressure level $LVL, memory free ${MEMF}%, swap ${SWAP} MB, free disk ${FREE} GB. Resumes automatically when level <= 2, memory free >= ${MRESUME}%, swap <= ${SRESUME} MB and disk >= ${DRESUME} GB."
     fi
-  elif [ $PAUSED -eq 1 ] && [ "$LVL" -le 1 ] && [ "$FREE" -ge "$DRESUME" ]; then
+  elif [ $PAUSED -eq 1 ] && [ "$LVL" -le 2 ] && [ "$MEMF" -ge "$MRESUME" ] && [ "$SWAP" -le "$SRESUME" ] && [ "$FREE" -ge "$DRESUME" ]; then
     kill -CONT -- -"$PG"; PAUSED=0
-    say "RESUMED (SIGCONT pgid $PG): level=$LVL swap=${SWAP}MB free=${FREE}GB"
-    alert resumed "resumed automatically: pressure level $LVL, swap ${SWAP} MB, free disk ${FREE} GB"
+    say "RESUMED (SIGCONT pgid $PG): level=$LVL memfree=${MEMF}% swap=${SWAP}MB free=${FREE}GB"
+    alert resumed "resumed automatically: pressure level $LVL, memory free ${MEMF}%, swap ${SWAP} MB, free disk ${FREE} GB"
   fi
   sleep "$INTERVAL"
 done
