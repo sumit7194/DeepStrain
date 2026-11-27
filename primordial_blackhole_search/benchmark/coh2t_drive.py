@@ -84,6 +84,15 @@ WRONG_MC = 1.05                    # F1(b): box offset to chirp mass +5 %
 N_MC, N_REAL, SLOT_S = 100_000, 8, 4.0    # C10: K1-(A) maxima, independent pycbc realisations, slot length
 K1_SEED0 = 7_000_000               # C10: lal ranlux seed = K1_SEED0 + 1000 * realisation + 2 * segment + detector
 CLOSURE_MAX = 3e-4                 # C12 (ruled): closure gate, relative to max(|z|, 1); breach stops at the box boundary
+# C12a (the Bridge's ruling, 2026-11-27): a breach is arbitrated by recomputing THAT box and kind in float64 on the CPU
+# from the same inputs; float64 clears -> its output is the box result ('C12 float64-arbitrated'); float64 breaches
+# too -> stop at the box boundary as before, and a sticky C12_STOP file refuses every later run until a ruling.
+_PREC = {"r": np.float32, "c": np.complex64}   # production precision; c12_float64 switches it for one recompute
+
+
+def _tr(t):
+    """The torch real dtype of the current precision."""
+    return t.float64 if _PREC["r"] is np.float64 else t.float32
 UNIT_STRAIN = 1e-21                # decoys are built at this raw-strain amplitude, then scaled (C6)
 Y1_BIN, Y1_WIN, Y1_CROP = 256, 64 * FS, C.WHITEN_CROP_SEC * FS
 
@@ -1321,11 +1330,11 @@ class Box:
         self.gr, self.n = gr, len(gr["coeffs"])
         self.ref_of = gr["ref_of"]
         self.h0 = h0                                                         # [n_ref, NS/2+1] complex64 (numpy)
-        self.h0c = [torch.tensor(h, device=dev) for h in h0]
+        self.h0c = [torch.tensor(h.astype(_PREC["c"]), device=dev) for h in h0]
         self.groups = []
         for j in range(len(h0)):
             idx = np.where(self.ref_of == j)[0]
-            dco = torch.tensor((gr["coeffs"][idx] - gr["ref_coeffs"][j]).astype(np.float32), device=dev)
+            dco = torch.tensor((gr["coeffs"][idx] - gr["ref_coeffs"][j]).astype(_PREC["r"]), device=dev)
             self.groups.append((idx, dco))
 
 
@@ -1336,7 +1345,7 @@ class Fine:
         import torch
         f = np.arange(NS // 2 + 1) * (FS / NS)
         self.kb = np.where((f >= L.F_LO - 12) & (f <= L.F_HI))[0]
-        self.basis = torch.tensor(L.basis(f[self.kb]).astype(np.float32), device=dev)
+        self.basis = torch.tensor(L.basis(f[self.kb]).astype(_PREC["r"]), device=dev)
         self.k_idx = torch.tensor(self.kb, device=dev, dtype=torch.int64)
         self.deltas = torch.arange(-DELTA, DELTA + 1, device=dev, dtype=torch.int64)
         # exact lag phases exp(2 pi i k delta / NS) for every band bin and every delta, built once (integer phase), as
@@ -1344,7 +1353,7 @@ class Fine:
         # first version's per-band slices grew the footprint to 4.3 GB over two boxes)
         cs, sn = [], []
         for a in range(0, len(self.kb), 65536):
-            ph = ((self.k_idx[a:a + 65536].unsqueeze(1) * self.deltas.unsqueeze(0)) % NS).to(torch.float32) * (2 * np.pi / NS)
+            ph = ((self.k_idx[a:a + 65536].unsqueeze(1) * self.deltas.unsqueeze(0)) % NS).to(_tr(torch)) * (2 * np.pi / NS)
             cs.append(torch.cos(ph)); sn.append(torch.sin(ph))
             del ph
         self.cosE, self.sinE = torch.cat(cs), torch.cat(sn)
@@ -1368,7 +1377,7 @@ def prepare(box, fine, ysn, kappa, w_snip, i_c):
     p = 8 and 4 are unions of them, asserted) and the fine-resolution product p0 for chi^2."""
     t = box.t
     lo = snippet_start(i_c)
-    ysn_t = t.tensor((ysn * kappa).astype(np.complex64), device=box.dev)
+    ysn_t = t.tensor((ysn * kappa).astype(_PREC["c"]), device=box.dev)
     refs = []
     for j in range(len(box.h0)):
         pw = (np.abs(box.h0[j]) * w_snip) ** 2
@@ -1388,12 +1397,12 @@ def band_series(box, fine, r, tidx, n0):
     t = box.t
     j = int(box.ref_of[tidx])
     rf = r["refs"][j]
-    dco = t.tensor((box.gr["coeffs"][tidx] - box.gr["ref_coeffs"][j]).astype(np.float32), device=box.dev)
+    dco = t.tensor((box.gr["coeffs"][tidx] - box.gr["ref_coeffs"][j]).astype(_PREC["r"]), device=box.dev)
     ph = (dco @ fine.basis) * float(-box.sign)
-    ph = ph + ((fine.k_idx * int(n0)) % NS).to(t.float32) * (2 * np.pi / NS)
+    ph = ph + ((fine.k_idx * int(n0)) % NS).to(_tr(t)) * (2 * np.pi / NS)
     zt0 = rf["p0"] * t.complex(t.cos(ph), t.sin(ph)) * (2.0 / NS)
     if "member" not in rf:                                   # [16, nb] band membership, fixed shape
-        mem = t.zeros(16, len(fine.kb), device=box.dev)
+        mem = t.zeros(16, len(fine.kb), device=box.dev, dtype=_tr(t))
         for jj, (a, b) in enumerate(rf["edges16"]):
             mem[jj, a:b] = 1.0
         rf["member"] = mem
@@ -1687,6 +1696,8 @@ def run(l_max, kinds="bg,fg", n_box=None, real=None):
                                      np.load(L.STATE / f"wsnip_{tag_}.npy"), {})
         return cache[(det, gps)]
     done_dir = out_dir(l_max)
+    assert not c12_stop_file(l_max).exists(), \
+        f"{c12_stop_file(l_max)} exists: a C12 breach survived float64 arbitration; no run until it is ruled on"
     tag = "" if real is None else f"_r{real}"
     todo, by_box = todo_boxes(pl, l_max, kinds, real)
     if n_box is not None:                                # after the candidate filter, so n_box counts real work
@@ -1718,31 +1729,14 @@ def run(l_max, kinds="bg,fg", n_box=None, real=None):
                 if out.exists():
                     continue
                 cs = [c for c in by_box.get(tid, []) if c["kind"] == kind]
-                res = []
-                for c in cs:
-                    files = extra_files(c) if kind != "null" else {}
-                    loaded = {det: np.load(f) for det, f in files.items()} or None
-                    if kind in ALLEN:
-                        res.append(allen_candidate(box, fine, series, c, loaded, l_max))
-                    elif kind == "twin":
-                        res.append(candidate(box, fine, series, c, None, target, twin=loaded))
-                    else:
-                        res.append(candidate(box, fine, series, c, loaded, target))
-                meta = dict(tid=tid, l_max=l_max, kind=kind, mc_star=float(box.gr["mc_star"]), n_tmpl=box.n,
-                            n_refs=len(box.h0c), worst_dtau=float(box.gr["worst_dtau"]), ff_min=float(box.gr["ff_min"]),
-                            candidates=[{k: c.get(k) for k in META} for c in cs], seconds=round(time.time() - t0, 2),
-                            peak_footprint_mb=L.peak_footprint_mb(), model="Claude Opus 5.5", status="UNVERIFIED")
-                arrs = {k: np.array([r[k] for r in res]) for k in res[0]} if res else {}
-                if "closure" in arrs:
-                    meta["closure_max"] = float(np.max(arrs["closure"]))
-                for k in ("H_rho", "H_chi2", "L_rho", "L_chi2", "closure"):
-                    if k in arrs:
-                        arrs[k] = arrs[k].astype(np.float32)
+                res = score_kind(box, fine, series, cs, kind, target, l_max)
+                meta, arrs = box_record(box, tid, l_max, kind, cs, res, t0)
+                if meta.get("closure_max", 0.0) > CLOSURE_MAX:      # C12a: float64 arbitration of THIS box and kind
+                    meta, arrs = c12_float64(tid, l_max, kind, cs, sign, refs_path, series, target, meta, arrs)
                 done_dir.mkdir(parents=True, exist_ok=True)
-                tmp = out.with_name(out.stem + ".tmp.npz")
-                np.savez_compressed(tmp, meta=json.dumps(meta), **arrs)
-                os.replace(tmp, out)
-                # C12: the box is written first (on the record), then a closure breach stops the run here
+                write_box(out, meta, arrs)
+                # C12: the box is written first (on the record), then a closure breach (float64 breaching too, C12a)
+                # stops the run here
                 assert meta.get("closure_max", 0.0) <= CLOSURE_MAX, \
                     f"closure {meta['closure_max']:.2e} > {CLOSURE_MAX:g} in box {tid} {kind}: correctness gate (C12)"
             for pth in [refs_path] + [f for c in by_box.get(tid, []) for f in extra_files(c).values()]:
@@ -1759,6 +1753,127 @@ def run(l_max, kinds="bg,fg", n_box=None, real=None):
                 f"{L.peak_footprint_mb()} MB | {(time.time() - t_start) / 3600:.2f} h")
         if not overlap and s + chunk_n < len(todo):
             nxt = launch(s + chunk_n)
+
+
+def score_kind(box, fine, series, cs, kind, target, l_max):
+    """Every candidate of one kind in one box, in plan order."""
+    res = []
+    for c in cs:
+        files = extra_files(c) if kind != "null" else {}
+        loaded = {det: np.load(f) for det, f in files.items()} or None
+        if kind in ALLEN:
+            res.append(allen_candidate(box, fine, series, c, loaded, l_max))
+        elif kind == "twin":
+            res.append(candidate(box, fine, series, c, None, target, twin=loaded))
+        else:
+            res.append(candidate(box, fine, series, c, loaded, target))
+    return res
+
+
+def box_record(box, tid, l_max, kind, cs, res, t0):
+    """(meta, arrays) of one box output, the stored fields as float32 (as written since the start of production)."""
+    meta = dict(tid=tid, l_max=l_max, kind=kind, mc_star=float(box.gr["mc_star"]), n_tmpl=box.n,
+                n_refs=len(box.h0c), worst_dtau=float(box.gr["worst_dtau"]), ff_min=float(box.gr["ff_min"]),
+                candidates=[{k: c.get(k) for k in META} for c in cs], seconds=round(time.time() - t0, 2),
+                peak_footprint_mb=L.peak_footprint_mb(), model="Claude Opus 5.5", status="UNVERIFIED")
+    arrs = {k: np.array([r[k] for r in res]) for k in res[0]} if res else {}
+    if "closure" in arrs:
+        meta["closure_max"] = float(np.max(arrs["closure"]))
+    for k in ("H_rho", "H_chi2", "L_rho", "L_chi2", "closure"):
+        if k in arrs:
+            arrs[k] = arrs[k].astype(np.float32)
+    return meta, arrs
+
+
+def write_box(out, meta, arrs):
+    tmp = out.with_name(out.stem + ".tmp.npz")
+    np.savez_compressed(tmp, meta=json.dumps(meta), **arrs)
+    os.replace(tmp, out)
+
+
+def c12_dir(l_max):
+    """C12a records (the float32 output of every arbitrated box, and float64 attempts that breached), beside the box
+    outputs and outside them, so no reducer glob over box_*.npz can pick one up."""
+    d = out_dir(l_max)
+    return d.parent / f"{d.name}_c12"
+
+
+def c12_stop_file(l_max):
+    return c12_dir(l_max) / "C12_STOP"
+
+
+def c12_float64(tid, l_max, kind, cs, sign, refs_path, series, target, meta32, arrs32):
+    """C12a: recompute one breaching box and kind in float64 on the CPU from the same inputs (the box's reference file,
+    the same series and snippet files, the same candidates), and arbitrate. Returns the (meta, arrays) to write as the
+    box result: float64's if it clears CLOSURE_MAX, else float32's (as before C12a) with the sticky stop file written,
+    so the caller's C12 assert stops the run at the box boundary. The float32 output is always kept in c12_dir."""
+    d = c12_dir(l_max)
+    d.mkdir(parents=True, exist_ok=True)
+    stem = f"box_{tid:04d}_{kind}"
+    write_box(d / f"{stem}_f32.npz", meta32, arrs32)
+    t0 = time.time()
+    log(f"C12 breach in box {tid} {kind}: float32 closure {meta32['closure_max']:.3e} > {CLOSURE_MAX:g}; "
+        f"recomputing in float64 on the CPU")
+    old = dict(_PREC)
+    _PREC.update(r=np.float64, c=np.complex128)
+    try:
+        eng64 = L.Engine("cpu", 4.0, 1, cdt=np.complex128, rdt=np.float64)
+        fine64 = Fine("cpu")
+        box64 = Box(tid, l_max, "cpu", eng64, sign, np.load(refs_path))
+        res = score_kind(box64, fine64, series, cs, kind, target, l_max)
+        meta64, arrs64 = box_record(box64, tid, l_max, kind, cs, res, t0)
+    finally:
+        _PREC.clear(); _PREC.update(old)
+    diffs = {}
+    same_sel = all(np.array_equal(arrs32[k], arrs64[k]) for k in ("tmpl", "lag") if k in arrs32)
+    for k in ("H_rho", "H_chi2", "L_rho", "L_chi2"):
+        if k in arrs32 and same_sel:
+            a, b = arrs32[k].astype(np.float64), arrs64[k].astype(np.float64)
+            diffs[k] = dict(max_abs=float(np.max(np.abs(a - b))),
+                            max_rel=float(np.max(np.abs(a - b) / np.maximum(np.abs(b), 1.0))))
+    c64 = meta64.get("closure_max", 0.0)
+    rec = dict(arbitrated=True, closure_f32=meta32["closure_max"], closure_f64=c64, cleared=bool(c64 <= CLOSURE_MAX),
+               same_template_and_lag_selection=bool(same_sel), f32_vs_f64=diffs, f32_record=str(d / f"{stem}_f32.npz"),
+               f64_seconds=round(time.time() - t0, 1), precision="float64 (CPU)")
+    if c64 <= CLOSURE_MAX:
+        meta64["c12"] = rec
+        log(f"C12 float64-arbitrated box {tid} {kind}: closure f32 {meta32['closure_max']:.3e} -> f64 {c64:.3e} "
+            f"(cleared); f64 output written as the box result; same selection {same_sel}; {rec['f64_seconds']} s")
+        return meta64, arrs64
+    write_box(d / f"{stem}_f64_breach.npz", dict(meta64, c12=rec), arrs64)
+    c12_stop_file(l_max).write_text(json.dumps(dict(tid=tid, kind=kind, **rec), indent=1))
+    log(f"C12 float64 BREACH box {tid} {kind}: closure f32 {meta32['closure_max']:.3e}, f64 {c64:.3e}; stopping, "
+        f"{c12_stop_file(l_max)} written")
+    return dict(meta32, c12=rec), arrs32
+
+
+def c12arb(l_max, tid, kind):
+    """C12a for a box whose breaching float32 output is already on disk (box 1227 bg, written by the pre-C12a code
+    before its run stopped): arbitrate it from its reference file, exactly as the in-run path does."""
+    l_max, tid = int(l_max), int(tid)
+    out = out_dir(l_max) / f"box_{tid:04d}_{kind}.npz"
+    z = np.load(out, allow_pickle=False)
+    meta32 = json.loads(str(z["meta"]))
+    arrs32 = {k: z[k] for k in z.files if k != "meta"}
+    assert "c12" not in meta32, f"{out} was already arbitrated"
+    assert meta32.get("closure_max", 0.0) > CLOSURE_MAX, f"{out} does not breach C12; nothing to arbitrate"
+    refs_path = STATE / "chunk" / f"refs_L{l_max}_tid{tid:04d}.npy"
+    assert refs_path.exists(), f"{refs_path} missing"
+    pl = load_plan()
+    cs = [c for c in pl["candidates"] if c["valid"] and c["tid"] == tid and c["kind"] == kind]
+    assert [{k: c.get(k) for k in META} for c in cs] == meta32["candidates"], "candidate list differs from the record"
+    assert kind in ("bg", "null"), f"c12arb is wired only for kinds without snippet files (bg, null), not {kind}"
+    sign = json.loads((L.OUT / "E1_phase_model.json").read_text())["sign"]
+    cache = {}
+
+    def series(det, gps):
+        if (det, gps) not in cache:
+            cache[(det, gps)] = L.load_ww(det, gps)
+        return cache[(det, gps)]
+    meta, arrs = c12_float64(tid, l_max, kind, cs, sign, refs_path, series, None, meta32, arrs32)
+    write_box(out, meta, arrs)
+    assert meta.get("closure_max", 0.0) <= CLOSURE_MAX, \
+        f"closure {meta['closure_max']:.2e} > {CLOSURE_MAX:g} in box {tid} {kind}: correctness gate (C12)"
 
 
 def calib(l_max):
@@ -1890,4 +2005,4 @@ if __name__ == "__main__":
     else:
         dict(plan=plan, golden=golden, prepseries=prepseries, vseries=vseries, run=run, calib=calib,
              twinexact=twinexact, k1precheck=k1precheck, k1perfect=k1perfect, k1diag=k1diag, k2select=k2select, k2run=k2run, n1=n1, checki=checki, c19check=c19check, gridstats=gridstats, hashseries=hashseries, dropseries=dropseries, remaining=remaining,
-             status=status)[cmd](*[None if v == "-" else v for v in a[2:]])
+             status=status, c12arb=c12arb)[cmd](*[None if v == "-" else v for v in a[2:]])

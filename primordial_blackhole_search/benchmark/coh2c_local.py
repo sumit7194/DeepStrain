@@ -239,7 +239,7 @@ class Engine:
     """Cuts a reference correlation to +-tw s around a candidate, shifts it to baseband, decimates it by dec, and
     evaluates any template whose phase differs from the reference by sum_j dcoef[j] basis_j(f)."""
 
-    def __init__(self, dev, tw=TW, dec=DEC):
+    def __init__(self, dev, tw=TW, dec=DEC, cdt=np.complex64, rdt=np.float32):
         import torch
         self.t, self.dev, self.tw, self.dec, self.f_c = torch, dev, tw, dec, F_SHIFT[dec]
         self.nw = int(round(2 * tw * FS))
@@ -250,11 +250,11 @@ class Engine:
         win[:ramp] = 0.5 - 0.5 * np.cos(np.pi * n[:ramp] / ramp)
         win[-ramp:] = win[:ramp][::-1]
         down = win * np.exp(-2j * np.pi * self.f_c * (n - self.nw // 2) / FS)
-        self.down = torch.tensor(down[::dec].astype(np.complex64), device=dev)
+        self.down = torch.tensor(down[::dec].astype(cdt), device=dev)   # cdt/rdt: float64 only for C12 arbitration
         self.f_abs = self.f_c + np.fft.fftfreq(self.m, d=dec / FS)
         # x0 is analytic and band-limited to [F_LO, F_HI], so bins outside the band carry (almost) nothing; the basis
         # is evaluated at a clipped frequency there only to stay finite
-        self.basis = torch.tensor(basis(np.clip(self.f_abs, 10.0, None)).astype(np.float32), device=dev)
+        self.basis = torch.tensor(basis(np.clip(self.f_abs, 10.0, None)).astype(rdt), device=dev)
         self.half = int(round(SEARCH_S * FS / dec))            # +-1 s in decimated samples
         self.lo, self.hi = self.m // 2 - self.half, self.m // 2 + self.half + 1
         t_rel = (np.arange(self.lo, self.hi) - self.m // 2) * dec / FS

@@ -951,3 +951,75 @@ realisations) → reduce → evaluate → gridstats.
 **Stop rule S2.** After L128, STOP for Sumit's word if the best R_tune over p is < 1.00, or its 90 % CI upper bound is
 < 1.15. Otherwise report and ask before L384 anyway.
 
+
+## C12a (2026-11-27, ruled by the Bridge ~19:20; committed with its code and test record before the restart): float64 arbitration of a C12 breach
+
+**Trigger.** The L128 main pass stopped at 19:18:31 on box 1227 bg. The float32 closure was 3.63e-4, over the C12 bar
+of 3e-4. It was one value of 290 in that box (candidate 17, anchor 1, L slot; the box's next largest is 8.1e-5).
+Across the 2,618 box outputs on disk, the per-box max closure is: median 3.7e-5, p99 1.5e-4, p99.9 2.6e-4. The next
+two largest are 2.93e-4 and 2.91e-4. So it is the top of a continuous float tail.
+
+**Ruling (the Bridge).** Option (a). **The bar stays at 3e-4.** A float64 recompute arbitrates. Rejected: (b),
+loosening the bar post hoc; (c), record-and-continue, which turns the gate into a log line; and dropping the candidate,
+which would bias the background.
+
+**Mechanism (`coh2t_drive.c12_float64`).**
+- On a breach, THAT box and kind is recomputed in float64 on the CPU from the same inputs: the box's reference file,
+  the same series and snippet files, and the same candidates in plan order.
+- Every tensor dtype is switched by one module-level setting (`_PREC`), and `coh2c_local.Engine` takes the same
+  dtypes. Production defaults are unchanged.
+- The float32 output is always kept in `results/coh2t/L128_c12/box_<tid>_<kind>_f32.npz`. That is outside `L128/`,
+  so no `box_*.npz` glob can see it.
+- **Float64 clears 3e-4:** the float64 output is written as the box result, and its meta carries `c12` (both
+  closures, whether the template/lag selection is the same, and the per-field float32-vs-float64 max differences).
+  The log line is `C12 float64-arbitrated`, and the run continues.
+- **Float64 also breaches:** the float32 output is written as the box result, as before. A sticky `L128_c12/C12_STOP`
+  file is written, and the C12 assert stops the run at the box boundary. `run` refuses to start while that file
+  exists.
+- **Already-breached boxes:** `c12arb <l_max> <tid> <kind>` arbitrates a box whose breaching float32 output is already
+  on disk, through the same function. It is wired for bg and null only.
+
+**Driver behaviour at restart (item 3).**
+- `todo_boxes` skips a kind whose output exists. A plain restart would therefore have passed 1227 bg silently.
+- So, before the restart: `c12arb 128 1227 bg` replaces `box_1227_bg.npz` with the float64 arbitration and keeps the
+  float32 record.
+- The queue is then relaunched as before. 1227's twin, fg, null and wrong run as normal, followed by the rest of the
+  main pass and the later steps. `calib` is write-once and has not run yet.
+
+**Tests, run before restart in scratch (`COH2T_OUTDIR`), never over the record.**
+- **(i)** Box 1227 bg, `c12arb`.
+  - Float32 3.630e-4 → float64 **2.351e-5**: cleared, with the same template and lag selection (the `tmpl`, `lag`,
+    `H_gps` and `L_gps0` arrays are identical). 423 s, footprint 2.6 GB.
+  - Largest float32-vs-float64 differences, relative to max(|·|, 1):
+
+    | Field | Max difference | Where | Elsewhere |
+    |---|---|---|---|
+    | H_rho | 1.3e-5 | — | — |
+    | H_chi2 | 3.7e-5 | — | — |
+    | L_rho | 3.8e-4 | at the tail entry | ≤ 1.45e-4 |
+    | L_chi2 | 3.9e-4 | at the tail entry | ≤ 1.28e-4 |
+
+  - The tail entry's closure goes 3.63e-4 → 9.7e-6. Every other closure moves by ≤ 8.0e-5.
+  - The float32 record is bit-identical to the original file.
+- **(ii)** Planted defects in a copy of the driver, on box 47 bg. Each is a one-line change to the H closure term.
+  - **(a)** `zh16.sum() * (1 + 1e-3)`: float32 1.006e-3, float64 1.002e-3. **Stopped**: rc 1, the box result is
+    float32 with `c12.cleared = False`, and both `_f32` and `_f64_breach` records and `C12_STOP` were written.
+  - **(c)** A rerun with the real code on the same output directory **refused**, on `C12_STOP`.
+  - **(b)** The same defect in float32 only: float32 1.006e-3, float64 6.9e-6. **Arbitrated and continued**: rc 0,
+    and the box result is float64. In-run footprint 4.0 GB, against 2.5 GB for a box without arbitration.
+- **(iii)** Boxes 9 and 694, all five kinds, recomputed on the production path (MPS, float32) with the new code:
+  **all 10 outputs have bit-identical arrays to the record**, and the meta differs only in `seconds` and
+  `peak_footprint_mb`.
+
+**Sealed expectation (item 4), written before the restart.**
+- The tail rate is 1 breach in 2,618 box outputs, so **~0.7 more breaches are expected** in the remaining 1,728
+  boxes: P(0) ≈ 52 %, P(≥ 1) ≈ 48 %, P(> 3) ≈ 0.5 %.
+- Every breach is expected to clear in float64, with float64 closures ≲ 1e-4 (box 1227: 2.4e-5).
+- Each arbitration is inform-only to the Bridge. Its inform triggers are more than 3 arbitrations, or any float64
+  closure above 1.5e-4. Neither is a stop.
+- An arbitration adds ~1.5 GB of footprint while it runs (in-run 4.0 GB in test ii-b). The group may briefly pass the
+  4.3 GB inform line; that is inform only.
+
+**Disclosure (item 5).** The L128 results carry one line: *N boxes float64-arbitrated (C12a), with their IDs (from
+`results/coh2t/L128_c12/`)*. The precision mix is disclosed. Its effect is expected to be nil: the differences are
+≤ 4e-4 relative on one box's tail entry, and ≤ 1.5e-4 elsewhere.
