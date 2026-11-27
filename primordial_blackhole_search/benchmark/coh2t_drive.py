@@ -1733,12 +1733,12 @@ def run(l_max, kinds="bg,fg", n_box=None, real=None):
                 meta, arrs = box_record(box, tid, l_max, kind, cs, res, t0)
                 if meta.get("closure_max", 0.0) > CLOSURE_MAX:      # C12a: float64 arbitration of THIS box and kind
                     meta, arrs = c12_float64(tid, l_max, kind, cs, sign, refs_path, series, target, meta, arrs)
-                done_dir.mkdir(parents=True, exist_ok=True)
-                write_box(out, meta, arrs)
-                # C12: the box is written first (on the record), then a closure breach (float64 breaching too, C12a)
-                # stops the run here
+                # C12 (sticky, C12a item 6): a breaching output is only ever on the record in c12_dir, never under the
+                # final name, so a restart cannot skip it; float64 breaching too stops the run here
                 assert meta.get("closure_max", 0.0) <= CLOSURE_MAX, \
                     f"closure {meta['closure_max']:.2e} > {CLOSURE_MAX:g} in box {tid} {kind}: correctness gate (C12)"
+                done_dir.mkdir(parents=True, exist_ok=True)
+                write_box(out, meta, arrs)
             for pth in [refs_path] + [f for c in by_box.get(tid, []) for f in extra_files(c).values()]:
                 pth.unlink(missing_ok=True)
             del box
@@ -1806,7 +1806,8 @@ def c12_float64(tid, l_max, kind, cs, sign, refs_path, series, target, meta32, a
     """C12a: recompute one breaching box and kind in float64 on the CPU from the same inputs (the box's reference file,
     the same series and snippet files, the same candidates), and arbitrate. Returns the (meta, arrays) to write as the
     box result: float64's if it clears CLOSURE_MAX, else float32's (as before C12a) with the sticky stop file written,
-    so the caller's C12 assert stops the run at the box boundary. The float32 output is always kept in c12_dir."""
+    so the caller's C12 assert stops the run at the box boundary (and writes nothing under the final name). The
+    float32 output is always kept in c12_dir, written before the recompute starts."""
     d = c12_dir(l_max)
     d.mkdir(parents=True, exist_ok=True)
     stem = f"box_{tid:04d}_{kind}"
@@ -1871,9 +1872,14 @@ def c12arb(l_max, tid, kind):
             cache[(det, gps)] = L.load_ww(det, gps)
         return cache[(det, gps)]
     meta, arrs = c12_float64(tid, l_max, kind, cs, sign, refs_path, series, None, meta32, arrs32)
-    write_box(out, meta, arrs)
+    rec = c12_dir(l_max) / f"box_{tid:04d}_{kind}_f32.npz"
+    z_rec = np.load(rec, allow_pickle=False)
+    assert all(np.array_equal(z_rec[k], arrs32[k]) for k in arrs32) and str(z_rec["meta"]) == str(z["meta"]), \
+        f"{rec} does not reproduce {out}"
+    out.unlink()                                  # C12a item 6: the breaching float32 output leaves the final name
     assert meta.get("closure_max", 0.0) <= CLOSURE_MAX, \
         f"closure {meta['closure_max']:.2e} > {CLOSURE_MAX:g} in box {tid} {kind}: correctness gate (C12)"
+    write_box(out, meta, arrs)
 
 
 def calib(l_max):

@@ -1023,3 +1023,31 @@ which would bias the background.
 **Disclosure (item 5).** The L128 results carry one line: *N boxes float64-arbitrated (C12a), with their IDs (from
 `results/coh2t/L128_c12/`)*. The precision mix is disclosed. Its effect is expected to be nil: the differences are
 ≤ 4e-4 relative on one box's tail entry, and ≤ 1.5e-4 elsewhere.
+
+**C12a additions (the Bridge, 2026-11-27 ~19:45, after the skip addendum; installed 19:53 at no box boundary, by
+atomic replace, so a sub-run already running finishes on the previous file).**
+- **Item 6: a sticky gate.**
+  - A breaching output never sits under the final name. The float32 output goes to
+    `L128_c12/box_<tid>_<kind>_f32.npz` before the recompute starts.
+  - The final `box_<tid>_<kind>.npz` is written only after the C12 assert passes: float32 unbreached, or float64
+    arbitrated.
+  - If float64 breaches too, nothing is written under the final name, and `C12_STOP` is written. So a restart can never
+    skip the box, even after `C12_STOP` is removed.
+  - `c12arb` (an already-written legacy breach) checks that its record reproduces the final file, then removes the
+    final file before writing the float64 result.
+  - Tests, run in scratch on the CPU (`COH2C_DEV=cpu`, to stay off the live run's GPU), box 47 bg:
+    - **T6a.** The planted breach in both precisions: rc 1, NO final file, with the `_f32`, `_f64_breach` and `C12_STOP`
+      files written.
+    - **T6b.** `C12_STOP` removed, standing in for a ruling, then a restart with the real code: **"1 boxes to do"**.
+      Box 47 is recomputed (NOT skipped) and written clean.
+    - **T6c.** A float32-only breach, with the driver killed (SIGTERM) during the float64 recompute: no final file;
+      the restart recomputes box 47.
+  - Can fail: the pre-item-6 code wrote the float32 result under the final name on a float64 breach. Seen in the
+    first test (ii)(a): `L128/box_0047_bg.npz` existed. So T6b would have reported 0 boxes to do.
+  - The float32 production path is changed only in the order of the assert and the write. No computation changed.
+- **Item 7: box 1227.** Already met by the 19:35 `c12arb` run.
+  - The float32 output was kept, not deleted, as `L128_c12/box_1227_bg_f32.npz`, sha256 e909a6c4… = the original
+    file.
+  - The float64 path, run from the kept reference file, wrote the final `box_1227_bg.npz` (sha256 5ac6962d…).
+  - The record lives under `L128_c12/` rather than as `L128/box_1227_bg.breach.npz`, so that no `box_*.npz` glob in
+    `L128/` can pick it up.
