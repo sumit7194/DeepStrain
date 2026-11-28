@@ -687,3 +687,32 @@ CPU float64 on ≤ 4 workers. The selection-rule question (B2/B3) is with the Br
   - **Limit:** "best" here ignores the other gates (F1/F2/P1/K1), which are not computable before the stage ends, so
     the chosen config in the real evaluation could differ.
 - Machinery: `coh2t_c12_b4.py wcbit`, which reuses `bound()`'s gated replica and WC-down construction unchanged.
+- **Result:** `clause1_of_best_changes_under_WC_down: false`, with no traceback. By the rule committed at 1ce9706 before the run, the
+  G0 clause1 verdict is **safe under the adversarial WC-down case, and no bg census is run**. Post-hoc, graded as such.
+  Only the bit was written (`results/coh2t/c12_silent/b4/wcbit.json`). The L128 resume decision is with Sumit.
+
+### 2026-11-28 ~16:05 — L128 RESUMED as registered (option A; the Bridge's decision on Sumit's delegation)
+
+- **B4 is CLOSED.** The registered reading is NEGLIGIBLE. The one-bit post-hoc check came back NO; its rule (commit
+  1ce9706, 15:47:08) predates the result (`wcbit.json`, 15:52:27).
+- **Decision:** option A, resume as registered on the Mac mini GPU + 1 core, under the pause-only guard and the
+  1 Dec 12:00 stop line. Sumit delegated it ("you can plan and coordinate, I trust you") and can still override.
+- **Conditions, written here BEFORE the resume:**
+  1. **The G0 report shows all three p (4 / 8 / 16) side by side.** The registered max-over-p stays primary, with two
+     caveats:
+     - the choice of p is not informative, because the per-p R values are within ~4 % of the CI half-width (seen
+       blind in B4 as a best-config switch under WC-down);
+     - **tie flips** (B4): rare 5th/6th H1 near-ties change the top-5 anchor between float32 and float64. 1 of 110
+       sampled bg boxes, 0 of 1,248 blind candidates. The worst case is bounded, and negligible by the registered
+       reading.
+  2. **The L384 plan** carries B3 (a tie-proof template rule) and a pre-declared single p in place of max-over-p, both
+     registered before any L384 compute.
+  3. Resume PIDs and ETA are reported. A 25 % check-in at ~8–10 GPU-h covers progress and pauses only.
+- **A resume fix, found before launching:** the queue re-runs every step, and `calib` is write-once (C6) and asserts
+  its file does not exist. Its file was written at 10:17, so a plain relaunch would have failed there and stopped the
+  queue.
+  - The queue now skips `calib` when `decoy_calibration.json` already exists, and logs that it did.
+  - Nothing else changes: `run_step` already skips finished boxes; `k2select` onward have not run yet.
+- **Still pending, approved:** the full dec_sg float64 recompute (`coh2t_c12_silent.py decsg_all`, CPU). It starts when
+  the decoys step finishes, while the GPU queue continues. Decoy arbitrations go in the daily line, under the earlier
+  count split.

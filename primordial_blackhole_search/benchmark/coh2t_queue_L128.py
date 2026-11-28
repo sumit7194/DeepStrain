@@ -62,7 +62,11 @@ def run_step(name, kinds, real="-"):
 
 if __name__ == "__main__":
     run_step("main", "bg,twin,fg,null,wrong")
-    step("calib", [DRV, "calib", "128"])
+    cal = B / "results" / "coh2t" / "L128" / "decoy_calibration.json"
+    if cal.exists():                                   # write-once (C6): already fixed by an earlier run of this queue,
+        log(f"calib: already fixed in {cal.name} (write-once), not re-run")  # and calib() refuses to overwrite it
+    else:
+        step("calib", [DRV, "calib", "128"])
     run_step("decoys", "dec_sg,dec_train,dec_drift")
     run_step("allen", "allen_off,allen_on,allen_fail")
     step("k2select", [DRV, "k2select"])
