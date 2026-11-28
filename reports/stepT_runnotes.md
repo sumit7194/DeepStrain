@@ -691,7 +691,7 @@ CPU float64 on ≤ 4 workers. The selection-rule question (B2/B3) is with the Br
   G0 clause1 verdict is **safe under the adversarial WC-down case, and no bg census is run**. Post-hoc, graded as such.
   Only the bit was written (`results/coh2t/c12_silent/b4/wcbit.json`). The L128 resume decision is with Sumit.
 
-### 2026-11-28 ~16:05 — L128 RESUMED as registered (option A; the Bridge's decision on Sumit's delegation)
+### 2026-11-28 15:53 — L128 RESUMED as registered (queue pid 82014) (option A; the Bridge's decision on Sumit's delegation)
 
 - **B4 is CLOSED.** The registered reading is NEGLIGIBLE. The one-bit post-hoc check came back NO; its rule (commit
   1ce9706, 15:47:08) predates the result (`wcbit.json`, 15:52:27).
@@ -716,3 +716,104 @@ CPU float64 on ≤ 4 workers. The selection-rule question (B2/B3) is with the Br
 - **Still pending, approved:** the full dec_sg float64 recompute (`coh2t_c12_silent.py decsg_all`, CPU). It starts when
   the decoys step finishes, while the GPU queue continues. Decoy arbitrations go in the daily line, under the earlier
   count split.
+- **Integrity of `decoy_calibration.json` across the 11:35 power cut** (the Bridge asked for this line):
+  - Now: sha256 `65d2d5a7f125ae60a327f1f976a7351c8c8ce30e2365c70cd228c0d6460804f5`, 1,106 bytes, mtime 10:17:12
+    (before the cut). target_plain 474.1227111816406, n 218.
+  - **No sha or size was recorded for it before the cut.** Two pre-cut records exist instead:
+    - (i) the queue log line written at 10:17:12: "target plain 474.1 from 218 caught injections". It matches to the
+      logged precision.
+    - (ii) stronger: the 176 dec_sg/dec_train box outputs written before the cut (184 candidates) store each
+      candidate's `extra_scale` and `extra_only_plain`. Scale² × plain reconstructs the target those boxes actually
+      used, and it equals the file's value to **4.4e-16 relative**, at every candidate.
+  - **Grade:** the content is verified against pre-cut data, but the bytes are not verified by a pre-cut hash, since
+    none exists. With the write-once assertion and the pre-cut mtime, no change after the cut is plausible.
+
+#### 16:15 — decoy flag (a): box 1580 dec_sg f64 closure 1.503e-4 (cleared); review added to the dec_sg recompute
+
+- Box 1580 dec_sg: f32 closure 70.8 → f64 1.503e-4. That is over the 1.5e-4 flag and 2× under the 3e-4 gate. It
+  cleared and the f64 output is used. Selection differs from f32; 42 s. No stop (the Bridge agreed).
+- It is the largest f64 closure of 53 arbitrations so far: 48 dec_sg, 22 with a selection change; the next largest is
+  9.3e-5.
+- **Added to the approved dec_sg full-f64 recompute** (after the decoys step, the Bridge's yes):
+  - (1) list every dec_sg box with f64 closure > 1e-4 and re-verify it; the recompute must reproduce it;
+  - (2) **POST-HOC, descriptive:** test my hypothesis that "f64 closure grows with the decoy's dynamic range". Plot
+    closure against loudness descriptors over all dec_sg boxes: f0, Q, the box's plain network value, and peak |z|.
+    Decoy amplitude itself is fixed by C6, since every dec_sg/dec_train is scaled to the same target. Labelled
+    post-hoc, no verdict attached.
+- The result goes in the daily line. The Bridge is told at once only if any box reaches the 3e-4 gate.
+- 16:21 box 1877 dec_sg: f32 3.20e-4 → f64 2.33e-4 (cleared, same selection). Float64 barely lowers the closure here,
+  so for loud decoys the closure is mostly the band-split method's own error (post-hoc reading, to be tested), and a
+  float64 breach is possible. **The Bridge ruled (1): the gate stays exactly as registered.** A decoy-only exception
+  after seeing closures approach the gate would be a post-hoc rule change. On a C12 stop the queue waits; the Bridge
+  is alerted at once with the box, both closures and its decoy amplitude.
+
+### 2026-11-28 17:14–: UNPLANNED RECOVERY STEP (approved by the Bridge): regenerate the noise series to finish the dec_sg recompute
+
+- **What happened:** the queue's registered `dropseries` step (17:13:57, before K1, C10 disk) re-hashed and deleted
+  the 48 real-noise series (`state/coh2c/ww_*.npy`). The dec_sg float64 recompute (`decsg_all`) reads them, so it
+  crashed at 107 of 192 boxes, inside the computation of box 108. Nothing was written for that box, and no production
+  file or C12_STOP was touched.
+- **Results so far (107 boxes):** 42 already-arbitrated boxes re-verified, all reproducing their stored f64
+  array-for-array. **65 non-breaching boxes: 0 selection changes** (max rel 9.3e-4). Max f64 closure 9.6e-5.
+- **KNOWN TOOL DEFECT, to fix after L128, not now:** the driver's `prepseries` cannot regenerate after `dropseries`.
+  `coh2c_local.load_ww()` runs `prep()` only when `rows_*.json` is missing, and `dropseries` keeps `rows`/`wsnip`.
+  So `prepseries` skips the prep and then fails to load the absent series. `dropseries`' message "regenerate with
+  prepseries" is untrue in this state.
+- **Refused:** calling `prep()` directly. It rewrites `wsnip_*.npy`/`rows_*.json` in place with non-atomic `np.save`
+  while K1 reads `wsnip`.
+- **Approved procedure** (`benchmark/coh2t_regen_series.py`):
+  1. **Snapshot first:** `results/coh2t/c12_silent/recovery_snapshot_1715.txt` (read-only). The 96 live wsnip/rows
+     files match the record; the 48 ww are absent.
+  2. **Regenerate:** the same `prep()`, in a child process whose STATE is the scratch dir `state/coh2c_regen/` (same
+     volume). **All three** regenerated files (ww, wsnip, rows) must equal `series_sha256.json`, else STOP.
+  3. **Move in:** only the ww file moves into `state/coh2c/`, by an atomic rename, with a no-clobber check and every
+     rename logged. The scratch duplicates are deleted, and the scratch dir is removed at the end.
+  4. **Finish:** the 85 dec_sg boxes, plus the 1580/1877 review and the post-hoc closure plot.
+  5. **Drop:** re-hash each ww against the record, then delete it (dropseries' rule, standalone; no queue marker).
+  6. **Check:** re-hash the live wsnip/rows, compare with snapshot 1715, and report.
+
+#### 17:50 — recovery COMPLETE: queue state unchanged; dec_sg fully float64; review and post-hoc findings
+
+- **Recovery chain:**
+  - regen 17:16–17:20: **48/48 series bit-identical** to `series_sha256.json`, all three files checked each time.
+    Atomic, no-clobber, logged renames; scratch dir removed.
+  - `decsg_all` finished 17:50.
+  - drop: 48 ww re-hashed, then deleted (no queue marker).
+  - check: live wsnip/rows mismatch [], ww of the 48 present 0.
+- **Snapshot comparison (vs 1715): queue state UNCHANGED.** The 100 wsnip/rows files have identical size, mtime and
+  sha256; no ww of the 48 is present; the scratch dir is gone. The two `ww_*_i*.npy` injection files (25 Nov) were in
+  the snapshot too. The only differences are the queue's own progress (k1mc_r0 8 → 463 boxes). Queue 82014 and guard
+  82015 alive; no C12_STOP.
+- **dec_sg full float64 (192 boxes):**
+  - 99 arbitrated in-run, re-verified, all reproducing their stored f64 array-for-array.
+  - **93 non-breaching: 0 selection changes** ⇒ silent-error rate on this population < 3/93 (95 %). Max rel 9.3e-4.
+  - Max f64 closure 2.33e-4 (box 1877), under the 3e-4 gate.
+  - **The decoy verdict is now read from float64 dec_sg results only.**
+- **Review, f64 closure > 1e-4 (5 boxes):**
+
+  | box | f64 closure | f32 closure | same selection |
+  |---|---|---|---|
+  | 1877 | 2.33e-4 | 3.2e-4 | yes |
+  | 3138 | 1.94e-4 | 2.1e-3 | yes |
+  | 1580 | 1.50e-4 | 70.8 | NO |
+  | 2831 | 1.24e-4 | 4.3e-2 | yes |
+  | 2337 | 1.23e-4 | 1.4e-4 | yes |
+
+  All 5 are re-verified by the recompute and all under the gate. Decoy amplitude: 1580's calibration scale is
+  3.05e9, 1877's is 54.8.
+- **POST-HOC (hypothesis formed after box 1580; descriptive only, no verdict):**
+  - (a) f64 closure vs loudness descriptors, n = 192 (Spearman): decoy f0 −0.26 (p 3e-4; lower f0 gives larger
+    closure); box peak H1 |z|² +0.16 (p 0.03); Q −0.01; plain network +0.09 (n.s.); scale +0.03.
+    ⇒ "closure grows with dynamic range" is only weakly supported. The clearer association is with low decoy
+    frequency. Plot: `results/coh2t/c12_silent/decsg_closure_posthoc.png`.
+  - (b) **Stronger, also post-hoc: float32 failure tracks the C6 calibration SCALE.** Share of boxes arbitrated in-run:
+    - dec_sg: 1/51 (2 %) at scale ≤ 1e2, 39/81 (48 %) at 1e2–1e6, **59/60 (98 %) above 1e6**;
+    - dec_train: 0/147 at ≤ 1e2, 21/46 at 1e2–1e6;
+    - dec_drift: 0/191.
+
+    Scales reach 1.05e10, where the decoy-only plain value is ~1e-17. Reading: a decoy the analysis barely sees
+    (outside the snippet, or out of band) is scaled by up to 1e10 to reach the C6 target, which creates an extreme
+    dynamic range.
+  - **For the L384 plan, not now:** whether C6 should cap the scale, or place decoys inside the analysed window, is a
+    design question for the decoy gate's realism. Recorded, not acted on.
+- **Known tool defect** (repeat): `prepseries` cannot regenerate after `dropseries`; fix after L128.
