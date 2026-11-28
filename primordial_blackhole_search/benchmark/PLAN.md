@@ -44,7 +44,8 @@ Splits:
 - Participants may use any other public data, except the test GPS ranges.
 
 **Storage:** strain is kept as float32 `.npy` (64 MB per detector-segment, about 4.1 GB in total). The download is
-about 3 GB, one file at a time. Every file's sha256 is recorded in the manifest.
+about 3 GB, one file at a time. *(Correction, v1.0.1: the download is 8.3 GB, the sum of the 64 files' sizes in
+results/verify_published.json.)* Every file's sha256 is recorded in the manifest.
 
 **Foreground:**
 - K = 8 injection realizations of the test set;
@@ -75,7 +76,8 @@ merger only to tens of seconds, so ±1 s would score timing rather than detectio
 **Evaluator outputs:**
 - FAR(stat) from the background;
 - sensitive volume and distance vs FAR on the foreground;
-- an efficiency-vs-optimal-network-SNR curve (with SNR50) per mass bin, so results are comparable with this repo's
+- *(Not built; noted in v1.0.1: evaluate.py reports found fraction, sensitive volume and distance per FAR only.)*
+  an efficiency-vs-optimal-network-SNR curve (with SNR50) per mass bin, so results are comparable with this repo's
   past numbers.
 
 ## Yardsticks (all three reported, all with their caveats)

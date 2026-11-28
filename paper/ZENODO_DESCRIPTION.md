@@ -20,7 +20,8 @@ Nothing here is uploaded until the Bridge has read it and Sumit has said yes.
 ## Related identifiers
 | Relation | Identifier | What |
 |---|---|---|
-| isSupplementedBy | 10.5281/zenodo.24399603 (DOI) | DeepStrain software, release longchirp-v1.0.0 (code, data definition, results) |
+| isSupplementedBy | DOI of longchirp-v1.0.1 (to be minted) | DeepStrain software, release longchirp-v1.0.1: code, data definition, results, bootstrap script |
+| isSupplementedBy | 10.5281/zenodo.24399603 (DOI) | DeepStrain software, release longchirp-v1.0.0 (the version the paper's corrections refer to) |
 | references | 10.1103/PhysRevD.107.023021 (DOI) | Schäfer et al., MLGWSC-1 |
 | references | 10.3847/1538-4365/acdc9f (DOI) | GWOSC O3 open-data release |
 | references | 10.1103/PhysRevLett.129.061104 (DOI) | LVK, O3a subsolar-mass search |
@@ -67,7 +68,8 @@ its own result files.
 - O3a H1/L1 only, non-spinning signals only.
 - The bank is not a fully coherent search.
 - One machine.
-- The bootstrap script behind the ratio interval is not in the release.
+- Release v1.0.0 lacked the bootstrap script behind the ratio interval. v1.0.1 adds it, rebuilt, and it reproduces
+  the committed output byte for byte.
 
 No detection or rate limit is claimed.
 

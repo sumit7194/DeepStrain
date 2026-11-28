@@ -1,7 +1,8 @@
 # LongChirp preprint: record bundle (DRAFT)
 
 A short paper and a plain summary describing the LongChirp benchmark as released in DeepStrain `longchirp-v1.0.0`
-(software DOI [10.5281/zenodo.24399603](https://doi.org/10.5281/zenodo.24399603)). The paper covers only what that
+(software DOI [10.5281/zenodo.24399603](https://doi.org/10.5281/zenodo.24399603)), with the documentation corrections
+and bootstrap script of `longchirp-v1.0.1` (DOI to be added when minted). The paper covers only what that
 release contains and verified. Work in progress after the release is not included.
 
 | File | What it is |

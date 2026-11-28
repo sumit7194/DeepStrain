@@ -47,8 +47,9 @@ longer signals and named subsolar-mass black holes as a case. LongChirp provides
 that regime: minutes-long SSM inspirals in real O3a noise, scored with MLGWSC-1's conventions, with three reference
 results (``yardsticks'') measured on the same data.
 
-This paper describes the benchmark as released in version 1.0.0 of the DeepStrain repository \cite{deepstrain}, its
-three yardsticks, and how each part was checked. It makes no detection claim and sets no astrophysical rate limit.
+This paper describes the benchmark as released in version 1.0.0 of the DeepStrain repository \cite{deepstrain}, with
+the documentation corrections and the bootstrap script added in version 1.0.1 \cite{deepstrain101}, its three
+yardsticks, and how each part was checked. It makes no detection claim and sets no astrophysical rate limit.
 
 \section{The benchmark}
 \paragraph{Data.} Thirty-two segments of 4096\,s, sampled at 4096\,Hz, from the GWOSC O3a release \cite{gwosc_o3}:
@@ -215,7 +216,8 @@ segments give a lowest recovery of 0.76, slightly below the ``$\geq 0.77$'' quot
 (ii)~``Windowed within $3\times10^{-6}$'' should read $3.2\times10^{-6}$; ``GPU within $3.5\times10^{-5}$'' is from a
 coarse smoke run, and the full runs give $2.7\times10^{-5}$.
 (iii)~The Y1/Y2 bootstrap output is committed, but the script that produced it is not, and the file does not record
-the resample count (2,000 per RESULTS).
+the resample count (2,000 per RESULTS). Version 1.0.1 adds a script rebuilt from the documented design; it reproduces
+the committed output byte for byte, which also recovered the random seed and order the original used.
 (iv)~The PLAN promised an efficiency curve against optimal SNR; the evaluator does not produce one. The PLAN's
 ``download about 3\,GB'' is stale (8.3\,GB).
 (v)~The README's ``PSD estimate adds about 1.6\,GB per segment'' comes from a different measurement from the committed
@@ -224,9 +226,10 @@ check, which shows 1.08\,GB between the two paths.
 \section{Reproducibility}
 Environment of the published numbers: macOS 27.2 on arm64 with the Apple GPU, Python 3.12.13, numpy 2.4.6, scipy
 1.17.1, torch 2.12.0, PyCBC 2.10.0 \cite{pycbc_soft}, gwpy 4.0.1, LAL 7.7.1; the exact package set is
-\texttt{primordial\_blackhole\_search/requirements-lock.txt}. From a clean checkout of tag \texttt{longchirp-v1.0.0}:
-build the environment, fetch the data (about 8.3\,GB downloaded one file at a time, about 4.1\,GB kept), then run
-\texttt{golden\_evaluate.py}, \texttt{golden\_injection.py} and \texttt{evaluate.py} on a submission. Y2's submission is
+\texttt{primordial\_blackhole\_search/requirements-lock.txt}. From a clean checkout of tag \texttt{longchirp-v1.0.1}
+\cite{deepstrain101} (results identical to v1.0.0): build the environment, fetch the data (about 8.3\,GB downloaded one
+file at a time, about 4.1\,GB kept), then run \texttt{golden\_evaluate.py}, \texttt{golden\_injection.py} and
+\texttt{evaluate.py} on a submission; \texttt{bootstrap\_y1\_y2.py --check} reproduces the ratio intervals. Y2's submission is
 committed; Y1's is regenerated from the committed per-segment maxima. Recorded run times: Y1 background 28.3\,h
 (3,235 templates over 24 segments), Y1 foreground about 4.5\,h. A claim-by-claim guide with expected outputs is in
 \texttt{paper/REFEREE\_GUIDE.md}.
@@ -277,6 +280,7 @@ astrophysics, Phys. Rev. D 97, 044039 (2018), \href{https://doi.org/10.1103/Phys
 Phys. Rev. D 107, 023021 (2023), \href{https://doi.org/10.1103/PhysRevD.107.023021}{doi:10.1103/PhysRevD.107.023021}.
 \bibitem{deepstrain} S. Pal, DeepStrain: deep-learning searches of public LIGO/Virgo data for black-hole signatures,
 version longchirp-v1.0.0, Zenodo (2026), \href{https://doi.org/10.5281/zenodo.24399603}{doi:10.5281/zenodo.24399603}.
+\bibitem{deepstrain101} S. Pal, DeepStrain, version longchirp-v1.0.1, Zenodo (2026), DOI to be added when minted.
 \bibitem{gwosc_o3} R. Abbott et al. (LIGO Scientific, Virgo and KAGRA Collaborations), Open data from the third
 observing run of LIGO, Virgo, KAGRA, and GEO, Astrophys. J. Suppl. Ser. 267, 29 (2023),
 \href{https://doi.org/10.3847/1538-4365/acdc9f}{doi:10.3847/1538-4365/acdc9f}.

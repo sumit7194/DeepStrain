@@ -2,8 +2,9 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24399602.svg)](https://doi.org/10.5281/zenodo.24399602)
 
-Release `longchirp-v1.0.0`: DOI [10.5281/zenodo.24399603](https://doi.org/10.5281/zenodo.24399603) (this version);
-[10.5281/zenodo.24399602](https://doi.org/10.5281/zenodo.24399602) resolves to the latest version.
+Release `longchirp-v1.0.1`: DOI to be added when minted (this version). `longchirp-v1.0.0`:
+[10.5281/zenodo.24399603](https://doi.org/10.5281/zenodo.24399603). [10.5281/zenodo.24399602](https://doi.org/10.5281/zenodo.24399602)
+resolves to the latest version. What changed in v1.0.1: [below](#changes-in-v101).
 
 **In one line:** a fixed set of real LIGO O3a data with known simulated signals hidden in it, a fixed way of
 measuring false alarms, and a scoring script — so that a new search method (machine learning or otherwise) can be
@@ -60,7 +61,8 @@ hide its cost. Report your result at your own `var` **and** at `--fixed-var 1.0`
 Chirp distances; found fractions in brackets. Chance-match bound: Y2 at its own var 5×10⁻⁴ (1/day) and 7×10⁻⁵
 (1/week); every ±1 s entry below 3×10⁻⁵.
 
-**Y1 / Y2 distance ratio**, paired bootstrap over injections (2,000 resamples, 90% CI):
+**Y1 / Y2 distance ratio**, paired bootstrap over injections (2,000 resamples, 90% CI;
+[bootstrap_y1_y2.py](bootstrap_y1_y2.py), which reproduces results/y1_vs_y2_bootstrap.json byte for byte with `--check`):
 
 | FAR | Y2 at its own var | both at ±1 s |
 |---|---|---|
@@ -78,15 +80,22 @@ second. Both reach only about **one third of the ideal distance**: that is the r
   segment's PSD, band [40, 1024] Hz. A ceiling, not a pipeline: it has no background and no threshold, so it is
   quoted at fixed SNR thresholds.
 - **Y1** ([y1_bank.py](y1_bank.py)): the bank previously shown adequate in this project (0.05% chirp-mass spacing;
-  doubling the density changes the result by ≤3%). For background, every template is run over every whole H1 and
+  against a half-density bank the sensitive-distance fraction differs by +1.1%, −2.5% and −2.2% in three mass bins,
+  ../results/bank_adequacy_bank_dense_s0.0005.json, an earlier window-based test). For background, every template is run over every whole H1 and
   L1 series and the running maximum is kept in 62.5-ms bins. For foreground, only windows of ±2 s around each
   injection are filtered. Network statistic √(n_H1² + n_L1²); triggers clustered at 1 s; time = template end =
   merger, so var = 1 s. Dev-only golden tests check four things:
-  - GPU against a float64 reference: within 3.5×10⁻⁵;
-  - windowed against whole-series filtering: within 3×10⁻⁶;
+  - GPU against a float64 reference: within 2.7×10⁻⁵ (results/y1_golden_confirm.json; v1.0.0 quoted 3.5×10⁻⁵, which
+    is from a coarse smoke run);
+  - windowed against whole-series filtering: within 3.2×10⁻⁶ (v1.0.0 said 3×10⁻⁶);
   - template whitening against the repo's reference function: exact;
-  - recovery of loud dev injections within 59 ms at ≥ 0.77 of their optimal SNR, on held-out dev segments under a
-    rule fixed before the test.
+  - recovery of loud dev injections: every injection with optimal network SNR ≥ 10 found within 1 s at ≥ 0.7 of its
+    optimal SNR. **History:** a first version passed vacuously, and a second, which called an injection loud when its
+    chirp distance was below 70 Mpc, FAILED (results/y1_golden.json, `pass: false`), because chirp distance ignores
+    orientation. The rule was changed after that failure to the SNR rule above and confirmed on two dev segments not
+    used before: all 5 loud injections recovered at 0.77–0.91 of optimal SNR within 59 ms
+    (results/y1_golden_confirm.json). Under the final rule the first two dev segments give 0.76–1.02. v1.0.0 called
+    the rule "fixed before the test" without this history.
 - **Y2** ([y2_cnn.py](y2_cnn.py)): the project's CNN, slid over each segment in 1-s steps and summed across
   detectors at the same time index. Triggers are clustered at 64 s. Trigger time and tolerance come from the
   **dev segments only**: the median offset of its score peak from the merger (5.7 s) and the largest deviation plus
@@ -116,8 +125,9 @@ second. Both reach only about **one third of the ideal distance**: that is the r
    not help at these masses).
 7. **Waveform convention.** pycbc's time-domain TaylorF2 returns 5.000 s of samples after coalescence. Injections
    here are placed by their true merger time; if you build templates with pycbc, cut them at t_c.
-8. **Memory (practical).** pycbc's PSD estimate adds ~1.6 GB per 4096-s segment; `lowmem_psd.py` is a numpy
-   equivalent, identical to 5×10⁻¹⁰. pycbc's waveform generation keeps memory per new waveform length and does not
+8. **Memory (practical).** pycbc's PSD estimate added ~1.6 GB per 4096-s segment in the Y0 run (RESULTS.md); in the
+   committed check (results/lowmem_psd_check.json) the pycbc path peaked 1.08 GB above `lowmem_psd.py`, a numpy
+   equivalent identical to 5×10⁻¹⁰. pycbc's waveform generation keeps memory per new waveform length and does not
    return it (standalone reproduction: `pycbc_leak_repro.py`), so build many injections in short-lived processes.
    Exact peaks of our own runs are in RESULTS.md.
 9. **Validated range and what is not checked.** The numbers hold for this population (non-spinning TaylorF2,
@@ -125,6 +135,22 @@ second. Both reach only about **one third of the ideal distance**: that is the r
    Apple GPU). Not checked: results on Linux or other GPUs (expect agreement to float32 precision, not bitwise);
    sensitivity to the choice of the 24 test segments beyond the bootstrap; and any signal model other than the one
    injected.
+10. **Two uses of a test segment.** The injection-path golden test (`golden_injection.py`) and the choice to raise
+   the chirp-distance cap from 300 to 500 Mpc used test segment 1249001472. Neither tuned a search statistic, but
+   the rule below ("tune nothing on the test segments") was not followed to the letter.
+
+## Changes in v1.0.1
+
+Documentation and reproducibility only. The data definition, injections, evaluator and every result are unchanged.
+- **Added** [bootstrap_y1_y2.py](bootstrap_y1_y2.py), the Y1/Y2 bootstrap that v1.0.0 committed the output of but not
+  the script. It was rebuilt from the documented design and reproduces results/y1_vs_y2_bootstrap.json byte for byte
+  (`--check`).
+- **Corrected** the Y1 golden description, with the failed first rule and its replacement; two tolerances (2.7×10⁻⁵,
+  3.2×10⁻⁶); the bank-density sentence; and the PSD-memory figure.
+- **Added** caveat 10, the two uses of a test segment.
+- **PLAN.md:** marked the stale "about 3 GB" download (it is 8.3 GB) and the efficiency-vs-SNR curve, which was planned
+  but never built.
+- These corrections came from writing the LongChirp preprint against the committed result files.
 
 ## How to use it
 

@@ -1,8 +1,9 @@
 # Referee guide: LongChirp preprint, claim by claim
 
 Each claim in `longchirp_preprint.pdf` maps to the file that holds its number, the command that regenerates it, and
-the expected output. All paths are relative to `primordial_blackhole_search/` at git tag `longchirp-v1.0.0` (commit
-`492d35270ec87a656fcf4de43ccfce564ed2a849`, software DOI 10.5281/zenodo.24399603).
+the expected output. All paths are relative to `primordial_blackhole_search/` at git tag `longchirp-v1.0.1` (DOI to be added when
+minted). Its results are identical to `longchirp-v1.0.0` (commit `492d35270ec87a656fcf4de43ccfce564ed2a849`, DOI
+10.5281/zenodo.24399603); v1.0.1 adds the bootstrap script and corrects documentation.
 
 **Run times.** A run time is given only where the release recorded one, on macOS arm64 with the Apple GPU. "Not
 recorded" means it was never timed. It does not mean it is slow.
@@ -18,7 +19,7 @@ Do not run `discover`.
 | 3 | Y2: 48.4 Mpc (7.1 %) / 46.2 Mpc (6.7 %) at its own var 20.2 s; thresholds 7.88 / 9.77 | `benchmark/results/y2_eval_own.json` | `benchmark/evaluate.py benchmark/submissions/y2` (the submission is committed) | `chirp_distance_mpc` 48.354194379119384 / 46.225956922574156 | not recorded |
 | 4 | Y2 at ±1 s: 25.5 / 25.4 Mpc | `benchmark/results/y2_eval_fixed1.json` | `evaluate.py benchmark/submissions/y2 --fixed-var 1.0` | 25.539495985400656 / 25.397022820039624 | not recorded |
 | 5 | Y0: 154.6 / 124.1 / 103.8 Mpc at network SNR ≥ 8 / 10 / 12 | `benchmark/results/oracle_snr.csv` + `benchmark/injections.csv` | `paper/make_figure.py` recomputes them (function `y0`). No release script prints the distances | 154.632…, 124.063…, 103.772… (330, 265, 221 found) | seconds |
-| 6 | Y1/Y2 ratio 1.19 [1.10, 1.29] at 1/day, 1.12 [1.05, 1.20] at 1/week; ±1 s: 2.25, 2.04; 111 vs 96 found, 93 common | `benchmark/results/y1_vs_y2_bootstrap.json` | **not reproducible from the release:** the bootstrap script is not committed (paper, correction iii) | the stored JSON | — |
+| 6 | Y1/Y2 ratio 1.19 [1.10, 1.29] at 1/day, 1.12 [1.05, 1.20] at 1/week; ±1 s: 2.25, 2.04; 111 vs 96 found, 93 common | `benchmark/results/y1_vs_y2_bootstrap.json` | `benchmark/bootstrap_y1_y2.py --check` (v1.0.1; needs the regenerated Y1 submission) | `bootstrap reproduces y1_vs_y2_bootstrap.json byte for byte: True` | not recorded |
 | 7 | 27.3 days of background; 1/day = 28th-loudest, 1/week = 4th; 1/month unreachable (0.90 events) | `y1_eval_own.json` (`background_livetime_days` = 27.30666666666667) | `evaluate.py` | as stored | — |
 | 8 | Evaluator golden E1–E5 pass (perfect detector within 3σ; blind = 0; 27 above threshold; clustering; var rule) | `benchmark/results/golden_evaluate.json` | `benchmark/golden_evaluate.py` | `"pass": true` | not recorded (synthetic data only) |
 | 9 | Injection path vs PyCBC: SNR to ≤ 9×10⁻¹⁰, merger within 0.30 ms, recovery within 2 of optimal | `benchmark/results/golden_injection.json` | `benchmark/golden_injection.py 1249001472` | `"pass": true`, `rel_err` ~8–9×10⁻¹⁰ | not recorded |
@@ -34,8 +35,8 @@ Do not run `discover`.
 | 19 | Figure 1 | `paper/fig_distances.pdf` | `paper/make_figure.py` (reads the tag through `git show`) | the same figure | seconds |
 
 ## Where to look hardest
-- **#6 is not reproducible from the release as it stands.** The bootstrap script is missing. A referee who needs it
-  should ask for it; it belongs in the next release.
+- **#6:** v1.0.0 committed the bootstrap output without its script. v1.0.1 adds a rebuilt script that reproduces
+  the output byte for byte. The seed and order were recovered by search, not from a record.
 - **#13 / #12:** the Y1 recovery rule was changed after a failure and confirmed on other development segments. Judge
   whether that confirmation is adequate.
 - **#9** and the choice of the 500 Mpc chirp-distance cap used test segment 1249001472. Neither tuned a search
