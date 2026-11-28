@@ -143,8 +143,10 @@ second. Both reach only about **one third of the ideal distance**: that is the r
 
 Documentation and reproducibility only. The data definition, injections, evaluator and every result are unchanged.
 - **Added** [bootstrap_y1_y2.py](bootstrap_y1_y2.py), the Y1/Y2 bootstrap that v1.0.0 committed the output of but not
-  the script. It was rebuilt from the documented design and reproduces results/y1_vs_y2_bootstrap.json byte for byte
-  (`--check`).
+  the script. The original script and its random seed were not preserved. The new script was rebuilt from the
+  documented design. Its seed and the order of its draws over the four comparisons were **recovered by search**:
+  seeds 0–499 × all 24 orders, and exactly one combination reproduces all four intervals. With them it reproduces
+  results/y1_vs_y2_bootstrap.json byte for byte (`--check`).
 - **Corrected** the Y1 golden description, with the failed first rule and its replacement; two tolerances (2.7×10⁻⁵,
   3.2×10⁻⁶); the bank-density sentence; and the PSD-memory figure.
 - **Added** caveat 10, the two uses of a test segment.
