@@ -817,3 +817,14 @@ CPU float64 on ≤ 4 workers. The selection-rule question (B2/B3) is with the Br
   - **For the L384 plan, not now:** whether C6 should cap the scale, or place decoys inside the analysed window, is a
     design question for the decoy gate's realism. Recorded, not acted on.
 - **Known tool defect** (repeat): `prepseries` cannot regenerate after `dropseries`; fix after L128.
+- **The Bridge's placements of post-hoc (b) (~18:00):**
+  1. **L128, registered and unchanged:** it goes in the G0 report's caveat list as DESCRIPTIVE: "Some decoys are
+     scaled by up to ~1e10 to reach the C6 target, creating extreme dynamic range; decoy realism at these scales is
+     unassessed." The registered decoy rule stays as is.
+  2. **L384 plan:** a decoy-realism item (cap the scale, or place decoys in-window), registered before any L384 compute,
+     next to B3 and the single pre-declared p.
+- **G0 report caveat list so far:**
+  - (i) all three p side by side; the choice of p is not informative;
+  - (ii) the rare top-5 tie flips (B4), bounded, negligible by the registered reading;
+  - (iii) decoys scaled by up to ~1e10 (descriptive);
+  - (iv) n arbitrated boxes, with IDs listed from `L128_c12/` (disclosure line).
