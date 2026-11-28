@@ -1,0 +1,61 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=2cm]{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage{enumitem}
+\setlist{itemsep=1pt,topsep=2pt}
+\pagestyle{empty}
+\begin{document}
+\begin{center}
+{\Large\bfseries LongChirp in one page}\\[2pt]
+A test bench for finding very long, faint gravitational-wave chirps in real detector noise\\[2pt]
+Sumit Pal, independent researcher (AI-assisted work) \quad Draft, 28 November 2026
+\end{center}
+
+\paragraph{The question.} If two black holes lighter than the Sun orbit each other and merge, they send out a faint
+``chirp'' of gravitational waves. No star can make black holes that light, so finding one would point to something
+new, such as black holes formed in the early universe. Their chirps last minutes in the LIGO detectors, not seconds,
+and searching for them is expensive. Machine-learning searches are a cheaper idea, but they have mostly been tested on
+short chirps: the main shared test so far used chirps of at most about 20 seconds.
+
+\paragraph{What we built.} A fixed test, like an exam with an answer key:
+\begin{itemize}
+\item 27 hours of real LIGO data from 2019 (from the public Gravitational Wave Open Science Center);
+\item 1,344 simulated chirps hidden in it at known times and distances;
+\item 27 days of ``fake'' data, made by shifting the two detectors against each other, to measure how often noise
+alone looks like a signal;
+\item a scoring program: hand it a list of candidate detections and it says how far away a method can see, at a
+fixed false-alarm rate (one false alarm per day, or per week).
+\end{itemize}
+
+\paragraph{What we found.} Three reference results, scored the same way:
+\begin{itemize}
+\item an ideal method that knows every hidden chirp's exact shape sees out to about 155 megaparsecs;
+\item a standard template-matching search (3,235 templates) sees 57.5 megaparsecs at one false alarm per day;
+\item a neural network sees 48.4 megaparsecs, and only 25.5 if it must say when each merger happened to within a
+second.
+\end{itemize}
+So template matching beats the neural network by 12--19\% in distance, and both reach only about a third of what is
+possible. That gap is the room a new method can try to win.
+
+\paragraph{How it was checked.} The scoring program was tested on made-up answers where the right score is known.
+The way chirps are added was checked against PyCBC, a standard tool of the field. Every downloaded data file was
+checked against the numbers the data centre publishes. The checks found real problems along the way, which are
+recorded rather than hidden: a waveform tool returns 5 seconds of data after each merger, which our first version
+did not expect; one of our own tests failed once and was redone properly; and memory that a widely used package keeps
+and never returns was reported to its developers.
+
+\paragraph{What we do not claim.}
+\begin{itemize}
+\item We did not find any real signal, and we set no limit on how many such black holes exist.
+\item Our template search is not the best the field can do; professional searches use millions of templates.
+\item The results come from one stretch of 2019 data, two detectors, and one simple kind of signal (no spin).
+\item Only one set of background data was used, so the error bars leave out some uncertainty.
+\item The work was done with substantial help from AI models (Anthropic's Claude), which wrote most of the code under
+the author's direction. It has been checked by automated tests and by a separate AI session, not by an outside
+expert.
+\end{itemize}
+
+\paragraph{Where to look.} Paper: \texttt{longchirp\_preprint.pdf}. Code and data definition: DeepStrain release
+\texttt{longchirp-v1.0.0}, \href{https://doi.org/10.5281/zenodo.24399603}{doi:10.5281/zenodo.24399603}.
+Claim-by-claim checks: \texttt{REFEREE\_GUIDE.md}.
+\end{document}
