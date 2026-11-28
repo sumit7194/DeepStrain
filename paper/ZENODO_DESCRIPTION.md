@@ -1,26 +1,27 @@
-# Zenodo record (DRAFT, not published): LongChirp preprint
+# Zenodo record: LongChirp preprint (DOI 10.5281/zenodo.24623652, reserved; registered when the Bridge publishes)
 
-Nothing here is uploaded until the Bridge has read it and Sumit has said yes.
+Sumit approved the release and CC BY 4.0 on 2026-11-28 (relayed by the Bridge). The Bridge uploads and publishes.
 
 ## Metadata
 - **Resource type:** Publication / Preprint
 - **Title:** LongChirp: an AI-assisted benchmark for searches of minutes-long subsolar-mass inspirals in real LIGO noise
 - **Author:** Sumit Pal, Independent researcher, ORCID 0009-0000-9541-2793
 - **Publication date:** set on upload
-- **Version:** preprint v1 (describes software release `longchirp-v1.0.0`)
+- **Version:** preprint v1 (describes software release `longchirp-v1.0.0` and its corrections in `longchirp-v1.0.1`)
 - **Language:** English
-- **License (proposal, Sumit to confirm):** Creative Commons Attribution 4.0 International (CC BY 4.0), for the
+- **License (approved by Sumit, 2026-11-28):** Creative Commons Attribution 4.0 International (CC BY 4.0), for the
   paper text and figure. The code stays MIT in the software record.
 - **Keywords:** gravitational waves; LIGO; subsolar-mass binaries; primordial black holes; matched filtering; machine
   learning; convolutional neural network; benchmark; time-slide background; MLGWSC-1; GWOSC
 - **Files (previewed first):** `longchirp_preprint.pdf` (set as the default preview), `SUMMARY.pdf`,
-  `REFEREE_GUIDE.md`, `README.md`, `SHA256SUMS.txt`. Upload these as separate files, not a ZIP: a ZIP is what makes
+  `REFEREE_GUIDE.md`, `README.md`, `longchirp_preprint.tex`, `SUMMARY.tex`, `make_figure.py`, `fig_distances.pdf`,
+  `SHA256SUMS.txt`. Upload these as separate files, not a ZIP: a ZIP is what makes
   the current records show "Too many files inside the ZIP file" instead of a preview.
 
 ## Related identifiers
 | Relation | Identifier | What |
 |---|---|---|
-| isSupplementedBy | DOI of longchirp-v1.0.1 (to be minted) | DeepStrain software, release longchirp-v1.0.1: code, data definition, results, bootstrap script |
+| isSupplementedBy | 10.5281/zenodo.24623628 (DOI) | DeepStrain software, release longchirp-v1.0.1: code, data definition, results, bootstrap script |
 | isSupplementedBy | 10.5281/zenodo.24399603 (DOI) | DeepStrain software, release longchirp-v1.0.0 (the version the paper's corrections refer to) |
 | references | 10.1103/PhysRevD.107.023021 (DOI) | Schäfer et al., MLGWSC-1 |
 | references | 10.3847/1538-4365/acdc9f (DOI) | GWOSC O3 open-data release |

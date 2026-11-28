@@ -1,8 +1,8 @@
 # Referee guide: LongChirp preprint, claim by claim
 
 Each claim in `longchirp_preprint.pdf` maps to the file that holds its number, the command that regenerates it, and
-the expected output. All paths are relative to `primordial_blackhole_search/` at git tag `longchirp-v1.0.1` (DOI to be added when
-minted). Its results are identical to `longchirp-v1.0.0` (commit `492d35270ec87a656fcf4de43ccfce564ed2a849`, DOI
+the expected output. All paths are relative to `primordial_blackhole_search/` at git tag `longchirp-v1.0.1` (DOI
+10.5281/zenodo.24623628). Its results are identical to `longchirp-v1.0.0` (commit `492d35270ec87a656fcf4de43ccfce564ed2a849`, DOI
 10.5281/zenodo.24399603); v1.0.1 adds the bootstrap script and corrects documentation.
 
 **Run times.** A run time is given only where the release recorded one, on macOS arm64 with the Apple GPU. "Not
